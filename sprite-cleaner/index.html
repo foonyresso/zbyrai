@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprite Sheet Cleaner: чистильник спрайт-листів</title>
+<meta name="description" content="Прибери фон зі спрайт-листа (наприклад, згенерованого ШІ), наріж на спрайти автоматично або по сітці, зменш палітру й збери атлас PNG + JSON. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/sprite-cleaner/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Sprite Sheet Cleaner: чистильник спрайт-листів">
+<meta property="og:description" content="Фон геть, спрайти окремо, палітра менша, атлас у PNG + JSON. Усе в браузері.">
+<meta property="og:url" content="https://zbyrai.pages.dev/sprite-cleaner/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M7 7h8v8H7zM17 7h8v8h-8zM7 17h8v8H7z%27 fill=%27none%27 stroke=%27%23e6c14a%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5h7v7h-7zM13.5 3.5h7v7h-7zM3.5 13.5h7v7h-7z"/><path d="M14 17h6.5M17.25 13.75v6.5"/></svg>
+    <div>Sprite Sheet <span>Cleaner</span></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="top-note">Усе рахується у вашому браузері</div>
+</header>
+
+<main class="wrap">
+  <section class="stage" aria-label="Спрайт-лист">
+    <div class="stage-h">
+      <button id="btnPick">Обрати файл…</button>
+      <button id="btnPaste" title="Вставити зображення з буфера (Ctrl+V)">Вставити</button>
+      <button id="btnDemo">Демо</button>
+      <input type="file" id="file" accept="image/*" hidden>
+      <span class="spacer"></span>
+      <label class="chk"><input type="checkbox" id="cBoxes" checked><span>Рамки спрайтів</span></label>
+      <label class="ctl-inline">Масштаб <select id="selZoom"><option value="0">Вмістити</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select></label>
+    </div>
+    <div class="canvaswrap" id="wrap"><canvas id="cv" aria-label="Спрайт-лист із рамками"></canvas><div class="dropmask">Відпустіть, щоб завантажити</div></div>
+    <p class="hint" id="info">Перетягніть картинку сюди, вставте через Ctrl+V або натисніть «Демо».</p>
+  </section>
+
+  <aside class="side">
+    <div class="card">
+      <h2><span class="n">1</span> Фон</h2>
+      <label class="chk"><input type="checkbox" id="bgOn" checked><span>Прибрати фон</span></label>
+      <div class="row2">
+        <input type="color" id="bgColor" value="#00ff00" aria-label="Колір фону">
+        <button id="btnEye" title="Клікніть по картинці, щоб взяти колір фону">Піпетка</button>
+        <button id="btnAuto" title="Колір по краях картинки">Авто</button>
+      </div>
+      <label class="ctl"><span>Допуск</span><output id="oTol"></output><input type="range" id="rTol" min="0" max="60" step="1"></label>
+      <label class="ctl"><span>М'який край</span><output id="oFea"></output><input type="range" id="rFea" min="0" max="30" step="1"></label>
+      <label class="ctl"><span>Режим</span><select id="selMode"><option value="flood">Лише зовнішній фон (з краю)</option><option value="global">Усі пікселі цього кольору</option></select></label>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span> Нарізка</h2>
+      <label class="ctl"><span>Спосіб</span><select id="selSlice"><option value="auto">Автоматично (знайти спрайти)</option><option value="grid">Сітка</option><option value="none">Без нарізки</option></select></label>
+      <div id="boxAuto">
+        <label class="ctl"><span>Зливати частини ближче ніж</span><output id="oGap"></output><input type="range" id="rGap" min="0" max="24" step="1"></label>
+        <label class="ctl"><span>Ігнорувати плями менше ніж</span><output id="oMin"></output><input type="range" id="rMin" min="1" max="200" step="1"></label>
+      </div>
+      <div id="boxGrid" hidden>
+        <div class="row2"><label class="num">Стовпчиків <input type="number" id="nCols" min="1" max="64"></label><label class="num">Рядків <input type="number" id="nRows" min="1" max="64"></label></div>
+        <label class="chk"><input type="checkbox" id="cTrim"><span>Обрізати порожні краї кожного спрайта</span></label>
+      </div>
+      <p class="hint" id="sliceInfo"></p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span> Палітра</h2>
+      <label class="ctl"><span>Кольорів (0 = не чіпати)</span><output id="oPal"></output><input type="range" id="rPal" min="0" max="64" step="1"></label>
+      <div class="swatches" id="swatches"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span> Експорт</h2>
+      <label class="ctl"><span>Ім'я файлів</span><input type="text" id="tName" maxlength="24" aria-label="Префікс імені"></label>
+      <div class="exp">
+        <button id="btnSheet">Очищений лист (PNG)</button>
+        <button id="btnZip" class="btn-primary">Спрайти (ZIP)</button>
+      </div>
+      <div class="row2"><label class="num">Відступ в атласі <input type="number" id="nPad" min="0" max="16"></label><label class="chk"><input type="checkbox" id="cPow2"><span>Степені двійки</span></label></div>
+      <div class="exp"><button id="btnAtlas">Атлас (PNG + JSON)</button></div>
+      <p class="hint">Атлас у форматі JSON Hash (TexturePacker): його читають Phaser, PixiJS та інші рушії.</p>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./sprite-core.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

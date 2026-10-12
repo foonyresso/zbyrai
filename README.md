@@ -16,6 +16,7 @@
 | [**Loot Forge**](loot-forge/) | Кузня предметів: рідкості, афікси, випадкові стати, симуляція дропу, калькулятор шансів, експорт у JSON. |
 | [**Skill Tree Lab**](skill-tree/) | Редактор дерев скілів: вузли, зв’язки, вимоги, режим «грати», генератор дерев на сотні вузлів, експорт у JSON. |
 | [**Idea Mixer**](idea-mixer/) | Змішувач ігрових ідей: ядро, прогресія, світ, твіст, обмеження, тон; пітч у Markdown. |
+| [**Sprite Sheet Cleaner**](sprite-cleaner/) | Чистильник спрайт-листів: прибрати фон, нарізати на спрайти, зменшити палітру, зібрати атлас PNG + JSON. |
 
 ## Кожен інструмент можна скачати окремо
 
@@ -53,13 +54,14 @@ node tools/sync-theme.mjs         # після змін у shared/theme.css он
 node pattern-maker/test/fold.test.js   # тести математики Pattern Maker (потрібен лише Node)
 node pattern-maker/test/fx.test.js     # тести ефектів Pattern Maker
 node loot-forge/test/loot.test.js      # тести Loot Forge
+node sprite-cleaner/test/sprite.test.js      # тести Sprite Sheet Cleaner
 node skill-tree/test/tree.test.js      # тести Skill Tree Lab
 node idea-mixer/test/mixer.test.js     # тести Idea Mixer
 ```
 
 Новий інструмент: створи папку з `index.html`, підключи власну копію `theme.css` (її створить `sync-theme.mjs`),
 додай картку в `index.html` і не використовуй шляхи за межами папки інструмента.
-Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`).
+Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`, Sprite Sheet Cleaner: `sc_`).
 Кожен інструмент має власний акцент: колір у `:root` свого `style.css` (`--accent`) і клас `.c-…` у `assets/hub.css` для картки на головній.
 
 Адреса сайту (`https://zbyrai.pages.dev`) стоїть у `canonical` та `og:url` кожної сторінки, у `sitemap.xml` і `robots.txt`.
