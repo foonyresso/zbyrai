@@ -12,6 +12,9 @@
 | [**Prompt Dice**](prompt-dice/) | Кубик для ШІ-промптів: випадкові, але продумані промпти для Stable Diffusion, Flux і Gemini (персонажі, спрайт-листи, піксель-арт для ігор). |
 | [**Medieval World**](medieval-world/) | Генератор міст і світів: середньовічні міста та світ навколо них, seed, планування, біоми, річки, дороги й редактор. |
 | [**Pattern Maker**](pattern-maker/) | Конструктор візерунків: безшовні візерунки з будь-якого зображення (дзеркальні симетрії, соти, калейдоскоп), експорт у PNG. |
+| [**Loot Forge**](loot-forge/) | Кузня предметів: рідкості, афікси, випадкові стати, симуляція дропу, калькулятор шансів, експорт у JSON. |
+| [**Skill Tree Lab**](skill-tree/) | Редактор дерев скілів: вузли, зв’язки, вимоги, режим «грати», генератор дерев на сотні вузлів, експорт у JSON. |
+| [**Idea Mixer**](idea-mixer/) | Змішувач ігрових ідей: ядро, прогресія, світ, твіст, обмеження, тон; пітч у Markdown. |
 
 ## Кожен інструмент можна скачати окремо
 
@@ -30,6 +33,9 @@ tools/sync-theme.mjs копіює shared/theme.css у theme.css кожного �
 prompt-dice/        інструмент
 medieval-world/     інструмент
 pattern-maker/      інструмент (+ test/ з тестами математики)
+loot-forge/         інструмент (+ test/)
+skill-tree/         інструмент (+ test/)
+idea-mixer/         інструмент (+ test/)
 taste/              закрита довідка про ігрові смаки: не в меню й не на головній, відкривається лише за прямим посиланням
 robots.txt          правила для пошукових систем + адреса sitemap
 sitemap.xml         сторінки сайту для пошуковиків
@@ -44,11 +50,15 @@ sitemap.xml         сторінки сайту для пошуковиків
 python -m http.server 8000        # локальний сервер, далі http://localhost:8000/
 node tools/sync-theme.mjs         # після змін у shared/theme.css оновити копії в інструментах
 node pattern-maker/test/fold.test.js   # тести математики Pattern Maker (потрібен лише Node)
+node loot-forge/test/loot.test.js      # тести Loot Forge
+node skill-tree/test/tree.test.js      # тести Skill Tree Lab
+node idea-mixer/test/mixer.test.js     # тести Idea Mixer
 ```
 
 Новий інструмент: створи папку з `index.html`, підключи власну копію `theme.css` (її створить `sync-theme.mjs`),
 додай картку в `index.html` і не використовуй шляхи за межами папки інструмента.
-Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`).
+Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`).
+Кожен інструмент має власний акцент: колір у `:root` свого `style.css` (`--accent`) і клас `.c-…` у `assets/hub.css` для картки на головній.
 
 Адреса сайту (`https://zbyrai.pages.dev`) стоїть у `canonical` та `og:url` кожної сторінки, у `sitemap.xml` і `robots.txt`.
 Якщо домен зміниться, знайди всі входження командою `grep -rn zbyrai.pages.dev .` і онови разом.

@@ -9,8 +9,8 @@ header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; pad
 header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-lo), transparent); opacity: .55; }
 .brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-display); font-weight: 700; font-size: 24px; letter-spacing: .01em; white-space: nowrap; }
-.brand svg { width: 24px; height: 24px; color: var(--gold); flex: none; }
-.brand span { color: var(--gold); }
+.brand svg { width: 24px; height: 24px; color: #6fc3c0; flex: none; }
+.brand span { color: #6fc3c0; }
 .spacer { flex: 1; }
 .top-note { color: var(--faint); font-size: 12px; letter-spacing: .02em; }
 

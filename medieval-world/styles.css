@@ -112,3 +112,6 @@ main { flex: 1; min-width: 0; position: relative; background: #0c0c10; }
   .hd > b { font-size: 20px; }
   .pn { padding: 12px 14px 14px; }
 }
+
+/* акцент інструмента на головній сторінці */
+.hd > b { color: #9ac58a; }

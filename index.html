@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zbyrai: безкоштовні браузерні інструменти</title>
-<meta name="description" content="Збірка безкоштовних браузерних інструментів: кубик для ШІ-промптів, генератор середньовічних міст і світів, конструктор безшовних візерунків. Без реєстрації, без встановлення, працює офлайн.">
+<meta name="description" content="Безкоштовні браузерні інструменти для творців і розробників ігор: кубик для ШІ-промптів, генератор міст і світів, безшовні візерунки, кузня предметів, редактор дерев скілів, змішувач ігрових ідей. Без реєстрації, працює офлайн.">
 <meta name="theme-color" content="#09090c">
 <link rel="canonical" href="https://zbyrai.pages.dev/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
 <meta property="og:locale" content="uk_UA">
 <meta property="og:title" content="Zbyrai: безкоштовні браузерні інструменти">
-<meta property="og:description" content="Кубик для ШІ-промптів, генератор середньовічних міст і світів, конструктор безшовних візерунків. Без реєстрації, без встановлення, працює офлайн.">
+<meta property="og:description" content="Промпти для ШІ, міста й світи, візерунки, предмети, дерева скілів, ігрові ідеї. Без реєстрації, без встановлення, працює офлайн.">
 <meta property="og:url" content="https://zbyrai.pages.dev/">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
@@ -23,7 +23,9 @@
 <header class="bar">
   <a class="mark" href="./index.html" aria-label="Zbyrai: на головну">Zbyr<span>AI</span></a>
   <nav aria-label="Навігація">
-    <a href="#tools">Інструменти</a>
+    <a href="#art">Арт</a>
+    <a href="#worlds">Світи</a>
+    <a href="#design">Геймдизайн</a>
     <a href="https://github.com/foonyresso/zbyrai" rel="noopener">GitHub</a>
   </nav>
 </header>
@@ -31,96 +33,180 @@
 <main>
   <section class="hero">
     <p class="eyebrow">Безкоштовні браузерні інструменти</p>
-    <h1>Збирай світи, промпти й&nbsp;візерунки</h1>
+    <h1>Збирай світи, предмети й&nbsp;ідеї</h1>
     <p class="lead">Без реєстрації, без встановлення: відкрив і працюєш.</p>
+    <p class="pills"><span>працює офлайн</span><span>нічого не йде на сервер</span><span>кожен інструмент можна скачати окремо</span></p>
     <hr class="hairline">
   </section>
 
-  <section class="tools" id="tools" aria-label="Інструменти">
+  <!-- ===================== АРТ ===================== -->
+  <section class="group" id="art" aria-labelledby="g-art">
+    <header class="g-head"><span class="g-num">01</span><h2 id="g-art">Арт і графіка</h2><p>Те, що перетворюється на картинки.</p></header>
+    <div class="row">
 
-    <a class="card" href="./prompt-dice/index.html">
-      <div class="art" aria-hidden="true">
-        <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M160 28 214 59v62l-54 31-54-31V59z"/>
-          <path d="M106 59 160 90 214 59M160 90v62"/>
-          <ellipse cx="160" cy="59" rx="9" ry="5"/>
-          <circle cx="122" cy="87" r="3.6"/><circle cx="144" cy="124" r="3.6"/>
-          <circle cx="203" cy="78" r="3.6"/><circle cx="187" cy="105" r="3.6"/><circle cx="171" cy="133" r="3.6"/>
-          <path class="dim" d="M52 40h10M57 35v10M270 52h10M275 47v10M262 140h10M267 135v10M60 128h10M65 123v10"/>
-          <path class="dim" d="M24 96 40 88 56 96 40 104z"/>
-          <path class="dim" d="M270 98l18 10-18 10-18-10z"/>
-        </svg>
-      </div>
-      <div class="body">
-        <p class="eyebrow">Prompt Dice</p>
-        <h2>Кубик для ШІ&#8209;промптів</h2>
-        <p class="desc">Випадкові, але продумані промпти для Stable Diffusion, Flux і Gemini: персонажі, спрайт-листи, піксель-арт для ігор.</p>
-        <p class="tags"><span class="tag">Stable Diffusion</span><span class="tag">Flux</span><span class="tag">Gemini</span></p>
-        <div class="foot"><span class="open">Відкрити <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span><span class="offline">працює офлайн</span></div>
-      </div>
-    </a>
+      <a class="card c-dice" href="./prompt-dice/index.html">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M160 28 214 59v62l-54 31-54-31V59z"/>
+            <path d="M106 59 160 90 214 59M160 90v62"/>
+            <ellipse cx="160" cy="59" rx="9" ry="5"/>
+            <circle cx="122" cy="87" r="3.6"/><circle cx="144" cy="124" r="3.6"/>
+            <circle cx="203" cy="78" r="3.6"/><circle cx="187" cy="105" r="3.6"/><circle cx="171" cy="133" r="3.6"/>
+            <path class="dim" d="M52 40h10M57 35v10M270 52h10M275 47v10M262 140h10M267 135v10M60 128h10M65 123v10"/>
+            <path class="dim" d="M24 96 40 88 56 96 40 104z"/>
+            <path class="dim" d="M270 98l18 10-18 10-18-10z"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Prompt Dice</p>
+          <h2 class="t-dice">Кубик для ШІ&#8209;промптів</h2>
+          <p class="desc">Випадкові, але продумані промпти для Stable Diffusion, Flux і Gemini: персонажі, спрайт-листи, піксель-арт для ігор.</p>
+          <p class="tags"><span class="tag">Stable Diffusion</span><span class="tag">Flux</span><span class="tag">Gemini</span></p>
+          <div class="foot"><span class="open">Кинути кубик <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
 
-    <a class="card" href="./medieval-world/index.html">
-      <div class="art" aria-hidden="true">
-        <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M160 22 230 60 216 140 104 150 90 64z"/>
-          <circle cx="160" cy="22" r="4.5"/><circle cx="230" cy="60" r="4.5"/><circle cx="216" cy="140" r="4.5"/><circle cx="104" cy="150" r="4.5"/><circle cx="90" cy="64" r="4.5"/>
-          <path d="M160 94V26M160 94l66-32M160 94l52 44M160 94l-54 54M160 94 94 66"/>
-          <path d="M160 72 188 86 182 114 138 118 132 88z"/>
-          <circle cx="160" cy="94" r="7"/>
-          <rect x="180" y="116" width="26" height="18" rx="2"/><circle cx="180" cy="116" r="2.6"/><circle cx="206" cy="116" r="2.6"/><circle cx="180" cy="134" r="2.6"/><circle cx="206" cy="134" r="2.6"/>
-          <path class="dim" d="M0 130c40-18 70 12 110 0M216 150c40 10 70-16 104-4"/>
-          <path class="dim" d="M160 22V4M230 60l30-14M104 150l-22 18M216 140l30 22M90 64 60 52"/>
-          <rect class="dim" x="120" y="96" width="9" height="6"/><rect class="dim" x="140" y="132" width="9" height="6"/><rect class="dim" x="196" y="86" width="9" height="6"/><rect class="dim" x="112" y="72" width="9" height="6"/>
-        </svg>
-      </div>
-      <div class="body">
-        <p class="eyebrow">Medieval World</p>
-        <h2>Генератор міст і світів</h2>
-        <p class="desc">Середньовічні міста та світ навколо них: seed, планування, біоми, річки, дороги й редактор.</p>
-        <p class="tags"><span class="tag">seed</span><span class="tag">річки</span><span class="tag">дороги</span><span class="tag">редактор</span></p>
-        <div class="foot"><span class="open">Відкрити <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span><span class="offline">працює офлайн</span></div>
-      </div>
-    </a>
+      <a class="card c-pattern" href="./pattern-maker/index.html">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M160 28 213.7 59v62L160 152 106.3 121V59z"/>
+            <path d="M160 90 160 28M160 90 213.7 59M160 90 213.7 121M160 90 160 152M160 90 106.3 121M160 90 106.3 59"/>
+            <path d="M160 90 213.7 90M160 90 186.9 136.5M160 90 133.1 136.5M160 90 106.3 90M160 90 133.1 43.5M160 90 186.9 43.5"/>
+            <path class="dim" d="M267.4 28 321 59v62l-53.6 31L213.7 121V59z"/>
+            <path class="dim" d="M52.6 28 106.3 59v62l-53.7 31L-1 121V59z"/>
+            <path class="dim" d="M213.7-65 267.4-34v62L213.7 59 160 28v-62z"/>
+            <path class="dim" d="M106.3-65 160-34v62L106.3 59 52.6 28v-62z"/>
+            <path class="dim" d="M213.7 121 267.4 152v62l-53.7 31L160 214v-62z"/>
+            <path class="dim" d="M106.3 121 160 152v62l-53.7 31L52.6 214v-62z"/>
+            <circle cx="160" cy="90" r="3.2"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Pattern Maker</p>
+          <h2 class="t-pattern">Конструктор візерунків</h2>
+          <p class="desc">Безшовні візерунки з будь-якого зображення: дзеркальні симетрії, соти, калейдоскоп, експорт у PNG.</p>
+          <p class="tags"><span class="tag">PNG-експорт</span><span class="tag">піксель-арт</span><span class="tag">калейдоскоп</span></p>
+          <div class="foot"><span class="open">Створити візерунок <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
 
-    <a class="card" href="./pattern-maker/index.html">
-      <div class="art" aria-hidden="true">
-        <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M160 28 213.7 59v62L160 152 106.3 121V59z"/>
-          <path d="M160 90 160 28M160 90 213.7 59M160 90 213.7 121M160 90 160 152M160 90 106.3 121M160 90 106.3 59"/>
-          <path d="M160 90 213.7 90M160 90 186.9 136.5M160 90 133.1 136.5M160 90 106.3 90M160 90 133.1 43.5M160 90 186.9 43.5"/>
-          <path class="dim" d="M267.4 28 321 59v62l-53.6 31L213.7 121V59z"/>
-          <path class="dim" d="M52.6 28 106.3 59v62l-53.7 31L-1 121V59z"/>
-          <path class="dim" d="M213.7-65 267.4-34v62L213.7 59 160 28v-62z"/>
-          <path class="dim" d="M106.3-65 160-34v62L106.3 59 52.6 28v-62z"/>
-          <path class="dim" d="M213.7 121 267.4 152v62l-53.7 31L160 214v-62z"/>
-          <path class="dim" d="M106.3 121 160 152v62l-53.7 31L52.6 214v-62z"/>
-          <circle cx="160" cy="90" r="3.2"/>
-        </svg>
-      </div>
-      <div class="body">
-        <p class="eyebrow">Pattern Maker</p>
-        <h2>Конструктор візерунків</h2>
-        <p class="desc">Безшовні візерунки з будь-якого зображення: дзеркальні симетрії, соти, калейдоскоп, експорт у PNG.</p>
-        <p class="tags"><span class="tag">PNG-експорт</span><span class="tag">піксель-арт</span><span class="tag">калейдоскоп</span></p>
-        <div class="foot"><span class="open">Відкрити <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span><span class="offline">працює офлайн</span></div>
-      </div>
-    </a>
+    </div>
+  </section>
 
-    <div class="card soon" aria-label="Скоро">
-      <div class="art" aria-hidden="true">
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <circle cx="32" cy="32" r="26" stroke-dasharray="3 6"/>
-          <path d="M32 21v22M21 32h22"/>
-        </svg>
-      </div>
-      <div class="body">
-        <p class="eyebrow">Скоро</p>
-        <h2>Більше інструментів</h2>
-        <p class="desc">Нові безкоштовні штуки додаються по одній. Тримай закладку.</p>
+  <!-- ===================== СВІТИ ===================== -->
+  <section class="group" id="worlds" aria-labelledby="g-worlds">
+    <header class="g-head"><span class="g-num">02</span><h2 id="g-worlds">Світи</h2><p>Карти, міста й місця, де відбувається гра.</p></header>
+    <div class="row">
+
+      <a class="card wide c-world" href="./medieval-world/index.html">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M160 22 230 60 216 140 104 150 90 64z"/>
+            <circle cx="160" cy="22" r="4.5"/><circle cx="230" cy="60" r="4.5"/><circle cx="216" cy="140" r="4.5"/><circle cx="104" cy="150" r="4.5"/><circle cx="90" cy="64" r="4.5"/>
+            <path d="M160 94V26M160 94l66-32M160 94l52 44M160 94l-54 54M160 94 94 66"/>
+            <path d="M160 72 188 86 182 114 138 118 132 88z"/>
+            <circle cx="160" cy="94" r="7"/>
+            <rect x="180" y="116" width="26" height="18" rx="2"/><circle cx="180" cy="116" r="2.6"/><circle cx="206" cy="116" r="2.6"/><circle cx="180" cy="134" r="2.6"/><circle cx="206" cy="134" r="2.6"/>
+            <path class="dim" d="M0 130c40-18 70 12 110 0M216 150c40 10 70-16 104-4"/>
+            <path class="dim" d="M160 22V4M230 60l30-14M104 150l-22 18M216 140l30 22M90 64 60 52"/>
+            <rect class="dim" x="120" y="96" width="9" height="6"/><rect class="dim" x="140" y="132" width="9" height="6"/><rect class="dim" x="196" y="86" width="9" height="6"/><rect class="dim" x="112" y="72" width="9" height="6"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Medieval World</p>
+          <h2 class="t-world">Генератор міст і світів</h2>
+          <p class="desc">Середньовічні міста та світ навколо них. Той самий seed дає те саме місто: розмір від хутора до столиці, планування, біоми, річки з мостами, море з причалами, нескінченний світ із селами та дорогами й редактор споруд.</p>
+          <p class="tags"><span class="tag">seed</span><span class="tag">річки</span><span class="tag">дороги</span><span class="tag">редактор</span></p>
+          <div class="foot"><span class="open">Відкрити карту <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ===================== ГЕЙМДИЗАЙН ===================== -->
+  <section class="group" id="design" aria-labelledby="g-design">
+    <header class="g-head"><span class="g-num">03</span><h2 id="g-design">Геймдизайн</h2><p>Покрутити правила гри, поки вона ще не написана.</p></header>
+    <div class="row">
+
+      <a class="card c-loot" href="./loot-forge/index.html">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M160 30 210 68 160 150 110 68z"/>
+            <path d="M110 68h100M160 30l-22 38 22 82 22-82z"/>
+            <path d="M232 40v16M224 48h16M92 118v10M87 123h10"/>
+            <path class="dim" d="M236 104h46M236 118h30M236 132h52"/>
+            <circle class="dim" cx="62" cy="136" r="11"/><circle class="dim" cx="84" cy="150" r="8"/><path class="dim" d="M62 131v10M57 136h10"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Loot Forge</p>
+          <h2 class="t-loot">Кузня предметів</h2>
+          <p class="desc">Рідкості, афікси, випадкові стати й назви з чорним гумором. Симуляція тисяч дропів і калькулятор: скільки гриндити до легендарки.</p>
+          <p class="tags"><span class="tag">дроп</span><span class="tag">афікси</span><span class="tag">JSON</span></p>
+          <div class="foot"><span class="open">До кузні <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
+
+      <a class="card c-tree" href="./skill-tree/index.html">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M160 34V62M160 62 100 98M160 62v36M160 62l60 36M100 98 70 140M100 98l30 42M160 98l-8 42M160 98l22 42M220 98l-8 42M220 98l32 42"/>
+            <circle cx="160" cy="30" r="9"/><circle cx="160" cy="62" r="6"/>
+            <circle cx="100" cy="98" r="6"/><circle cx="160" cy="98" r="6"/><circle cx="220" cy="98" r="6"/>
+            <circle cx="70" cy="140" r="5"/><circle cx="130" cy="140" r="5"/><circle cx="152" cy="140" r="5"/><circle cx="182" cy="140" r="5"/><circle cx="212" cy="140" r="5"/>
+            <path d="M252 132l9 5v10l-9 5-9-5v-10z"/>
+            <path class="dim" d="M70 140 40 160M252 142l24-18M130 140l-6 20M182 140l8 20"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Skill Tree Lab</p>
+          <h2 class="t-tree">Редактор дерев скілів</h2>
+          <p class="desc">Вузли, зв’язки, вимоги й ціна. Режим «грати» показує, які білди виходять, а генератор будує дерева на сотні вузлів.</p>
+          <p class="tags"><span class="tag">таланти</span><span class="tag">генератор</span><span class="tag">JSON</span></p>
+          <div class="foot"><span class="open">Виростити дерево <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
+
+      <a class="card c-mix" href="./idea-mixer/index.html">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 320 180" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="96" y="40" width="76" height="104" rx="9" transform="rotate(-14 134 92)"/>
+            <rect x="148" y="40" width="76" height="104" rx="9" transform="rotate(14 186 92)"/>
+            <rect x="118" y="32" width="84" height="112" rx="10"/>
+            <path d="M134 56h52M134 72h36M134 88h44"/>
+            <path d="M160 108v16M152 116h16"/>
+            <path class="dim" d="M44 52h12M50 46v12M268 128h12M274 122v12M262 48l8 8M270 48l-8 8"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Idea Mixer</p>
+          <h2 class="t-mix">Змішувач ігрових ідей</h2>
+          <p class="desc">Кубик витягує ядро, прогресію, світ і твіст із відомих ігор та складає пітч. Замикай вдале, перекидай решту, додавай власні механіки.</p>
+          <p class="tags"><span class="tag">пітч</span><span class="tag">game jam</span><span class="tag">Markdown</span></p>
+          <div class="foot"><span class="open">Змішати ідею <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="row">
+      <div class="card soon" aria-label="Скоро">
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="32" cy="32" r="26" stroke-dasharray="3 6"/>
+            <path d="M32 21v22M21 32h22"/>
+          </svg>
+        </div>
+        <div class="body">
+          <p class="eyebrow">Скоро</p>
+          <h2>Більше інструментів</h2>
+          <p class="desc">Нові безкоштовні штуки додаються по одній. Тримай закладку.</p>
+        </div>
       </div>
     </div>
-
   </section>
 </main>
 

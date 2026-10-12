@@ -1,4 +1,5 @@
-/* Головна сторінка Zbyrai. Токени, кнопки й типографіка беруться зі shared/theme.css. */
+/* Головна сторінка Zbyrai. Токени, кнопки й типографіка беруться зі shared/theme.css.
+   Кожен інструмент має власний акцент (--c) і власне оформлення заголовка, щоб картки не зливалися. */
 html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 body { min-height: 100vh; display: flex; flex-direction: column; font-size: 15px;
   background:
@@ -13,64 +14,112 @@ main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px;
 .mark { font-family: var(--ff-display); font-weight: 700; font-size: 28px; letter-spacing: .01em; color: var(--text); line-height: 1; }
 .mark:hover { text-decoration: none; }
 .mark span { color: var(--gold); }
-.bar nav { display: flex; gap: 6px; }
-.bar nav a { color: var(--muted); font-size: 13px; letter-spacing: .02em; padding: 7px 12px; border-radius: 99px; transition: color .18s var(--ease), background .18s var(--ease); }
+.bar nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.bar nav::-webkit-scrollbar { display: none; }
+.bar nav a { color: var(--muted); font-size: 13px; letter-spacing: .02em; padding: 7px 12px; border-radius: 99px; white-space: nowrap; transition: color .18s var(--ease), background .18s var(--ease); }
 .bar nav a:hover { color: var(--gold-hi); background: var(--gold-glow); text-decoration: none; }
 
 /* ---------- hero ---------- */
-.hero { text-align: center; padding: clamp(56px, 11vw, 120px) 0 clamp(36px, 6vw, 64px); }
+.hero { text-align: center; padding: clamp(56px, 11vw, 120px) 0 clamp(20px, 4vw, 36px); }
 .hero .eyebrow { margin: 0 0 20px; display: inline-flex; align-items: center; gap: 14px; }
 .hero .eyebrow::before, .hero .eyebrow::after { content: ""; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-lo)); }
 .hero .eyebrow::after { transform: scaleX(-1); }
 .hero h1 { margin: 0 auto; max-width: 14em; font-size: clamp(40px, 8vw, 78px); line-height: 1.04; font-weight: 600; letter-spacing: -.005em;
   background: linear-gradient(180deg, #f7f1e3 20%, var(--gold-hi) 75%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; text-wrap: balance; }
 .lead { margin: 22px auto 0; max-width: 46ch; color: var(--muted); font-size: clamp(15px, 2.2vw, 18px); line-height: 1.55; }
-.hero .hairline { margin: clamp(36px, 6vw, 60px) auto 0; max-width: 520px; }
+.pills { margin: 22px 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.pills span { font-size: 12px; color: var(--faint); padding: 4px 12px; border: 1px solid var(--line-soft); border-radius: 99px; letter-spacing: .02em; }
+.pills span::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--ok); margin-right: 8px; vertical-align: 1px; }
+.hero .hairline { margin: clamp(28px, 5vw, 48px) auto 0; max-width: 520px; }
 
-/* ---------- картки ---------- */
-.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; padding-bottom: 72px; }
-.card { position: relative; display: flex; flex-direction: column; overflow: hidden; color: var(--text);
+/* ---------- групи ---------- */
+.group { padding-top: clamp(32px, 5vw, 56px); }
+.g-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin: 0 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line-soft); }
+.g-num { font-family: var(--ff-display); font-size: 22px; font-weight: 600; color: var(--gold-lo); }
+.g-head h2 { margin: 0; font-size: clamp(28px, 4vw, 36px); line-height: 1.1; }
+.g-head p { margin: 0; color: var(--faint); font-size: 14px; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.group:last-of-type { padding-bottom: 72px; }
+
+/* ---------- картки: у кожної власний акцент --c ---------- */
+.card { --c: var(--gold); position: relative; display: flex; flex-direction: column; overflow: hidden; color: var(--text);
   background: linear-gradient(180deg, #15151b, #0f0f14); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
   transition: transform .45s var(--ease), border-color .3s var(--ease), box-shadow .45s var(--ease); }
-a.card:hover { text-decoration: none; transform: translateY(-5px); border-color: var(--gold-lo); box-shadow: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 28px 70px rgba(0, 0, 0, .6), 0 0 44px rgba(201, 167, 102, .09); }
+a.card:hover { text-decoration: none; transform: translateY(-5px); border-color: color-mix(in srgb, var(--c) 60%, var(--line)); box-shadow: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 28px 70px rgba(0, 0, 0, .6), 0 0 44px color-mix(in srgb, var(--c) 14%, transparent); }
 .card::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .35s var(--ease);
-  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 0%), rgba(201, 167, 102, .15), transparent 60%); }
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c) 16%, transparent), transparent 60%); }
 a.card:hover::before { opacity: 1; }
 .card > * { position: relative; z-index: 1; }
 
+.c-dice { --c: #b39ddb; }
+.c-pattern { --c: #6fc3c0; }
+.c-world { --c: #9ac58a; }
+.c-loot { --c: #e8924a; }
+.c-tree { --c: #7aa7e6; }
+.c-mix { --c: #e079a8; }
+
+/* «арт» кожної картки має власний фон-візерунок */
 .art { height: 190px; display: grid; place-items: center; border-bottom: 1px solid var(--line-soft); overflow: hidden;
   background:
-    radial-gradient(240px 130px at 50% 46%, rgba(201, 167, 102, .12), transparent 70%),
+    radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%),
     linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 24px,
     linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 24px 100%;
   -webkit-mask-image: linear-gradient(180deg, #000 70%, rgba(0, 0, 0, .55)); mask-image: linear-gradient(180deg, #000 70%, rgba(0, 0, 0, .55)); }
-.art svg { width: 100%; height: 100%; color: var(--gold); opacity: .92; transition: transform .7s var(--ease), color .3s var(--ease), opacity .3s var(--ease); }
+.c-dice .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), radial-gradient(circle, color-mix(in srgb, var(--c) 28%, transparent) 1px, transparent 1.5px) 0 0 / 18px 18px; }
+.c-pattern .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), repeating-linear-gradient(60deg, transparent 0 17px, var(--line-soft) 17px 18px), repeating-linear-gradient(-60deg, transparent 0 17px, var(--line-soft) 17px 18px); }
+.c-world .art { background: radial-gradient(260px 140px at 50% 46%, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%), repeating-radial-gradient(circle at 20% 120%, transparent 0 22px, color-mix(in srgb, var(--c) 14%, transparent) 22px 23px); }
+.c-loot .art { background: radial-gradient(220px 150px at 50% 70%, color-mix(in srgb, var(--c) 26%, transparent), transparent 72%), repeating-linear-gradient(135deg, transparent 0 14px, var(--line-soft) 14px 15px); }
+.c-tree .art { background: radial-gradient(240px 130px at 50% 30%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), radial-gradient(circle, var(--line) 1.2px, transparent 1.6px) 0 0 / 22px 22px; }
+.c-mix .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), repeating-linear-gradient(-45deg, transparent 0 9px, color-mix(in srgb, var(--c) 9%, transparent) 9px 10px); }
+.art svg { width: 100%; height: 100%; color: var(--c); opacity: .92; transition: transform .7s var(--ease), color .3s var(--ease), opacity .3s var(--ease); }
 .art svg .dim { opacity: .38; }
-a.card:hover .art svg { transform: scale(1.045); color: var(--gold-hi); opacity: 1; }
+a.card:hover .art svg { transform: scale(1.045); opacity: 1; }
+.c-loot:hover .art svg { transform: scale(1.06) rotate(-2deg); }
+.c-mix:hover .art svg { transform: scale(1.05) rotate(2deg); }
 
 .body { display: flex; flex-direction: column; flex: 1; padding: 22px 24px 22px; }
-.body .eyebrow { margin: 0 0 8px; }
+.body .eyebrow { margin: 0 0 8px; color: var(--c); }
 .card h2 { margin: 0 0 10px; font-size: 29px; line-height: 1.12; text-wrap: balance; }
 .desc { margin: 0; color: var(--muted); line-height: 1.55; }
 .tags { margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tags .tag { border-color: color-mix(in srgb, var(--c) 32%, var(--line)); }
 .foot { margin-top: auto; padding-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .open { display: inline-flex; align-items: center; gap: 9px; padding: 9px 18px; border-radius: var(--r-sm); font-weight: 650; letter-spacing: .01em;
-  color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); border: 1px solid #d6bb82;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px rgba(201, 167, 102, .16); transition: filter .2s var(--ease); }
+  color: #0c0c10; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 78%, #000)); border: 1px solid color-mix(in srgb, var(--c) 70%, #fff);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px color-mix(in srgb, var(--c) 22%, transparent); transition: filter .2s var(--ease); }
 .open svg { width: 15px; height: 15px; transition: transform .3s var(--ease); }
 a.card:hover .open { filter: brightness(1.08); }
 a.card:hover .open svg { transform: translateX(3px); }
-.offline { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--faint); }
-.offline::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(141, 191, 149, .14); }
 a.card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-1); }
+
+/* ---------- заголовки: у кожного інструмента власний характер ---------- */
+.t-dice { font-style: italic; font-weight: 600; background: linear-gradient(180deg, #f1ecff 10%, var(--c)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.t-world { font-size: 25px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: #e6f0dc; display: flex; align-items: center; gap: 14px; }
+.t-world::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--c), transparent); }
+.t-pattern { padding-bottom: 6px; font-weight: 700; color: var(--text); text-decoration: underline wavy color-mix(in srgb, var(--c) 80%, transparent) 2px; text-underline-offset: 9px; text-decoration-skip-ink: none; }
+.t-loot { font-family: var(--ff-ui); font-size: 24px; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; background: linear-gradient(180deg, #ffe2c4, var(--c) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 45%, transparent)); }
+.t-tree { font-family: var(--ff-mono); font-size: 20px; font-weight: 600; letter-spacing: -.01em; color: #dbe8fb; }
+.t-tree::before { content: "› "; color: var(--c); }
+.t-mix { font-weight: 600; color: #fff; width: fit-content; background: linear-gradient(transparent 60%, color-mix(in srgb, var(--c) 42%, transparent) 60% 92%, transparent 92%); padding: 0 4px; margin-left: -4px; }
+
+/* широка картка: арт зліва, текст справа */
+@media (min-width: 760px) {
+  .card.wide { flex-direction: row; }
+  .card.wide .art { width: 44%; height: auto; min-height: 260px; border-bottom: 0; border-right: 1px solid var(--line-soft); -webkit-mask-image: none; mask-image: none; }
+  .card.wide .body { justify-content: center; padding: 30px 34px; }
+  .card.wide h2 { font-size: 34px; }
+  .card.wide .t-world { font-size: 29px; }
+  .card.wide .desc { max-width: 52ch; }
+  .card.wide .foot { margin-top: 0; padding-top: 26px; justify-content: flex-start; }
+}
 
 /* картка «скоро» */
 .card.soon { background: transparent; border: 1px dashed var(--line); box-shadow: none; }
 .card.soon .art { background: none; border-bottom: 0; height: 150px; -webkit-mask-image: none; mask-image: none; }
 .card.soon .art svg { width: 72px; height: 72px; color: var(--gold-lo); opacity: .8; }
 .card.soon .body { align-items: center; text-align: center; padding-top: 0; }
+.card.soon .eyebrow { color: var(--gold); }
 .card.soon h2 { font-size: 24px; color: var(--muted); }
-/* на широких екранах «скоро» стає тонкою смугою на всю ширину: не висить самотньою карткою в новому ряду */
 @media (min-width: 760px) {
   .card.soon { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: center; gap: 28px; padding: 22px 28px; }
   .card.soon .art { height: 84px; width: 84px; flex: none; }
@@ -85,7 +134,10 @@ a.card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-1); 
 @media (max-width: 560px) {
   .bar { padding: 12px 16px; }
   .mark { font-size: 24px; }
-  .tools { gap: 16px; padding-bottom: 48px; }
+  .row { gap: 16px; }
   .body { padding: 18px 18px 18px; }
   .card h2 { font-size: 26px; }
+  .t-world { font-size: 22px; }
+  .t-loot { font-size: 21px; }
+  .t-tree { font-size: 18px; }
 }
