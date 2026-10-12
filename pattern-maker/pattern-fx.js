@@ -3,7 +3,7 @@
    Усі ефекти застосовуються до ГОТОВОГО зображення (вимощеного полотна), а не до текстури-джерела.
    Тому піксель-арт видно за будь-якого масштабу візерунка: «піксель» = блок B×B пікселів кінцевого зображення.
 
-   Конвеєр: хвиля → зменшення блоками (піксель-арт) → колір → дізерінг/палітра → збільшення → сканлінії → зерно.
+   Конвеєр: хвиля → лінза/вир → аберація → рельєф → зменшення блоками (піксель-арт) → колір → градієнт-мапа → дізерінг/палітра → збільшення → сканлінії → віньєтка → зерно.
    Зображення = { data: Uint8ClampedArray (RGBA), width, height }. */
 const PMFx = (() => {
   const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -18,13 +18,26 @@ const PMFx = (() => {
     pico8: P('PICO-8', ['#000000', '#1d2b53', '#7e2553', '#008751', '#ab5236', '#5f574f', '#c2c3c7', '#fff1e8', '#ff004d', '#ffa300', '#ffec27', '#00e436', '#29adff', '#83769c', '#ff77a8', '#ffccaa']),
   };
 
-  const DEFAULT_FX = { px: 1, pal: 'none', dith: 0, post: 0, hue: 0, sat: 100, bri: 0, con: 100, inv: false, grain: 0, scan: 0, wave: 0, waveL: 60, ang: 0 };
+  // градієнт-мапи: яскравість пікселя вибирає колір уздовж градієнта (стопи рівномірно від темного до світлого)
+  const G = (name, list) => ({ name, rgb: list.map(hex) });
+  const GRADS = {
+    fire: G('Вогонь', ['#000000', '#5a0a0a', '#d8431a', '#ffb81c', '#fff7d6']),
+    ocean: G('Океан', ['#02061a', '#0b2a63', '#1f7a9c', '#8fe3d6', '#f0fffb']),
+    forest: G('Ліс', ['#06120a', '#143d22', '#3f7a2f', '#b5c95a', '#f3f0c4']),
+    dusk: G('Сутінки', ['#0d0221', '#4b1d6b', '#c2417a', '#ff9b62', '#ffeab0']),
+    ice: G('Лід', ['#050b1c', '#1c3a73', '#5f9be0', '#c4e4ff', '#ffffff']),
+    goldg: G('Золото', ['#09090c', '#2a2a34', '#8c7240', '#e8d29e', '#fffaf0']),
+  };
 
-  const hasColor = fx => fx.hue !== 0 || fx.sat !== 100 || fx.bri !== 0 || fx.con !== 100 || !!fx.inv;
+  const DEFAULT_FX = { px: 1, pal: 'none', dith: 0, post: 0, hue: 0, sat: 100, bri: 0, con: 100, inv: false, grain: 0, scan: 0, wave: 0, waveL: 60, ang: 0,
+    lens: 0, swirl: 0, ca: 0, relief: 0, edge: 0, gmap: 'none', vig: 0 };
+
+  const hasGmap = fx => fx.gmap !== 'none' && !!GRADS[fx.gmap];
+  const hasColor = fx => fx.hue !== 0 || fx.sat !== 100 || fx.bri !== 0 || fx.con !== 100 || !!fx.inv || hasGmap(fx);
   const hasQuant = fx => fx.post >= 2 || (fx.pal !== 'none' && !!PALETTES[fx.pal]) || fx.dith > 0;
   // колірні ефекти не змінюють геометрію: їх можна застосовувати й до тайла без втрати безшовності
   const hasColorOnly = fx => hasColor(fx) || hasQuant(fx);
-  const hasSpatial = fx => fx.px > 1 || fx.wave > 0 || fx.scan > 0 || fx.grain > 0;
+  const hasSpatial = fx => fx.px > 1 || fx.wave > 0 || fx.scan > 0 || fx.grain > 0 || fx.lens !== 0 || fx.swirl !== 0 || fx.ca > 0 || fx.relief > 0 || fx.edge > 0 || fx.vig > 0;
   const active = fx => hasColorOnly(fx) || hasSpatial(fx);
 
   const clone = img => ({ data: new Uint8ClampedArray(img.data), width: img.width, height: img.height });
@@ -114,18 +127,90 @@ const PMFx = (() => {
     }
   }
 
+  /* ---------- лінза й вир: радіальне спотворення навколо центру (на місці не можна: повертає нове) ----------
+     lens > 0: опуклість (центр збільшується), lens < 0: увігнутість; swirl: закручування, градуси на край. Центр і краї лишаються на місці. */
+  function lensWarp(img, lens, swirl) {
+    const W = img.width, H = img.height, s = img.data, out = new Uint8ClampedArray(s.length), R = Math.min(W, H) / 2, cx = W / 2, cy = H / 2;
+    const L = lens / 100, sw = swirl * Math.PI / 180;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const dx = x + .5 - cx, dy = y + .5 - cy, r = Math.hypot(dx, dy), o = (y * W + x) * 4;
+      let sx = x, sy = y;
+      if (r < R) {
+        const t = r / R, f = 1 - t; // вплив затухає до нуля на краю кола
+        const rr = r * (1 - L * f * f * .7); // джерело ближче до центру → збільшення
+        const a = Math.atan2(dy, dx) + sw * f * f;
+        sx = cx + rr * Math.cos(a) - .5; sy = cy + rr * Math.sin(a) - .5;
+      }
+      const xi = Math.min(W - 1, Math.max(0, Math.round(sx))), yi = Math.min(H - 1, Math.max(0, Math.round(sy))), i = (yi * W + xi) * 4;
+      out[o] = s[i]; out[o + 1] = s[i + 1]; out[o + 2] = s[i + 2]; out[o + 3] = s[i + 3];
+    }
+    return { data: out, width: W, height: H };
+  }
+
+  /* ---------- хроматична аберація: червоний і синій канали зсунуті в протилежні боки ---------- */
+  function chromatic(img, shift) {
+    const W = img.width, H = img.height, s = img.data, out = new Uint8ClampedArray(s.length), k = Math.round(shift);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const o = (y * W + x) * 4, xr = Math.min(W - 1, Math.max(0, x - k)), xb = Math.min(W - 1, Math.max(0, x + k));
+      out[o] = s[(y * W + xr) * 4]; out[o + 1] = s[o + 1]; out[o + 2] = s[(y * W + xb) * 4 + 2]; out[o + 3] = s[o + 3];
+    }
+    return { data: out, width: W, height: H };
+  }
+
+  /* ---------- рельєф і контури (згортка Собеля по яскравості) ----------
+     relief: підмішує тиснення з освітленням зліва вгорі; edge: підмішує темні лінії контурів. */
+  function relief(img, relAmt, edgeAmt) {
+    const W = img.width, H = img.height, s = img.data, out = new Uint8ClampedArray(s.length);
+    const lum = new Float32Array(W * H);
+    for (let i = 0, p = 0; p < lum.length; i += 4, p++) lum[p] = .2126 * s[i] + .7152 * s[i + 1] + .0722 * s[i + 2];
+    const at = (x, y) => lum[Math.min(H - 1, Math.max(0, y)) * W + Math.min(W - 1, Math.max(0, x))];
+    const ra = relAmt / 100, ea = edgeAmt / 100;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const gx = (at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1)) - (at(x - 1, y - 1) + 2 * at(x - 1, y) + at(x - 1, y + 1));
+      const gy = (at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1)) - (at(x - 1, y - 1) + 2 * at(x, y - 1) + at(x + 1, y - 1));
+      const emboss = (-gx - gy) * .35 * ra, mag = Math.min(255, Math.hypot(gx, gy) * .5), line = mag * ea * 1.6;
+      const o = (y * W + x) * 4;
+      for (let c = 0; c < 3; c++) out[o + c] = s[o + c] + emboss - line;
+      out[o + 3] = s[o + 3];
+    }
+    return { data: out, width: W, height: H };
+  }
+
+  /* ---------- градієнт-мапа (на місці) ---------- */
+  function gradientMap(img, key) {
+    const g = GRADS[key].rgb, d = img.data, n = g.length - 1;
+    for (let i = 0; i < d.length; i += 4) {
+      const l = (.2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]) / 255 * n, k = Math.min(n - 1, Math.floor(l)), f = l - k, a = g[k], b = g[k + 1];
+      d[i] = a[0] + (b[0] - a[0]) * f; d[i + 1] = a[1] + (b[1] - a[1]) * f; d[i + 2] = a[2] + (b[2] - a[2]) * f;
+    }
+  }
+
+  /* ---------- віньєтка: затемнення до країв (на місці) ---------- */
+  function vignette(img, strength) {
+    const W = img.width, H = img.height, d = img.data, cx = W / 2, cy = H / 2, maxR = Math.hypot(cx, cy), st = strength / 100;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const t = Math.hypot(x + .5 - cx, y + .5 - cy) / maxR, k = 1 - st * Math.max(0, (t - .35) / .65) ** 1.6, i = (y * W + x) * 4;
+      d[i] *= k; d[i + 1] *= k; d[i + 2] *= k;
+    }
+  }
+
   /* ---------- повний конвеєр ----------
      scale = розмір одного CSS-пікселя в пікселях полотна (devicePixelRatio для превʼю, 1 для експорту);
      colorOnly = лише колірні ефекти (для тайла: геометрію не чіпаємо). */
   function process(img, fx, scale = 1, colorOnly = false) {
     let work = clone(img);
     if (!colorOnly && fx.wave > 0) work = wave(work, fx.wave * .4 * scale, Math.max(4, fx.waveL * scale));
+    if (!colorOnly && (fx.lens !== 0 || fx.swirl !== 0)) work = lensWarp(work, fx.lens, fx.swirl);
+    if (!colorOnly && fx.ca > 0) work = chromatic(work, fx.ca * scale);
+    if (!colorOnly && (fx.relief > 0 || fx.edge > 0)) work = relief(work, fx.relief, fx.edge);
     const B = colorOnly ? 1 : Math.max(1, Math.round(fx.px * scale));
     let low = B > 1 ? boxDown(work, B) : work;
     if (hasColor(fx)) colorAdjust(low, fx);
+    if (hasGmap(fx)) gradientMap(low, fx.gmap);
     if (hasQuant(fx)) quantize(low, fx);
     let out = B > 1 ? upNearest(low, B, img.width, img.height) : low;
     if (!colorOnly && fx.scan > 0) scanlines(out, fx.scan, Math.max(2, Math.round(3 * scale)));
+    if (!colorOnly && fx.vig > 0) vignette(out, fx.vig);
     if (!colorOnly && fx.grain > 0) grain(out, fx.grain, 12345);
     return out;
   }
@@ -148,7 +233,7 @@ const PMFx = (() => {
     return { data: out, width: W, height: H };
   }
 
-  return { PALETTES, DEFAULT_FX, active, hasColorOnly, hasSpatial, process, boxDown, upNearest, colorAdjust, quantize, wave, rosette };
+  return { PALETTES, GRADS, DEFAULT_FX, active, hasColorOnly, hasSpatial, process, boxDown, upNearest, colorAdjust, quantize, wave, rosette, lensWarp, chromatic, relief, gradientMap, vignette };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PMFx;

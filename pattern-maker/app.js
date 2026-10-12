@@ -372,10 +372,27 @@
     syncControls(); drawSource(); requestRender(); saveSettings(); toast('Усе скинуто до початкових значень');
   };
 
+  // «Сюрприз»: випадкові параметри візерунка й 2–4 випадкові ефекти (режим і зображення не чіпаємо)
+  $('btnSurprise').onclick = () => {
+    const R = (a, b) => Math.round(a + Math.random() * (b - a)), pick = o => o[Math.floor(Math.random() * o.length)];
+    st.size = R(20, 70) / 100; st.rot = R(-180, 180); st.a = R(70, 140) / 100; st.k = R(25, 70) / 100; st.seg = R(4, 16); st.spin = R(-180, 180);
+    const fx = Object.assign({}, DEFAULTS.fx);
+    const pool = [
+      () => { fx.px = R(3, 14); }, () => { fx.pal = pick(Object.keys(PMFx.PALETTES)); if (Math.random() < .5) fx.dith = R(20, 80); },
+      () => { fx.hue = R(-180, 180); fx.sat = R(100, 220); }, () => { fx.gmap = pick(Object.keys(PMFx.GRADS)); },
+      () => { fx.wave = R(10, 45); fx.waveL = R(40, 160); }, () => { fx.lens = pick([-1, 1]) * R(30, 90); }, () => { fx.swirl = R(-240, 240); },
+      () => { fx.ca = R(2, 10); }, () => { fx.relief = R(40, 100); }, () => { fx.edge = R(30, 80); }, () => { fx.vig = R(30, 80); },
+      () => { fx.scan = R(20, 60); }, () => { fx.grain = R(10, 40); }, () => { fx.post = R(3, 6); },
+    ];
+    for (let n = R(2, 4); n > 0; n--) pick(pool)();
+    st.fx = fx; view.px = 0; view.py = 0;
+    syncControls(); drawSource(); requestRender(); saveSettings(); toast('Сюрприз!');
+  };
+
   /* ---------- ефекти кінцевого результату: панель керування ---------- */
   const FXC = [
     { k: 'px', label: 'Піксель-арт: розмір пікселя', min: 1, max: 48, fmt: v => (v <= 1 ? 'вимкнено' : v + ' px') },
-    { k: 'pal', label: 'Палітра', type: 'select' },
+    { k: 'pal', label: 'Палітра', type: 'select', opts: 'PALETTES', none: 'Без палітри' },
     { k: 'dith', label: 'Дізерінг (растрове змішування)', min: 0, max: 100, fmt: v => v + '%' },
     { k: 'post', label: 'Постеризація: рівнів на канал', min: 0, max: 16, fmt: v => (v < 2 ? 'вимкнено' : v) },
     { k: 'hue', label: 'Відтінок', min: -180, max: 180, fmt: v => v + '°' },
@@ -386,6 +403,13 @@
     { k: 'waveL', label: 'Хвиля: довжина', min: 20, max: 300, fmt: v => v + ' px' },
     { k: 'scan', label: 'Сканлінії (ЕПТ)', min: 0, max: 100, fmt: v => v + '%' },
     { k: 'grain', label: 'Зерно', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'lens', label: 'Лінза: опуклість / увігнутість', min: -100, max: 100, fmt: v => (v > 0 ? '+' : '') + v },
+    { k: 'swirl', label: 'Вир (закручування)', min: -360, max: 360, fmt: v => v + '°' },
+    { k: 'ca', label: 'Хроматична аберація', min: 0, max: 30, fmt: v => (v ? v + ' px' : 'вимкнено') },
+    { k: 'relief', label: 'Рельєф (тиснення)', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'edge', label: 'Контури', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'gmap', label: 'Градієнт-мапа', type: 'select', opts: 'GRADS', none: 'Без градієнта' },
+    { k: 'vig', label: 'Віньєтка', min: 0, max: 100, fmt: v => v + '%' },
     { k: 'ang', label: 'Нахил візерунка', min: -180, max: 180, fmt: v => v + '°' },
     { k: 'inv', label: 'Інвертувати кольори', type: 'check' },
   ];
@@ -403,8 +427,8 @@
         lab.append(inp, sp, reset); box.append(lab); fxCtl[c.k] = { inp };
       } else if (c.type === 'select') {
         const sel2 = document.createElement('select'); sel2.setAttribute('aria-label', c.label);
-        sel2.add(new Option('Без палітри', 'none'));
-        for (const [key, p] of Object.entries(PMFx.PALETTES)) sel2.add(new Option(`${p.name} (${p.rgb.length})`, key));
+        sel2.add(new Option(c.none, 'none'));
+        for (const [key, p] of Object.entries(PMFx[c.opts])) sel2.add(new Option(`${p.name} (${p.rgb.length})`, key));
         sel2.addEventListener('input', () => { st.fx[c.k] = sel2.value; onFx(); });
         const lab = document.createElement('label'); lab.className = 'ctl';
         const sp = document.createElement('span'); sp.textContent = c.label;

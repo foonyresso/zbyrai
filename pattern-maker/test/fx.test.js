@@ -137,5 +137,54 @@ test('розетка: дзеркальна симетрія відносно о�
   assert.ok(worst <= 3, 'розбіжність ' + worst);
 });
 
+test('лінза/вир: центр і кути лишаються, нуль нічого не змінює, результат змінюється', () => {
+  const img = noise(61, 61);
+  assert.ok(same(F.lensWarp(img, 0, 0), img));
+  const o = F.lensWarp(img, 80, 0), c = (30 * 61 + 30) * 4, k = 0;
+  assert.deepEqual([...o.data.slice(c, c + 3)], [...img.data.slice(c, c + 3)]);
+  assert.deepEqual([...o.data.slice(k, k + 3)], [...img.data.slice(k, k + 3)]);
+  assert.ok(!same(F.lensWarp(img, 0, 120), img));
+});
+
+test('хроматична аберація: зелений канал на місці, червоний і синій зсунуті', () => {
+  const img = noise(30, 10), o = F.chromatic(img, 3);
+  for (let y = 0; y < 10; y++) for (let x = 3; x < 27; x++) {
+    const i = (y * 30 + x) * 4;
+    assert.equal(o.data[i + 1], img.data[i + 1]);
+    assert.equal(o.data[i], img.data[(y * 30 + x - 3) * 4]);
+    assert.equal(o.data[i + 2], img.data[(y * 30 + x + 3) * 4 + 2]);
+  }
+});
+
+test('рельєф і контури: плоске зображення не змінюється, межа дає відгук', () => {
+  const flat = { data: new Uint8ClampedArray(20 * 20 * 4).fill(128), width: 20, height: 20 };
+  for (let i = 3; i < flat.data.length; i += 4) flat.data[i] = 255;
+  assert.ok(same(F.relief(flat, 100, 100), flat));
+  const e = { data: flat.data.slice(), width: 20, height: 20 };
+  for (let y = 0; y < 20; y++) for (let x = 10; x < 20; x++) { const i = (y * 20 + x) * 4; e.data[i] = e.data[i + 1] = e.data[i + 2] = 220; }
+  assert.ok(!same(F.relief(e, 0, 100), e));
+});
+
+test('градієнт-мапа: чорне й біле беруть крайні кольори градієнта', () => {
+  const img = { data: new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]), width: 2, height: 1 }, g = F.GRADS.fire.rgb;
+  F.gradientMap(img, 'fire');
+  assert.deepEqual([...img.data.slice(0, 3)], g[0]);
+  assert.deepEqual([...img.data.slice(4, 7)], g[g.length - 1]);
+});
+
+test('градієнт-мапа колірна: діє і на тайл, віньєтка й лінза — ні', () => {
+  const img = noise(32, 32);
+  assert.ok(F.hasColorOnly(fx({ gmap: 'ocean' })) && !F.hasColorOnly(fx({ vig: 50 })) && F.hasSpatial(fx({ lens: 20 })));
+  assert.ok(!same(F.process(img, fx({ gmap: 'ocean' }), 1, true), img));
+  assert.ok(same(F.process(img, fx({ vig: 50, lens: 40, ca: 4, relief: 50 }), 1, true), img));
+});
+
+test('віньєтка: центр не темнішає, кути темнішають', () => {
+  const d = new Uint8ClampedArray(41 * 41 * 4).fill(200), img = { data: d, width: 41, height: 41 };
+  F.vignette(img, 100);
+  assert.equal(d[(20 * 41 + 20) * 4], 200);
+  assert.ok(d[0] < 60);
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
