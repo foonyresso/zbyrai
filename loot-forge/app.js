@@ -41,12 +41,16 @@
   if (!S) S = { preset: 'fantasy', cfg: L.PRESETS.fantasy() };
   S = Object.assign({
     seed: L.randomSeed(), ilvl: 10, humor: 1, count: 6, rarity: 'any', slot: 'any', tab: 'items',
-    simN: 10000, drop: 20, pity: 0, kpm: 6, open: { roll: true, rar: true },
+    simN: 10000, drop: 20, pity: 0, kpm: 6, open: { roll: true, rar: true, gdd: true },
+    src: 'mob', luck: 0, setCode: '', setChance: 0, gemTier: 0,
   }, S);
   let items = [];       // поточні предмети
   let simResult = null; // результат останньої симуляції
 
-  function save() { store.set('state', S); }
+  function save() {
+    if (S.cfg && S.cfg.game && typeof GddCore !== 'undefined') GddCore.touch(S.cfg.game);
+    store.set('state', S);
+  }
   const cfg = () => S.cfg;
   const statLine = (st, v, plus) => `${st.name}: ${plus ? '+' : ''}${v}${st.pct ? '%' : ''}`;
 
@@ -73,6 +77,32 @@
   const numIn = (value, on, o = {}) => h('input', { type: 'number', class: 'num', value, min: o.min, max: o.max, step: o.step || 'any', 'aria-label': o.label, onchange: e => on(parseFloat(e.target.value)) });
   const txtIn = (value, on, o = {}) => h('input', { type: 'text', class: 'txt', value, 'aria-label': o.label, onchange: e => on(e.target.value) });
 
+  /* ---------- шар GodsDontDie (gdd-ui.js) ---------- */
+  const GAME = typeof GddCore !== 'undefined' && typeof GddUI !== 'undefined';
+  const isGame = () => GAME && GddCore.isOn(cfg());
+  const GUI = GAME ? GddUI.create({
+    h, S, L, cfg, section, numIn, txtIn, fmtNum, pctText, clampNum, save, toast, copyText,
+    getItems: () => items, roll: () => roll(), reseedAndRoll: () => reseedAndRoll(), renderOut: () => renderOut(), renderRules: () => renderRules(),
+    afterStructure: () => afterStructure(), makeRuneword: rw => makeRuneword(rw), makeNamed: id => makeNamed(id),
+  }) : null;
+  function pushItem(it) { items.unshift(it); S.tab = 'items'; save(); renderOut(); }
+  function makeRuneword(rw) {
+    const C = cfg(), g = C.game, ix = GddCore.idx(g);
+    const bases = ix.gear.filter(b => { const k = ix.cls.get(b.cls); return k && k.hasStats && k.maxSockets >= rw.runes.length && (rw.kinds.includes(k.insertKind) || rw.kinds.includes(k.id)); });
+    if (!bases.length) { toast('Немає типу предмета, куди влізе це рунне слово'); return; }
+    const rng = L.rngFromSeed(S.seed + ':rw:' + rw.id + ':' + (items.length));
+    const base = bases[Math.floor(rng() * bases.length)];
+    const it = GddCore.rollItem(C, rng, { ilvl: S.ilvl, source: S.src, luck: S.luck, humor: S.humor, slot: base.id });
+    it.halfStars = 1; it.baseSockets = rw.runes.length; it.setCode = null;
+    GddCore.derive(g, it);
+    rw.runes.forEach((r, i) => GddCore.insert(g, it, i, 'rune.' + r));
+    GddCore.derive(g, it);
+    pushItem(it); toast('Зібрано «' + rw.name + '»');
+  }
+  function makeNamed(id) {
+    try { pushItem(GddCore.rollNamed(cfg(), L.rngFromSeed(S.seed + ':named:' + id + ':' + items.length), id, S.ilvl)); } catch (e) { toast(e.message); }
+  }
+
   function chanceCells() {
     const pr = L.rarityProbs(cfg());
     document.querySelectorAll('[data-chance]').forEach(c => { c.textContent = pctText(pr[+c.dataset.chance] || 0); });
@@ -81,6 +111,10 @@
   function renderRules() {
     const root = $('rules'); root.textContent = '';
     const C = cfg();
+    if (GUI) {
+      root.append(GUI.modeSection());
+      if (GddCore.isOn(C)) { GUI.rules(root); return; }
+    }
 
     // кидок
     const seedIn = h('input', { type: 'text', value: S.seed, 'aria-label': 'Seed', onchange: e => { S.seed = e.target.value.trim() || L.randomSeed(); e.target.value = S.seed; save(); roll(); } });
@@ -158,14 +192,19 @@
   }
 
   /* ---------- права панель ---------- */
-  function afterStructure() { save(); selPreset.value = L.PRESETS[S.preset] ? S.preset : 'custom'; renderRules(); roll(); }
+  function afterStructure() { S.rarity = 'any'; S.slot = 'any'; save(); selPreset.value = L.PRESETS[S.preset] ? S.preset : 'custom'; renderRules(); roll(); }
 
   function roll() {
     const C = cfg();
     try {
       const bad = L.validate(C);
       if (bad.length) { items = []; renderOut(bad[0]); return; }
-      items = L.rollMany(C, S.count, S.seed, { ilvl: S.ilvl, humor: S.humor, rarity: S.rarity === 'any' ? null : S.rarity, slot: S.slot === 'any' ? null : S.slot });
+      const o = { ilvl: S.ilvl, humor: S.humor, rarity: S.rarity === 'any' ? null : S.rarity, slot: S.slot === 'any' ? null : S.slot };
+      if (isGame()) {
+        o.source = S.src; o.luck = S.luck; o.setChance = S.setChance;
+        o.setCode = S.setCode === '__random' ? GddCore.randomSetCode(L.rngFromSeed(S.seed + ':set')() * 2147483647) : (S.setCode || null);
+      }
+      items = L.rollMany(C, S.count, S.seed, o);
       renderOut();
     } catch (e) { items = []; renderOut('Не вдалося згенерувати: ' + e.message); }
   }
@@ -174,13 +213,19 @@
   document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => { S.tab = b.dataset.tab; save(); renderOut(); }));
 
   function renderOut(problem) {
-    document.querySelectorAll('#tabs button').forEach(b => { const on = b.dataset.tab === S.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+    const game = isGame();
+    if (!game && (S.tab === 'gcalc' || S.tab === 'gcat')) S.tab = 'items';
+    document.querySelectorAll('#tabs button').forEach(b => {
+      b.hidden = (b.dataset.tab === 'gcalc' || b.dataset.tab === 'gcat') && !game;
+      const on = b.dataset.tab === S.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on);
+    });
     const out = $('out'); out.textContent = '';
     if (problem) { out.append(h('div', { class: 'warns' }, h('div', { class: 'warn' }, problem))); return; }
-    if (S.tab === 'items') renderItems(out); else if (S.tab === 'sim') renderSim(out); else renderCalc(out);
+    if (S.tab === 'items') renderItems(out); else if (S.tab === 'sim') renderSim(out); else if (S.tab === 'gcalc') GUI.renderGameCalc(out); else if (S.tab === 'gcat') GUI.renderCatalog(out); else renderCalc(out);
   }
 
   function renderItems(out) {
+    if (isGame()) { GUI.renderItems(out); return; }
     const C = cfg();
     const sel = (opts, cur, on, label) => h('select', { 'aria-label': label, onchange: e => on(e.target.value) }, opts.map(([v, t]) => h('option', { value: v, selected: v === cur }, t)));
     out.append(h('div', { class: 'bar-tools' },
@@ -215,7 +260,7 @@
       h('button', { class: 'btn-forge', onclick: runSim }, 'Запустити'),
       h('label', null, 'Кидків', h('select', { 'aria-label': 'Кількість кидків', onchange: e => { S.simN = +e.target.value; save(); } },
         [1000, 10000, 100000, 300000].map(n => h('option', { value: n, selected: n === S.simN }, n.toLocaleString('uk-UA'))))),
-      h('span', { class: 'hint' }, `Рівень ${S.ilvl}, seed «${S.seed}»`),
+      h('span', { class: 'hint' }, isGame() ? `Рівень ${S.ilvl}, джерело «${GddCore.sourceChoices.find(x => x[0] === S.src)[1]}», Удача ${S.luck}, seed «${S.seed}»` : `Рівень ${S.ilvl}, seed «${S.seed}»`),
     ));
     if (!simResult || simResult.stamp !== simStamp()) { out.append(h('p', { class: 'empty' }, 'Натисни «Запустити»: побачиш розподіл рідкостей, діапазони статів і силу предметів.')); return; }
     const R = simResult.r;
@@ -239,21 +284,24 @@
     out.append(h('h3', { class: 't' }, 'Характеристики на предметах'));
     out.append(h('table', { class: 'dt' }, h('thead', null, h('tr', null, h('th', null, 'Стат'), h('th', { class: 'm' }, 'Мін'), h('th', { class: 'm' }, 'Середнє'), h('th', { class: 'm' }, 'Макс'), h('th', { class: 'm' }, 'Частка'))),
       h('tbody', null, R.stats.sort((a, b) => b.count - a.count).map(s => h('tr', null, h('td', { class: 'n' }, s.name), h('td', { class: 'm' }, fmtNum(s.min)), h('td', { class: 'm' }, fmtNum(s.avg)), h('td', { class: 'm' }, fmtNum(s.max)), h('td', { class: 'm' }, pctText(s.count / R.n)))))));
+    if (GUI && R.game) GUI.simExtras(out, R);
   }
-  const simStamp = () => JSON.stringify([S.cfg, S.seed, S.ilvl, S.simN]);
+  const simStamp = () => JSON.stringify([S.cfg, S.seed, S.ilvl, S.simN, S.src, S.luck]);
   function runSim() {
     const C = cfg();
     const bad = L.validate(C);
     if (bad.length) { toast(bad[0]); return; }
     const t = performance.now();
-    simResult = { stamp: simStamp(), r: L.simulate(C, S.simN, S.seed, { ilvl: S.ilvl }) };
+    simResult = { stamp: simStamp(), r: L.simulate(C, S.simN, S.seed, { ilvl: S.ilvl, source: S.src, luck: S.luck }) };
     renderOut();
     toast(`Готово за ${Math.max(1, Math.round(performance.now() - t))} мс`);
   }
 
   function renderCalc(out) {
     const C = cfg();
-    const pr = L.rarityProbs(C);
+    const game = isGame();
+    const pr = L.rarityProbs(C, { ilvl: S.ilvl, source: S.src, luck: S.luck });
+    const rars = game ? C.game.qualities : C.rarities;
     const field = (label, value, on, hint, o = {}) => h('div', { class: 'row' }, h('label', null, label), numIn(value, on, Object.assign({ label }, o)), h('span', { class: 'hint' }, hint));
     out.append(
       field('Шанс дропу, %', S.drop, v => { S.drop = clampNum(v, 20, 0, 100); save(); renderOut(); }, 'скільки вбивств дають предмет (20 = кожне п’яте)', { min: 0, max: 100 }),
@@ -261,9 +309,9 @@
       field('Вбивств за хвилину', S.kpm, v => { S.kpm = clampNum(v, 6, 0.1, 10000); save(); renderOut(); }, 'для оцінки часу', { min: 0.1 }),
     );
     const drop = S.drop / 100;
-    out.append(h('h3', { class: 't' }, 'Скільки вбивств до предмета рідкості'));
+    out.append(h('h3', { class: 't' }, game ? `Скільки вбивств до предмета якості (рівень ${S.ilvl}, джерело «${GddCore.sourceChoices.find(x => x[0] === S.src)[1]}»)` : 'Скільки вбивств до предмета рідкості'));
     out.append(h('table', { class: 'dt' }, h('thead', null, h('tr', null, h('th', null, 'Рідкість'), h('th', { class: 'm' }, 'З предмета'), h('th', { class: 'm' }, 'За вбивство'), h('th', { class: 'm' }, 'У середньому'), h('th', { class: 'm' }, '50%'), h('th', { class: 'm' }, '90%'), h('th', { class: 'm' }, '99%'), h('th', { class: 'm' }, 'Час'))),
-      h('tbody', null, C.rarities.map((r, i) => {
+      h('tbody', null, rars.map((r, i) => {
         const p = drop * pr[i], mean = L.expectedTries(p, S.pity);
         return h('tr', null,
           h('td', { class: 'n', style: `color:${r.color}` }, r.name), h('td', { class: 'm' }, pctText(pr[i])), h('td', { class: 'm' }, pctText(p)),

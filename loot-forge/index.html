@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Loot Forge: кузня предметів</title>
-<meta name="description" content="Кузня предметів для ігор: рідкості, афікси, випадкові стати, назви з чорним гумором. Симуляція тисяч дропів і калькулятор шансу легендарки. Експорт у JSON. Безкоштовно, працює офлайн.">
+<meta name="description" content="Кузня предметів для ігор: рідкості, афікси, випадкові стати, назви з чорним гумором. Режим GodsDontDie: типи, слоти, картки й руни, зірки, точіння, комплекти. Симуляція тисяч дропів і калькулятори. Експорт у JSON. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/loot-forge/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
@@ -44,6 +44,8 @@
         <button role="tab" data-tab="items">Предмети</button>
         <button role="tab" data-tab="sim">Симуляція</button>
         <button role="tab" data-tab="calc">Шанси</button>
+        <button role="tab" data-tab="gcalc" hidden>Калькулятор гри</button>
+        <button role="tab" data-tab="gcat" hidden>Каталог гри</button>
       </div>
     </div>
     <div class="pane-b" id="out"></div>
@@ -73,6 +75,9 @@
 if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
 <script src="./loot-core.js"></script>
+<script src="./gdd-data.js"></script>
+<script src="./gdd-core.js"></script>
+<script src="./gdd-ui.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
