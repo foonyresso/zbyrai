@@ -29,6 +29,14 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
   }
   const sign = C.sign;
+  // Усі значки листка намальовані CSS/SVG, а не символами шрифту: на пристроях без потрібних гліфів вони б виглядали порожніми квадратами.
+  const pip = (kind, label) => h('span', { class: 'pip ' + kind, role: 'img', 'aria-label': label || null });
+  const pips = (n, kind) => Array.from({ length: n }, () => pip(kind));
+  function dieIcon() {
+    const s = document.createElement('span'); s.className = 'ico'; s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 1.5 14 5v6l-6 3.5L2 11V5z"/><path d="M8 1.5v13M2 5l12 6M14 5 2 11"/></svg>';
+    return s;
+  }
 
   /* ---------- стан ---------- */
   const DEFAULTS = () => ({
@@ -36,15 +44,15 @@
     method: '4d6', assign: 'smart', hp: 'average', smartGear: true, abilities: {}, skills: [], trait: '', ideal: '', bond: '', flaw: '',
   });
   const saved = store.get('state', null);
-  const S = Object.assign({ seed: C.randomSeed(), name: '', params: DEFAULTS(), open: { main: true, abil: true } }, saved || {});
+  const S = Object.assign({ seed: C.randomSeed(), name: '', nameVariant: 0, params: DEFAULTS(), open: { main: true, abil: true } }, saved || {});
   S.params = Object.assign(DEFAULTS(), S.params || {});
   let ch = null;
 
-  function save() { store.set('state', { seed: S.seed, name: S.name, params: S.params, open: S.open }); }
+  function save() { store.set('state', { seed: S.seed, name: S.name, nameVariant: S.nameVariant, params: S.params, open: S.open }); }
 
   function regen() {
     try {
-      ch = C.generate(Object.assign({}, S.params, { name: S.name }), S.seed);
+      ch = C.generate(Object.assign({}, S.params, { name: S.name, nameVariant: S.nameVariant }), S.seed);
       renderSheet();
     } catch (e) { $('sheet').textContent = ''; $('sheet').append(h('div', { class: 'warn' }, 'Не вдалося згенерувати: ' + e.message)); console.error(e); }
   }
@@ -73,28 +81,28 @@
     root.append(section('main', 'Основне', null,
       field('Seed', h('span', { class: 'inline' },
         h('input', { class: 'txt', value: S.seed, 'aria-label': 'Seed', spellcheck: 'false', onchange: e => { S.seed = e.target.value.trim() || C.randomSeed(); save(); regen(); } }),
-        h('button', { class: 'x', title: 'Новий seed', onclick: () => roll() }, '🎲'))),
-      field('Раса', sel([opt(ANY, '🎲 Випадково')].concat(SRD.RACES.map(r => opt(r.id, r.name))), P.race, v => setP({ race: v, subrace: ANY }), 'Раса')),
-      race && race.subraces.length ? field('Підраса', sel([opt(ANY, '🎲 Випадково')].concat(race.subraces.map(s => opt(s.id, s.name))), P.subrace, v => setP({ subrace: v }), 'Підраса')) : null,
-      field('Клас', sel([opt(ANY, '🎲 Випадково')].concat(SRD.CLASSES.map(c => opt(c.id, c.name))), P.cls, v => setP({ cls: v, subclass: ANY }), 'Клас')),
-      field('Підклас', sel([opt(ANY, '🎲 Єдиний варіант SRD')].concat(SRD.CLASSES.filter(c => P.cls === ANY || c.id === P.cls).map(c => opt(c.subclass.id, c.subclass.name))), P.subclass, v => setP({ subclass: v }), 'Підклас')),
-      field('Рівень', sel([opt(ANY, '🎲 Випадковий')].concat(Array.from({ length: 20 }, (_, i) => opt(i + 1, String(i + 1)))), P.level, v => setP({ level: v === ANY ? ANY : Number(v) }), 'Рівень')),
+        h('button', { class: 'x', title: 'Новий seed', 'aria-label': 'Новий seed', onclick: () => roll() }, dieIcon()))),
+      field('Раса', sel([opt(ANY, 'Випадково')].concat(SRD.RACES.map(r => opt(r.id, r.name))), P.race, v => setP({ race: v, subrace: ANY }), 'Раса')),
+      race && race.subraces.length ? field('Підраса', sel([opt(ANY, 'Випадково')].concat(race.subraces.map(s => opt(s.id, s.name))), P.subrace, v => setP({ subrace: v }), 'Підраса')) : null,
+      field('Клас', sel([opt(ANY, 'Випадково')].concat(SRD.CLASSES.map(c => opt(c.id, c.name))), P.cls, v => setP({ cls: v, subclass: ANY }), 'Клас')),
+      field('Підклас', sel([opt(ANY, 'Єдиний варіант SRD')].concat(SRD.CLASSES.filter(c => P.cls === ANY || c.id === P.cls).map(c => opt(c.subclass.id, c.subclass.name))), P.subclass, v => setP({ subclass: v }), 'Підклас')),
+      field('Рівень', sel([opt(ANY, 'Випадковий')].concat(Array.from({ length: 20 }, (_, i) => opt(i + 1, String(i + 1)))), P.level, v => setP({ level: v === ANY ? ANY : Number(v) }), 'Рівень')),
       levelRange ? field('Діапазон', h('span', { class: 'inline' },
         h('input', { class: 'num', type: 'number', min: 1, max: 20, value: P.levelMin, 'aria-label': 'Від рівня', onchange: e => setP({ levelMin: +e.target.value }) }), '—',
         h('input', { class: 'num', type: 'number', min: 1, max: 20, value: P.levelMax, 'aria-label': 'До рівня', onchange: e => setP({ levelMax: +e.target.value }) }))) : null,
-      field('Передісторія', sel([opt(ANY, '🎲 Випадково')].concat(SRD.BACKGROUNDS.map(b => opt(b.id, b.name))), P.background, v => setP({ background: v }), 'Передісторія')),
-      field('Світогляд', sel([opt(ANY, '🎲 Випадково')].concat(SRD.ALIGNMENTS.map(a => opt(a.id, a.name))), P.alignment, v => setP({ alignment: v }), 'Світогляд')),
+      field('Передісторія', sel([opt(ANY, 'Випадково')].concat(SRD.BACKGROUNDS.map(b => opt(b.id, b.name))), P.background, v => setP({ background: v }), 'Передісторія')),
+      field('Світогляд', sel([opt(ANY, 'Випадково')].concat(SRD.ALIGNMENTS.map(a => opt(a.id, a.name))), P.alignment, v => setP({ alignment: v }), 'Світогляд')),
       h('p', { class: 'hint' }, 'SRD 5.1 містить лише одну передісторію («Послушник») і по одному підкласу на клас: інших у правилах SRD немає.'),
     ));
 
     const abil = h('div', { class: 'abil-in' }, SRD.ABILITIES.map(a => h('label', null, h('span', null, a.short),
-      h('input', { class: 'num', type: 'number', min: 3, max: 20, placeholder: '🎲', value: P.abilities[a.id] == null ? '' : P.abilities[a.id], 'aria-label': a.name + ' (базове значення)',
+      h('input', { class: 'num', type: 'number', min: 3, max: 20, placeholder: 'випадк.', value: P.abilities[a.id] == null ? '' : P.abilities[a.id], 'aria-label': a.name + ' (базове значення)',
         onchange: e => { const ab = Object.assign({}, P.abilities); const v = e.target.value.trim(); if (v === '') delete ab[a.id]; else ab[a.id] = Math.min(20, Math.max(3, Math.round(+v) || 10)); setP({ abilities: ab }); } }))));
     root.append(section('abil', 'Характеристики та HP', null,
-      field('Метод', sel([opt(ANY, '🎲 Випадковий метод')].concat(C.METHODS), P.method, v => setP({ method: v }), 'Метод')),
-      field('Розподіл', sel([opt('smart', 'За пріоритетами класу'), opt('random', 'Випадково'), opt(ANY, '🎲 Будь-як')], P.assign, v => setP({ assign: v }), 'Розподіл')),
+      field('Метод', sel([opt(ANY, 'Випадковий метод')].concat(C.METHODS), P.method, v => setP({ method: v }), 'Метод')),
+      field('Розподіл', sel([opt('smart', 'За пріоритетами класу'), opt('random', 'Випадково'), opt(ANY, 'Будь-як')], P.assign, v => setP({ assign: v }), 'Розподіл')),
       field('HP за рівень', sel([opt('average', 'Середнє значення'), opt('roll', 'Кидок кістки')], P.hp, v => setP({ hp: v }), 'HP')),
-      h('p', { class: 'hint' }, 'Зафіксуй базове значення (до расових бонусів): порожнє поле означає випадкове.'), abil));
+      h('p', { class: 'hint' }, 'Зафіксуй базове значення (до расових бонусів): порожнє поле означає випадкове. Значення мусить бути можливим для методу (point buy: 8-15 і разом не більше 27 очок; стандартний набір: 15, 14, 13, 12, 10, 8; кидки: 3-18), інакше його буде приведено до найближчого допустимого.'), abil));
 
     const sk = h('div', { class: 'checks' }, SRD.SKILLS.map(s => h('label', null,
       h('input', { type: 'checkbox', checked: P.skills.includes(s.id), onchange: e => { const set = new Set(P.skills); if (e.target.checked) set.add(s.id); else set.delete(s.id); setP({ skills: [...set] }, false); } }), s.name)));
@@ -102,7 +110,7 @@
       h('p', { class: 'hint' }, 'Якщо клас, раса чи передісторія дозволяють, ці навички будуть вибрані першими.')));
 
     const bg = SRD.BACKGROUNDS.find(b => b.id === (P.background === ANY ? SRD.BACKGROUNDS[0].id : P.background));
-    const trSel = (key, label, list) => field(label, sel([opt('', '🎲 Випадково')].concat(list.map((t, i) => opt(i, (t.t || t).slice(0, 70) + ((t.t || t).length > 70 ? '…' : '')))), P[key], v => setP({ [key]: v === '' ? '' : Number(v) }, false), label));
+    const trSel = (key, label, list) => field(label, sel([opt('', 'Випадково')].concat(list.map((t, i) => opt(i, (t.t || t).slice(0, 70) + ((t.t || t).length > 70 ? '…' : '')))), P[key], v => setP({ [key]: v === '' ? '' : Number(v) }, false), label));
     root.append(section('pers', 'Особистість', null,
       trSel('trait', 'Риса', bg.traits), trSel('ideal', 'Ідеал', bg.ideals), trSel('bond', 'Прив’язка', bg.bonds), trSel('flaw', 'Вада', bg.flaws)));
 
@@ -114,7 +122,7 @@
   /* ---------- листок ---------- */
   const SRC_NAMES = { race: 'Расові риси', bg: 'Передісторія', class: 'Риси класу', subclass: 'Риси підкласу', feat: 'Риси (feats)' };
   const ABN = Object.fromEntries(SRD.ABILITIES.map(a => [a.id, a]));
-  const dot = p => p === 2 ? '◆' : p === 1 ? '●' : '○';
+  const dot = p => pip(p === 2 ? 'ex' : p === 1 ? 'on' : '', p === 2 ? 'експертиза' : p === 1 ? 'володіння' : 'немає володіння');
 
   function box(label, value, sub, cls) {
     return h('div', { class: 'stat-box ' + (cls || '') }, h('small', null, label), h('b', null, value), sub ? h('em', null, sub) : null);
@@ -124,7 +132,7 @@
   }
   function spellChip(s, extra) {
     return h('li', { class: 'sp' + (extra && extra.prep === false ? ' off' : ''), title: `${s.en}, ${s.school}${s.src ? ', ' + s.src : ''}` },
-      extra && extra.mark ? h('i', null, extra.mark) : null, s.name, h('small', null, s.en));
+      extra && extra.mark != null ? h('i', null, extra.mark) : null, s.name, h('small', null, s.en));
   }
   function spellList(title, list, opts) {
     if (!list || !list.length) return null;
@@ -142,7 +150,11 @@
 
     // шапка
     root.append(h('div', { class: 'sh-head' },
-      h('input', { class: 'sh-name', value: ch.name, placeholder: 'Ім’я персонажа', 'aria-label': 'Ім’я персонажа', oninput: e => { ch.name = e.target.value; S.name = e.target.value; save(); } }),
+      h('div', { class: 'sh-namerow' },
+        h('input', { class: 'sh-name', value: ch.name, placeholder: 'Ім’я персонажа', 'aria-label': 'Ім’я персонажа',
+          oninput: e => { ch.name = e.target.value; S.name = e.target.value; save(); },
+          onchange: e => { if (!e.target.value.trim()) { S.name = ''; save(); regen(); } } }),
+        h('button', { class: 'x namebtn', title: 'Інше випадкове ім’я', 'aria-label': 'Інше випадкове ім’я', onclick: () => { S.name = ''; S.nameVariant++; save(); regen(); } }, dieIcon(), ' Ім’я')),
       h('div', { class: 'sh-sub' },
         h('b', null, `${ch.cls.name} ${ch.level} рів.`), ' · ', ch.race.full, ' · ', ch.background.name, ' · ', ch.alignment.name, ' · ', `${ch.xp.toLocaleString('uk-UA')} XP`),
       h('div', { class: 'sh-sub dim' }, 'Підклас: ', subTxt, ch.fightingStyles.length ? ' · Бойовий стиль: ' + ch.fightingStyles.join(', ') : '', ch.pact ? ' · Дар угоди: ' + ch.pact.split(':')[0] : ''),
@@ -152,10 +164,10 @@
     const hpExtra = ch.hp.method === 'roll' ? 'кидки' : 'середнє';
     root.append(h('div', { class: 'stats' },
       box('Бонус майстерності', sign(ch.proficiency)), box('Клас броні', ch.ac.value, ch.ac.note, 'ac'),
-      box('Ініціатива', sign(ch.initiative)), box('Швидкість', ch.speed.text, ch.speed.notes.join(', '), 'sm'),
+      box('Ініціатива', sign(ch.initiative), ch.initiativeNotes.join(', ')), box('Швидкість', ch.speed.text, ch.speed.notes.join(', '), 'sm'),
       box('HP (макс.)', ch.hp.max, `кістки хітів ${ch.hp.dice}, ${hpExtra}`, 'hp'),
       box('Пасивна уважність', ch.passive.perception, `Проникливість ${ch.passive.insight}, Розслідування ${ch.passive.investigation}`),
-      box('Натхнення', '☐'),
+      box('Натхнення', pip('sq', 'порожнє поле')),
     ));
 
     const cols = h('div', { class: 'sh-cols' });
@@ -164,14 +176,14 @@
     // стовпець 1: характеристики, рятівні, навички
     const c1 = h('div', { class: 'col' });
     c1.append(h('div', { class: 'abils' }, SRD.ABILITIES.map(a => { const x = mods[a.id];
-      return h('div', { class: 'abil', title: `База ${x.base}, раса ${sign(x.racial)}, підвищення ${sign(x.asi)}` + (x.capped ? ' (обмежено 20)' : '') },
+      return h('div', { class: 'abil', title: `База ${x.base}, раса ${sign(x.racial)}, підвищення ${sign(x.asi)}` + (x.feature ? `, риса класу ${sign(x.feature)}` : '') + (x.capped ? ' (обмежено 20)' : '') },
         h('small', null, a.name), h('b', null, sign(x.mod)), h('span', null, x.score)); })));
     c1.append(h('h3', { class: 't' }, 'Рятівні кидки'),
       h('ul', { class: 'plist' }, ch.saves.map(s => h('li', { class: s.prof ? 'on' : '' }, h('i', null, dot(s.prof ? 1 : 0)), h('b', null, sign(s.bonus)), ABN[s.ab].name))));
     c1.append(h('h3', { class: 't' }, 'Навички'),
       h('ul', { class: 'plist' }, ch.skills.map(s => h('li', { class: s.prof ? 'on' : '', title: s.src || (s.half ? 'половина бонусу майстерності' : '') },
         h('i', null, dot(s.prof)), h('b', null, sign(s.bonus)), s.name, h('small', null, ABN[s.ab].short)))));
-    c1.append(h('p', { class: 'hint' }, '● володіння, ◆ експертиза (подвоєний бонус).', ch.ac.stealthDisadvantage ? ' Обладунок накладає невигоду на Скритність.' : ''));
+    c1.append(h('p', { class: 'hint legend' }, pip('on'), ' володіння, ', pip('ex'), ' експертиза (подвоєний бонус).', ch.ac.stealthDisadvantage ? ' Обладунок накладає невигоду на Скритність.' : ''));
     cols.append(c1);
 
     // стовпець 2: атаки, спорядження, заклинання коротко
@@ -200,9 +212,10 @@
         h('dt', null, 'Риси'), h('dd', null, h('ul', { class: 'plain' }, p.traits.map(t => h('li', null, t)))),
         h('dt', null, 'Ідеал'), h('dd', null, p.ideal), h('dt', null, 'Прив’язка'), h('dd', null, p.bond), h('dt', null, 'Вада'), h('dd', null, p.flaw)));
     c3.append(h('h3', { class: 't' }, 'Рятівні кидки від смерті'),
-      h('p', { class: 'death' }, 'Успіхи ☐ ☐ ☐ · Провали ☐ ☐ ☐'));
+      h('div', { class: 'death' }, h('span', null, 'Успіхи ', pips(3, 'sq')), h('span', null, 'Провали ', pips(3, 'sq'))));
     c3.append(h('details', { class: 'log' }, h('summary', null, 'Як вийшли числа'),
       h('p', { class: 'hint' }, `Метод: ${(C.METHODS.find(m => m[0] === ch.method.id) || [0, ch.method.id])[1]}. Результати: ${ch.method.rolls.length ? ch.method.rolls.map(r => Array.isArray(r) ? '[' + r.join(' ') + ']' : r).join(', ') : 'зафіксовано'}.`),
+      ch.method.adjusted && ch.method.adjusted.length ? h('p', { class: 'hint' }, 'Зафіксовані значення приведено до меж методу: ', ch.method.adjusted.map(x => `${ABN[x.ab].short} ${x.from} на ${x.to}`).join(', '), '.') : null,
       h('p', { class: 'hint' }, 'Бонуси раси: ', SRD.ABILITIES.filter(a => mods[a.id].racial).map(a => `${a.short} ${sign(mods[a.id].racial)}`).join(', ') || 'немає', '.'),
       ch.log.asi.length ? h('p', { class: 'hint' }, 'Покращення: ', ch.log.asi.map(a => `${a.lvl} рів.: ${a.text}`).join('; '), '.') : h('p', { class: 'hint' }, 'Покращень характеристик іще немає (з 4 рівня).'),
       h('p', { class: 'hint' }, 'HP за рівнями: ', ch.log.hp.map(x => x.total).join(', '), ` (кістка d${ch.cls.hd}, мод. Статури ${sign(mods.con.mod)}).`)));
@@ -231,8 +244,8 @@
       wrap.append(h('div', { class: 'stats small' },
         box('Характеристика', ABN[sp.ability].name), box('Складність рятівного (КС)', sp.dc), box('Бонус атаки закляттям', sign(sp.attack)), box('Тип', mode)));
       if (sp.slots.length) {
-        wrap.append(h('div', { class: 'slots' }, sp.slots.map((n, i) => h('div', { class: 'slot' }, h('small', null, (i + 1) + ' рів.'), h('span', null, '○'.repeat(n))))));
-      } else if (sp.pact) wrap.append(h('div', { class: 'slots' }, h('div', { class: 'slot wide' }, h('small', null, `Комірки угоди: ${sp.pact.count} × ${sp.pact.level} рівня`), h('span', null, '○'.repeat(sp.pact.count)))));
+        wrap.append(h('div', { class: 'slots' }, sp.slots.map((n, i) => h('div', { class: 'slot' }, h('small', null, (i + 1) + ' рів.'), h('span', { class: 'pips' }, pips(n, ''))))));
+      } else if (sp.pact) wrap.append(h('div', { class: 'slots' }, h('div', { class: 'slot wide' }, h('small', null, `Комірки угоди: ${sp.pact.count} × ${sp.pact.level} рівня`), h('span', { class: 'pips' }, pips(sp.pact.count, '')))));
     } else {
       wrap.append(h('p', { class: 'hint' }, 'Закляття з расових рис (без комірок класу).'));
     }
@@ -240,7 +253,7 @@
     if (sp.cantrips.length) lists.push(spellList('Трюки', sp.cantrips));
     if (sp.raceCantrip) lists.push(spellList('Трюк високого ельфа (Інтелект)', [sp.raceCantrip]));
     if (sp.known.length) lists.push(spellList('Відомі закляття', sp.known));
-    if (sp.mode === 'book') lists.push(spellList('Книга заклять (● підготовлено)', sp.book, { fn: s => ({ mark: s.prepared ? '●' : '○', prep: s.prepared }) }));
+    if (sp.mode === 'book') lists.push(spellList('Книга заклять (заповнений значок: підготовлено)', sp.book, { fn: s => ({ mark: pip(s.prepared ? 'on' : ''), prep: s.prepared }) }));
     else if (sp.prepared.length) lists.push(spellList(`Підготовлені закляття (${sp.preparedCount})`, sp.prepared));
     if (sp.always.length) lists.push(spellList('Завжди підготовлені (домен, клятва, коло, дар)', sp.always));
     if (sp.arcanum.length) lists.push(spellList('Містичний аркан (раз на довгий відпочинок)', sp.arcanum, { fn: s => ({ mark: s.lvl + '' }) }));
@@ -253,7 +266,7 @@
   }
 
   /* ---------- дії ---------- */
-  function roll() { S.seed = C.randomSeed(); save(); renderParams(); regen(); }
+  function roll() { S.seed = C.randomSeed(); S.name = ''; S.nameVariant = 0; save(); renderParams(); regen(); }
   function copyText(text, msg) {
     const done = () => toast(msg);
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => fallback());
@@ -275,7 +288,7 @@
     download(base + '.json', C.exportJSON(ch)); toast('Збережено ' + base + '.json');
   });
   $('btnClear').addEventListener('click', () => { S.params = DEFAULTS(); save(); renderParams(); regen(); toast('Параметри скинуто'); });
-  $('btnChaos').addEventListener('click', () => { S.params = Object.assign(DEFAULTS(), { method: 'any', assign: 'any' }); roll(); toast('Повний хаос'); });
+  $('btnChaos').addEventListener('click', () => { S.params = Object.assign(DEFAULTS(), { method: 'any', assign: 'any' }); roll(); toast('Все випадково'); });
   $('btnPin').addEventListener('click', () => {
     Object.assign(S.params, { race: ch.race.id, subrace: ch.race.subId || ANY, cls: ch.cls.id, subclass: ANY, level: ch.level, background: ch.background.id, alignment: ch.alignment.id });
     save(); renderParams(); toast('Расу, клас, рівень, передісторію й світогляд закріплено');

@@ -162,7 +162,7 @@ test('закляття: кількості, відсутність дублів,
     const book = sp.book || [];
     const ids = all.map(s => s.id).concat(book.map(s => s.id).filter(i => !sp.prepared.some(p => p.id === i)));
     assert.equal(new Set(ids).size, ids.length, `${cls}${L}: дублі заклять`);
-    if (caster.known) assert.equal(sp.known.length, caster.known[L - 1], `${cls}${L} відомі`);
+    if (caster.known) assert.equal(sp.known.length + (cls === 'bard' ? 2 * [10, 14, 18].filter(l => l <= L).length : 0), caster.known[L - 1], `${cls}${L} відомі (таємниці барда входять у число)`);
     if (cls === 'wizard') { assert.equal(sp.book.length, 6 + 2 * (L - 1)); assert.equal(sp.prepared.length, Math.max(1, ch.abilities.int.mod + L)); }
     if (['cleric', 'druid'].includes(cls)) assert.equal(sp.prepared.length, Math.max(1, ch.abilities.wis.mod + L));
     if (cls === 'paladin') assert.equal(sp.prepared.length, Math.max(1, ch.abilities.cha.mod + Math.floor(L / 2)));
@@ -302,14 +302,14 @@ test('риси класу й підкласу з’являються на пр�
 
 test('рейнджер: улюблені ввороги й місцевості за рівнем', () => {
   const r = C.generate({ cls: 'ranger', level: 14 }, 'rn');
-  assert.equal(r.features.find(x => x.name === 'Улюблений ворог').desc.split(' → ')[1].split('; ').length, 3);
-  assert.equal(r.features.find(x => x.name === 'Природний дослідник').desc.split(' → ')[1].split('; ').length, 3);
+  assert.equal(r.features.find(x => x.name === 'Улюблений ворог').desc.split(' Вибір: ')[1].split('; ').length, 3);
+  assert.equal(r.features.find(x => x.name === 'Природний дослідник').desc.split(' Вибір: ')[1].split('; ').length, 3);
 });
 
 test('друїд кола землі: тип місцевості визначає закляття кола', () => {
   const d = C.generate({ cls: 'druid', level: 9, race: 'human' }, 'dd');
   assert.equal(d.spellcasting.always.length, 8);
-  assert.ok(d.features.find(x => x.name === 'Друїдичне коло').desc.includes('→'));
+  assert.ok(d.features.find(x => x.name === 'Друїдичне коло').desc.includes(' Вибір: '));
 });
 
 test('мови: раса + додаткові, без повторів; передісторія дає дві', () => {
@@ -353,6 +353,198 @@ test('розподіл за класом: основна характерист�
     if (b.abilities.str.base >= Math.max(...Object.values(b.abilities).map(x => x.base))) rnd++;
   }
   assert.ok(smart > 90, 'smart ' + smart); assert.ok(rnd < 40, 'random ' + rnd);
+});
+
+
+/* ====================== аудит за SRD 5.1: незалежна перевірка таблиць і формул ====================== */
+
+test('SRD: кістки хітів, рятівні кидки, кількість навичок класів', () => {
+  const exp = {
+    barbarian: [12, 'str con', 2], bard: [8, 'dex cha', 3], cleric: [8, 'wis cha', 2], druid: [8, 'int wis', 2], fighter: [10, 'str con', 2], monk: [8, 'str dex', 2],
+    paladin: [10, 'wis cha', 2], ranger: [10, 'str dex', 3], rogue: [8, 'dex int', 4], sorcerer: [6, 'con cha', 2], warlock: [8, 'wis cha', 2], wizard: [6, 'int wis', 2],
+  };
+  for (const [id, [hd, saves, n]] of Object.entries(exp)) {
+    const c = SRD.CLASS_BY_ID[id];
+    assert.equal(c.hd, hd, id + ' кістка'); assert.deepEqual(c.saves, saves.split(' '), id + ' рятівні'); assert.equal(c.skillCount, n, id + ' навички');
+  }
+  assert.equal(SRD.CLASSES.length, 12);
+});
+
+test('SRD: таблиці комірок заклять, відомих заклять і досвіду', () => {
+  // повний чаклун: 1, 2, 3, 5, 9, 11, 17, 20 рівні
+  const full = { 1: [2], 2: [3], 3: [4, 2], 5: [4, 3, 2], 9: [4, 3, 3, 3, 1], 11: [4, 3, 3, 3, 2, 1], 13: [4, 3, 3, 3, 2, 1, 1], 17: [4, 3, 3, 3, 2, 1, 1, 1, 1], 20: [4, 3, 3, 3, 3, 2, 2, 1, 1] };
+  for (const [L, slots] of Object.entries(full)) assert.deepEqual(SRD.FULL_SLOTS[L - 1], slots, 'повний заклинач ' + L);
+  const half = { 1: [], 2: [2], 3: [3], 5: [4, 2], 9: [4, 3, 2], 13: [4, 3, 3, 1], 17: [4, 3, 3, 3, 1], 20: [4, 3, 3, 3, 2] };
+  for (const [L, slots] of Object.entries(half)) assert.deepEqual(SRD.HALF_SLOTS[L - 1], slots, 'половинний заклинач ' + L);
+  const pact = { 1: [1, 1], 2: [2, 1], 3: [2, 2], 5: [2, 3], 7: [2, 4], 9: [2, 5], 11: [3, 5], 17: [4, 5] };
+  for (const [L, p] of Object.entries(pact)) assert.deepEqual(SRD.PACT_SLOTS[L - 1], p, 'угода ' + L);
+  const known = {
+    bard: [4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 18, 19, 19, 20, 22, 22, 22], sorcerer: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
+    warlock: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15], ranger: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11],
+  };
+  for (const [id, arr] of Object.entries(known)) assert.deepEqual(SRD.CLASS_BY_ID[id].caster.known, arr, id + ' відомі закляття');
+  const cant = { bard: [2, 3, 4], cleric: [3, 4, 5], druid: [2, 3, 4], sorcerer: [4, 5, 6], warlock: [2, 3, 4], wizard: [3, 4, 5] };
+  for (const [id, [a, b, c]] of Object.entries(cant)) { const t = SRD.CLASS_BY_ID[id].caster.cantrips; assert.deepEqual([t[0], t[3], t[9]], [a, b, c], id + ' трюки'); assert.equal(t[2], a); assert.equal(t[8], b); }
+  assert.deepEqual(SRD.XP, [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000]);
+});
+
+test('SRD: обладунки (КБ, ліміт Спритності, вимога Сили, невигода Скритності)', () => {
+  const exp = { // id: [тип, КБ, ліміт Спр (null без ліміту, 0 не додається), Сила, невигода]
+    padded: ['light', 11, null, 0, true], leather: ['light', 11, null, 0, false], studded: ['light', 12, null, 0, false],
+    hide: ['medium', 12, 2, 0, false], 'chain-shirt': ['medium', 13, 2, 0, false], 'scale-mail': ['medium', 14, 2, 0, true], breastplate: ['medium', 14, 2, 0, false], 'half-plate': ['medium', 15, 2, 0, true],
+    'ring-mail': ['heavy', 14, 0, 0, true], 'chain-mail': ['heavy', 16, 0, 13, true], splint: ['heavy', 17, 0, 15, true], plate: ['heavy', 18, 0, 15, true],
+  };
+  assert.equal(SRD.ARMOR.length, 12);
+  for (const [id, [type, ac, cap, str, st]] of Object.entries(exp)) {
+    const a = SRD.ARMOR.find(x => x.id === id);
+    assert.deepEqual([a.type, a.ac, a.dexCap, a.str, a.stealth], [type, ac, cap, str, st], id);
+  }
+});
+
+test('SRD: зброя (категорія, кістка шкоди, тип шкоди, властивості)', () => {
+  const exp = { // id: 'категорія кістка тип властивості'
+    club: 'simple 1d4 дробляча l', dagger: 'simple 1d4 колюча flt', greatclub: 'simple 1d8 дробляча 2', handaxe: 'simple 1d6 рубальна lt', javelin: 'simple 1d6 колюча t',
+    'light-hammer': 'simple 1d4 дробляча lt', mace: 'simple 1d6 дробляча -', quarterstaff: 'simple 1d6 дробляча v', sickle: 'simple 1d4 рубальна l', spear: 'simple 1d6 колюча tv',
+    'light-crossbow': 'simple 1d8 колюча ag2', dart: 'simple 1d4 колюча ft', shortbow: 'simple 1d6 колюча a2', sling: 'simple 1d4 дробляча a',
+    battleaxe: 'martial 1d8 рубальна v', flail: 'martial 1d8 дробляча -', glaive: 'martial 1d10 рубальна hr2', greataxe: 'martial 1d12 рубальна h2', greatsword: 'martial 2d6 рубальна h2',
+    halberd: 'martial 1d10 рубальна hr2', lance: 'martial 1d12 колюча r', longsword: 'martial 1d8 рубальна v', maul: 'martial 2d6 дробляча h2', morningstar: 'martial 1d8 колюча -',
+    pike: 'martial 1d10 колюча hr2', rapier: 'martial 1d8 колюча f', scimitar: 'martial 1d6 рубальна fl', shortsword: 'martial 1d6 колюча fl', trident: 'martial 1d6 колюча tv',
+    'war-pick': 'martial 1d8 колюча -', warhammer: 'martial 1d8 дробляча v', whip: 'martial 1d4 рубальна fr', blowgun: 'martial 1 колюча ag', 'hand-crossbow': 'martial 1d6 колюча alg',
+    'heavy-crossbow': 'martial 1d10 колюча agh2', longbow: 'martial 1d8 колюча ah2',
+  };
+  assert.equal(SRD.WEAPONS.length, Object.keys(exp).length);
+  for (const [id, line] of Object.entries(exp)) {
+    const [cat, dice, dtype, flags] = line.split(' '); const w = SRD.WEAPONS.find(x => x.id === id);
+    assert.ok(w, id); assert.deepEqual([w.cat, w.dice, w.dtype], [cat, dice, dtype], id);
+    const f = flags === '-' ? '' : flags;
+    assert.deepEqual([w.finesse, w.light, w.heavy, w.thrown, w.versatile, w.two, w.reach, w.ammo, w.loading],
+      ['f', 'l', 'h', 't', 'v', '2', 'r', 'a', 'g'].map(k => f.includes(k)), id + ' властивості');
+  }
+});
+
+test('SRD: передісторія Послушник, мови, раси (швидкість, бонуси характеристик)', () => {
+  const b = SRD.BACKGROUNDS[0]; assert.deepEqual(b.skills, ['insight', 'religion']); assert.equal(b.langs, 2);
+  assert.equal(SRD.LANGUAGES.standard.length, 8); assert.equal(SRD.LANGUAGES.exotic.length, 8);
+  const exp = { dwarf: [25, { con: 2 }], elf: [30, { dex: 2 }], halfling: [25, { dex: 2 }], dragonborn: [30, { str: 2, cha: 1 }], gnome: [25, { int: 2 }], halfelf: [30, { cha: 2 }], halforc: [30, { str: 2, con: 1 }], tiefling: [30, { int: 1, cha: 2 }] };
+  for (const [id, [speed, asi]] of Object.entries(exp)) { const r = SRD.RACES.find(x => x.id === id); assert.equal(r.speed, speed, id); assert.deepEqual(r.asi, asi, id); }
+  const sub = (r, s) => SRD.RACES.find(x => x.id === r).subraces.find(x => x.id === s).asi;
+  assert.deepEqual(sub('dwarf', 'hill'), { wis: 1 }); assert.deepEqual(sub('dwarf', 'mountain'), { str: 2 }); assert.deepEqual(sub('elf', 'high'), { int: 1 });
+  assert.deepEqual(sub('halfling', 'lightfoot'), { cha: 1 }); assert.deepEqual(sub('halfling', 'stout'), { con: 1 }); assert.deepEqual(sub('gnome', 'rock'), { con: 1 });
+  assert.equal(SRD.RACES.find(r => r.id === 'dragonborn').speed, 30);
+  assert.equal(SRD.DRAGON_ANCESTRY.length, 10);
+  assert.deepEqual(SRD.DRAGON_ANCESTRY.filter(d => d.save === 'con').map(d => d.id).sort(), ['green', 'silver', 'white']);
+});
+
+test('SRD: списки заклять не містять чужих заклять (Виявлення думок не для чаклуна, Істинне перетворення для чаклуна)', () => {
+  assert.ok(!SRD.spells.byId['detect-thoughts'].classes.includes('warlock'));
+  assert.ok(SRD.spells.byId['true-polymorph'].classes.includes('warlock'));
+  const warlock9 = SRD.spells.list.filter(s => s.lvl === 9 && s.classes.includes('warlock')).map(s => s.id).sort();
+  assert.deepEqual(warlock9, ['astral-projection', 'foresight', 'imprisonment', 'power-word-kill', 'true-polymorph']);
+});
+
+test('метод характеристик: зафіксовані значення не виходять за межі методу', () => {
+  const cost = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
+  for (let i = 0; i < 40; i++) {
+    const pb = C.generate({ method: 'pointbuy', level: 1, abilities: { str: 20, dex: 18, con: 15 } }, 'fpb' + i);
+    const vals = Object.values(pb.abilities).map(x => x.base);
+    for (const v of vals) assert.ok(v >= 8 && v <= 15, 'point buy ' + v);
+    assert.ok(vals.reduce((s, v) => s + cost[v], 0) <= 27, 'point buy перевищує 27 очок');
+    const all20 = C.generate({ method: 'pointbuy', level: 1, abilities: { str: 20, dex: 20, con: 20, int: 20, wis: 20, cha: 20 } }, 'fall' + i);
+    assert.ok(Object.values(all20.abilities).map(x => x.base).reduce((s, v) => s + cost[v], 0) <= 27, 'усе на 20 не обходить бюджет');
+    const st = C.generate({ method: 'standard', level: 1, abilities: { str: 18, dex: 18 } }, 'fst' + i);
+    assert.deepEqual(Object.values(st.abilities).map(x => x.base).sort((a, b) => b - a), [15, 14, 13, 12, 10, 8], 'стандартний набір з двома 18');
+    const dice = C.generate({ method: '4d6', level: 1, abilities: { str: 20 } }, 'fd' + i);
+    assert.equal(dice.abilities.str.base, 18);
+  }
+  const ok = C.generate({ method: 'pointbuy', level: 1, abilities: { str: 15, dex: 14 } }, 'ok');
+  assert.equal(ok.abilities.str.base, 15); assert.equal(ok.abilities.dex.base, 14); assert.deepEqual(ok.method.adjusted, []);
+  assert.equal(C.generate({ method: '4d6', level: 1, abilities: { str: 20 } }, 'adj').method.adjusted[0].to, 18);
+});
+
+test('бард: Магічні таємниці класу входять у кількість відомих заклять, таємниці Коледжу знань додаються поверх', () => {
+  for (const [L, classSecr] of [[3, 0], [6, 0], [10, 2], [14, 4], [18, 6], [20, 6]]) {
+    const b = C.generate({ cls: 'bard', level: L, race: 'human' }, 'bs' + L);
+    const table = SRD.CLASS_BY_ID.bard.caster.known[L - 1], lore = L >= 6 ? 2 : 0;
+    assert.equal(b.spellcasting.known.length, table - classSecr, `бард ${L}: власні відомі`);
+    assert.equal(b.spellcasting.secrets.length, classSecr + lore, `бард ${L}: таємниці`);
+    assert.equal(b.spellcasting.known.length + b.spellcasting.secrets.length - lore, table, `бард ${L}: разом за таблицею`);
+  }
+});
+
+test('варвар 20: Первісний чемпіон дає Силі й Статурі +4 з межею 24, HP й атаки використовують нові значення', () => {
+  for (let i = 0; i < 40; i++) {
+    const b = C.generate({ cls: 'barbarian', race: 'human', level: 20, assign: i % 2 ? 'smart' : 'random' }, 'pc' + i);
+    for (const a of ['str', 'con']) {
+      const x = b.abilities[a]; assert.equal(x.feature, 4);
+      assert.equal(x.score, Math.min(24, Math.min(20, x.base + x.racial + x.asi) + 4)); assert.equal(x.mod, C.modOf(x.score));
+    }
+    for (const a of ['dex', 'int', 'wis', 'cha']) { assert.equal(b.abilities[a].feature, 0); assert.ok(b.abilities[a].score <= 20); }
+    assert.equal(b.hp.perLevel[0].total, Math.max(1, 12 + b.abilities.con.mod));
+  }
+  assert.equal(C.generate({ cls: 'barbarian', level: 19 }, 'pc').abilities.str.feature, 0);
+});
+
+test('ініціатива: Спритність, Майстер на всі руки (бард 2+), Видатний атлет (чемпіон 7+)', () => {
+  const f = C.generate({ cls: 'fighter', level: 3 }, 'in1'); assert.equal(f.initiative, f.abilities.dex.mod);
+  const bard = C.generate({ cls: 'bard', level: 5 }, 'in2'); assert.equal(bard.initiative, bard.abilities.dex.mod + Math.floor(bard.proficiency / 2));
+  const bard1 = C.generate({ cls: 'bard', level: 1 }, 'in3'); assert.equal(bard1.initiative, bard1.abilities.dex.mod);
+  const champ = C.generate({ cls: 'fighter', level: 9 }, 'in4'); assert.equal(champ.initiative, champ.abilities.dex.mod + Math.ceil(champ.proficiency / 2));
+  assert.ok(C.generate({ cls: 'barbarian', level: 7 }, 'in5').initiativeNotes.some(n => n.includes('перевага')));
+});
+
+test('обладунок без потрібної Сили не враховується в КБ, листок про це каже', () => {
+  let seen = 0;
+  for (let i = 0; i < 300; i++) {
+    const ch = C.generate({ cls: i % 2 ? 'fighter' : 'cleric', race: 'human', level: 1, abilities: { str: 8, dex: 8 } }, 'hv' + i);
+    const heavy = ch.equipment.find(e => e.kind === 'armor' && SRD.ARMOR.find(a => a.id === e.id).str > ch.abilities.str.score);
+    if (heavy) { seen++; assert.ok(ch.ac.note.includes('не враховано'), ch.ac.note); assert.ok(ch.ac.value <= 16); }
+  }
+  assert.ok(seen > 0, 'такого спорядження не траплялося');
+});
+
+/* ====================== ім'я ====================== */
+
+test('ім’я генерується випадково за расою, залежить від seed і не змінює решту листка', () => {
+  for (const race of SRD.RACES) {
+    const names = new Set();
+    for (let i = 0; i < 40; i++) {
+      const ch = C.generate({ race: race.id, level: 3 }, 'nm' + race.id + i);
+      assert.ok(ch.name && ch.name.length >= 2 && ch.name.length <= 60, race.id + ': ' + ch.name); assert.equal(ch.nameGenerated, true);
+      names.add(ch.name);
+    }
+    assert.ok(names.size >= 20, race.id + ' імена надто однакові: ' + names.size);
+  }
+  const a = C.generate({ level: 6, cls: 'rogue' }, 'same'), b = C.generate({ level: 6, cls: 'rogue' }, 'same');
+  assert.equal(a.name, b.name);
+  const strip = c => Object.assign({}, c, { name: 0, nameGenerated: 0, params: Object.assign({}, c.params, { name: 0, nameVariant: 0 }) });
+  const bare = strip(a);
+  const custom = C.generate({ level: 6, cls: 'rogue', name: 'Гонзо' }, 'same');
+  assert.equal(custom.name, 'Гонзо'); assert.equal(custom.nameGenerated, false);
+  assert.deepEqual(strip(custom), bare, 'власне ім’я не повинно змінювати решту листка');
+  const other = C.generate({ level: 6, cls: 'rogue', nameVariant: 1 }, 'same');
+  assert.notEqual(other.name, a.name); assert.deepEqual(strip(other), bare);
+});
+
+test('ім’я відповідає расі: зразки з таблиці імен', () => {
+  const pool = r => [].concat(SRD.NAMES[r].m, SRD.NAMES[r].f);
+  for (const race of ['dwarf', 'elf', 'halfling', 'dragonborn', 'gnome', 'halforc', 'tiefling', 'human']) {
+    for (let i = 0; i < 30; i++) {
+      const name = C.generate({ race, level: 1 }, 'nr' + race + i).name;
+      assert.ok(pool(race).some(n => name.startsWith(n)), race + ': ' + name);
+    }
+  }
+});
+
+/* ====================== значки без символів шрифту ====================== */
+
+test('інтерфейс і дані не використовують символів, яких може не бути в шрифті (емодзі, геометричні фігури, стрілки)', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const dir = path.join(__dirname, '..');
+  // дозволено: латиниця, кирилиця, звичайна пунктуація (тире, лапки, три крапки), множення
+  const ok = ch => { const c = ch.codePointAt(0); return c < 0x250 || (c >= 0x400 && c <= 0x4ff) || '—–«»’‘“”…·•  '.includes(ch); };
+  const bad = (text, where) => { const found = new Set([...text].filter(ch => !ok(ch))); assert.equal(found.size, 0, `${where}: ${[...found].map(c => c + ' U+' + c.codePointAt(0).toString(16)).join(', ')}`); };
+  for (const f of ['app.js', 'index.html', 'style.css', 'char-core.js', 'srd-data.js', 'srd-classes.js', 'srd-spells.js', 'srd-names.js']) bad(fs.readFileSync(path.join(dir, f), 'utf8'), f);
+  for (let i = 0; i < 150; i++) bad(C.exportJSON(C.generate({ level: 1 + (i % 20), method: 'any', assign: 'any' }, 'gl' + i)), 'листок ' + i);
 });
 
 console.log(`\n${total - failed}/${total} пройдено`);

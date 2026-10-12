@@ -3,7 +3,7 @@
    Усе детерміноване: однакові параметри й seed дають того самого персонажа. */
 const CharCore = (() => {
   if (typeof module !== 'undefined' && module.exports && typeof globalThis.SRD === 'undefined') {
-    require('./srd-spells.js'); require('./srd-data.js'); require('./srd-classes.js');
+    require('./srd-spells.js'); require('./srd-data.js'); require('./srd-classes.js'); require('./srd-names.js');
   }
   const SRD = globalThis.SRD;
   const AB = SRD.ABILITIES.map(a => a.id);
@@ -13,6 +13,7 @@ const CharCore = (() => {
   const ARMOR = Object.fromEntries(SRD.ARMOR.map(a => [a.id, a]));
   const SPELLS = SRD.spells;
   const FORMAT = 'zbyrai.character-roller';
+  const RES = ' Вибір: '; // розділювач опису риси й зробленого вибору (без символів, яких може не бути в шрифті)
 
   /* ---------- детермінований генератор ---------- */
   function xmur3(str) {
@@ -71,7 +72,7 @@ const CharCore = (() => {
     const has = (list, id) => list.some(x => x.id === id);
     const P = {
       race: 'any', subrace: 'any', cls: 'any', subclass: 'any', level: 'any', levelMin: 1, levelMax: 20, background: 'any', alignment: 'any',
-      method: '4d6', assign: 'smart', hp: 'average', smartGear: true, abilities: {}, skills: [], trait: null, ideal: null, bond: null, flaw: null, name: '',
+      method: '4d6', assign: 'smart', hp: 'average', smartGear: true, abilities: {}, skills: [], trait: null, ideal: null, bond: null, flaw: null, name: '', nameVariant: 0,
     };
     if (has(SRD.RACES, o.race)) P.race = o.race;
     const race = SRD.RACES.find(r => r.id === P.race);
@@ -96,15 +97,16 @@ const CharCore = (() => {
     if (Array.isArray(o.skills)) P.skills = o.skills.filter(s => SKILL[s]);
     for (const k of ['trait', 'ideal', 'bond', 'flaw']) { const v = Number(o[k]); if (o[k] != null && o[k] !== '' && Number.isInteger(v) && v >= 0) P[k] = v; }
     P.name = String(o.name || '').slice(0, 60);
+    const nv = Math.floor(Number(o.nameVariant)); if (Number.isFinite(nv) && nv > 0 && nv < 1e6) P.nameVariant = nv;
     return P;
   }
 
   /* ---------- характеристики ---------- */
   function roll4d6(R) { const d = [R.int(1, 6), R.int(1, 6), R.int(1, 6), R.int(1, 6)].sort((a, b) => a - b); return { dice: d, total: d[1] + d[2] + d[3] }; }
 
-  function pointBuy(free, weightOf, R) {
+  function pointBuy(free, weightOf, R, budget) {
     const v = {}; for (const a of free) v[a] = 8;
-    let pts = 27;
+    let pts = budget == null ? 27 : budget;
     for (;;) {
       const opts = free.filter(a => v[a] < 15 && POINT_COST[v[a] + 1] - POINT_COST[v[a]] <= pts);
       if (!opts.length) break;
@@ -114,20 +116,36 @@ const CharCore = (() => {
     return v;
   }
 
+  /* Зафіксовані базові значення мусять бути можливими для обраного методу:
+     point buy: 8-15 і сумарно не більше 27 очок; стандартний набір: лише числа набору, кожне раз; кидки: 3-18. */
+  function constrainFixed(fixed, method) {
+    const out = {}; const adjusted = []; let left = 27; let pool = [15, 14, 13, 12, 10, 8];
+    for (const a of AB) {
+      if (fixed[a] == null) continue;
+      let v = fixed[a];
+      if (method === 'pointbuy') { v = Math.min(15, Math.max(8, v)); while (v > 8 && POINT_COST[v] > left) v--; left -= POINT_COST[v]; }
+      else if (method === 'standard') { v = pool.reduce((best, x) => (Math.abs(x - v) < Math.abs(best - v) ? x : best), pool[0]); pool = pool.filter(x => x !== v); }
+      else v = Math.min(18, Math.max(3, v));
+      out[a] = v; if (v !== fixed[a]) adjusted.push({ ab: a, from: fixed[a], to: v });
+    }
+    return { fixed: out, adjusted, left, pool };
+  }
+
   function rollBase(P, method, assign, cls, R) {
-    const fixed = P.abilities; const free = AB.filter(a => fixed[a] == null);
-    const base = Object.assign({}, fixed); const info = { method, assign, rolls: [] };
+    const cons = constrainFixed(P.abilities, method);
+    const fixed = cons.fixed; const free = AB.filter(a => fixed[a] == null);
+    const base = Object.assign({}, fixed); const info = { method, assign, rolls: [], adjusted: cons.adjusted };
     let order = cls.altPrimary && R.chance(0.4) ? cls.altPrimary.slice() : cls.primary.slice();
     if (assign === 'smart') for (let i = 1; i < order.length - 1; i++) if (R.chance(0.2)) { [order[i], order[i + 1]] = [order[i + 1], order[i]]; i++; }
     const rank = a => order.indexOf(a);
     if (method === 'pointbuy') {
       const w = assign === 'smart' ? a => 6 - rank(a) + 0.5 : () => 1;
-      Object.assign(base, pointBuy(free, w, R));
+      Object.assign(base, pointBuy(free, w, R, cons.left));
       info.rolls = free.map(a => base[a]);
       return { base, info };
     }
     let pool;
-    if (method === 'standard') pool = [15, 14, 13, 12, 10, 8];
+    if (method === 'standard') pool = cons.pool.slice();
     else if (method === '3d6') {
       pool = AB.map(() => { const d = [R.int(1, 6), R.int(1, 6), R.int(1, 6)]; return d[0] + d[1] + d[2]; });
       info.rolls = pool.slice();
@@ -272,7 +290,10 @@ const CharCore = (() => {
       const chosen = assign === 'smart' ? cls.primary.filter(a => cand.includes(a)).slice(0, 2) : R.pickN(cand, race.freeAsi.count);
       for (const a of chosen) { ab[a].racial += race.freeAsi.value; racialNotes.push(`+${race.freeAsi.value} ${AB_NAME[a]}`); }
     }
-    const score = a => Math.min(20, ab[a].base + ab[a].racial + ab[a].asi);
+    // Первісний чемпіон (варвар 20): Сила й Статура +4, максимум 24
+    const primal = cls.id === 'barbarian' && L >= 20;
+    const featureBonus = a => (primal && (a === 'str' || a === 'con') ? 4 : 0);
+    const score = a => { const s = Math.min(20, ab[a].base + ab[a].racial + ab[a].asi); return featureBonus(a) ? Math.min(24, s + 4) : s; };
     const scoresNow = () => Object.fromEntries(AB.map(a => [a, score(a)]));
 
     // покращення характеристик та риси
@@ -354,11 +375,11 @@ const CharCore = (() => {
     let metaLeft = [...SRD.METAMAGIC]; const metamagic = [];
     const secrets = []; const enemies = []; const terrains = [];
     let landType = null; let dragon = null; let pact = null;
-    let secretsToPick = 0;
+    let secretsToPick = 0, classSecrets = 0;
     for (const f of featureList.filter(x => x.id)) {
       if (f.id === 'expertise') { const out = pickExpertise(f.n); f.res = out.map(s => SKILL[s].name).join(', '); }
       else if (f.id === 'metamagic') { const out = R.pickN(metaLeft, f.n); metaLeft = metaLeft.filter(m => !out.includes(m)); out.forEach(m => metamagic.push(m)); f.res = out.map(m => m[0]).join(', '); }
-      else if (f.id === 'secrets') { secretsToPick += f.n; }
+      else if (f.id === 'secrets') { secretsToPick += f.n; if (f.src === 'class') classSecrets += f.n; }
       else if (f.id === 'enemy') { /* пізніше */ }
       else if (f.id === 'landtype') { landType = R.pick(SRD.LAND_TYPES); f.res = landType; }
       else if (f.id === 'dragon') { dragon = race.ancestry && R.chance(0.7) ? choices.dragonborn : R.pick(SRD.DRAGON_ANCESTRY); f.res = `${dragon.name} дракон (${dragon.dmg})`; }
@@ -417,6 +438,9 @@ const CharCore = (() => {
     acOptions.sort((a, b) => b.ac - a.ac);
     const acPick = acOptions[0];
     const wornArmor = acPick.armor || null;
+    // обладунок у спорядженні, на який не вистачає Сили: за правилами в ньому швидкість падає на 10 фт, тому лист його не враховує
+    const tooHeavy = items.filter(i => i.kind === 'armor').map(i => ARMOR[i.id]).filter(a => armorSet.has(a.type) && a.str && sc.str < a.str);
+    const tooHeavyNote = tooHeavy.length ? ` (${tooHeavy.map(a => `${a.name} не враховано: потрібна Сила ${a.str}, інакше швидкість -3 м`).join('; ')})` : '';
 
     // ---- швидкість ----
     let speed = race.speed;
@@ -436,7 +460,7 @@ const CharCore = (() => {
     log.hp = hpPer;
 
     // ---- закляття ----
-    const spellcasting = buildSpellcasting({ cls, L, hasSub, sub, race, mod, prof, R, ab, sc, landType, pact, featureList, secretsToPick, P });
+    const spellcasting = buildSpellcasting({ cls, L, hasSub, sub, race, mod, prof, R, ab, sc, landType, pact, featureList, secretsToPick, classSecrets, P });
 
     // ---- прохання чаклуна ----
     const invocations = [];
@@ -448,6 +472,17 @@ const CharCore = (() => {
       for (const i of R.pickN(pool, cnt)) invocations.push({ name: i[0], desc: i[1] });
       if (invocations.some(i => i.name.startsWith('Чарівливий вплив'))) { grant('deception', 'Прохання'); grant('persuasion', 'Прохання'); }
     }
+
+    // ---- ініціатива: перевірка Спритності, тож діють Майстер на всі руки й Видатний атлет ----
+    const jackEarly = cls.id === 'bard' && L >= 2;
+    const athleteEarly = cls.id === 'fighter' && hasSub && L >= 7;
+    const initiative = { value: mod.dex, notes: [] };
+    const jackHalf = jackEarly ? Math.floor(prof / 2) : 0, athHalf = athleteEarly ? Math.ceil(prof / 2) : 0;
+    if (Math.max(jackHalf, athHalf) > 0) {
+      initiative.value += Math.max(jackHalf, athHalf);
+      initiative.notes.push(`${sign(Math.max(jackHalf, athHalf))} ${athHalf >= jackHalf ? 'Видатний атлет' : 'Майстер на всі руки'}`);
+    }
+    if (cls.id === 'barbarian' && L >= 7) initiative.notes.push('перевага (Звіряче чуття)');
 
     // ---- навички: підсумок ----
     const jack = cls.id === 'bard' && L >= 2;
@@ -523,12 +558,12 @@ const CharCore = (() => {
     out.push({ lvl: 1, name: bg.feature[0], desc: bg.feature[1], src: 'bg' });
     for (const f of featureList) {
       let d = typeof f.d === 'function' ? f.d(ctx) : f.d;
-      if (f.res) d += ' → ' + f.res;
+      if (f.res) d += RES + f.res;
       out.push({ lvl: f.lvl, name: f.name, desc: d, src: f.src });
     }
     if (cls.id === 'ranger') {
-      const k = out.findIndex(x => x.name === 'Улюблений ворог'); if (k >= 0) out[k].desc += ' → ' + enemies.join('; ');
-      const t = out.findIndex(x => x.name === 'Природний дослідник'); if (t >= 0) out[t].desc += ' → ' + terrains.join('; ');
+      const k = out.findIndex(x => x.name === 'Улюблений ворог'); if (k >= 0) out[k].desc += RES + enemies.join('; ');
+      const t = out.findIndex(x => x.name === 'Природний дослідник'); if (t >= 0) out[t].desc += RES + terrains.join('; ');
     }
     if (cls.id === 'sorcerer' && metamagic.length) { /* показано у відповідній рисі */ }
     for (const g of feats) { const ft = SRD.FEATS.find(x => x.id === g); out.push({ lvl: 0, name: ft.name, desc: ft.desc, src: 'feat' }); }
@@ -538,7 +573,7 @@ const CharCore = (() => {
     const passive = id => 10 + skillBonus(id);
     const char = {
       format: FORMAT, version: 1, seed, params: P,
-      name: P.name || '',
+      name: P.name || generateName(race.id, seed, P.nameVariant), nameGenerated: !P.name,
       race: { id: race.id, name: race.name, subId: sub ? sub.id : null, sub: sub ? sub.name : null, full: raceName, size: race.size, dragon: choices.dragonborn ? choices.dragonborn.name : null },
       cls: { id: cls.id, name: cls.name, hd }, level: L,
       subclass: hasSub ? { id: scl.id, name: scl.name, kind: scl.kind } : null,
@@ -546,14 +581,14 @@ const CharCore = (() => {
       background: { id: bg.id, name: bg.name },
       alignment: { id: alignment.id, name: alignment.name },
       xp: SRD.XP[L - 1],
-      method: { id: method, assign: info.assign, rolls: info.rolls },
-      abilities: Object.fromEntries(AB.map(a => [a, { base: ab[a].base, racial: ab[a].racial, asi: ab[a].asi, score: sc[a], mod: mod[a], capped: ab[a].base + ab[a].racial + ab[a].asi > 20 }])),
+      method: { id: method, assign: info.assign, rolls: info.rolls, adjusted: info.adjusted || [] },
+      abilities: Object.fromEntries(AB.map(a => [a, { base: ab[a].base, racial: ab[a].racial, asi: ab[a].asi, feature: featureBonus(a), score: sc[a], mod: mod[a], capped: ab[a].base + ab[a].racial + ab[a].asi > 20 }])),
       racialNotes,
       proficiency: prof,
       saves, skills,
       hp: { max: hp, dice: `${L}d${hd}`, perLevel: hpPer, method: P.hp },
-      ac: { value: acPick.ac, note: acPick.note, stealthDisadvantage: !!(wornArmor && wornArmor.stealth) },
-      initiative: mod.dex,
+      ac: { value: acPick.ac, note: acPick.note + tooHeavyNote, stealthDisadvantage: !!(wornArmor && wornArmor.stealth) },
+      initiative: initiative.value, initiativeNotes: initiative.notes,
       speed: { ft: speed, text: fmtSpeed(speed), notes: speedNotes },
       passive: { perception: passive('perception'), insight: passive('insight'), investigation: passive('investigation') },
       carry: { capacity: sc.str * 15, lift: sc.str * 30 },
@@ -572,6 +607,20 @@ const CharCore = (() => {
     return char;
   }
 
+  /* ---------- випадкове ім'я за расою (окремий генератор: не змінює решту листка для того самого seed) ---------- */
+  function generateName(raceId, seed, variant) {
+    const R = makeR(`${seed}:name:${variant || 0}`);
+    const key = raceId === 'halfelf' ? R.pick(['human', 'elf']) : raceId;
+    const set = SRD.NAMES[key] || SRD.NAMES.human;
+    const first = R.pick(R.chance(0.5) ? set.f : set.m);
+    const nicks = (set.nick || []).concat(SRD.NICKNAMES);
+    const parts = [first];
+    const withNick = R.chance(set.fam ? 0.2 : 0.4);
+    if (withNick) parts.push(`«${R.pick(nicks)}»`);
+    if (set.fam && R.chance(0.75)) parts.push(R.pick(set.fam));
+    return parts.join(' ').slice(0, 60);
+  }
+
   function weaponProfText(set) {
     const out = [];
     if (set.has('simple')) out.push('Проста зброя');
@@ -581,7 +630,7 @@ const CharCore = (() => {
   }
 
   function buildSpellcasting(c) {
-    const { cls, L, hasSub, sub, race, mod, prof, R, landType, pact, featureList, secretsToPick } = c;
+    const { cls, L, hasSub, sub, race, mod, prof, R, landType, pact, featureList, secretsToPick, classSecrets } = c;
     const caster = cls.caster;
     const innate = [];
     for (const i of race.innate || []) if (L >= i.from) innate.push({ spell: brief(SPELLS.byId[i.spell]), perDay: i.perDay || null, slotLevel: i.slotLevel || null, ability: 'cha' });
@@ -632,7 +681,8 @@ const CharCore = (() => {
     for (let lv = 1; lv <= max; lv++) allLevels.push(...pool(lv));
 
     if (caster.mode === 'known') {
-      const n = caster.known[L - 1];
+      // Магічні таємниці барда (клас) входять у кількість відомих заклять; додаткові таємниці Коледжу знань не входять
+      const n = caster.known[L - 1] - (cls.id === 'bard' ? classSecrets : 0);
       const picked = R.weightedN(allLevels, lvlBias, n);
       picked.forEach(s => take(s, res.known));
     } else if (caster.mode === 'prepared') {
@@ -681,7 +731,7 @@ const CharCore = (() => {
     if (ch.proficiency !== profOf(L)) bad.push('бонус майстерності');
     for (const a of AB) {
       const x = ch.abilities[a];
-      if (x.score < 1 || x.score > 20) bad.push('характеристика ' + a);
+      if (x.score < 1 || x.score > (x.feature ? 24 : 20)) bad.push('характеристика ' + a);
       if (x.mod !== modOf(x.score)) bad.push('модифікатор ' + a);
     }
     if (ch.hp.max < L) bad.push('HP менше рівня');
@@ -702,7 +752,7 @@ const CharCore = (() => {
     const out = []; for (let i = 0; i < n; i++) out.push(generate(opts, `${seed}-${i}`)); return out;
   }
 
-  return { FORMAT, METHODS, SRD, modOf, profOf, sanitize, generate, validate, exportJSON, batch, rngFromSeed, randomSeed, fmtSpeed, sign, AB, AB_NAME, spellsOf };
+  return { FORMAT, METHODS, SRD, modOf, profOf, sanitize, generate, generateName, validate, exportJSON, batch, rngFromSeed, randomSeed, fmtSpeed, sign, AB, AB_NAME, spellsOf };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = CharCore;

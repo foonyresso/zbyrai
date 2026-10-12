@@ -97,7 +97,7 @@
 2|E|BSLW|Божевілля корони|Crown of Madness
 2|E|SLW|Темрява|Darkness
 2|T|DRSW|Темний зір|Darkvision
-2|D|BSLW|Виявлення думок|Detect Thoughts
+2|D|BSW|Виявлення думок|Detect Thoughts
 2|T|BCDS|Посилення здібності|Enhance Ability
 2|T|BSW|Збільшення/зменшення|Enlarge/Reduce
 2|E|BL|Зачарування слухачів|Enthrall
@@ -327,7 +327,7 @@
 9|T|DW|Перевтілення|Shapechange
 9|C|D|Буря помсти|Storm of Vengeance
 9|T|SW|Зупинка часу|Time Stop
-9|T|BW|Істинне перетворення|True Polymorph
+9|T|BLW|Істинне перетворення|True Polymorph
 9|N|CD|Істинне воскресіння|True Resurrection
 9|I|W|Жах|Weird
 9|C|SW|Бажання|Wish

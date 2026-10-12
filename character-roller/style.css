@@ -30,7 +30,7 @@ kbd { font-family: var(--ff-mono); font-size: 11px; padding: 1px 6px; border: 1p
 details.sec { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg-elev); margin-bottom: 10px; }
 details.sec > summary { cursor: pointer; padding: 10px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 8px; list-style: none; }
 details.sec > summary::-webkit-details-marker { display: none; }
-details.sec > summary::before { content: "▸"; color: var(--accent); transition: transform .18s var(--ease); display: inline-block; }
+details.sec > summary::before { content: ""; width: 0; height: 0; border-left: 6px solid var(--accent); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .18s var(--ease); display: inline-block; }
 details.sec[open] > summary::before { transform: rotate(90deg); }
 details.sec > summary:hover { color: var(--text); }
 details.sec > summary .n { margin-left: auto; color: var(--accent-hi); font-weight: 600; letter-spacing: .04em; }
@@ -90,13 +90,30 @@ table.dt td small { display: block; color: var(--faint); font-size: 11px; }
 table.dt td.m, table.dt th.m { font-family: var(--ff-mono); text-align: right; font-size: 12px; white-space: nowrap; }
 table.dt td.n { color: var(--text); }
 ul.eq { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; color: var(--muted); }
-ul.eq li::before { content: "◆ "; color: var(--accent); font-size: 8px; vertical-align: 1px; }
+ul.eq li::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 9px; background: var(--accent); transform: rotate(45deg); vertical-align: 2px; }
 .pack { display: block; color: var(--faint); font-size: 12px; padding: 2px 0 4px 14px; line-height: 1.4; }
 dl.dl { margin: 0; display: grid; gap: 2px; font-size: 13px; }
 dl.dl dt { color: var(--faint); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; margin-top: 8px; }
 dl.dl dd { margin: 0; color: var(--text); line-height: 1.45; }
 ul.plain { margin: 0; padding-left: 16px; }
-.death { color: var(--muted); font-size: 13px; margin: 0; }
+.death { color: var(--muted); font-size: 13px; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.death span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* значки листка: чисті CSS-фігури замість символів шрифту (шрифт може не мати потрібних гліфів) */
+.pip { display: inline-block; flex: none; box-sizing: border-box; width: 11px; height: 11px; border: 1.5px solid currentColor; border-radius: 50%; vertical-align: -1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pip.on { background: currentColor; }
+.pip.ex { border-radius: 1px; transform: rotate(45deg) scale(.82); background: currentColor; }
+.pip.sq { width: 14px; height: 14px; border-radius: 3px; border-width: 1.6px; }
+.stat-box b .pip.sq { width: 20px; height: 20px; margin-top: 3px; border-color: var(--accent-hi); }
+.slot .pips { display: inline-flex; gap: 5px; align-items: center; margin-top: 3px; }
+.slot .pip { color: var(--accent-hi); }
+li.sp i .pip { margin: 0; }
+p.legend .pip { margin: 0 3px 0 1px; color: var(--accent); }
+.ico { display: inline-flex; width: 1.15em; height: 1.15em; vertical-align: -.2em; }
+.ico svg { width: 100%; height: 100%; }
+.sh-namerow { display: flex; gap: 8px; align-items: center; }
+.sh-namerow .sh-name { flex: 1; min-width: 0; }
+button.x.namebtn { width: auto; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px; }
 details.log { margin-top: 12px; border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 6px 10px; }
 details.log summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 
@@ -149,7 +166,7 @@ li.sp small { color: var(--faint); font-size: 10.5px; margin-left: 5px; }
   :root { color-scheme: light; }
   html, body { height: auto; background: #fff !important; color: #111 !important; }
   body::before { display: none !important; }
-  header.top, #paneParams, .toast, .hint:empty { display: none !important; }
+  header.top, #paneParams, .toast, .hint:empty, .namebtn { display: none !important; }
   main.panes { display: block; padding: 0; }
   .pane { border: 0; box-shadow: none; background: none; overflow: visible; }
   .pane-b { padding: 0; overflow: visible; }
@@ -158,6 +175,8 @@ li.sp small { color: var(--faint); font-size: 10.5px; margin-left: 5px; }
   .stat-box, .abil, .slot, li.sp, .feat, details.log, .abil span { background: #fff !important; border-color: #888 !important; }
   .sh-name { border: 0; color: #000 !important; font-size: 24px; }
   .sh-sub.dim, .hint, .feat p, dl.dl dt, .stat-box small, .stat-box em, small { color: #444 !important; }
+  .pip, .slot .pip, .stat-box b .pip { border-color: #111 !important; }
+  .pip.on, .pip.ex { background: #111 !important; }
   .abil b, .stat-box b, .slot span, ul.plist li i, h3.t, .spl h4, .spl-lvl .lv, .feat b em { color: #000 !important; }
   .sh-cols { grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 11px; }
   .feat-grid { grid-template-columns: repeat(2, 1fr); }
