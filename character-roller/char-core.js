@@ -302,7 +302,7 @@ const CharCore = (() => {
     for (const lvl of asiLevels) {
       const grapplerOk = !feats.includes('grappler') && score('str') >= 13;
       const featChance = assign === 'smart' ? 0.1 : 0.2;
-      if (grapplerOk && R.chance(featChance)) { feats.push('grappler'); log.asi.push({ lvl, text: 'Риса: Борець (Grappler)' }); continue; }
+      if (grapplerOk && R.chance(featChance)) { feats.push('grappler'); log.asi.push({ lvl, text: 'Риса: Борець' }); continue; }
       const room = a => 20 - (ab[a].base + ab[a].racial + ab[a].asi);
       let plan = [];
       if (assign === 'smart') {

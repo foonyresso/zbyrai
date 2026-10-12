@@ -24,20 +24,47 @@
     <div>Character <span>Roller</span></div>
   </div>
   <div class="spacer"></div>
-  <button id="btnPrint" title="Надрукувати листок (Ctrl+P)">Друк</button>
-  <button id="btnCopy" title="Скопіювати персонажа як JSON">Копіювати JSON</button>
-  <button class="btn-primary" id="btnSave" title="Завантажити character.json">Зберегти .json</button>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збереженого персонажа з файлу .json: відновить зерно й усі параметри">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnPrint" title="Надрукувати листок (Ctrl+P)">Друк</button>
+    <button id="btnCopy" title="Скопіювати персонажа як JSON">Копіювати JSON</button>
+    <button class="btn-primary" id="btnSave" title="Завантажити персонажа як файл .json (його можна імпортувати назад)">Зберегти .json</button>
+  </div>
 </header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Генератор листка персонажа для D&amp;D 5e (правила SRD 5.1): раса, клас, рівень 1-20, характеристики, навички, HP, КБ, закляття, риси, спорядження й особистість.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Щоб швидко отримати готового персонажа для гри: НПС, запасного героя, пригоду на один вечір. Усе, що не зафіксуєш, обирається випадково.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Натисни «Зарандомити»</b> (або Пробіл): з’явиться новий листок.</li>
+        <li><b>Зафіксуй потрібне</b> ліворуч: расу, клас, рівень, навички. Решту рандом змінюватиме.</li>
+        <li><b>«Закріпити поточне»</b> залишає расу й клас теперішнього персонажа, а решту можна перекидати.</li>
+        <li><b>Збережи чи надрукуй</b> кнопками угорі: JSON, друк, імпорт.</li>
+      </ol>
+    </div>
+  </div>
+</details>
 
 <main class="panes">
   <section class="pane" id="paneParams">
-    <div class="pane-h"><h2>Параметри</h2><span class="spacer"></span><button id="btnClear" title="Усе знову випадкове">Скинути</button></div>
+    <div class="pane-h"><h2>Параметри</h2><span class="spacer"></span><button id="btnClear" title="Прибрати всі фіксації: усе знову випадкове">Скинути</button></div>
     <div class="pane-b" id="params"></div>
     <div class="pane-f">
-      <button class="btn-forge" id="btnRoll">Зарандомити</button>
+      <button class="btn-forge" id="btnRoll" title="Створити нового персонажа (Пробіл). Зафіксовані параметри лишаються">Зарандомити</button>
       <button id="btnChaos" title="Скинути всі фіксації й випадково обрати навіть метод характеристик">Все випадково</button>
       <button id="btnPin" title="Зафіксувати расу, клас, рівень і передісторію поточного персонажа">Закріпити поточне</button>
-      <kbd>Пробіл</kbd>
+      <kbd title="Гаряча клавіша">Пробіл</kbd>
     </div>
   </section>
 

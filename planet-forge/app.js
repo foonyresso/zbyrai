@@ -124,6 +124,7 @@
   const FMT = { pct: v => Math.round(v * 100) + '%', num: v => (Math.round(v * 100) / 100).toFixed(2), int: v => String(Math.round(v)), deg: v => Math.round(v) + '°', sgn: v => (v > 0 ? '+' : '') + Math.round(v * 100) };
   function syncLocks() { document.querySelectorAll('.lock').forEach(b => { const on = !!st.locks[b.dataset.lock]; b.setAttribute('aria-pressed', on); b.textContent = on ? '🔒' : '🔓'; }); }
   const lockBtn = key => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lock'; b.dataset.lock = key; b.title = 'Зафіксувати: «Сюрприз» і «Нова планета» цього не змінять'; b.onclick = e => { e.preventDefault(); st.locks[key] = !st.locks[key]; save(); syncLocks(); }; return b; };
+  const KTIPS = { sea: 'Скільки поверхні вкрито рідиною', scale: 'Розмір деталей ландшафту: більше число дає дрібніші материки й острови', mount: 'Скільки гір і хребтів', temp: 'Загальний клімат: від холодного до спекотного', humid: 'Вологість: сухі пустелі проти густих лісів', caps: 'Розмір полярних шапок', atmo: 'Товщина й густота атмосфери: впливає на сяйво по краю планети', cloud: 'Скільки хмар у небі', lights: 'Вогні міст на нічному боці', tilt: 'Нахил осі планети: впливає на вигляд кілець і пір року', moons: 'Кількість супутників', hue: 'Зсув кольору всієї планети' };
   let built = '';
   function buildControls() {
     if (built === st.kind) return; built = st.kind;
@@ -132,11 +133,11 @@
       for (const kb of KD().knobs.filter(k => k.g === grp)) {
         const out = el('output', { id: 'o_' + kb.k }), inp = el('input', { type: 'range', id: 'r_' + kb.k, min: kb.min, max: kb.max, step: kb.step });
         inp.addEventListener('input', e => { st[kb.k] = +e.target.value; out.textContent = FMT[kb.f](st[kb.k]); save(); regenerate(); });
-        box.append(el('div', { class: 'ctl' }, el('span', {}, kb.l), out, lockBtn(kb.k), inp));
+        box.append(el('div', { class: 'ctl', title: (KTIPS[kb.k] ? KTIPS[kb.k] + '. ' : 'Параметр «' + kb.l + '». ') + 'Замочок праворуч фіксує значення' }, el('span', {}, kb.l), out, lockBtn(kb.k), inp));
       }
     }
   }
-  for (const [id, key] of [['lkKind', 'kind'], ['lkSeed', 'seed'], ['lkName', 'name'], ['lkRing', 'ring']]) { const b = $(id); b.dataset.lock = key; b.onclick = () => { st.locks[key] = !st.locks[key]; save(); syncLocks(); }; }
+  for (const [id, key] of [['lkKind', 'kind'], ['lkSeed', 'seed'], ['lkName', 'name'], ['lkRing', 'ring']]) { const b = $(id); b.dataset.lock = key; b.title = 'Зафіксувати: «Сюрприз» і «Нова планета» цього не змінять'; b.onclick = () => { st.locks[key] = !st.locks[key]; save(); syncLocks(); }; }
   function sync() {
     buildControls();
     for (const kb of KD().knobs) { const r = $('r_' + kb.k); if (r) { r.value = st[kb.k]; $('o_' + kb.k).textContent = FMT[kb.f](st[kb.k]); } }
@@ -177,7 +178,19 @@
     }, 30);
   }
   $('btnMap').onclick = () => exportTexture('map'); $('btnHeight').onclick = () => exportTexture('height');
-  $('btnJson').onclick = () => { if (!info) return; download(new Blob([JSON.stringify({ params: genParams(), passport: info }, null, 2)], { type: 'application/json' }), `planet-${st.seed}.json`); toast('Збережено паспорт'); };
+  $('btnJson').onclick = () => { if (!info) return; download(new Blob([JSON.stringify({ tool: 'planet-forge', params: genParams(), passport: info }, null, 2)], { type: 'application/json' }), `planet-${st.seed}.json`); toast('Збережено паспорт'); };
+
+  $('btnCopyJson').onclick = async () => { if (!info) return; try { await navigator.clipboard.writeText(JSON.stringify({ tool: 'planet-forge', params: genParams(), passport: info }, null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
+  $('btnImport').onclick = () => $('fileImport').click();
+  $('fileImport').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text()), p = d.params;
+      if (!p || !PC.KINDS[p.kind] || !p.seed) throw new Error('bad');
+      st = Object.assign(PC.fromKind(p.kind, String(p.seed)), p, { locks: st.locks });
+      st = Object.assign(st, PC.clampParams(st)); save(); sync(); regenerate(); toast('Планету завантажено');
+    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
+  };
 
   /* ---------- цикл анімації ---------- */
   function frame(t) {

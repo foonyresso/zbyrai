@@ -24,33 +24,67 @@
     <div>Planet <span>Forge</span></div>
   </div>
   <div class="spacer"></div>
-  <button id="btnSurprise" title="Усе випадково: тип, назва й усі параметри, крім замкнених">Сюрприз</button>
-  <button id="btnNew" class="btn-primary" title="Нове зерно, назва й параметри того ж типу (Пробіл)">Нова планета</button>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережену планету з файлу .json (параметри й паспорт)">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати параметри й паспорт планети як JSON">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити паспорт планети й її параметри як файл .json (можна імпортувати назад)">Зберегти .json</button>
+    <button id="btnMap" title="Зберегти текстурну карту планети в рівнопроміжній проєкції (розмір обирається нижче)">Карта PNG</button>
+    <button id="btnHeight" title="Зберегти карту висот у відтінках сірого (розмір обирається нижче)">Висоти PNG</button>
+    <button id="btnPng" class="btn-primary" title="Зберегти поточну картинку обертової планети з небом">Картинка PNG</button>
+  </div>
 </header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Кузня планет: створює планету з океанами, горами, хмарами, кільцями й супутниками, показує її як обертову кулю та складає паспорт: радіус, гравітація, клімат, ресурси, придатність для життя.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Для фантастичних світів, настільних ігор і сценаріїв, а карту можна накласти на кулю в ігровому рушії. Є 30 типів: від Землі до літаючих островів і живих планет.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Обери тип планети</b> праворуч і крути повзунки: вода, гори, клімат, атмосфера.</li>
+        <li><b>«Нова планета»</b> змінює зерно й параметри того самого типу, <b>«Сюрприз»</b> міняє ще й тип.</li>
+        <li><b>Замочок</b> біля параметра залишає його як є, поки рандомиш решту.</li>
+        <li><b>Збережи чи поділись</b> кнопками угорі: картинка, карта, висоти, паспорт, імпорт.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<div class="toolbar">
+  <button id="btnNew" class="btn-primary" title="Нове зерно, назва й параметри того ж типу. Замкнене лишається (Пробіл)">Нова планета</button>
+  <button id="btnSurprise" title="Усе випадково: тип, назва й усі параметри, крім замкнених">Сюрприз</button>
+</div>
 
 <main class="wrap">
   <section class="stage">
-    <div class="viewport" id="view"><canvas id="cv" aria-label="Планета"></canvas>
-      <div class="vp-bar"><label class="chk"><input type="checkbox" id="cSpin" checked><span>Обертання</span></label><label class="ctl-inline">Поворот <input type="range" id="rSpin" min="0" max="360" step="1"></label><label class="ctl-inline">Світло <input type="range" id="rSun" min="-90" max="90" step="1"></label></div>
+    <div class="viewport" id="view"><canvas id="cv" aria-label="Планета" title="Тягни, щоб крутити планету"></canvas>
+      <div class="vp-bar"><label class="chk" title="Планета обертається сама"><input type="checkbox" id="cSpin" checked><span>Обертання</span></label><label class="ctl-inline" title="Поворот планети навколо осі">Поворот <input type="range" id="rSpin" min="0" max="360" step="1"></label><label class="ctl-inline" title="Звідки світить зоря">Світло <input type="range" id="rSun" min="-90" max="90" step="1"></label></div>
     </div>
     <div class="paper card" id="card"></div>
   </section>
 
   <aside class="side">
     <div class="card"><h2>Тип планети</h2>
-      <div class="kinds" id="kinds"></div>
+      <div class="kinds" id="kinds" title="Тип планети визначає, які параметри доступні"></div>
       <div class="lockrow"><button type="button" class="lock" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: «Сюрприз» його не змінюватиме</span></div>
-      <label class="ctl txt"><span>Зерно</span><button type="button" class="lock" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
-      <label class="ctl txt"><span>Назва</span><button type="button" class="lock" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
+      <label class="ctl txt" title="Зерно: число-код планети. Те саме зерно з тими самими параметрами дає ту саму планету"><span>Зерно</span><button type="button" class="lock" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
+      <label class="ctl txt" title="Назва планети: можна написати свою"><span>Назва</span><button type="button" class="lock" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
       <p class="hint">Замочок біля параметра фіксує його: «Сюрприз» і «Нова планета» залишать його як є, а решту перемішають.</p>
     </div>
     <div class="card"><h2>Поверхня</h2><div id="surfCtl" class="ctls"></div></div>
     <div class="card"><h2>Небо й життя</h2><div id="skyCtl" class="ctls"></div>
-      <div class="ctl chkrow"><label class="chk"><input type="checkbox" id="cRing"><span>Кільця</span></label><button type="button" class="lock" id="lkRing" aria-pressed="false"></button></div>
+      <div class="ctl chkrow"><label class="chk" title="Додати планеті кільця"><input type="checkbox" id="cRing"><span>Кільця</span></label><button type="button" class="lock" id="lkRing" aria-pressed="false"></button></div>
     </div>
-    <div class="card"><h2>Експорт</h2>
-      <div class="exp"><button id="btnPng" class="btn-primary">Картинка планети</button><button id="btnMap">Карта PNG</button><button id="btnHeight">Висоти PNG</button><button id="btnJson">Паспорт JSON</button></div>
-      <label class="ctl-inline">Розмір карти <select id="selMap"><option value="1024">1024×512</option><option value="2048" selected>2048×1024</option><option value="4096">4096×2048</option></select></label>
+    <div class="card"><h2>Розмір карти для експорту</h2>
+      <label class="ctl-inline" title="Розмір карти й висот, що зберігаються кнопками «Карта PNG» і «Висоти PNG» угорі">Розмір карти <select id="selMap"><option value="1024">1024×512</option><option value="2048" selected>2048×1024</option><option value="4096">4096×2048</option></select></label>
       <p class="hint">Карта в рівнопроміжній проєкції: її можна накласти на сферу в будь-якому рушії (UV-розгортка), шов лівого й правого країв неперервний.</p>
     </div>
   </aside>

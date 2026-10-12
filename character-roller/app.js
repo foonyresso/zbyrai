@@ -66,7 +66,17 @@
     return h('select', { 'aria-label': label, onchange: e => on(e.target.value) },
       options.map(([v, t]) => h('option', { value: v, selected: String(v) === String(cur) }, t)));
   }
-  function field(label, control) { return h('div', { class: 'row' }, h('label', null, label), control); }
+  const TIPS = {
+    'Зерно': 'Число-код персонажа: те саме зерно з тими самими параметрами завжди дає того самого персонажа',
+    'Раса': 'Раса дає бонуси до характеристик і особливі риси', 'Підраса': 'Різновид раси з додатковими рисами',
+    'Клас': 'Клас визначає бойову роль, кістку хітів, закляття й риси', 'Підклас': 'Спеціалізація класу (у SRD по одній на клас)',
+    'Рівень': 'Рівень персонажа від 1 до 20; «Випадковий» бере число з діапазону нижче', 'Діапазон': 'Межі рівня для випадкового вибору',
+    'Передісторія': 'Минуле персонажа: дає навички, спорядження й особистість', 'Світогляд': 'Мораль і порядок: законний/нейтральний/хаотичний, добрий/злий',
+    'Метод': 'Як кидаються характеристики: 4к6, стандартний набір, point buy тощо', 'Розподіл': 'Як числа розкладаються по характеристиках',
+    'HP за рівень': 'Середнє значення чи кидок кістки хітів на кожному рівні',
+    'Риса': 'Риса характеру з передісторії', 'Ідеал': 'Принцип, яким керується персонаж', 'Прив’язка': 'До чого чи кого персонаж прив’язаний', 'Вада': 'Слабкість персонажа',
+  };
+  function field(label, control) { return h('div', { class: 'row', title: TIPS[label] || label }, h('label', null, label), control); }
   function section(key, title, badge, ...body) {
     const d = h('details', { class: 'sec', open: !!S.open[key] }, h('summary', null, title, badge ? h('span', { class: 'n' }, badge) : null), h('div', { class: 'sec-b' }, body));
     d.addEventListener('toggle', () => { S.open[key] = d.open; save(); });
@@ -79,9 +89,9 @@
     const levelRange = P.level === ANY;
 
     root.append(section('main', 'Основне', null,
-      field('Seed', h('span', { class: 'inline' },
-        h('input', { class: 'txt', value: S.seed, 'aria-label': 'Seed', spellcheck: 'false', onchange: e => { S.seed = e.target.value.trim() || C.randomSeed(); save(); regen(); } }),
-        h('button', { class: 'x', title: 'Новий seed', 'aria-label': 'Новий seed', onclick: () => roll() }, dieIcon()))),
+      field('Зерно', h('span', { class: 'inline' },
+        h('input', { class: 'txt', value: S.seed, 'aria-label': 'Зерно', spellcheck: 'false', onchange: e => { S.seed = e.target.value.trim() || C.randomSeed(); save(); regen(); } }),
+        h('button', { class: 'x', title: 'Нове випадкове зерно', 'aria-label': 'Нове випадкове зерно', onclick: () => roll() }, dieIcon()))),
       field('Раса', sel([opt(ANY, 'Випадково')].concat(SRD.RACES.map(r => opt(r.id, r.name))), P.race, v => setP({ race: v, subrace: ANY }), 'Раса')),
       race && race.subraces.length ? field('Підраса', sel([opt(ANY, 'Випадково')].concat(race.subraces.map(s => opt(s.id, s.name))), P.subrace, v => setP({ subrace: v }), 'Підраса')) : null,
       field('Клас', sel([opt(ANY, 'Випадково')].concat(SRD.CLASSES.map(c => opt(c.id, c.name))), P.cls, v => setP({ cls: v, subclass: ANY }), 'Клас')),
@@ -95,7 +105,7 @@
       h('p', { class: 'hint' }, 'SRD 5.1 містить лише одну передісторію («Послушник») і по одному підкласу на клас: інших у правилах SRD немає.'),
     ));
 
-    const abil = h('div', { class: 'abil-in' }, SRD.ABILITIES.map(a => h('label', null, h('span', null, a.short),
+    const abil = h('div', { class: 'abil-in', title: 'Зафіксуй базове значення характеристики до расових бонусів. Порожньо: випадково' }, SRD.ABILITIES.map(a => h('label', null, h('span', null, a.short),
       h('input', { class: 'num', type: 'number', min: 3, max: 20, placeholder: 'випадк.', value: P.abilities[a.id] == null ? '' : P.abilities[a.id], 'aria-label': a.name + ' (базове значення)',
         onchange: e => { const ab = Object.assign({}, P.abilities); const v = e.target.value.trim(); if (v === '') delete ab[a.id]; else ab[a.id] = Math.min(20, Math.max(3, Math.round(+v) || 10)); setP({ abilities: ab }); } }))));
     root.append(section('abil', 'Характеристики та HP', null,
@@ -104,7 +114,7 @@
       field('HP за рівень', sel([opt('average', 'Середнє значення'), opt('roll', 'Кидок кістки')], P.hp, v => setP({ hp: v }), 'HP')),
       h('p', { class: 'hint' }, 'Зафіксуй базове значення (до расових бонусів): порожнє поле означає випадкове. Значення мусить бути можливим для методу (point buy: 8-15 і разом не більше 27 очок; стандартний набір: 15, 14, 13, 12, 10, 8; кидки: 3-18), інакше його буде приведено до найближчого допустимого.'), abil));
 
-    const sk = h('div', { class: 'checks' }, SRD.SKILLS.map(s => h('label', null,
+    const sk = h('div', { class: 'checks', title: 'Позначені навички будуть вибрані першими, якщо це дозволяють правила' }, SRD.SKILLS.map(s => h('label', null,
       h('input', { type: 'checkbox', checked: P.skills.includes(s.id), onchange: e => { const set = new Set(P.skills); if (e.target.checked) set.add(s.id); else set.delete(s.id); setP({ skills: [...set] }, false); } }), s.name)));
     root.append(section('skills', 'Бажані навички', P.skills.length ? String(P.skills.length) : null, sk,
       h('p', { class: 'hint' }, 'Якщо клас, раса чи передісторія дозволяють, ці навички будуть вибрані першими.')));
@@ -115,12 +125,12 @@
       trSel('trait', 'Риса', bg.traits), trSel('ideal', 'Ідеал', bg.ideals), trSel('bond', 'Прив’язка', bg.bonds), trSel('flaw', 'Вада', bg.flaws)));
 
     root.append(section('more', 'Додатково', null,
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: P.smartGear, onchange: e => setP({ smartGear: e.target.checked }, false) }), ' Розумний добір спорядження й бойового стилю'),
-      h('p', { class: 'hint' }, 'Вимкнено: спорядження та стилі обираються цілком випадково. Однакові параметри й seed завжди дають того самого персонажа.')));
+      h('label', { class: 'check', title: 'Підбирає спорядження й бойовий стиль під клас. Вимкнено: усе випадково' }, h('input', { type: 'checkbox', checked: P.smartGear, onchange: e => setP({ smartGear: e.target.checked }, false) }), ' Розумний добір спорядження й бойового стилю'),
+      h('p', { class: 'hint' }, 'Вимкнено: спорядження та стилі обираються цілком випадково. Однакові параметри й зерно завжди дають того самого персонажа.')));
   }
 
   /* ---------- листок ---------- */
-  const SRC_NAMES = { race: 'Расові риси', bg: 'Передісторія', class: 'Риси класу', subclass: 'Риси підкласу', feat: 'Риси (feats)' };
+  const SRC_NAMES = { race: 'Расові риси', bg: 'Передісторія', class: 'Риси класу', subclass: 'Риси підкласу', feat: 'Таланти' };
   const ABN = Object.fromEntries(SRD.ABILITIES.map(a => [a.id, a]));
   const dot = p => pip(p === 2 ? 'ex' : p === 1 ? 'on' : '', p === 2 ? 'експертиза' : p === 1 ? 'володіння' : 'немає володіння');
 
@@ -234,7 +244,7 @@
     if (ch.invocations.length) feat.append(h('h4', null, 'Містичні прохання'), h('div', { class: 'feat-grid' }, ch.invocations.map(i => h('div', { class: 'feat' }, h('b', null, i.name), h('p', null, i.desc)))));
     if (ch.metamagic.length) feat.append(h('h4', null, 'Метамагія'), h('div', { class: 'feat-grid' }, ch.metamagic.map(i => h('div', { class: 'feat' }, h('b', null, i.name), h('p', null, i.desc)))));
     root.append(feat);
-    root.append(h('p', { class: 'foot-note' }, `Seed «${ch.seed}». Правила: D&D 5e SRD 5.1 (CC-BY 4.0). Номер листка відтворюється за seed і параметрами.`));
+    root.append(h('p', { class: 'foot-note' }, `Зерно «${ch.seed}». Правила: D&D 5e SRD 5.1 (CC-BY 4.0). Номер листка відтворюється за seed і параметрами.`));
   }
 
   function renderSpells(sp) {
@@ -282,10 +292,21 @@
   }
   $('btnRoll').addEventListener('click', roll);
   $('btnPrint').addEventListener('click', () => window.print());
-  $('btnCopy').addEventListener('click', () => copyText(C.exportJSON(ch), 'JSON скопійовано'));
+  const exportText = () => JSON.stringify(Object.assign(JSON.parse(C.exportJSON(ch)), { generator: { seed: S.seed, name: S.name, nameVariant: S.nameVariant, params: S.params } }), null, 2);
+  $('btnCopy').addEventListener('click', () => copyText(exportText(), 'JSON скопійовано'));
+  $('btnImport').addEventListener('click', () => $('fileImport').click());
+  $('fileImport').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text()), g = d.generator;
+      if (!g || !g.seed) throw new Error('bad');
+      S.seed = String(g.seed); S.name = typeof g.name === 'string' ? g.name : ''; S.nameVariant = +g.nameVariant || 0;
+      S.params = Object.assign(DEFAULTS(), g.params || {}); save(); renderParams(); regen(); toast('Персонажа завантажено');
+    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
+  });
   $('btnSave').addEventListener('click', () => {
     const base = (ch.name || `${ch.cls.id}-${ch.level}`).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'character';
-    download(base + '.json', C.exportJSON(ch)); toast('Збережено ' + base + '.json');
+    download(base + '.json', exportText()); toast('Збережено ' + base + '.json');
   });
   $('btnClear').addEventListener('click', () => { S.params = DEFAULTS(); save(); renderParams(); regen(); toast('Параметри скинуто'); });
   $('btnChaos').addEventListener('click', () => { S.params = Object.assign(DEFAULTS(), { method: 'any', assign: 'any' }); roll(); toast('Все випадково'); });
