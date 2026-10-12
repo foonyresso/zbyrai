@@ -1,0 +1,55 @@
+/* Planet Forge: розмітка поверх спільної теми (theme.css). Акцент інструмента: небесно-блакитний. */
+:root { --accent: #5cb8e6; --accent-hi: #9fd8f5; --accent-glow: rgba(92, 184, 230, .14); }
+body { min-height: 100vh; display: flex; flex-direction: column;
+  background: radial-gradient(1200px 460px at 50% -120px, rgba(92, 184, 230, .10), transparent 70%), var(--bg); }
+header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 18px;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
+header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .55; }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-display); font-weight: 700; font-size: 24px; white-space: nowrap; }
+.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
+.brand span { color: var(--accent); }
+.spacer { flex: 1; }
+main.wrap { flex: 1; width: 100%; max-width: 1360px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; padding: 16px 18px 32px; align-items: start; }
+.stage { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.viewport { position: relative; border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); overflow: hidden; background: #05060d; height: min(66vh, 620px); }
+.viewport canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.vp-bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 10px 14px; background: linear-gradient(0deg, rgba(5, 6, 13, .85), transparent); }
+.ctl-inline { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.ctl-inline input[type=range] { width: 120px; }
+.chk { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); cursor: pointer; width: fit-content; }
+.side { display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.card h2 { margin: 0 0 2px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
+.hint { font-size: 12px; color: var(--faint); margin: 4px 0 0; line-height: 1.5; }
+.ctl { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.ctl output { font-family: var(--ff-mono); font-size: 12px; color: var(--text); }
+.ctl input[type=range], .ctl input[type=text] { grid-column: 1 / -1; width: 100%; }
+.ctl.txt { grid-template-columns: 1fr; }
+.kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.kinds button { padding: 4px 11px; font-size: 13px; }
+.kinds button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.exp { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* паспорт планети */
+.paper { gap: 14px; }
+.p-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.p-head h3 { margin: 0; font-family: var(--ff-display); font-size: 34px; font-weight: 600; line-height: 1.05; background: linear-gradient(180deg, #fff, var(--accent-hi) 80%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.p-head .des { font-family: var(--ff-mono); font-size: 12px; color: var(--faint); letter-spacing: .1em; }
+.p-head .kind { margin-left: auto; font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--accent); }
+.p-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.stat { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.stat b { display: block; font-family: var(--ff-display); font-size: 22px; font-weight: 600; line-height: 1.1; }
+.stat span { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.p-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.p-cols h4 { margin: 0 0 8px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .16em; color: var(--accent); font-weight: 600; }
+.bars .row { display: grid; grid-template-columns: 120px 1fr 44px; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.bars .row .b { height: 7px; background: var(--bg-elev); border-radius: 4px; overflow: hidden; } .bars .row .b i { display: block; height: 100%; }
+.bars .row span:last-child { font-family: var(--ff-mono); text-align: right; color: var(--text); }
+.hab { display: flex; align-items: center; gap: 12px; }
+.hab .meter { flex: 1; height: 10px; background: var(--bg-elev); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); } .hab .meter i { display: block; height: 100%; }
+.hab b { font-family: var(--ff-mono); font-size: 20px; } .hab small { color: var(--muted); display: block; font-size: 12px; }
+.res { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); } .res div { display: flex; justify-content: space-between; } .res .st { color: #ffb454; letter-spacing: 2px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
+  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%); }
+@media (max-width: 980px) { main.wrap { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 28px; } header.top { padding: 12px 16px; } .viewport { height: 62vh; } .bars .row { grid-template-columns: 90px 1fr 40px; } }

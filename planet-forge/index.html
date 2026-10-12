@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Forge: кузня планет</title>
+<meta name="description" content="Генератор процедурних планет: континенти, біоми, хмари, вогні міст, кільця й супутники, обертова 3D-планета, паспорт із характеристиками та придатністю для життя. Експорт карти й паспорта. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/planet-forge/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Planet Forge: кузня планет">
+<meta property="og:description" content="Створюй планети з континентами, хмарами, кільцями й супутниками та читай їхній паспорт.">
+<meta property="og:url" content="https://zbyrai.pages.dev/planet-forge/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%268%27 fill=%27none%27 stroke=%27%235cb8e6%27 stroke-width=%272%27/%3E%3Cellipse cx=%2716%27 cy=%2716%27 rx=%2713%27 ry=%274%27 transform=%27rotate%28-20 16 16%29%27 fill=%27none%27 stroke=%27%235cb8e6%27 stroke-width=%271.6%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-20 12 12)"/></svg>
+    <div>Planet <span>Forge</span></div>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnSurprise" title="Випадкові тип і параметри">Сюрприз</button>
+  <button id="btnNew" class="btn-primary" title="Нова планета того ж типу (Пробіл)">Нова планета</button>
+</header>
+
+<main class="wrap">
+  <section class="stage">
+    <div class="viewport" id="view"><canvas id="cv" aria-label="Планета"></canvas>
+      <div class="vp-bar"><label class="chk"><input type="checkbox" id="cSpin" checked><span>Обертання</span></label><label class="ctl-inline">Поворот <input type="range" id="rSpin" min="0" max="360" step="1"></label><label class="ctl-inline">Світло <input type="range" id="rSun" min="-90" max="90" step="1"></label></div>
+    </div>
+    <div class="paper card" id="card"></div>
+  </section>
+
+  <aside class="side">
+    <div class="card"><h2>Тип і зерно</h2>
+      <div class="kinds" id="kinds"></div>
+      <label class="ctl txt"><span>Зерно</span><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
+      <label class="ctl txt"><span>Назва (порожньо = авто)</span><input type="text" id="tName" maxlength="28"></label>
+    </div>
+    <div class="card"><h2>Поверхня</h2>
+      <label class="ctl"><span>Вода</span><output id="oSea"></output><input type="range" id="rSea" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Розмір континентів</span><output id="oScale"></output><input type="range" id="rScale" min="6" max="40" step="1"></label>
+      <label class="ctl"><span>Гори</span><output id="oMount"></output><input type="range" id="rMount" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Клімат (холод ↔ спека)</span><output id="oTemp"></output><input type="range" id="rTemp" min="-100" max="100" step="1"></label>
+      <label class="ctl"><span>Вологість</span><output id="oHumid"></output><input type="range" id="rHumid" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Полярні шапки</span><output id="oCaps"></output><input type="range" id="rCaps" min="0" max="100" step="1"></label>
+    </div>
+    <div class="card"><h2>Небо й життя</h2>
+      <label class="ctl"><span>Атмосфера</span><output id="oAtmo"></output><input type="range" id="rAtmo" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Хмари</span><output id="oCloud"></output><input type="range" id="rCloud" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Вогні міст</span><output id="oLights"></output><input type="range" id="rLights" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Нахил осі</span><output id="oTilt"></output><input type="range" id="rTilt" min="0" max="60" step="1"></label>
+      <label class="ctl"><span>Супутники</span><output id="oMoons"></output><input type="range" id="rMoons" min="0" max="4" step="1"></label>
+      <label class="chk"><input type="checkbox" id="cRing"><span>Кільця</span></label>
+    </div>
+    <div class="card"><h2>Експорт</h2>
+      <div class="exp"><button id="btnPng" class="btn-primary">Картинка планети</button><button id="btnMap">Карта PNG</button><button id="btnHeight">Висоти PNG</button><button id="btnJson">Паспорт JSON</button></div>
+      <label class="ctl-inline">Розмір карти <select id="selMap"><option value="1024">1024×512</option><option value="2048" selected>2048×1024</option><option value="4096">4096×2048</option></select></label>
+      <p class="hint">Карта в рівнопроміжній проєкції: її можна накласти на сферу в будь-якому рушії (UV-розгортка), шов лівого й правого країв неперервний.</p>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./planet-core.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
