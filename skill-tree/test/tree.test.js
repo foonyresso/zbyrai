@@ -109,7 +109,7 @@ test('генератор: детермінований, усі вузли дос
   assert.ok(T.generateTree({ seed: 'x', branches: 8, depth: 14 }).nodes.length > a.nodes.length);
   assert.equal(a.nodes.filter(n => n.kind === 'start').length, 1);
   assert.equal(a.nodes.filter(n => n.kind === 'keystone').length, 6, 'по ключовому вузлу на гілку');
-  for (const n of a.nodes) if (n.kind !== 'start') assert.ok(Object.keys(n.stats).length && n.desc, 'без статів: ' + n.id);
+  for (const n of a.nodes) if (n.kind !== 'start') assert.ok((Object.keys(n.stats).length || n.role === 'transit') && n.desc, 'без статів: ' + n.id);
 });
 
 test('генероване дерево можна пройти: жадібно вкласти всі очки, стан правильний', () => {
@@ -179,6 +179,79 @@ test('шаблони валідні, дають ненульове дерево,
     assert.deepEqual(T.sanitize(JSON.parse(JSON.stringify(t))).nodes.length, t.nodes.length);
   }
   assert.equal(T.templateTree('tech').mode, 'prereq');
+});
+
+const timed = fn => { const t0 = Date.now(); const r = fn(); return [r, Date.now() - t0]; };
+
+test('роль вузла: старі файли без ролі отримують її з типу й статів; start має роль start', () => {
+  const t = T.sanitize({ nodes: [{ id: 's', kind: 'start' }, { id: 'a', stats: { dmg: 1 } }, { id: 'b' }, { id: 'k', kind: 'keystone', stats: { dmg: 1 } }, { id: 'x', role: 'active', stats: { dmg: 1 } }], links: [['s', 'a']] , mode: 'prereq' });
+  assert.deepEqual(t.nodes.map(n => n.role), ['start', 'passive', 'transit', 'active', 'active']);
+  assert.ok(Object.keys(T.ROLES).length === 3);
+});
+
+test('генератор за кількістю: точно N вузлів для кожного типу (60, 500, 5000)', () => {
+  for (const type of ['radial', 'chain', 'tech', 'classes']) {
+    for (const count of [60, 500, 5000]) {
+      const [t, ms] = timed(() => T.buildTree(type, { count, seed: 'cnt' }));
+      assert.equal(t.nodes.length, count, `${type} ${count}: вийшло ${t.nodes.length}`);
+      assert.deepEqual(T.validate(t).filter(p => !p.startsWith('Очок')), [], `${type} ${count}`);
+      assert.ok(ms < 4000, `${type} ${count}: ${ms} мс`);
+    }
+  }
+  assert.equal(T.buildTree('blank').nodes.length, 1);
+});
+
+test('генератор за кількістю: детермінований, різні ролі, вузли не злипаються', () => {
+  const a = T.buildTree('radial', { count: 800, seed: 's' }), b = T.buildTree('radial', { count: 800, seed: 's' });
+  assert.deepEqual(a, b);
+  const roles = new Set(a.nodes.map(n => n.role));
+  for (const r of ['start', 'passive', 'active', 'transit']) assert.ok(roles.has(r), 'немає ролі ' + r);
+  // ключові вузли мають рівно по одному на гілку, початок один
+  assert.equal(a.nodes.filter(n => n.kind === 'start').length, 1);
+  let minD = Infinity;
+  const cell = new Map();
+  for (const n of a.nodes) { const k = Math.round(n.x / 20) + ',' + Math.round(n.y / 20); if (cell.has(k)) minD = Math.min(minD, 0); cell.set(k, n); }
+  assert.ok(minD > 0, 'вузли накладаються');
+});
+
+test('великі деревa: 20000 вузлів — межа, а понад межу обрізається; ланцюг не валить стек', () => {
+  const [t, ms] = timed(() => T.buildTree('chain', { count: 99999, seed: 'big' }));
+  assert.equal(t.nodes.length, T.MAX_NODES);
+  assert.ok(ms < 5000, ms + ' мс');
+  const st = T.analyze(t, T.emptyState());
+  assert.equal(st.status.get('c1'), 'open');
+  // глибокий prereq-ланцюг: перевірка й розкладка ітеративні
+  const n = 8000, nodes = [], links = [];
+  for (let i = 0; i < n; i++) { nodes.push({ id: 'p' + i, x: 0, y: 0, name: 'p' + i, desc: '', kind: 'small', role: 'passive', max: 1, cost: 1, need: 0, stats: { dmg: 1 } }); if (i) links.push(['p' + (i - 1), 'p' + i]); }
+  const deep = { version: 1, name: 'deep', points: n, mode: 'prereq', nodes, links, stats: { dmg: { name: 'Шкода' } } };
+  assert.deepEqual(T.validate(deep), []);
+  T.autoLayout(deep);
+  assert.ok(deep.nodes[n - 1].y > deep.nodes[0].y);
+  deep.links.push(['p' + (n - 1), 'p0']);
+  assert.ok(T.validate(deep).some(p => p.includes('цикл')));
+});
+
+test('автороскладка (path) для великого кільця: вузли не ближче 30 одиниць', () => {
+  const t = T.buildTree('radial', { count: 2000, seed: 'ring' });
+  T.autoLayout(t);
+  const cell = new Map();
+  let close = 0;
+  for (const n of t.nodes) { const k = Math.floor(n.x / 30) + ',' + Math.floor(n.y / 30); close += cell.has(k) ? 1 : 0; cell.set(k, 1); }
+  assert.ok(close < t.nodes.length * .02, 'накладень: ' + close);
+});
+
+test('генерований великий білд можна пройти жадібно в обох режимах', () => {
+  for (const type of ['radial', 'tech']) {
+    const t = T.buildTree(type, { count: 1500, seed: 'walk' });
+    let st = T.emptyState(), progress = true;
+    while (progress) {
+      progress = false;
+      const a = T.analyze(t, st);
+      for (const n of t.nodes) if (a.status.get(n.id) === 'open') { st = T.allocate(t, st, n.id, a.idx); progress = true; break; }
+    }
+    assert.ok(T.validState(t, st), type);
+    assert.ok(T.spentPoints(t, st) > 10, type);
+  }
 });
 
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);

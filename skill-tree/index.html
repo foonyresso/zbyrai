@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Skill Tree Lab: редактор дерев скілів</title>
-<meta name="description" content="Редактор дерев скілів і талантів для ігор: вузли, зв’язки, вимоги, ціна, режим «пограти», генератор дерев на сотні вузлів і експорт у JSON. Безкоштовно, працює офлайн.">
+<meta name="description" content="Редактор дерев скілів і талантів для ігор: вузли, зв’язки, вимоги, ціна, режим «пограти», генератор дерев на тисячі вузлів і експорт у JSON. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/skill-tree/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
@@ -23,47 +23,90 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2V12M12 12 5 16.8M12 12v4.8M12 12l7 4.8"/></svg>
     <div>Skill Tree <span>Lab</span></div>
   </div>
-  <div class="seg" id="modeSeg" role="group" aria-label="Режим">
-    <button data-mode="play">Грати</button>
-    <button data-mode="edit">Редагувати</button>
-  </div>
   <div class="spacer"></div>
-  <button id="btnImport">Імпорт</button>
-  <button id="btnPng" title="Зберегти все дерево як картинку PNG">PNG</button>
-  <button id="btnCopy" title="Скопіювати дерево й поточний розподіл як JSON">Копіювати JSON</button>
-  <button class="btn-primary" id="btnSave" title="Завантажити skill-tree.json">Зберегти .json</button>
+  <span class="grp-t" title="Збереження й обмін: усе, що виносить дерево з інструмента або заносить його назад">Файл</span>
+  <button id="btnImport" title="Вставити JSON або обрати файл і замінити поточне дерево">Імпорт</button>
+  <button id="btnPng" title="Зберегти все дерево одним зображенням PNG">Експорт PNG</button>
+  <button id="btnCopy" title="Скопіювати дерево й поточний розподіл очок як JSON у буфер обміну">Копіювати JSON</button>
+  <button class="btn-primary" id="btnSave" title="Завантажити дерево й розподіл очок файлом skill-tree.json">Зберегти .json</button>
 </header>
+
+<details class="about" id="about">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="about-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Дерево скілів, як у Path of Exile, Diablo чи Skyrim: ти вкладаєш очки у вузли, кожен вузол дає бонус або здібність і відкриває сусідів. Тут його можна намалювати, згенерувати та одразу «пограти».</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Щоб розробнику гри швидко придумати й перевірити систему прокачки: чи не надто легко добратися до сильного вузла, чи є цікавий вибір між гілками, чи вистачає очок. Готове дерево виходить у JSON.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Створи дерево</b> праворуч: обери тип, постав кількість вузлів (хоч 500, хоч 5000) і натисни «Згенерувати».</li>
+        <li><b>Грати:</b> клік по вузлу вкладає очко, Shift+клік або правий клік повертає. Яскраві вузли доступні зараз.</li>
+        <li><b>Редагувати:</b> тягни вузли, подвійний клік по порожньому місцю додає новий, Shift+клік по іншому вузлу з’єднує.</li>
+        <li><b>Збережи</b> у верхній панелі: JSON, файл чи картинка PNG.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Кольори й форми</h3>
+      <p>Колір = що дає вузол: <b class="c-pas">зелений</b> пасивний бонус, <b class="c-act">помаранчевий</b> активна здібність, <b class="c-tra">сіро-блакитний</b> прохідний (лише з’єднує, безкоштовний), <b class="c-sta">золотий</b> початок. Форма = важливість: коло малий, ромб значний, шестикутник ключовий.</p>
+      <p>Приклади: «три класи» (тип «Класи»), довга лінія прокачки (тип «Ланцюг»), дерево технологій RTS (тип «Технології»).</p>
+    </div>
+  </div>
+</details>
 
 <main class="lab">
   <section class="stage" id="stage" aria-label="Дерево скілів">
     <canvas id="cv" tabindex="0" aria-label="Полотно дерева. Клік вкладає очко, правий клік або Shift+клік повертає."></canvas>
     <div class="hud tl">
-      <span class="pts" id="pts"></span>
-      <button id="btnUndo" title="Скасувати (Ctrl+Z)" aria-label="Скасувати">↶</button>
-      <button id="btnRedo" title="Повторити (Ctrl+Shift+Z)" aria-label="Повторити">↷</button>
-      <button id="btnResetBuild" title="Забрати всі вкладені очки">Скинути</button>
+      <div class="seg" id="modeSeg" role="group" aria-label="Режим">
+        <button data-mode="play" title="Перевіряти дерево як гравець: вкладати й повертати очки">Грати</button>
+        <button data-mode="edit" title="Змінювати дерево: тягти вузли, додавати, з’єднувати, видаляти">Редагувати</button>
+      </div>
+      <span class="pts" id="pts" title="Скільки очок лишилося з усіх доступних"></span>
+      <button id="btnUndo" title="Скасувати останню дію (Ctrl+Z)" aria-label="Скасувати">↶</button>
+      <button id="btnRedo" title="Повторити скасовану дію (Ctrl+Shift+Z)" aria-label="Повторити">↷</button>
+      <button id="btnResetBuild" title="Забрати всі вкладені очки (дерево не змінюється)">Скинути очки</button>
     </div>
     <div class="hud br">
-      <button id="btnLayout" title="Розкласти вузли автоматично" class="edit-only">Розкласти</button>
-      <button id="zoomOut" aria-label="Зменшити">−</button>
-      <button id="zoomIn" aria-label="Збільшити">+</button>
-      <button id="zoomFit" title="Вмістити все дерево">Вмістити</button>
+      <button id="btnLayout" title="Розставити вузли за схемою заново: від початку колами (шлях) або рядами зверху вниз (вимоги). Зв’язки й очки не змінюються." class="edit-only">Розкласти вузли автоматично</button>
+      <button id="btnAnim" title="Вмикає й вимикає легку анімацію: хвиля від кліку та рух вузлів під курсором">Анімація</button>
+      <button id="zoomOut" title="Зменшити масштаб (також колесо миші)" aria-label="Зменшити">−</button>
+      <button id="zoomIn" title="Збільшити масштаб (також колесо миші)" aria-label="Збільшити">+</button>
+      <button id="zoomFit" title="Підігнати масштаб, щоб усе дерево було видно">Вмістити</button>
+    </div>
+    <div class="legend" aria-label="Умовні позначення">
+      <span title="Пасивний вузол: постійний бонус до статів"><i class="dot pas"></i>Пасивний</span>
+      <span title="Активний вузол: здібність, яку гравець застосовує сам"><i class="dot act"></i>Активний</span>
+      <span title="Прохідний вузол: лише з’єднує гілки, бонусів не дає, нічого не коштує"><i class="dot tra"></i>Прохідний</span>
+      <span title="Початок: звідси дерево відкривається, завжди активний"><i class="dot sta"></i>Початок</span>
+      <span class="sep"></span>
+      <span title="Малий вузол: звичайний бонус">● малий</span>
+      <span title="Значний вузол: сильніший бонус">◆ значний</span>
+      <span title="Ключовий вузол: найсильніший, зазвичай дорогий і з вимогами">⬢ ключовий</span>
     </div>
     <div class="tip" id="tip" role="tooltip" hidden></div>
-    <p class="help" id="help"></p>
   </section>
 
   <aside class="side">
     <section class="card">
-      <h2>Підсумок</h2>
+      <h2 title="Скільки очок витрачено й що це дає в сумі">Підсумок</h2>
       <div id="sum"></div>
     </section>
     <section class="card">
-      <h2>Вузол</h2>
+      <h2 title="Деталі вибраного вузла; у режимі «Редагувати» його можна змінити">Вузол</h2>
       <div id="inspector"></div>
     </section>
     <section class="card">
-      <h2>Дерево</h2>
+      <h2 title="Згенерувати нове дерево заданого типу й розміру (замінює поточне)">Створити дерево</h2>
+      <div id="gen"></div>
+    </section>
+    <section class="card">
+      <h2 title="Назва, кількість очок і правило відкриття вузлів для всього дерева">Налаштування дерева</h2>
       <div id="treeset"></div>
     </section>
   </aside>
@@ -73,13 +116,13 @@
   <form method="dialog">
     <h3>Імпорт дерева</h3>
     <p class="hint">Встав JSON, який дав «Копіювати JSON» або «Зберегти .json», або обери файл. Поточне дерево буде замінено.</p>
-    <textarea id="importText" rows="10" spellcheck="false" placeholder='{ "format": "zbyrai.skill-tree", … }'></textarea>
+    <textarea id="importText" title="Сюди вставляється JSON дерева" rows="10" spellcheck="false" placeholder='{ "format": "zbyrai.skill-tree", … }'></textarea>
     <p class="err" id="importErr" role="alert"></p>
     <div class="dlg-foot">
-      <button type="button" id="importFile">Обрати файл…</button>
+      <button type="button" id="importFile" title="Обрати файл .json з диска">Обрати файл…</button>
       <span class="spacer"></span>
-      <button value="cancel">Скасувати</button>
-      <button type="button" class="btn-primary" id="importGo">Імпортувати</button>
+      <button value="cancel" title="Закрити, нічого не змінюючи">Скасувати</button>
+      <button type="button" class="btn-primary" id="importGo" title="Замінити поточне дерево тим, що вставлено вище">Імпортувати</button>
     </div>
     <input type="file" id="importFileInput" accept=".json,application/json" hidden>
   </form>

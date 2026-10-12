@@ -44,13 +44,18 @@
   /* скасування/повтор: знімки {tree, ranks} */
   const undoStack = [], redoStack = [];
   const snapshot = () => JSON.stringify({ tree, ranks: build.ranks });
-  function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 100) undoStack.shift(); redoStack.length = 0; syncUndo(); }
+  function pushUndo() {
+    const snap = snapshot(); undoStack.push(snap);
+    const cap = clamp(Math.floor(3e6 / snap.length), 4, 100); // у великих деревах пам’ять важливіша за глибину історії
+    while (undoStack.length > cap) undoStack.shift();
+    redoStack.length = 0; syncUndo();
+  }
   function restore(str) {
     const o = JSON.parse(str); tree = o.tree; build = { ranks: o.ranks }; multi.clear();
     if (sel && !tree.nodes.some(n => n.id === sel)) sel = null;
     dirty(); refreshAll(); persist();
   }
-  function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); syncUndo(); }
+  function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); while (redoStack.length > 20) redoStack.shift(); restore(undoStack.pop()); syncUndo(); }
   function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); syncUndo(); }
   function syncUndo() { $('btnUndo').disabled = !undoStack.length; $('btnRedo').disabled = !redoStack.length; }
   const multi = new Set(); // додаткові вибрані вузли (редагування)
@@ -61,7 +66,7 @@
   /* ---------- полотно ---------- */
   const cv = $('cv'), ctx = cv.getContext('2d'), stage = $('stage');
   let W = 1, H = 1, dpr = 1, raf = 0;
-  const schedule = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); };
+  const schedule = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; if (!looping) draw(); }); };
   function resize() {
     const r = stage.getBoundingClientRect();
     dpr = window.devicePixelRatio || 1; W = Math.max(1, r.width); H = Math.max(1, r.height);
@@ -74,73 +79,156 @@
     if (!ns.length) { view = { x: W / 2, y: H / 2, k: 1 }; return; }
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const n of ns) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
-    const pad = 70, k = clamp(Math.min(W / (x1 - x0 + pad * 2), H / (y1 - y0 + pad * 2)), 0.12, 1.4);
+    const pad = 70, k = clamp(Math.min(W / (x1 - x0 + pad * 2), H / (y1 - y0 + pad * 2)), 0.02, 1.4);
     view = { k, x: W / 2 - ((x0 + x1) / 2) * k, y: H / 2 - ((y0 + y1) / 2) * k };
   }
   function zoomAt(sx, sy, f) {
-    const k = clamp(view.k * f, 0.12, 4), r = k / view.k;
+    const k = clamp(view.k * f, 0.02, 4), r = k / view.k;
     view.x = sx - (sx - view.x) * r; view.y = sy - (sy - view.y) * r; view.k = k;
     schedule(); persist();
   }
   new ResizeObserver(resize).observe(stage);
 
-  const COL = { gold: '#c9a766', goldHi: '#e8d29e', line: '#2e2e3a', accent: '#7aa7e6', text: '#ece8df', part: '#6b5a35', open: '#1c2232', locked: '#101015', lockedLine: '#34343f' };
+  /* ---------- кольори ---------- */
+  const hex = (c, a) => { const n = parseInt(c.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+  const ROLE_COL = { passive: '#6fc08f', active: '#f08a5d', transit: '#8798b5', start: '#e8c36a' };
+  const ROLE_HI = { passive: '#b4ecc9', active: '#ffc7a8', transit: '#c9d4ea', start: '#fff0c4' };
+  const PAL = {};
+  for (const r of Object.keys(ROLE_COL)) PAL[r] = { base: ROLE_COL[r], hi: ROLE_HI[r], part: hex(ROLE_COL[r], .5), open: hex(ROLE_COL[r], .14), edge: hex(ROLE_COL[r], .55), halo: hex(ROLE_COL[r], .22), glow: hex(ROLE_COL[r], .7) };
+  const COL = { goldHi: '#e8d29e', text: '#ece8df', locked: '#0f1015', linkOff: '#303a50', linkHalf: 'rgba(140,170,215,.5)', linkOn: '#d6bc7a' };
+  const roleOf = n => (n.kind === 'start' ? 'start' : n.role || T.defaultRole(n));
   const isOn = s => s === 'start' || s === 'full' || s === 'part';
 
-  function shape(n, r) {
-    ctx.beginPath();
-    if (n.kind === 'notable') { ctx.moveTo(n.x, n.y - r); ctx.lineTo(n.x + r, n.y); ctx.lineTo(n.x, n.y + r); ctx.lineTo(n.x - r, n.y); ctx.closePath(); }
-    else if (n.kind === 'keystone') { for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx[i ? 'lineTo' : 'moveTo'](n.x + Math.cos(a) * r, n.y + Math.sin(a) * r); } ctx.closePath(); }
-    else ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+  function shapePath(c, kind, x, y, r) {
+    c.beginPath();
+    if (kind === 'notable') { c.moveTo(x, y - r); c.lineTo(x + r, y); c.lineTo(x, y + r); c.lineTo(x - r, y); c.closePath(); }
+    else if (kind === 'keystone') { for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; c[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r, y + Math.sin(a) * r); } c.closePath(); }
+    else c.arc(x, y, r, 0, Math.PI * 2);
+  }
+
+  /* Кеш геометрії для малювання: індекси вузлів, їхні статуси та зв’язки парами індексів. Скидається разом із аналізом. */
+  function geom() {
+    const a = analysis();
+    if (a.geo) return a.geo;
+    const ns = tree.nodes, num = new Map(ns.map((n, i) => [n.id, i]));
+    const st = ns.map(n => a.status.get(n.id)), role = ns.map(roleOf);
+    const lk = [];
+    for (const [p, q] of tree.links) { const i = num.get(p), j = num.get(q); if (i != null && j != null && i !== j) lk.push(i, j); }
+    return (a.geo = { num, st, role, lk: Int32Array.from(lk), ox: new Float32Array(ns.length), oy: new Float32Array(ns.length), os: new Float32Array(ns.length) });
+  }
+
+  /* ---------- анімація: хвилі від кліку й легкий рух під курсором ---------- */
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let animOn = store.get('anim', !reduceMotion);
+  const ripples = [], hoverAnim = new Map();
+  let looping = false, nowT = 0, lastBump = 0;
+  function addRipple(x, y, R, A, speed) {
+    if (!animOn) return;
+    ripples.push({ x, y, R, A, speed, t0: performance.now() });
+    if (ripples.length > 8) ripples.shift();
+    kick();
+  }
+  function kick() { if (!looping) { looping = true; requestAnimationFrame(frame); } }
+  function frame(ts) {
+    nowT = performance.now();
+    for (let i = ripples.length - 1; i >= 0; i--) { const r = ripples[i]; if ((nowT - r.t0) / 1000 > r.R / r.speed + .45) ripples.splice(i, 1); }
+    for (const [id, v] of hoverAnim) {
+      const nv = v + ((id === hover && animOn ? 1 : 0) - v) * .2;
+      if (id !== hover && nv < .02) hoverAnim.delete(id); else hoverAnim.set(id, nv);
+    }
+    if (hover && animOn && !hoverAnim.has(hover)) hoverAnim.set(hover, 0);
+    draw();
+    const settling = [...hoverAnim].some(([id, v]) => id !== hover || v < .98);
+    if (ripples.length || settling) requestAnimationFrame(frame); else looping = false;
+  }
+  // зсув і «пульс» кожного вузла від усіх активних хвиль: м’який гаусів фронт, що йде від центру й згасає з відстанню та часом
+  function computeOffsets(g) {
+    const { ox, oy, os } = g, ns = tree.nodes;
+    ox.fill(0); oy.fill(0); os.fill(0);
+    for (const r of ripples) {
+      const e = (nowT - r.t0) / 1000, front = r.speed * e, life = Math.max(0, 1 - e / (r.R / r.speed + .4));
+      if (life <= 0) continue;
+      for (let i = 0; i < ns.length; i++) {
+        const dx = ns[i].x - r.x, dy = ns[i].y - r.y, d = Math.hypot(dx, dy);
+        if (d > r.R) continue;
+        const ph = (d - front) / (r.R * .16 + 20), w = Math.exp(-ph * ph);
+        if (w < .01) continue;
+        const f = w * life * (1 - d / r.R);
+        os[i] += f * .45;
+        if (d > .5) { ox[i] += dx / d * r.A * f; oy[i] += dy / d * r.A * f; }
+      }
+    }
   }
 
   function draw() {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     if (!view) return;
-    const k = view.k, a = analysis();
+    const k = view.k, a = analysis(), g = geom(), ns = tree.nodes;
+    const moving = ripples.length > 0 && animOn;
+    if (moving) computeOffsets(g);
     ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * view.x, dpr * view.y);
     const vx0 = -view.x / k - 60, vy0 = -view.y / k - 60, vx1 = (W - view.x) / k + 60, vy1 = (H - view.y) / k + 60;
-    const vis = n => n.x >= vx0 && n.x <= vx1 && n.y >= vy0 && n.y <= vy1;
-    const small = tree.nodes.length <= 40; // у малих деревах підписуємо всі вузли
+    const px = i => ns[i].x + (moving ? g.ox[i] : 0), py = i => ns[i].y + (moving ? g.oy[i] : 0);
+    const vis = i => { const x = ns[i].x, y = ns[i].y; return x >= vx0 && x <= vx1 && y >= vy0 && y <= vy1; };
+    const labelAll = ns.length <= 40; // у малих деревах підписуємо всі вузли
+    const prereq = tree.mode === 'prereq';
 
-    // зв’язки
-    ctx.lineWidth = 2.4; ctx.lineCap = 'round';
-    for (const [i, j] of tree.links) {
-      const p = a.idx.byId.get(i), q = a.idx.byId.get(j);
-      if (!p || !q || (!vis(p) && !vis(q))) continue;
-      const op = isOn(a.status.get(i)), oq = isOn(a.status.get(j));
-      const col = op && oq ? COL.gold : (op || oq) ? 'rgba(122,167,230,.6)' : COL.line;
-      ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
-      if (tree.mode === 'prereq' && k >= .4) {
-        const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
-        const rq = T.KINDS[q.kind].r + 5, bx = q.x - ux * rq, by = q.y - uy * rq;
-        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx - ux * 8 - uy * 4.5, by - uy * 8 + ux * 4.5); ctx.lineTo(bx - ux * 8 + uy * 4.5, by - uy * 8 - ux * 4.5); ctx.closePath(); ctx.fill();
+    // зв’язки: три пачки (обидва кінці вкладені / один / жоден), кожна одним штрихом
+    const buckets = [new Path2D(), new Path2D(), new Path2D()], arrows = [new Path2D(), new Path2D(), new Path2D()];
+    const showArrows = prereq && k >= .4;
+    for (let e = 0; e < g.lk.length; e += 2) {
+      const i = g.lk[e], j = g.lk[e + 1];
+      if (!vis(i) && !vis(j)) continue;
+      const b = (isOn(g.st[i]) ? 1 : 0) + (isOn(g.st[j]) ? 1 : 0), B = b === 2 ? 0 : b === 1 ? 1 : 2;
+      const x1 = px(i), y1 = py(i), x2 = px(j), y2 = py(j);
+      buckets[B].moveTo(x1, y1); buckets[B].lineTo(x2, y2);
+      if (showArrows) {
+        const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, rq = T.KINDS[ns[j].kind].r + 5, bx = x2 - ux * rq, by = y2 - uy * rq;
+        const P = arrows[B]; P.moveTo(bx, by); P.lineTo(bx - ux * 8 - uy * 4.5, by - uy * 8 + ux * 4.5); P.lineTo(bx - ux * 8 + uy * 4.5, by - uy * 8 - ux * 4.5); P.closePath();
       }
+    }
+    ctx.lineCap = 'round';
+    const lcol = [COL.linkOn, COL.linkHalf, COL.linkOff], lw = [2.6, 2, 1.6];
+    for (let B = 2; B >= 0; B--) { ctx.strokeStyle = lcol[B]; ctx.fillStyle = lcol[B]; ctx.lineWidth = lw[B]; ctx.stroke(buckets[B]); if (showArrows) ctx.fill(arrows[B]); }
+
+    // хвилі: ледь помітні кільця
+    if (moving) for (const r of ripples) {
+      const e = (nowT - r.t0) / 1000, life = Math.max(0, 1 - e / (r.R / r.speed + .4));
+      ctx.strokeStyle = `rgba(160,190,235,${.22 * life})`; ctx.lineWidth = 2 / k; ctx.beginPath(); ctx.arc(r.x, r.y, Math.min(r.R, r.speed * e), 0, Math.PI * 2); ctx.stroke();
     }
 
     // вузли
-    ctx.lineWidth = 2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (const n of tree.nodes) {
-      if (!vis(n)) continue;
-      const st = a.status.get(n.id), r = T.KINDS[n.kind].r, rank = build.ranks[n.id] | 0;
+    let visible = 0;
+    for (let i = 0; i < ns.length; i++) if (vis(i)) visible++;
+    const glow = visible <= 500 && k > .35;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < ns.length; i++) {
+      if (!vis(i)) continue;
+      const n = ns[i], st = g.st[i], pal = PAL[g.role[i]] || PAL.passive, hv = hoverAnim.get(n.id) || 0;
+      const r = T.KINDS[n.kind].r * (1 + .25 * hv + (moving ? g.os[i] : 0)), x = px(i), y = py(i), rank = build.ranks[n.id] | 0;
+      if (r * k < 2.4) { // дрібно: просто крапка, щоб тисячі вузлів малювалися швидко
+        ctx.fillStyle = st === 'locked' ? pal.edge : isOn(st) ? pal.base : pal.part;
+        const sz = Math.max(2.4 / k, r * 1.4); ctx.fillRect(x - sz / 2, y - sz / 2, sz, sz); continue;
+      }
       const lit = st === 'full' || st === 'start';
-      ctx.fillStyle = lit ? COL.gold : st === 'part' ? COL.part : st === 'open' ? COL.open : COL.locked;
-      ctx.strokeStyle = lit ? COL.goldHi : st === 'part' ? COL.gold : st === 'open' ? COL.accent : COL.lockedLine;
-      if (lit && k > .35) { ctx.shadowColor = 'rgba(201,167,102,.7)'; ctx.shadowBlur = 14; }
-      shape(n, r); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
-      if (st === 'start') { ctx.fillStyle = '#17120a'; ctx.beginPath(); ctx.arc(n.x, n.y, 3.5, 0, Math.PI * 2); ctx.fill(); }
-      if (st === 'open') { ctx.strokeStyle = 'rgba(122,167,230,.25)'; ctx.lineWidth = 5; shape(n, r + 1); ctx.stroke(); ctx.lineWidth = 2; }
+      ctx.lineWidth = 2;
+      ctx.fillStyle = lit ? pal.base : st === 'part' ? pal.part : st === 'open' ? pal.open : COL.locked;
+      ctx.strokeStyle = lit ? pal.hi : st === 'part' || st === 'open' ? pal.base : pal.edge;
+      if (st === 'open') { ctx.strokeStyle = pal.halo; ctx.lineWidth = 6; shapePath(ctx, n.kind, x, y, r + 1); ctx.stroke(); ctx.strokeStyle = pal.base; ctx.lineWidth = 2; }
+      if (lit && glow) { ctx.shadowColor = pal.glow; ctx.shadowBlur = 14; }
+      shapePath(ctx, n.kind, x, y, r); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+      if (st === 'start') { ctx.fillStyle = '#17120a'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
       if (n.max > 1 && k >= .6) {
         ctx.font = '600 10px Inter, system-ui, sans-serif'; ctx.fillStyle = lit ? '#17120a' : COL.text;
-        if (r >= 11) ctx.fillText(rank + '/' + n.max, n.x, n.y + .5);
-        else { ctx.fillStyle = rank ? COL.goldHi : '#8a867d'; ctx.fillText(rank + '/' + n.max, n.x, n.y + r + 9); }
+        if (r >= 11) ctx.fillText(rank + '/' + n.max, x, y + .5);
+        else { ctx.fillStyle = rank ? pal.hi : '#8a867d'; ctx.fillText(rank + '/' + n.max, x, y + r + 9); }
       }
-      if (multi.has(n.id)) { ctx.strokeStyle = '#e8d29e'; ctx.setLineDash([2, 3]); shape(n, r + 6); ctx.stroke(); ctx.setLineDash([]); }
-      if (n.id === sel) { ctx.strokeStyle = '#fff'; ctx.setLineDash([4, 3]); shape(n, r + 6); ctx.stroke(); ctx.setLineDash([]); }
-      else if (n.id === hover) { ctx.strokeStyle = 'rgba(169,200,242,.8)'; shape(n, r + 4); ctx.stroke(); }
-      if ((k >= 1.25 && (n.kind === 'notable' || n.kind === 'keystone')) || k >= 2.2 || n.id === sel || (small && k >= .7)) {
+      if (multi.has(n.id)) { ctx.strokeStyle = COL.goldHi; ctx.setLineDash([2, 3]); shapePath(ctx, n.kind, x, y, r + 6); ctx.stroke(); ctx.setLineDash([]); }
+      if (n.id === sel) { ctx.strokeStyle = '#fff'; ctx.setLineDash([4, 3]); shapePath(ctx, n.kind, x, y, r + 6); ctx.stroke(); ctx.setLineDash([]); }
+      else if (n.id === hover) { ctx.strokeStyle = 'rgba(169,200,242,.8)'; shapePath(ctx, n.kind, x, y, r + 4); ctx.stroke(); }
+      if ((k >= 1.25 && (n.kind === 'notable' || n.kind === 'keystone')) || k >= 2.2 || n.id === sel || (labelAll && k >= .7)) {
         ctx.font = (n.kind === 'small' ? '500 10.5px' : '600 12px') + ' Inter, system-ui, sans-serif';
-        ctx.fillStyle = isOn(st) ? COL.goldHi : '#b5b0a5'; ctx.fillText(n.name, n.x, n.y - r - 9);
+        ctx.fillStyle = isOn(st) ? pal.hi : '#b5b0a5'; ctx.fillText(n.name, x, y - r - 9);
       }
     }
   }
@@ -172,7 +260,7 @@
     const p = pos(e);
     if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, p);
     if (pinch && ptrs.size >= 2) {
-      const ps = pinchState(), k = clamp(pinch.k * ps.d / pinch.d, 0.12, 4), r = k / pinch.k;
+      const ps = pinchState(), k = clamp(pinch.k * ps.d / pinch.d, 0.02, 4), r = k / pinch.k;
       view.k = k; view.x = ps.cx - (pinch.cx - pinch.vx) * r; view.y = ps.cy - (pinch.cy - pinch.vy) * r; schedule(); return;
     }
     if (drag) {
@@ -193,7 +281,14 @@
       return;
     }
     const n = nodeAt(p), id = n ? n.id : null;
-    if (id !== hover) { hover = id; cv.classList.toggle('pointer', !!id); schedule(); }
+    if (id !== hover) {
+      hover = id; cv.classList.toggle('pointer', !!id);
+      if (id && animOn) { // легкий «поштовх» навколо вузла: сусіди ледь розступаються
+        if (!hoverAnim.has(id)) hoverAnim.set(id, 0);
+        const t = performance.now(); if (t - lastBump > 220) { lastBump = t; addRipple(n.x, n.y, 120, 3.2, 260); }
+      }
+      if (hoverAnim.size || id) kick(); else schedule();
+    }
     if (n) showTip(n, p); else hideTip();
   });
   const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) { if (pinch) persist(); pinch = null; drag = null; cv.classList.remove('grabbing'); } };
@@ -206,7 +301,7 @@
     if (d.moved) { if (d.type === 'node') { refreshLight(); renderInspector(); } persist(); return; }
     clickNode(d.n, d.mod, d.alt);
   });
-  cv.addEventListener('pointerleave', () => { if (!drag) { hover = null; hideTip(); schedule(); } });
+  cv.addEventListener('pointerleave', () => { if (!drag) { hover = null; hideTip(); if (hoverAnim.size) kick(); else schedule(); } });
   cv.addEventListener('contextmenu', e => { e.preventDefault(); const n = nodeAt(pos(e)); if (n && mode === 'play') { sel = n.id; tryRefund(n); } });
   cv.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(p.x, p.y, Math.exp(-e.deltaY * 0.0016)); }, { passive: false });
   cv.addEventListener('dblclick', e => {
@@ -227,6 +322,7 @@
     const a = analysis(), st = a.status.get(n.id), rank = build.ranks[n.id] | 0;
     tip.textContent = '';
     tip.append(h('b', null, n.name));
+    tip.append(h('span', { class: 'badge ' + (n.kind === 'start' ? '' : roleOf(n)) }, n.kind === 'start' ? 'Початок' : `${(T.ROLES[roleOf(n)] || {}).name} · ${T.KINDS[n.kind].name.toLowerCase()}`));
     if (n.desc) tip.append(document.createTextNode(n.desc));
     if (n.kind !== 'start') tip.append(h('small', null, `Ранг ${rank}/${n.max} · ціна ${n.cost}${n.need ? ' · потрібно ' + n.need + ' очок в інших' : ''}`));
     if (mode === 'play' && st === 'locked') tip.append(h('small', null, T.canAllocate(tree, build, n.id, a.idx).reason));
@@ -243,16 +339,19 @@
     if (mode === 'edit') multi.clear();
     if (mode === 'play') { sel = n.id; if (mod) tryRefund(n); else tryAllocate(n); return; }
     if (sel && sel !== n.id && mod) { toggleLink(sel, n.id); return; }
+    addRipple(n.x, n.y, 240, 4.5, 420);
     sel = n.id; refreshAll();
   }
   function tryAllocate(n) {
     const r = T.canAllocate(tree, build, n.id, analysis().idx);
-    if (!r.ok) { toast(r.reason); refreshAll(); return; }
+    if (!r.ok) { addRipple(n.x, n.y, 150, 2.6, 300); toast(r.reason); refreshAll(); return; }
+    addRipple(n.x, n.y, 420, 8, 560);
     pushUndo(); build = T.allocate(tree, build, n.id, analysis().idx); dirty(); refreshAll(); persist();
   }
   function tryRefund(n) {
     const idx = analysis().idx;
     if (!T.canRefund(tree, build, n.id, idx)) { toast((build.ranks[n.id] | 0) ? 'Не можна забрати: від цього вузла залежать інші.' : 'Тут нічого забирати.'); refreshAll(); return; }
+    addRipple(n.x, n.y, 260, 4.5, 420);
     pushUndo(); build = T.refund(tree, build, n.id, idx); dirty(); refreshAll(); persist();
   }
   function repairBuild() {
@@ -265,7 +364,7 @@
   function addNode(x, y) {
     pushUndo();
     const first = !tree.nodes.length && tree.mode === 'path';
-    const n = { id: uniqueId(), x, y, name: first ? 'Початок' : 'Новий вузол', desc: '', kind: first ? 'start' : 'small', max: 1, cost: first ? 0 : 1, need: 0, stats: {} };
+    const n = { id: uniqueId(), x, y, name: first ? 'Початок' : 'Новий вузол', desc: '', kind: first ? 'start' : 'small', role: first ? 'start' : 'passive', max: 1, cost: first ? 0 : 1, need: 0, stats: {} };
     tree.nodes.push(n);
     if (sel && tree.nodes.some(m => m.id === sel)) tree.links.push([sel, n.id]);
     sel = n.id; edited = true; dirty(); refreshAll(); persist();
@@ -326,21 +425,25 @@
     const a = analysis(), st = a.status.get(n.id), rank = build.ranks[n.id] | 0;
     if (mode === 'edit') {
       const on = (fn, rerender) => e => { pushUndo(); fn(e.target); edited = true; dirty(); refreshLight(); if (rerender) renderInspector(); persist(); };
+      const L = (text, tip, ...kids) => h('label', { title: tip }, text, ...kids);
+      const roleSel = n.kind === 'start' ? null : L('Роль (колір)', 'Що вузол дає: пасивний бонус, активна здібність чи лише прохід між гілками. Від ролі залежить колір на полотні.',
+        h('select', { onchange: on(el => { n.role = el.value; if (n.role === 'transit' && !Object.keys(n.stats).length) n.cost = 0; }, true) }, Object.entries(T.ROLES).map(([k, v]) => h('option', { value: k, selected: k === roleOf(n), title: v.hint }, v.name))));
       box.append(h('div', { class: 'form' },
-        h('label', null, 'Назва', h('input', { type: 'text', value: n.name, onchange: on(el => { n.name = el.value.trim() || n.name; }) })),
-        h('label', null, 'Тип', h('select', { onchange: on(el => { n.kind = el.value; if (n.kind === 'start') n.cost = 0; }, true) }, Object.entries(T.KINDS).map(([k, v]) => h('option', { value: k, selected: k === n.kind }, v.name)))),
+        L('Назва', 'Як вузол називається в підказці та на полотні', h('input', { type: 'text', value: n.name, onchange: on(el => { n.name = el.value.trim() || n.name; }) })),
+        L('Тип (форма)', 'Наскільки вузол важливий: малий (коло), значний (ромб), ключовий (шестикутник) чи початок', h('select', { onchange: on(el => { n.kind = el.value; if (n.kind === 'start') { n.cost = 0; n.role = 'start'; } else if (n.role === 'start') n.role = T.defaultRole(n); }, true) }, Object.entries(T.KINDS).map(([k, v]) => h('option', { value: k, selected: k === n.kind }, v.name)))),
+        roleSel,
         h('div', { class: 'two' },
-          h('label', null, 'Рангів', h('input', { type: 'number', min: 1, max: 99, value: n.max, onchange: on(el => { n.max = Math.round(clamp(+el.value || 1, 1, 99)); }) })),
-          h('label', null, 'Ціна', h('input', { type: 'number', min: 0, max: 999, value: n.cost, onchange: on(el => { n.cost = Math.round(clamp(+el.value || 0, 0, 999)); }) })),
-          h('label', null, 'Потрібно очок', h('input', { type: 'number', min: 0, value: n.need, onchange: on(el => { n.need = Math.round(clamp(+el.value || 0, 0, 99999)); }) }))),
-        h('label', null, 'Стати за ранг (ключ:значення)', h('input', { type: 'text', value: statsToText(n.stats), onchange: on(el => { n.stats = parseStats(el.value); el.value = statsToText(n.stats); }, false) })),
-        h('label', null, 'Опис', h('textarea', { onchange: on(el => { n.desc = el.value.slice(0, 300); }) }, n.desc)),
+          L('Рангів', 'Скільки разів можна вкласти очко в цей вузол', h('input', { type: 'number', min: 1, max: 99, value: n.max, onchange: on(el => { n.max = Math.round(clamp(+el.value || 1, 1, 99)); }) })),
+          L('Ціна', 'Скільки очок коштує один ранг (0 = безкоштовно)', h('input', { type: 'number', min: 0, max: 999, value: n.cost, onchange: on(el => { n.cost = Math.round(clamp(+el.value || 0, 0, 999)); }) })),
+          L('Потрібно очок', 'Скільки очок має бути вкладено в ІНШІ вузли, щоб цей відкрився', h('input', { type: 'number', min: 0, value: n.need, onchange: on(el => { n.need = Math.round(clamp(+el.value || 0, 0, 99999)); }) }))),
+        L('Стати за ранг (ключ:значення)', 'Бонуси, які вузол дає за кожен ранг, наприклад dmg:5, hp:20', h('input', { type: 'text', value: statsToText(n.stats), onchange: on(el => { n.stats = parseStats(el.value); el.value = statsToText(n.stats); }, false) })),
+        L('Опис', 'Текст, який бачить гравець у підказці', h('textarea', { onchange: on(el => { n.desc = el.value.slice(0, 300); }) }, n.desc)),
       ));
-      box.append(h('div', { class: 'btns' }, h('button', { class: 'danger', onclick: () => deleteNode(n.id) }, 'Видалити вузол')));
+      box.append(h('div', { class: 'btns' }, h('button', { class: 'danger', title: 'Видалити вибраний вузол разом з його зв’язками (Delete)', onclick: () => deleteNode(n.id) }, 'Видалити вузол')));
       box.append(h('p', { class: 'hint' }, tree.mode === 'prereq' ? 'Shift+клік по іншому вузлу: перший стає вимогою для другого (стрілка). Повторний Shift+клік прибирає зв’язок.' : 'Shift+клік по іншому вузлу з’єднує або роз’єднує їх.'));
       return;
     }
-    box.append(h('p', { class: 'nname' }, n.name), h('span', { class: 'badge ' + n.kind }, T.KINDS[n.kind].name));
+    box.append(h('p', { class: 'nname' }, n.name), h('span', { class: 'badge ' + n.kind, title: 'Тип вузла: його важливість' }, T.KINDS[n.kind].name), ...(n.kind === 'start' ? [] : [' ', h('span', { class: 'badge ' + roleOf(n), title: (T.ROLES[roleOf(n)] || {}).hint }, (T.ROLES[roleOf(n)] || {}).name)]));
     if (n.desc) box.append(h('p', { class: 'ndesc' }, n.desc));
     for (const [s, v] of Object.entries(n.stats || {})) box.append(h('div', { class: 'kv pos' }, 'за ранг', h('b', null, fmtStat(tree.stats[s] || { name: s }, v))));
     if (n.kind !== 'start') {
@@ -349,8 +452,8 @@
       const can = T.canAllocate(tree, build, n.id, a.idx);
       if (!can.ok && st !== 'full') box.append(h('p', { class: 'reason' }, can.reason));
       box.append(h('div', { class: 'btns' },
-        h('button', { class: 'btn-primary', disabled: !can.ok, onclick: () => tryAllocate(n) }, 'Вкласти +'),
-        h('button', { disabled: !T.canRefund(tree, build, n.id, a.idx), onclick: () => tryRefund(n) }, 'Забрати −')));
+        h('button', { class: 'btn-primary', title: 'Вкласти одне очко в цей вузол', disabled: !can.ok, onclick: () => tryAllocate(n) }, 'Вкласти +'),
+        h('button', { title: 'Забрати одне очко (не можна, якщо від вузла залежать інші)', disabled: !T.canRefund(tree, build, n.id, a.idx), onclick: () => tryRefund(n) }, 'Забрати −')));
     }
   }
 
@@ -358,50 +461,83 @@
     const box = $('treeset'); box.textContent = '';
     const on = fn => e => { pushUndo(); fn(e.target); edited = true; repairBuild(); refreshLight(); renderTreeSet(); persist(); };
     box.append(h('div', { class: 'form' },
-      h('label', null, 'Назва дерева', h('input', { type: 'text', value: tree.name, onchange: on(el => { tree.name = el.value.trim() || tree.name; }) })),
+      h('label', { title: 'Назва дерева; потрапляє у файл експорту' }, 'Назва дерева', h('input', { type: 'text', value: tree.name, onchange: on(el => { tree.name = el.value.trim() || tree.name; }) })),
       h('div', { class: 'two', style: 'grid-template-columns:1fr 1fr' },
-        h('label', null, 'Очок', h('input', { type: 'number', min: 0, value: tree.points, onchange: on(el => { tree.points = Math.round(clamp(+el.value || 0, 0, 99999)); }) })),
-        h('label', null, 'Відкриття вузла', h('select', { onchange: on(el => { tree.mode = el.value; }) },
-          h('option', { value: 'path', selected: tree.mode === 'path' }, 'Шлях (сусід)'), h('option', { value: 'prereq', selected: tree.mode === 'prereq' }, 'Вимоги (стрілки)'))))));
+        h('label', { title: 'Скільки очок гравець може вкласти в усе дерево' }, 'Очок', h('input', { type: 'number', min: 0, value: tree.points, onchange: on(el => { tree.points = Math.round(clamp(+el.value || 0, 0, 99999)); }) })),
+        h('label', { title: 'Шлях: вузол відкривається, коли вкладено в будь-якого сусіда (як у Path of Exile). Вимоги: потрібно вкласти в усі вузли, з яких ведуть стрілки (як у класичних талантах).' }, 'Відкриття вузла', h('select', { onchange: on(el => { tree.mode = el.value; }) },
+          h('option', { value: 'path', selected: tree.mode === 'path', title: 'Достатньо вкласти в будь-якого сусіда' }, 'Шлях (сусід)'), h('option', { value: 'prereq', selected: tree.mode === 'prereq', title: 'Потрібно вкласти в усі вузли, з яких веде стрілка' }, 'Вимоги (стрілки)'))))));
     const problems = T.validate(tree);
     box.append(problems.length ? h('div', { class: 'warns' }, problems.slice(0, 4).map(p => h('div', { class: 'warn' }, p))) : h('div', { class: 'okmsg' }, 'Дерево без проблем: усі вузли досяжні, цикли відсутні.'));
-
-    box.append(h('p', { class: 'sub-t' }, 'Нове дерево'));
-    const g = { seed: store.get('gseed', 'zbyrai'), branches: store.get('gbr', 6), depth: store.get('gdp', 10) };
-    const gi = (label, key, type, o = {}) => h('label', null, label, h('input', Object.assign({ type, value: g[key], onchange: e => { g[key] = type === 'number' ? +e.target.value : e.target.value; store.set({ seed: 'gseed', branches: 'gbr', depth: 'gdp' }[key], g[key]); } }, o)));
-    box.append(h('div', { class: 'form' },
-      h('div', { class: 'two' }, gi('Seed', 'seed', 'text'), gi('Гілок', 'branches', 'number', { min: 2, max: 8 }), gi('Глибина', 'depth', 'number', { min: 3, max: 16 })),
-      h('div', { class: 'btns' },
-        h('button', { class: 'btn-primary', onclick: () => { const t = T.generateTree({ seed: g.seed, branches: g.branches, depth: g.depth }); if (replaceTree(t)) toast(`Згенеровано ${t.nodes.length} вузлів`); } }, 'Згенерувати'),
-        h('button', { onclick: () => { if (replaceTree(T.tiersExample())) toast('Приклад: три класи'); } }, 'Три класи'),
-        Object.entries(T.TEMPLATES).map(([k, label]) => h('button', { onclick: () => { if (replaceTree(T.templateTree(k))) toast('Шаблон: ' + label); } }, label.split(' (')[0])),
-        h('button', { onclick: () => { if (replaceTree({ version: 1, name: 'Нове дерево', points: 10, mode: 'path', nodes: [{ id: 'start', x: 0, y: 0, name: 'Початок', desc: '', kind: 'start', max: 1, cost: 0, need: 0, stats: {} }], links: [], stats: {} })) { mode = 'edit'; applyMode(); } } }, 'Порожнє')),
-    ));
-    box.append(h('p', { class: 'hint' }, 'Генератор будує дерево зі стартом у центрі: гілки-теми, значні й ключові вузли, перехресні зв’язки. Той самий seed дає те саме дерево.'));
-    box.append(h('div', { class: 'btns' }, h('button', { onclick: () => { pushUndo(); T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); } }, 'Розкласти вузли автоматично')));
+    box.append(h('div', { class: 'btns' }, h('button', { title: 'Розставити вузли за схемою заново: від початку колами (режим «Шлях») або рядами зверху вниз (режим «Вимоги»). Зв’язки, очки й властивості вузлів не змінюються. Корисно після ручного додавання вузлів.', onclick: doLayout }, 'Розкласти вузли автоматично')));
+    box.append(h('p', { class: 'hint' }, '«Розкласти автоматично» лише переставляє вузли на полотні: так вони не злипаються і дерево читається. Зв’язки й очки лишаються.'));
   }
+
+  function renderGen() {
+    const box = $('gen'); box.textContent = '';
+    const g = { type: store.get('gtype', 'radial'), count: store.get('gcount', 60), seed: store.get('gseed', 'zbyrai'), branches: store.get('gbr', 0) };
+    if (!T.TYPES[g.type]) g.type = 'radial';
+    const save = (k, key, v) => { g[k] = v; store.set(key, v); };
+    const countIn = h('input', { type: 'number', min: 2, max: T.MAX_NODES, step: 1, value: g.count, onchange: e => { const v = Math.round(clamp(+e.target.value || 60, 2, T.MAX_NODES)); e.target.value = v; save('count', 'gcount', v); sync(); } });
+    const seedIn = h('input', { type: 'text', value: g.seed, onchange: e => save('seed', 'gseed', e.target.value) });
+    const brIn = h('input', { type: 'number', min: 0, max: 12, value: g.branches, onchange: e => save('branches', 'gbr', Math.round(clamp(+e.target.value || 0, 0, 12))) });
+    const hint = h('p', { class: 'hint' }), perf = h('p', { class: 'hint' });
+    const brLabel = h('label', { title: 'Скільки променів-гілок розходиться від початку. 0 = підібрати автоматично під кількість вузлів. Лише для типу «Радіальне».' }, 'Гілок (0 = авто)', brIn);
+    const chips = h('div', { class: 'chips' }, [20, 60, 200, 500, 2000, 5000, 20000].map(c => h('button', { title: `Поставити ${c.toLocaleString('uk-UA')} вузлів`, onclick: () => { countIn.value = c; save('count', 'gcount', c); sync(); } }, c.toLocaleString('uk-UA'))));
+    const typeSel = h('select', { onchange: e => { save('type', 'gtype', e.target.value); sync(); } }, Object.entries(T.TYPES).map(([k, v]) => h('option', { value: k, selected: k === g.type, title: v.hint }, v.name)));
+    function sync() {
+      hint.textContent = T.TYPES[g.type].hint;
+      typeSel.title = T.TYPES[g.type].hint;
+      brLabel.style.display = g.type === 'radial' ? '' : 'none';
+      [...chips.children].forEach(b => b.classList.toggle('on', b.textContent.replace(/\s/g, '') === String(g.count)));
+      const blank = g.type === 'blank';
+      countIn.disabled = blank; chips.style.opacity = blank ? .4 : 1;
+      perf.textContent = blank ? '' : g.count > 3000 ? `${g.count.toLocaleString('uk-UA')} вузлів: генерація й малювання займуть кілька секунд; наближай полотно, щоб бачити окремі вузли.` : '';
+    }
+    box.append(h('div', { class: 'form' },
+      h('label', { title: 'Яка структура дерева буде згенерована' }, 'Тип дерева', typeSel),
+      hint,
+      h('label', { title: `Скільки вузлів у дереві, разом із початком. Від 2 до ${T.MAX_NODES.toLocaleString('uk-UA')}. Для типу «Чистий аркуш» не діє.` }, 'Кількість вузлів', countIn),
+      chips,
+      perf,
+      h('div', { class: 'two', style: 'grid-template-columns:1fr 1fr' },
+        h('label', { title: 'Те саме слово дає те саме дерево. Змінюй, щоб отримати інше.' }, 'Seed', seedIn),
+        brLabel),
+      h('div', { class: 'btns' },
+        h('button', { class: 'btn-primary', title: 'Згенерувати дерево з цими параметрами. Поточне дерево буде замінено.', onclick: () => generate(g) }, 'Згенерувати'),
+        h('button', { title: 'Підставити випадковий seed і одразу згенерувати нове дерево', onclick: () => { const s2 = Math.random().toString(36).slice(2, 8); seedIn.value = s2; save('seed', 'gseed', s2); generate(g); } }, '🎲 Випадкове'))));
+    sync();
+  }
+  function generate(g) {
+    const t0 = performance.now();
+    const t = T.buildTree(g.type, { count: g.count, seed: g.seed, branches: g.branches });
+    if (!replaceTree(t)) return;
+    if (g.type === 'blank') { mode = 'edit'; applyMode(); } 
+    toast(`Створено: ${t.nodes.length.toLocaleString('uk-UA')} вузлів за ${Math.max(1, Math.round(performance.now() - t0))} мс`);
+  }
+  function doLayout() { pushUndo(); T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); }
 
   function refreshLight() { $('pts').replaceChildren(document.createTextNode('Очок: '), h('b', null, `${analysis().left}`), document.createTextNode(` з ${tree.points}`)); renderSummary(); schedule(); }
   function refreshAll() { refreshLight(); renderInspector(); renderTreeSet(); }
+  renderGen();
 
   /* ---------- режими, HUD ---------- */
   function applyMode() {
     document.body.classList.toggle('edit', mode === 'edit');
     document.querySelectorAll('#modeSeg button').forEach(b => { const on = b.dataset.mode === mode; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
-    $('help').textContent = mode === 'play'
-      ? 'Клік вкладає очко · правий клік або Shift+клік повертає · колесо масштабує · тягни полотно.'
-      : 'Тягни вузол · подвійний клік по порожньому місцю додає вузол (з’єднується з вибраним) · Shift+клік по іншому вузлу з’єднує · Alt+клік додає до вибору (тягнеться разом) · Delete видаляє · Ctrl+Z скасовує.';
     refreshAll(); persist();
   }
   document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; applyMode(); }));
   $('btnResetBuild').addEventListener('click', () => { pushUndo(); build = T.emptyState(); dirty(); refreshAll(); persist(); });
-  $('btnLayout').addEventListener('click', () => { pushUndo(); T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); });
+  $('btnLayout').addEventListener('click', doLayout);
+  const syncAnim = () => $('btnAnim').classList.toggle('on', animOn);
+  $('btnAnim').addEventListener('click', () => { animOn = !animOn; store.set('anim', animOn); syncAnim(); toast(animOn ? 'Анімацію увімкнено' : 'Анімацію вимкнено'); });
+  syncAnim();
   $('btnUndo').addEventListener('click', undo); $('btnRedo').addEventListener('click', redo); syncUndo();
   $('btnPng').addEventListener('click', () => {
-    const keep = view; fit(); draw();
+    const keep = view, keepR = ripples.splice(0); fit(); draw();
     const out = document.createElement('canvas'); out.width = cv.width; out.height = cv.height;
-    const o = out.getContext('2d'); o.fillStyle = '#0b0b0f'; o.fillRect(0, 0, out.width, out.height); o.drawImage(cv, 0, 0);
-    view = keep; schedule();
+    const o = out.getContext('2d'); o.fillStyle = '#0b0b10'; o.fillRect(0, 0, out.width, out.height); o.drawImage(cv, 0, 0);
+    view = keep; ripples.push(...keepR); schedule();
     out.toBlob(b => {
       if (!b) { toast('Не вдалося створити PNG'); return; }
       const url = URL.createObjectURL(b), a = h('a', { href: url, download: 'skill-tree.png' }); document.body.append(a); a.click(); a.remove();
@@ -442,6 +578,9 @@
     } catch (e) { $('importErr').textContent = e instanceof SyntaxError ? 'Це не схоже на JSON.' : e.message; }
   });
 
+  const about = $('about');
+  about.open = !store.get('about_seen', false);
+  if (about.open) store.set('about_seen', true);
   applyMode();
   resize();
 })();

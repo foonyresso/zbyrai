@@ -1,6 +1,6 @@
 /* Skill Tree Lab: розмітка поверх спільної теми (theme.css, «Обсидіан і золото»). Акцент інструмента: холодний синій. */
 :root { --accent: #7aa7e6; --accent-hi: #a9c8f2; --accent-glow: rgba(122, 167, 230, .16); }
-html, body { height: 100%; }
+html { height: 100%; } body { min-height: 100%; }
 body { display: flex; flex-direction: column;
   background: radial-gradient(1200px 420px at 50% -120px, rgba(122, 167, 230, .10), transparent 70%), var(--bg); }
 
@@ -14,26 +14,23 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .seg button.on { color: var(--accent-hi); border-color: var(--accent); }
 
 /* ---------- робоча область ---------- */
-main.lab { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; padding: 14px 18px 18px; }
+main.lab { flex: 1; min-height: 640px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; padding: 14px 18px 18px; }
 .stage { position: relative; min-height: 420px; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-1);
-  background:
-    radial-gradient(700px 420px at 50% 50%, rgba(122, 167, 230, .07), transparent 70%),
-    linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 32px 32px,
-    var(--bg-elev); }
+  background: radial-gradient(900px 560px at 50% 50%, rgba(122, 167, 230, .06), transparent 72%), #0b0b10; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; outline: none; }
 #cv.grabbing { cursor: grabbing; }
 #cv.pointer { cursor: pointer; }
 .hud { position: absolute; display: flex; gap: 6px; align-items: center; z-index: 2; }
-.hud.tl { top: 12px; left: 12px; }
-.hud.br { bottom: 12px; right: 12px; }
+.hud.tl { top: 12px; left: 12px; flex-wrap: wrap; max-width: calc(100% - 24px); }
+.hud.br { bottom: 12px; right: 12px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 24px); }
+.hud button.on { border-color: var(--accent); color: var(--accent-hi); }
+.hud .seg { background: rgba(14, 14, 19, .82); backdrop-filter: blur(6px); }
 .hud button { background: rgba(14, 14, 19, .82); backdrop-filter: blur(6px); }
 .hud button:hover { background: var(--panel-3); }
 .pts { padding: 6px 13px; border: 1px solid var(--accent); border-radius: 99px; background: rgba(14, 14, 19, .82); backdrop-filter: blur(6px); color: var(--accent-hi); font-weight: 600; font-size: 13px; }
 .pts b { font-family: var(--ff-mono); font-weight: 600; color: var(--text); }
 .edit-only { display: none; }
 body.edit .edit-only { display: inline-block; }
-.help { position: absolute; left: 14px; bottom: 12px; margin: 0; max-width: calc(100% - 330px); font-size: 12px; color: var(--faint); line-height: 1.45; pointer-events: none; text-shadow: 0 1px 4px #000; }
 .tip { position: absolute; z-index: 3; pointer-events: none; max-width: 260px; padding: 9px 12px; border: 1px solid var(--accent); border-radius: var(--r-sm); background: rgba(14, 14, 19, .95); box-shadow: var(--shadow-2); font-size: 12.5px; line-height: 1.45; }
 .tip[hidden] { display: none; }
 .tip b { display: block; font-family: var(--ff-display); font-size: 17px; color: var(--accent-hi); font-weight: 600; margin-bottom: 2px; }
@@ -87,7 +84,35 @@ dialog.modal textarea { width: 100%; margin-top: 10px; font-family: var(--ff-mon
   body { height: auto; }
   main.lab { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 16px; }
   .stage { height: 62vh; min-height: 380px; }
-  .help { max-width: calc(100% - 28px); bottom: 54px; }
+  .legend { bottom: 92px; }
   header.top { padding: 12px 16px; }
   .side { overflow: visible; }
 }
+
+/* ---------- довідка «Що це» ---------- */
+.grp-t { font-size: 10.5px; text-transform: uppercase; letter-spacing: .16em; color: var(--faint); font-weight: 600; }
+details.about { margin: 12px 18px 0; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg-elev); }
+details.about > summary { cursor: pointer; padding: 10px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 8px; list-style: none; }
+details.about > summary::-webkit-details-marker { display: none; }
+details.about > summary::before { content: ""; width: 0; height: 0; border-left: 6px solid var(--accent); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .18s var(--ease); display: inline-block; }
+details.about[open] > summary::before { transform: rotate(90deg); }
+details.about > summary:hover { color: var(--text); }
+.about-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; padding: 2px 16px 14px; }
+.about-grid h3 { margin: 0 0 4px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--accent); font-weight: 600; }
+.about-grid p, .about-grid li { font-size: 12.8px; line-height: 1.55; color: var(--muted); margin: 0 0 6px; }
+.about-grid ol { margin: 0; padding-left: 18px; }
+.about-grid b { color: var(--text); font-weight: 600; }
+.about-grid b.c-pas, .legend .pas { color: #6fc08f; } .about-grid b.c-act { color: #f08a5d; } .about-grid b.c-tra { color: #98a8c4; } .about-grid b.c-sta { color: #e8c36a; }
+
+.legend { position: absolute; left: 12px; bottom: 12px; z-index: 2; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; max-width: calc(100% - 330px); padding: 6px 12px; border: 1px solid var(--line); border-radius: 99px; background: rgba(14, 14, 19, .78); backdrop-filter: blur(6px); font-size: 11.5px; color: var(--muted); }
+.legend span { cursor: help; white-space: nowrap; }
+.legend .sep { width: 1px; height: 12px; background: var(--line); cursor: default; }
+.legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.legend .dot.pas { background: #6fc08f; } .legend .dot.act { background: #f08a5d; } .legend .dot.tra { background: #8798b5; } .legend .dot.sta { background: #e8c36a; }
+.badge.passive { color: #6fc08f; border-color: rgba(111, 192, 143, .5); } .badge.active { color: #f08a5d; border-color: rgba(240, 138, 93, .5); } .badge.transit { color: #98a8c4; border-color: rgba(152, 168, 196, .5); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+.chips button { padding: 3px 10px; font-size: 12px; border-radius: 99px; }
+.chips button.on { border-color: var(--accent); color: var(--accent-hi); }
+.form .row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: end; }
+@media (max-width: 1180px) { .about-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .about-grid { grid-template-columns: minmax(0, 1fr); } details.about { margin: 10px 16px 0; } .legend { max-width: calc(100% - 24px); border-radius: var(--r-md); } }

@@ -3,7 +3,7 @@
 
    Дерево:
      { version, name, points, mode: 'path' | 'prereq',
-       nodes: [{ id, x, y, name, desc, kind: 'small'|'notable'|'keystone'|'start', max, cost, need, stats: {stat: значення за ранг} }],
+       nodes: [{ id, x, y, name, desc, kind: 'small'|'notable'|'keystone'|'start', role: 'passive'|'active'|'transit', max, cost, need, stats: {stat: значення за ранг} }],
        links: [[a, b]],            // path: двосторонні; prereq: a є вимогою для b
        stats: { stat: { name, pct } } }
    Режими відкриття вузла:
@@ -11,6 +11,14 @@
      prereq (як у класичних талантах): відкритий, якщо вкладено в усі вузли, що ведуть до нього.
    «need» = скільки очок має бути вкладено в ІНШІ вузли. «start» не коштує очок і завжди активний. */
 const TreeCore = (() => {
+  const MAX_NODES = 20000; // розумна межа для генератора: далі полотно й браузер починають страждати
+  // Роль вузла = що він дає (колір на полотні); тип (kind) = наскільки він важливий (форма й розмір).
+  const ROLES = {
+    passive: { name: 'Пасивний', hint: 'Постійний бонус до статів' },
+    active: { name: 'Активний', hint: 'Здібність, яку гравець застосовує сам' },
+    transit: { name: 'Прохідний', hint: 'Лише з’єднує гілки: бонусів не дає, нічого не коштує' },
+  };
+  const defaultRole = n => (n.kind === 'start' ? 'start' : n.kind === 'keystone' ? 'active' : Object.keys(n.stats || {}).length ? 'passive' : 'transit');
   const KINDS = {
     small: { name: 'Малий', r: 7 }, notable: { name: 'Значний', r: 11 }, keystone: { name: 'Ключовий', r: 15 }, start: { name: 'Початок', r: 12 },
   };
@@ -152,9 +160,11 @@ const TreeCore = (() => {
     if (out.length) return out;
     const idx = index(tree);
     if (tree.mode === 'prereq') {
-      const color = new Map(); let cyc = false;
-      const dfs = id => { color.set(id, 1); for (const c of idx.children.get(id)) { if (color.get(c) === 1) cyc = true; else if (!color.get(c)) dfs(c); } color.set(id, 2); };
-      for (const n of tree.nodes) if (!color.get(n.id)) dfs(n.id);
+      // Алгоритм Кана: ітеративно, щоб довгі ланцюги на тисячі вузлів не вичерпували стек.
+      const deg = new Map(tree.nodes.map(n => [n.id, idx.parents.get(n.id).length])), q = tree.nodes.filter(n => !deg.get(n.id)).map(n => n.id);
+      let done = 0;
+      for (let h = 0; h < q.length; h++) { done++; for (const c of idx.children.get(q[h])) { deg.set(c, deg.get(c) - 1); if (!deg.get(c)) q.push(c); } }
+      const cyc = done < tree.nodes.length;
       if (cyc) out.push('У вимогах є цикл: вузли чекають один на одного, їх неможливо відкрити.');
     } else {
       const starts = tree.nodes.filter(isStart);
@@ -179,16 +189,18 @@ const TreeCore = (() => {
     if (!src || typeof src !== 'object' || !Array.isArray(src.nodes)) throw new Error('Це не схоже на дерево скілів.');
     const tree = { version: 1, name: str(src.name, 'Без назви'), points: Math.round(num(src.points, 20, 0, 99999)), mode: src.mode === 'prereq' ? 'prereq' : 'path', nodes: [], links: [], stats: {} };
     for (const [id, s] of Object.entries(src.stats || {})) { if (s && typeof s === 'object') { const o = { name: str(s.name, id, 40) }; if (s.pct) o.pct = true; tree.stats[String(id).slice(0, 24)] = o; } }
-    for (const n of src.nodes.slice(0, 5000)) {
+    for (const n of src.nodes.slice(0, 30000)) {
       if (!n || typeof n !== 'object') continue;
       const stats = {};
       for (const [k, v] of Object.entries(n.stats || {})) if (Number.isFinite(Number(v))) stats[String(k).slice(0, 24)] = Number(v);
-      tree.nodes.push({
+      const node = {
         id: str(String(n.id ?? ''), 'n' + tree.nodes.length, 24), x: num(n.x, 0, -1e5, 1e5), y: num(n.y, 0, -1e5, 1e5), name: str(n.name, 'Вузол'), desc: typeof n.desc === 'string' ? n.desc.slice(0, 300) : '',
         kind: KINDS[n.kind] ? n.kind : 'small', max: Math.round(num(n.max, 1, 1, 99)), cost: Math.round(num(n.cost, 1, 0, 999)), need: Math.round(num(n.need, 0, 0, 99999)), stats,
-      });
+      };
+      node.role = node.kind === 'start' ? 'start' : ROLES[n.role] ? n.role : defaultRole(node); // старі файли без ролі отримують її з типу й статів
+      tree.nodes.push(node);
     }
-    for (const l of (src.links || []).slice(0, 20000)) if (Array.isArray(l) && l.length === 2) tree.links.push([String(l[0]), String(l[1])]);
+    for (const l of (src.links || []).slice(0, 90000)) if (Array.isArray(l) && l.length === 2) tree.links.push([String(l[0]), String(l[1])]);
     for (const n of tree.nodes) for (const k of Object.keys(n.stats)) if (!tree.stats[k]) tree.stats[k] = { name: k };
     const bad = validate(tree).filter(p => !p.startsWith('Очок'));
     if (bad.length) throw new Error(bad[0]);
@@ -203,16 +215,16 @@ const TreeCore = (() => {
     if (tree.mode === 'prereq') {
       // Рядок = найдовший шлях від кореня; колонка = «піддерева»: вузол стоїть під першим із батьків,
       // а ширина піддерева залежить від кількості його листків, тож окремі гілки не перемішуються.
-      const depth = new Map();
-      const calc = (id, guard = new Set()) => {
-        if (depth.has(id)) return depth.get(id);
-        if (guard.has(id)) return 0;
-        guard.add(id);
-        const ps = idx.parents.get(id);
-        const d = ps.length ? 1 + Math.max(...ps.map(p => calc(p, guard))) : 0;
-        depth.set(id, d); return d;
-      };
-      nodes.forEach(n => calc(n.id));
+      // Усе ітеративно (топологічний порядок), щоб глибокі ланцюги на тисячі вузлів не вичерпували стек.
+      const deg = new Map(nodes.map(n => [n.id, idx.parents.get(n.id).length])), topo = nodes.filter(n => !deg.get(n.id)).map(n => n.id);
+      const depth = new Map(topo.map(id => [id, 0]));
+      for (let h = 0; h < topo.length; h++) {
+        for (const c of idx.children.get(topo[h])) {
+          depth.set(c, Math.max(depth.get(c) || 0, depth.get(topo[h]) + 1));
+          deg.set(c, deg.get(c) - 1); if (!deg.get(c)) topo.push(c);
+        }
+      }
+      nodes.forEach(n => { if (!depth.has(n.id)) depth.set(n.id, 0); }); // вузли в циклі (дерево невалідне) лягають у перший рядок
       const order = new Map(nodes.map((n, i) => [n.id, i]));
       const kids = new Map(nodes.map(n => [n.id, []]));
       const roots = [];
@@ -221,19 +233,20 @@ const TreeCore = (() => {
         if (!ps.length) roots.push(n.id);
         else kids.get(ps.reduce((a, b) => (order.get(a) <= order.get(b) ? a : b))).push(n.id);
       }
-      const gap = 110, seen = new Set();
-      const width = id => { if (seen.has(id)) return 1; seen.add(id); const ks = kids.get(id); const w = ks.length ? ks.reduce((s2, k2) => s2 + width(k2), 0) : 1; wmap.set(id, w); return w; };
-      const wmap = new Map();
-      roots.forEach(r => width(r));
+      const gap = 110, byDepth = nodes.map(n => n.id).sort((a, b) => depth.get(b) - depth.get(a));
       let cursor = 0;
-      const place = id => {
-        const ks = kids.get(id), w = wmap.get(id) || 1, left = cursor;
-        const node = idx.byId.get(id);
-        if (!ks.length) { node.x = (cursor + .5) * gap; cursor += 1; }
-        else { ks.forEach(place); const xs = ks.map(k2 => idx.byId.get(k2).x); node.x = (Math.min(...xs) + Math.max(...xs)) / 2; cursor = Math.max(cursor, left + w); }
+      const stack = roots.slice().reverse(), seen = new Set();
+      while (stack.length) { // листки отримують колонки зліва направо в порядку обходу
+        const id = stack.pop(); if (seen.has(id)) continue; seen.add(id);
+        const ks = kids.get(id);
+        if (!ks.length) idx.byId.get(id).x = (cursor++ + .5) * gap;
+        else for (let i = ks.length - 1; i >= 0; i--) stack.push(ks[i]);
+      }
+      for (const id of byDepth) { // батьки стають посередині над дітьми (глибші спершу)
+        const ks = kids.get(id), node = idx.byId.get(id);
+        if (ks.length) { const xs2 = ks.map(k2 => idx.byId.get(k2).x); node.x = (Math.min(...xs2) + Math.max(...xs2)) / 2; }
         node.y = depth.get(id) * 104;
-      };
-      roots.forEach(place);
+      }
       const xs = nodes.map(n => n.x), mid = (Math.min(...xs) + Math.max(...xs)) / 2;
       nodes.forEach(n => { n.x = Math.round(n.x - mid) + 0; n.y = Math.round(n.y) + 0; });
       return;
@@ -247,8 +260,10 @@ const TreeCore = (() => {
     const rings = new Map();
     nodes.forEach(n => { const d = depth.get(n.id); if (d > 0) { if (!rings.has(d)) rings.set(d, []); rings.get(d).push(n); } });
     const ang = new Map(starts.map(n => [n.id, Math.atan2(n.y, n.x)]));
+    let prevR = 0;
     [...rings.keys()].sort((a, b) => a - b).forEach(d => {
-      const ring = rings.get(d), r = d * 82;
+      // радіус кільця росте разом із кількістю вузлів у ньому, щоб у великих деревах вузли не злипалися
+      const ring = rings.get(d), r = Math.max(d * 82, prevR + 60, ring.length * 44 / (2 * Math.PI)); prevR = r;
       const pref = n => {
         const ps = idx.adj.get(n.id).filter(m => ang.has(m) && depth.get(m) === d - 1);
         if (!ps.length) return null;
@@ -281,66 +296,152 @@ const TreeCore = (() => {
   const NOTABLE = ['Сталева воля', 'Холодний розрахунок', 'Шлях ворона', 'Вогонь у жилах', 'Тиха мить', 'Залізний подих', 'Чуття мисливця', 'Крижана витримка', 'Дикий ритм', 'Гострий погляд', 'Сила предків', 'Невидимий крок'];
   const KEYSTONE = ['Серце бурі', 'Безодня розуму', 'Колос', 'Тінь без імені', 'Остання вежа', 'Око долі', 'Танець клинків', 'Нескорений'];
 
+  const ACTIVE = ['Вибух', 'Ривок', 'Крижаний щит', 'Заклик', 'Влучний постріл', 'Вихор', 'Блискавка', 'Пастка', 'Удар об землю', 'Зцілення'];
+  const CLASS_NAMES = ['Воїн', 'Лучник', 'Маг', 'Жрець', 'Розбійник', 'Паладин', 'Друїд', 'Інженер'];
+  const fx = v => Math.round(v * 10) / 10;
+  const clampN = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  /* Оформлення вузла: тип (форма), роль (колір), стати, ціна, опис. Спільне для всіх генераторів. */
+  function styleNode(node, kind, role, th, k2, rng) {
+    node.kind = kind; node.role = role;
+    if (role === 'transit') { node.name = 'Перехід'; node.cost = 0; node.stats = {}; node.desc = 'Прохідний вузол: лише з’єднує гілки, бонусів не дає.'; return node; }
+    const big = kind === 'keystone' ? 4 : kind === 'notable' ? 2.5 : 1, big2 = kind === 'keystone' ? 3 : kind === 'notable' ? 2 : 0;
+    node.stats = { [th.stat]: fx(UNIT[th.stat] * big * k2) };
+    if (big2) node.stats[th.second] = fx(UNIT[th.second] * big2 * k2);
+    if (kind === 'keystone') { node.cost = 2; node.name = KEYSTONE[Math.floor(rng() * KEYSTONE.length)]; }
+    else if (kind === 'notable') node.name = role === 'active' ? ACTIVE[Math.floor(rng() * ACTIVE.length)] : NOTABLE[Math.floor(rng() * NOTABLE.length)];
+    else node.name = STATS[th.stat].name;
+    for (const key of Object.keys(node.stats)) node.stats[key] = STATS[key].pct ? Math.max(.5, fx(node.stats[key])) : Math.max(1, Math.round(node.stats[key]));
+    node.desc = (role === 'active' ? 'Активна здібність. ' : '') + Object.entries(node.stats).map(([s, v]) => `${STATS[s].name} +${v}${STATS[s].pct ? '%' : ''}`).join(', ');
+    return node;
+  }
+  const roleFor = (kind, rng) => (kind === 'keystone' ? 'active' : kind === 'notable' ? (rng() < .45 ? 'active' : 'passive') : rng() < .16 ? 'transit' : 'passive');
+  const statsOf = nodes => { const stats = {}; for (const n of nodes) for (const k of Object.keys(n.stats || {})) stats[k] = Object.assign({}, STATS[k]); return stats; };
+  const pointsFor = nodes => Math.max(10, Math.round((nodes.length - 1) * .34));
+  const newNode = (id, x, y) => ({ id, x: Math.round(x), y: Math.round(y), name: '', desc: '', kind: 'small', role: 'passive', max: 1, cost: 1, need: 0, stats: {} });
+
+  /* Радіальне дерево: гілки-теми навколо початку. Або за «гілки × глибина» (opts.branches, opts.depth),
+     або за загальною кількістю вузлів (opts.count): тоді ширина шарів і радіуси підлаштовуються під кількість. */
   function generateTree(opts = {}) {
-    const seed = opts.seed ?? 'zbyrai';
-    const B = Math.max(2, Math.min(8, opts.branches | 0 || 6)), D = Math.max(3, Math.min(16, opts.depth | 0 || 10));
+    const seed = opts.seed ?? 'zbyrai', byCount = opts.count > 0;
+    const count = byCount ? clampN(Math.round(opts.count), 2, MAX_NODES) : 0;
+    const B = byCount ? (opts.branches > 0 ? clampN(opts.branches | 0, 2, 12) : clampN(Math.round(Math.sqrt(count) / 3.2), 3, 12)) : Math.max(2, Math.min(8, opts.branches | 0 || 6));
+    const D = Math.max(3, Math.min(16, opts.depth | 0 || 10));
     const density = opts.density ?? .82, cross = opts.cross ?? .14;
     const rng = rngFromSeed(seed);
     const nodes = [], links = [];
     let n = 0;
-    const mk = o => { const node = Object.assign({ id: 'n' + (++n), desc: '', max: 1, cost: 1, need: 0, stats: {} }, o); nodes.push(node); return node; };
-    const center = mk({ id: 'start', kind: 'start', name: 'Початок', x: 0, y: 0, cost: 0 });
+    const mk = o => { const node = Object.assign({ id: 'n' + (++n), desc: '', role: 'passive', max: 1, cost: 1, need: 0, stats: {} }, o); nodes.push(node); return node; };
+    const center = mk({ id: 'start', kind: 'start', role: 'start', name: 'Початок', x: 0, y: 0, cost: 0 });
     const themes = THEMES.slice().sort(() => rng() - .5);
-    const usedStats = new Set();
     const angDiff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    const kMax = byCount ? Math.max(7, Math.ceil(Math.sqrt(count / B) * 1.3)) : 7;
 
     for (let b = 0; b < B; b++) {
       const th = themes[b % themes.length], sector = 2 * Math.PI / B, a0 = -Math.PI / 2 + b * sector;
+      let quota = byCount ? Math.floor((count - 1) / B) + (b < (count - 1) % B ? 1 : 0) : Infinity, prevR = 0, keyNode = null, layers = 0;
       let prev = [{ node: center, ang: a0 + sector / 2 }];
-      for (let d = 1; d <= D; d++) {
-        const k = Math.max(1, Math.min(7, 1 + Math.floor(d * .45)));
-        const slots = Array.from({ length: k }, (_, i) => ({ a: a0 + sector * (.14 + .72 * (k === 1 ? .5 : i / (k - 1))), i }));
-        let present = d === D ? slots : slots.filter(() => rng() < density);
-        if (!present.length) present = [slots[Math.floor(k / 2)]];
+      for (let d = 1; byCount ? quota > 0 : d <= D; d++) {
+        const k = Math.max(1, Math.min(kMax, 1 + Math.floor(d * .45)));
+        let slots = Array.from({ length: k }, (_, i) => ({ a: a0 + sector * (.14 + .72 * (k === 1 ? .5 : i / (k - 1))), i }));
+        let present;
+        if (byCount) {
+          if (slots.length > quota) { const m = quota; slots = Array.from({ length: m }, (_, i) => ({ a: a0 + sector * (.14 + .72 * (m === 1 ? .5 : i / (m - 1))), i })); }
+          present = slots; quota -= slots.length;
+        } else { present = d === D ? slots : slots.filter(() => rng() < density); if (!present.length) present = [slots[Math.floor(k / 2)]]; }
+        const last = byCount ? quota <= 0 : d === D;
         const layer = [];
+        // радіус шару: не тісніше за попередній і достатньо широкий, щоб k вузлів помістилися по дузі сектора
+        const r0 = byCount ? Math.max(prevR + 70, present.length * 38 / (sector * .72)) : d * 78; prevR = r0;
         for (const s of present) {
           const parent = prev.reduce((best, p) => (angDiff(s.a, p.ang) < angDiff(s.a, best.ang) ? p : best), prev[0]).node;
-          const r = d * 78 + (rng() - .5) * 8;
+          const r = r0 + (byCount ? 0 : (rng() - .5) * 8);
           const node = mk({ x: Math.round(Math.cos(s.a) * r) + 0, y: Math.round(Math.sin(s.a) * r) + 0, name: '', kind: 'small' });
           links.push([parent.id, node.id]);
           layer.push({ node, ang: s.a });
         }
         layer.sort((x, y) => x.ang - y.ang);
         for (let i = 0; i + 1 < layer.length; i++) if (d > 1 && rng() < cross) links.push([layer[i].node.id, layer[i + 1].node.id]);
-        // тип і стати
-        const keyIdx = d === D ? Math.floor(layer.length / 2) : -1;
+        const keyIdx = last ? Math.floor(layer.length / 2) : -1;
+        const k2 = 1 + Math.min(d, 40) * .08;
         layer.forEach(({ node }, i) => {
-          const k2 = 1 + d * .08;
-          if (i === keyIdx) {
-            node.kind = 'keystone'; node.name = KEYSTONE[Math.floor(rng() * KEYSTONE.length)]; node.cost = 2; node.need = Math.round(D * 1.2);
-            node.stats = { [th.stat]: Math.round(UNIT[th.stat] * 4 * k2 * 10) / 10, [th.second]: Math.round(UNIT[th.second] * 3 * k2 * 10) / 10 };
-          } else if (d >= 2 && rng() < .2) {
-            node.kind = 'notable'; node.name = NOTABLE[Math.floor(rng() * NOTABLE.length)];
-            node.stats = { [th.stat]: Math.round(UNIT[th.stat] * 2.5 * k2 * 10) / 10, [th.second]: Math.round(UNIT[th.second] * 2 * k2 * 10) / 10 };
-          } else {
-            node.name = STATS[th.stat].name;
-            node.stats = { [th.stat]: Math.round(UNIT[th.stat] * k2 * 10) / 10 };
-          }
-          for (const key of Object.keys(node.stats)) {
-            usedStats.add(key);
-            const v = node.stats[key];
-            node.stats[key] = STATS[key].pct ? Math.max(.5, Math.round(v * 10) / 10) : Math.max(1, Math.round(v));
-          }
-          node.desc = Object.entries(node.stats).map(([s, v]) => `${STATS[s].name} +${v}${STATS[s].pct ? '%' : ''}`).join(', ');
+          if (i === keyIdx) { styleNode(node, 'keystone', 'active', th, k2, rng); keyNode = node; }
+          else if (d >= 2 && rng() < .2) styleNode(node, 'notable', roleFor('notable', rng), th, k2, rng);
+          else styleNode(node, 'small', roleFor('small', rng), th, k2, rng);
         });
-        prev = layer;
+        prev = layer; layers = d;
+      }
+      if (keyNode) keyNode.need = Math.round((byCount ? Math.min(layers, 30) : D) * 1.2);
+    }
+    return { version: 1, name: opts.name || 'Згенероване дерево', points: pointsFor(nodes), mode: 'path', nodes, links, stats: statsOf(nodes) };
+  }
+
+  /* Ланцюг-змійка: одна довга лінія з N вузлів, що загинається рядками (path-режим). */
+  function chainTree(count, seed) {
+    const rng = rngFromSeed(seed), nodes = [], links = [];
+    const cols = clampN(Math.round(Math.sqrt(count) * 1.3), 4, 80), gap = 70;
+    for (let i = 0; i < count; i++) {
+      const row = Math.floor(i / cols), c = i % cols, x = (row % 2 ? cols - 1 - c : c) * gap, y = row * gap;
+      const node = newNode(i ? 'c' + i : 'start', x, y);
+      if (!i) { Object.assign(node, { kind: 'start', role: 'start', name: 'Початок', cost: 0 }); }
+      else {
+        const th = THEMES[(row >> 1) % THEMES.length], kind = i === count - 1 || i % 25 === 0 ? 'keystone' : i % 7 === 0 ? 'notable' : 'small';
+        styleNode(node, kind, i % 3 === 0 && kind === 'small' ? 'transit' : roleFor(kind, rng), th, 1 + Math.min(row, 40) * .06, rng);
+        links.push([nodes[i - 1].id, node.id]);
+      }
+      nodes.push(node);
+    }
+    return { version: 1, name: 'Ланцюг-змійка', points: pointsFor(nodes), mode: 'path', nodes, links, stats: statsOf(nodes) };
+  }
+
+  /* Сітка з вимогами (режим prereq): «Технології» (одна сітка) або «Класи» (кілька колонок-класів з коренем зверху).
+     Вузол відкривається, коли вкладено в його батьків над ним; чим нижче ряд, тим більше «потрібно очок». */
+  function gridTree(type, count, seed) {
+    const rng = rngFromSeed(seed), classes = type === 'classes', groups = classes ? clampN(Math.round(count / 12), 1, 3) || 1 : 1;
+    const nodes = [], links = [];
+    for (let g = 0; g < groups; g++) {
+      const quota = Math.floor(count / groups) + (g < count % groups ? 1 : 0) - (classes ? 1 : 0);
+      const cols = clampN(Math.round(Math.sqrt(quota / 1.2)), 2, 60), rows = Math.ceil(quota / cols), gx = (g - (groups - 1) / 2) * (cols + 1.5) * 84, top = classes ? 1 : 0;
+      let root = null;
+      if (classes) { root = newNode('k' + g, gx, 0); Object.assign(root, { name: CLASS_NAMES[g % CLASS_NAMES.length], kind: 'notable', role: 'passive', cost: 1, stats: { hp: 10 }, desc: 'Початок класу: відкриває всю його колонку.' }); nodes.push(root); }
+      const ids = [];
+      for (let i = 0; i < quota; i++) {
+        const r = Math.floor(i / cols), c = i % cols, node = newNode(`${classes ? 'g' + g : 't'}_${r}_${c}`, gx + (c - (cols - 1) / 2) * 84, (r + top) * 92);
+        const th = THEMES[(g * 2 + Math.floor(c * 3 / cols)) % THEMES.length];
+        const kind = r === rows - 1 ? 'keystone' : r % 4 === 3 ? 'notable' : 'small';
+        styleNode(node, kind, roleFor(kind, rng), th, 1 + Math.min(r, 40) * .08, rng);
+        if (node.role === 'transit') node.max = 1;
+        else if (kind === 'small') node.max = 1 + Math.floor(rng() * 3);
+        node.need = Math.round(r * cols * .3);
+        ids.push(node.id); nodes.push(node);
+        if (r) {
+          const up = ids[i - cols]; if (up) links.push([up, node.id]);
+          if (c && ids[i - cols - 1]) links.push([ids[i - cols - 1], node.id]);
+        } else if (root) links.push([root.id, node.id]);
       }
     }
-    const stats = {};
-    for (const s of usedStats) stats[s] = Object.assign({}, STATS[s]);
-    const points = Math.max(10, Math.round((nodes.length - 1) * .34));
-    return { version: 1, name: opts.name || 'Згенероване дерево', points, mode: 'path', nodes, links, stats };
+    return { version: 1, name: classes ? 'Класи (таланти)' : 'Дерево технологій', points: Math.max(10, Math.round(nodes.length * .34)), mode: 'prereq', nodes, links, stats: statsOf(nodes) };
   }
+
+  const BLANK = () => ({ version: 1, name: 'Нове дерево', points: 10, mode: 'path', nodes: [{ id: 'start', x: 0, y: 0, name: 'Початок', desc: '', kind: 'start', role: 'start', max: 1, cost: 0, need: 0, stats: {} }], links: [], stats: {} });
+
+  /* Типи, які можна згенерувати з заданою кількістю вузлів. */
+  const TYPES = {
+    radial: { name: 'Радіальне', hint: 'Гілки-теми розходяться від початку в центрі, як у Path of Exile.' },
+    chain: { name: 'Ланцюг', hint: 'Одна довга лінія вузлів, що загинається змійкою: вкладаєш очки послідовно.' },
+    tech: { name: 'Технології', hint: 'Сітка з вимогами: нижній ряд відкривається, лише коли вкладено у вузли над ним.' },
+    classes: { name: 'Класи', hint: 'Кілька колонок-класів, у кожної свій корінь і вимоги вниз. Режим вимог.' },
+    blank: { name: 'Чистий аркуш', hint: 'Лише початковий вузол: решту малюєш вручну в режимі «Редагувати».' },
+  };
+  function buildTree(type, opts = {}) {
+    const count = clampN(Math.round(opts.count) || 60, 2, MAX_NODES), seed = opts.seed ?? 'zbyrai';
+    if (type === 'chain') return chainTree(count, seed);
+    if (type === 'tech' || type === 'classes') return gridTree(type, count, seed);
+    if (type === 'blank') return BLANK();
+    return generateTree({ seed, count, branches: opts.branches });
+  }
+
+  const withRoles = tree => { tree.nodes.forEach(n => { n.role = defaultRole(n); }); return tree; };
 
   /* ---------- приклад: класичні таланти (режим prereq) ---------- */
   function tiersExample() {
@@ -360,7 +461,7 @@ const TreeCore = (() => {
     });
     const tree = { version: 1, name: 'Три класи (класичні таланти)', points: 24, mode: 'prereq', nodes, links, stats };
     autoLayout(tree);
-    return tree;
+    return withRoles(tree);
   }
 
   /* ---------- шаблони ---------- */
@@ -373,7 +474,7 @@ const TreeCore = (() => {
       node('c0', 'Початок', 'start', 0, { max: 1, cost: 0, stats: {} });
       for (let i = 1; i <= 8; i++) { node('c' + i, i === 8 ? 'Вершина' : i % 4 === 0 ? 'Значний ' + i : 'Крок ' + i, i === 8 ? 'keystone' : i % 4 === 0 ? 'notable' : 'small', i); links.push(['c' + (i - 1), 'c' + i]); }
       const t = { version: 1, name: 'Ланцюг', points: 14, mode: 'path', nodes, links, stats };
-      autoLayout(t); return t;
+      autoLayout(t); return withRoles(t);
     }
     if (kind === 'tech') {
       for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
@@ -382,7 +483,7 @@ const TreeCore = (() => {
         if (r) { links.push([`t${r - 1}${c}`, id]); if (c) links.push([`t${r - 1}${c - 1}`, id]); }
       }
       const t = { version: 1, name: 'Дерево технологій', points: 16, mode: 'prereq', nodes, links, stats };
-      autoLayout(t); return t;
+      autoLayout(t); return withRoles(t);
     }
     node('s', 'Початок', 'start', 0, { max: 1, cost: 0, stats: {} });
     for (let b = 0; b < 4; b++) {
@@ -390,10 +491,10 @@ const TreeCore = (() => {
       for (let i = 1; i <= 4; i++) { const id = `b${b}${i}`; node(id, i === 4 ? 'Печатка ' + (b + 1) : `Гілка ${b + 1}.${i}`, i === 4 ? 'keystone' : i === 2 ? 'notable' : 'small', b + i); links.push([prev, id]); prev = id; }
     }
     const t = { version: 1, name: 'Віяло', points: 16, mode: 'path', nodes, links, stats };
-    autoLayout(t); return t;
+    autoLayout(t); return withRoles(t);
   }
 
-  return { TEMPLATES, templateTree, KINDS, STATS, index, emptyState, rankOf, spentPoints, canAllocate, allocate, canRefund, refund, validState, summary, analyze, validate, sanitize, exportJSON, autoLayout, generateTree, tiersExample, rngFromSeed };
+  return { TEMPLATES, templateTree, KINDS, ROLES, TYPES, MAX_NODES, defaultRole, buildTree,  STATS, index, emptyState, rankOf, spentPoints, canAllocate, allocate, canRefund, refund, validState, summary, analyze, validate, sanitize, exportJSON, autoLayout, generateTree, tiersExample, rngFromSeed };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = TreeCore;
