@@ -71,11 +71,14 @@ node sprite-cleaner/test/sprite.test.js      # тести Sprite Sheet Cleaner
 node skill-tree/test/tree.test.js      # тести Skill Tree Lab
 node idea-mixer/test/mixer.test.js     # тести Idea Mixer
 node character-roller/test/char.test.js      # тести Character Roller
+node tools/ui-rules.test.js            # перевірка єдиних правил інтерфейсу (довідка, верхня панель, підказки)
 ```
+
+Єдині правила інтерфейсу кожного інструмента: 1) усе, що зберігає й передає (копіювати, імпорт, експорт, завантажити, поділитися, друк), стоїть у верхній панелі `header.top > .top-actions`, а редагування й рандом лишаються в робочій зоні; 2) на початку згорнута довідка `<details class="how">` «Що це, для чого, як користуватися» (стилі в `shared/theme.css`); 3) підказка `title` для кожної кнопки й параметра; 4) увесь інтерфейс українською; 5) спільна тема й заголовки. `tools/ui-rules.test.js` перевіряє це для інструментів, які вже переведені.
 
 Новий інструмент: створи папку з `index.html`, підключи власну копію `theme.css` (її створить `sync-theme.mjs`),
 додай картку в `index.html` і не використовуй шляхи за межами папки інструмента.
-Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`, Sprite Sheet Cleaner: `sc_`, Character Roller: `cr_`).
+Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`, Colonist Foundry: `cf_`, Planet Forge: `pf_`, Voxel World Lab: `vx_`, Sprite Sheet Cleaner: `sc_`, Character Roller: `cr_`).
 Кожен інструмент має власний акцент: колір у `:root` свого `style.css` (`--accent`) і клас `.c-…` у `assets/hub.css` для картки на головній.
 
 Адреса сайту (`https://zbyrai.pages.dev`) стоїть у `canonical` та `og:url` кожної сторінки, у `sitemap.xml` і `robots.txt`.

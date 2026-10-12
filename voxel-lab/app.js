@@ -276,7 +276,7 @@
   document.querySelectorAll('#tools button').forEach(b => { b.onclick = () => { st.tool = b.dataset.tool; syncUi(); save(); needDraw = true; }; });
   const pal = $('palette');
   for (const id of [V.ID.BRICK, V.ID.PLANKS, V.ID.STONE, V.ID.WOOD, V.ID.GRASS, V.ID.DIRT, V.ID.SAND, V.ID.WATER, V.ID.SNOW, V.ID.LEAVES, V.ID.GRAVEL, V.ID.GOLD]) {
-    const B = V.BLOCKS[id], b = document.createElement('button'); b.className = 'sw'; b.dataset.id = id; b.type = 'button';
+    const B = V.BLOCKS[id], b = document.createElement('button'); b.className = 'sw'; b.dataset.id = id; b.type = 'button'; b.title = 'Блок: ' + B.name;
     const i = document.createElement('i'); i.style.background = `rgb(${B.color.join(',')})`; b.append(i, B.name); b.onclick = () => { st.block = id; syncUi(); save(); }; pal.append(b);
   }
   function stats() {
@@ -293,6 +293,7 @@
     for (let i = 0; i < hm.length; i++) { im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = hm[i]; im.data[i * 4 + 3] = 255; }
     g.putImageData(im, 0, 0); c.toBlob(b => { download(b, `heightmap-${st.seed}.png`); toast('Збережено карту висот'); });
   };
+  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(V.toJson(world))); toast('JSON скопійовано'); } catch { toast('Не вдалося скопіювати: збережіть файл'); } };
   $('btnImport').onclick = () => $('file').click();
   $('file').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;

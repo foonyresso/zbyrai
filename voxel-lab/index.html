@@ -23,18 +23,51 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8.5 4.8v9.4L12 21.5l-8.5-4.8V7.3zM3.5 7.3 12 12l8.5-4.7M12 12v9.5"/></svg>
     <div>Voxel World <span>Lab</span></div>
   </div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережений світ із файлу .json">Імпорт</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати світ як JSON у буфер обміну (великі світи можуть бути важкими)">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити світ як файл .json (можна імпортувати назад)">Зберегти .json</button>
+    <button id="btnPng" title="Зберегти поточний вигляд світу як зображення PNG">Картинка PNG</button>
+    <button id="btnHm" title="Зберегти карту висот у відтінках сірого">Висоти PNG</button>
+    <button id="btnVox" class="btn-primary" title="Зберегти світ для MagicaVoxel (.vox). Не більше 256 блоків на сторону">MagicaVoxel .vox</button>
+  </div>
 </header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Воксельна лабораторія: створює 3D-світ із блоків (як у Майнкрафті) з горами, морями, печерами, деревами й рудами. Його можна крутити, розрізати й добудовувати.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Для прототипів ігор, ілюстрацій і заготовок. Готовий світ виходить у .vox для MagicaVoxel, у JSON або у картинку.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Натисни «Новий світ»</b> (або Пробіл) і підкрути рельєф та наповнення праворуч.</li>
+        <li><b>Інструменти:</b> «Дивитись» крутить камеру, «Ставити» і «Ламати» змінюють блоки. Повзунок «Зріз» відкриває внутрішні шари.</li>
+        <li><b>Колесо миші</b> наближає, перетягування обертає. Клавіші Q, E повертають, R скидає вид.</li>
+        <li><b>Збережи або поділись</b> кнопками угорі: .vox, JSON, PNG, імпорт.</li>
+      </ol>
+    </div>
+  </div>
+</details>
 
 <main class="wrap">
   <section class="stage">
     <div class="stage-h">
       <button id="btnNew" class="btn-primary" title="Новий випадковий світ (Пробіл)">Новий світ</button>
-      <div class="seg" id="tools" role="group" aria-label="Інструмент"><button data-tool="look" class="on">Дивитись</button><button data-tool="place">Ставити</button><button data-tool="break">Ламати</button></div>
+      <div class="seg" id="tools" title="Що робить клік по світу" role="group" aria-label="Інструмент"><button data-tool="look" class="on" title="Крутити камеру: перетягни світ, колесо наближає">Дивитись</button><button data-tool="place" title="Ставити вибраний блок кліком">Ставити</button><button data-tool="break" title="Ламати блок кліком">Ламати</button></div>
       <button id="btnRotL" title="Повернути вліво (Q)">⟲</button><button id="btnRotR" title="Повернути вправо (E)">⟳</button><button id="btnReset" title="Скинути ракурс (R)">Скинути вид</button><button id="btnProj" title="Перспектива чи ізометрія"></button>
-      <label class="ctl-inline">Зріз <input type="range" id="rCut" min="1" max="40" step="1"><output id="oCut"></output></label>
+      <label class="ctl-inline" title="Відрізає верхні шари, щоб побачити печери й руди всередині">Зріз <input type="range" id="rCut" min="1" max="40" step="1"><output id="oCut"></output></label>
       <button id="btnUndo" title="Скасувати (Ctrl+Z)">Скасувати</button>
     </div>
-    <div class="palette" id="palette" role="group" aria-label="Блок для будівництва"></div>
+    <div class="palette" id="palette" title="Блок, який ставитиме інструмент «Ставити»" role="group" aria-label="Блок для будівництва"></div>
     <div class="canvaswrap" id="wrap"><canvas id="cv" aria-label="Воксельний світ"></canvas><div class="busy" id="busy" hidden>Генерація світу…</div></div>
     <p class="hint" id="status"></p>
   </section>
@@ -42,30 +75,28 @@
   <aside class="side">
     <div class="card"><h2>Світ</h2>
       <button id="btnNew2" class="btn-primary wide" title="Новий випадковий світ (Пробіл)">Новий світ</button>
-      <label class="ctl txt"><span>Зерно</span><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
-      <label class="ctl"><span>Розмір світу</span><output id="oSize"></output><input type="range" id="rSize" min="16" max="512" step="16"></label>
+      <label class="ctl txt" title="Число-код світу: те саме зерно з тими самими параметрами дає той самий світ"><span>Зерно</span><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
+      <label class="ctl" title="Сторона світу в блоках. Більше 256 блоків не експортується в .vox"><span>Розмір світу</span><output id="oSize"></output><input type="range" id="rSize" min="16" max="512" step="16"></label>
       <p class="hint" id="sizeWarn" hidden>Більше 256 блоків на сторону: експорт у .vox недоступний (ліміт формату), JSON і PNG працюють.</p>
-      <label class="ctl"><span>Висота шару</span><output id="oSy"></output><input type="range" id="rSy" min="16" max="64" step="4"></label>
+      <label class="ctl" title="Скільки блоків у висоту: більше дає вищі гори й глибші печери"><span>Висота шару</span><output id="oSy"></output><input type="range" id="rSy" min="16" max="64" step="4"></label>
     </div>
     <div class="card"><h2>Рельєф</h2>
-      <label class="ctl"><span>Масштаб рельєфу</span><output id="oScale"></output><input type="range" id="rScale" min="8" max="64" step="1"></label>
-      <label class="ctl"><span>Деталізація</span><output id="oOct"></output><input type="range" id="rOct" min="1" max="6" step="1"></label>
-      <label class="ctl"><span>Різкість</span><output id="oRough"></output><input type="range" id="rRough" min="20" max="80" step="1"></label>
-      <label class="ctl"><span>Рівень води</span><output id="oWater"></output><input type="range" id="rWater" min="0" max="80" step="1"></label>
-      <label class="ctl"><span>Острів (краї вниз)</span><output id="oIsland"></output><input type="range" id="rIsland" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Рівнинність</span><output id="oFlat"></output><input type="range" id="rFlat" min="0" max="90" step="1"></label>
-      <label class="ctl"><span>Лінія снігу</span><output id="oSnow"></output><input type="range" id="rSnow" min="40" max="100" step="1"></label>
+      <label class="ctl" title="Розмір деталей: менше число дає дрібніші пагорби, більше — широкі хребти"><span>Масштаб рельєфу</span><output id="oScale"></output><input type="range" id="rScale" min="8" max="64" step="1"></label>
+      <label class="ctl" title="Скільки шарів дрібних деталей накладається на рельєф"><span>Деталізація</span><output id="oOct"></output><input type="range" id="rOct" min="1" max="6" step="1"></label>
+      <label class="ctl" title="Наскільки різкі гори й урвища"><span>Різкість</span><output id="oRough"></output><input type="range" id="rRough" min="20" max="80" step="1"></label>
+      <label class="ctl" title="На якій висоті лежить море"><span>Рівень води</span><output id="oWater"></output><input type="range" id="rWater" min="0" max="80" step="1"></label>
+      <label class="ctl" title="Опускає краї світу під воду, щоб вийшов острів"><span>Острів (краї вниз)</span><output id="oIsland"></output><input type="range" id="rIsland" min="0" max="100" step="1"></label>
+      <label class="ctl" title="Згладжує рельєф до рівнин"><span>Рівнинність</span><output id="oFlat"></output><input type="range" id="rFlat" min="0" max="90" step="1"></label>
+      <label class="ctl" title="Висота, вище якої лежить сніг"><span>Лінія снігу</span><output id="oSnow"></output><input type="range" id="rSnow" min="40" max="100" step="1"></label>
     </div>
     <div class="card"><h2>Наповнення</h2>
-      <label class="ctl"><span>Печери</span><output id="oCaves"></output><input type="range" id="rCaves" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Дерева</span><output id="oTrees"></output><input type="range" id="rTrees" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Руди</span><output id="oOres"></output><input type="range" id="rOres" min="0" max="100" step="1"></label>
+      <label class="ctl" title="Скільки печер усередині"><span>Печери</span><output id="oCaves"></output><input type="range" id="rCaves" min="0" max="100" step="1"></label>
+      <label class="ctl" title="Скільки дерев на поверхні"><span>Дерева</span><output id="oTrees"></output><input type="range" id="rTrees" min="0" max="100" step="1"></label>
+      <label class="ctl" title="Скільки руд у надрах"><span>Руди</span><output id="oOres"></output><input type="range" id="rOres" min="0" max="100" step="1"></label>
     </div>
-    <div class="card"><h2>Блоки у світі</h2><p class="hint" id="info"></p><div id="counts" class="counts"></div></div>
-    <div class="card"><h2>Експорт</h2>
-      <div class="exp"><button id="btnVox" class="btn-primary">MagicaVoxel .vox</button><button id="btnJson">JSON</button><button id="btnPng">Картинка PNG</button><button id="btnHm">Карта висот PNG</button><button id="btnImport">Імпорт JSON</button></div>
-      <input type="file" id="file" accept="application/json,.json" hidden>
-      <p class="hint">Правки (ставити й ламати) зберігаються в експорті, але нова генерація їх замінює.</p>
+    <div class="card"><h2>Блоки у світі</h2><p class="hint" id="info" title="Розмір і кількість блоків світу"></p><div id="counts" class="counts"></div></div>
+    <div class="card"><h2>Збереження</h2>
+      <p class="hint">Правки (ставити й ламати) зберігаються у файлі, але нова генерація їх замінює. Кнопки збереження й імпорту — у верхній панелі.</p>
     </div>
   </aside>
 </main>
