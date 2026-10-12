@@ -433,3 +433,91 @@ addEventListener("resize", resize);
 $("#seed").value = Math.floor(Math.random() * 99999);
 resize();
 gen(false);
+
+/* ---------- збереження й обмін (верхня панель) ---------- */
+const SAVE_IDS = ["size", "seed", "lay", "bio", "riv", "sea", "wtype", "wseed"];
+const SAVE_LAYERS = {
+  mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
+  won: () => WON, wrd: () => WRD,
+};
+function toast(msg, ms = 1800) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => t.classList.remove("show"), ms);
+}
+function getSettings() {
+  const o = { tool: "medieval-world" };
+  for (const k of SAVE_IDS) o[k] = $("#" + k).value;
+  o.layers = {};
+  for (const k in SAVE_LAYERS) o.layers[k] = !!SAVE_LAYERS[k]();
+  return o;
+}
+function applySettings(o) {
+  if (!o || typeof o !== "object") throw new Error("bad");
+  for (const k of SAVE_IDS) {
+    if (o[k] === undefined) continue;
+    const el = $("#" + k);
+    el.value = String(o[k]);
+  }
+  gen(false);
+  for (const k in SAVE_LAYERS) {
+    if (o.layers && k in o.layers && !!o.layers[k] !== !!SAVE_LAYERS[k]()) $("#" + k).click();
+  }
+  WLD = null;
+  bdirty = true;
+  redraw();
+}
+function download(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+async function copyText(text, okMsg) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(okMsg);
+  } catch {
+    prompt("Скопіюйте вручну:", text);
+  }
+}
+function importText(text) {
+  try {
+    applySettings(JSON.parse(text));
+    toast("Налаштування завантажено");
+  } catch {
+    toast("Не вдалося прочитати: потрібен JSON, збережений цим інструментом", 3200);
+  }
+}
+$("#btnCopy").onclick = () => copyText(JSON.stringify(getSettings(), null, 2), "JSON скопійовано");
+$("#btnJson").onclick = () => {
+  download(new Blob([JSON.stringify(getSettings(), null, 2)], { type: "application/json" }), "medieval-world.json");
+  toast("Файл збережено");
+};
+$("#btnLink").onclick = () => {
+  const u = location.href.split("#")[0] + "#" + encodeURIComponent(JSON.stringify(getSettings()));
+  copyText(u, "Посилання скопійовано");
+};
+$("#btnPng").onclick = () => {
+  cv.toBlob((b) => {
+    if (!b) return toast("Не вдалося створити PNG");
+    download(b, "medieval-world-" + $("#seed").value + ".png");
+    toast("Карту збережено");
+  });
+};
+$("#btnImport").onclick = () => $("#fileImport").click();
+$("#fileImport").onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = "";
+  if (f) importText(await f.text());
+};
+if (location.hash.length > 2) {
+  try {
+    applySettings(JSON.parse(decodeURIComponent(location.hash.slice(1))));
+  } catch { /* некоректне посилання: лишаємо випадкове місто */ }
+}

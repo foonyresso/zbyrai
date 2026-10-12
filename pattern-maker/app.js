@@ -14,7 +14,7 @@
   const st = Object.assign({}, DEFAULTS, savedSt, { fx: Object.assign({}, DEFAULTS.fx, savedSt.fx) });
   delete st.pixel; // старий прапорець «піксель-арт для текстури»: тепер ефект працює на кінцевому результаті (st.fx.px)
   // «Розетка» (мандала) живе лише в застосунку: вона не вимощує клітинку, а складає зображення навколо центру
-  const MODES = Object.assign({}, PMCore.MODES, { ros: { name: 'Розетка', sub: 'мандала · N променів' } });
+  const MODES = Object.assign({}, PMCore.MODES, { ros: { name: 'Розетка', sub: 'мандала з N променів', tip: 'Мандала: шматок повторюється по колу. Розетка не вимощується, зберігайте полотно' } });
   if (!MODES[st.mode]) st.mode = DEFAULTS.mode;
   /* ---------- історія (скасування), «рецепти» ефектів і посилання зі станом ---------- */
   const STATE_KEYS = ['mode', 'a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline', 'layout', 'fx'];
@@ -342,7 +342,7 @@
   const modesBox = $('modes');
   Object.entries(MODES).forEach(([key, m]) => {
     const b = document.createElement('button');
-    b.className = 'mode'; b.dataset.mode = key; b.type = 'button';
+    b.className = 'mode'; b.dataset.mode = key; b.type = 'button'; b.title = m.tip || m.name;
     b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[key]}</svg><span><b>${m.name}</b><small>${m.sub}</small></span>`;
     b.onclick = () => { st.mode = key; syncControls(); drawSource(); requestRender(); saveSettings(); };
     modesBox.appendChild(b);
@@ -449,18 +449,20 @@
     { k: 'ang', label: 'Нахил візерунка', min: -180, max: 180, fmt: v => v + '°' },
     { k: 'inv', label: 'Інвертувати кольори', type: 'check' },
   ];
+  const FX_TIPS = {"px": "Перетворює картинку на великі квадратики-пікселі", "pgrid": "Форма клітинки піксельного ефекту", "pal": "Обмежує кольори готовою палітрою (ретро-консолі, Game Boy тощо)", "dith": "Змішує кольори дрібним візерунком, щоб сховати різкі переходи палітри", "post": "Зменшує кількість відтінків на канал: плакатний вигляд", "hue": "Зсуває всі кольори по колу", "sat": "Робить кольори блідішими або яскравішими", "bri": "Світліше або темніше", "con": "Різниця між світлим і темним", "wave": "Хвилями викривляє картинку: наскільки сильно", "waveL": "Відстань між гребенями хвилі", "scan": "Горизонтальні смужки, як на старому моніторі", "grain": "Плівкове зерно (шум)", "lens": "Роздуває або втягує центр, як лінза", "swirl": "Закручує картинку навколо центра", "ca": "Розсовує червоний і синій канали, як у дешевому обʼєктиві", "relief": "Тиснення: світлі краї виступають, як рельєф", "edge": "Підкреслює контури", "gmap": "Фарбує картинку за яскравістю градієнтом", "vig": "Затемнює краї кадру", "ang": "Нахиляє весь візерунок", "inv": "Міняє кольори на протилежні"};
   const fxCtl = {};
   function onFx() { syncFx(); drawPreview(); saveSettings(); }
   function buildFxUi() {
     const box = $('fxCtls');
     for (const c of FXC) {
       const reset = resetBtn(() => { st.fx[c.k] = DEFAULTS.fx[c.k]; onFx(); });
+      const tip = FX_TIPS[c.k] || c.label;
       if (c.type === 'check') {
         const inp = document.createElement('input'); inp.type = 'checkbox';
         inp.addEventListener('input', () => { st.fx[c.k] = inp.checked; onFx(); });
         const lab = document.createElement('label'); lab.className = 'chk fx-chk';
         const sp = document.createElement('span'); sp.textContent = c.label;
-        lab.append(inp, sp, reset); box.append(lab); fxCtl[c.k] = { inp };
+        lab.title = tip; lab.append(inp, sp, reset); box.append(lab); fxCtl[c.k] = { inp };
       } else if (c.type === 'select') {
         const sel2 = document.createElement('select'); sel2.setAttribute('aria-label', c.label);
         if (c.list) c.list.forEach(([v, t]) => sel2.add(new Option(t, v)));
@@ -472,14 +474,14 @@
         const lab = document.createElement('label'); lab.className = 'ctl';
         const sp = document.createElement('span'); sp.textContent = c.label;
         const out = document.createElement('output');
-        lab.append(sp, out, reset, sel2); box.append(lab); fxCtl[c.k] = { inp: sel2, out };
+        lab.title = tip; lab.append(sp, out, reset, sel2); box.append(lab); fxCtl[c.k] = { inp: sel2, out };
       } else {
         const lab = document.createElement('label'); lab.className = 'ctl';
         const sp = document.createElement('span'); sp.textContent = c.label;
         const out = document.createElement('output');
         const inp = document.createElement('input'); inp.type = 'range'; inp.min = c.min; inp.max = c.max; inp.step = 1; inp.setAttribute('aria-label', c.label);
         inp.addEventListener('input', () => { st.fx[c.k] = +inp.value; onFx(); });
-        lab.append(sp, out, reset, inp); box.append(lab); fxCtl[c.k] = { inp, out };
+        lab.title = tip; lab.append(sp, out, reset, inp); box.append(lab); fxCtl[c.k] = { inp, out };
       }
     }
   }

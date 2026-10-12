@@ -8,10 +8,10 @@ const PMCore = (() => {
   const S3 = Math.sqrt(3), PI = Math.PI;
 
   const MODES = {
-    pmm: { name: 'Дзеркальна сітка', sub: 'pmm · ×4', aspect: true },
-    p4m: { name: 'Калейдоскоп', sub: 'p4m · ×8' },
-    p6m: { name: 'Соти', sub: 'p6m · ×12' },
-    p3m1: { name: 'Трикутна', sub: 'p3m1 · ×6' },
+    pmm: { name: 'Дзеркальна сітка', sub: '4 дзеркальні копії', aspect: true },
+    p4m: { name: 'Калейдоскоп', sub: '8 копій з поворотами' },
+    p6m: { name: 'Соти', sub: '12 копій, шестикутники' },
+    p3m1: { name: 'Трикутна', sub: '6 копій, трикутники' },
     tex: { name: 'Безшовна текстура', sub: 'без дзеркал', aspect: true, blend: true },
   };
 
