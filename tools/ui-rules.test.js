@@ -2,7 +2,7 @@
 // Запуск: node tools/ui-rules.test.js
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert');
 const root = path.join(__dirname, '..');
-const TOOLS = ['pattern-maker', 'medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'planet-forge', 'voxel-lab'];
+const TOOLS = ['pattern-maker', 'medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'planet-forge', 'voxel-lab', 'tessera'];
 let failed = 0;
 const test = (name, fn) => { try { fn(); console.log('  ok  ', name); } catch (e) { failed++; console.log('  FAIL', name, '\n      ', e.message); } };
 for (const t of TOOLS) {
