@@ -509,6 +509,13 @@
       if (!ok.length) throw new Error('порожньо');
       return ok[Math.floor(Math.random() * ok.length)].thumburl || ok[0].url;
     },
+    async () => { // Art Institute of Chicago: картини у суспільному надбанні, IIIF-зображення з CORS
+      const page = 1 + Math.floor(Math.random() * 200);
+      const j = await (await fetch(`https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=image_id&limit=20&page=${page}`)).json();
+      const ids = (j.data || []).map(d => d.image_id).filter(Boolean);
+      if (!ids.length) throw new Error('порожньо');
+      return `https://www.artic.edu/iiif/2/${ids[Math.floor(Math.random() * ids.length)]}/full/843,/0/default.jpg`;
+    },
   ];
   $('btnRandom').onclick = async () => {
     const btn = $('btnRandom'); btn.disabled = true; toast('Шукаю випадкове зображення…', 12000);
