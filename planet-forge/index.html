@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Planet Forge: кузня планет</title>
-<meta name="description" content="Генератор процедурних планет: континенти, біоми, хмари, вогні міст, кільця й супутники, обертова 3D-планета, паспорт із характеристиками та придатністю для життя. Експорт карти й паспорта. Безкоштовно, працює офлайн.">
+<meta name="description" content="Генератор процедурних планет: 30 типів від земних і вулканічних до літаючих островів, кристалічних і живих світів, у кожного свої налаштування. Обертова 3D-планета, паспорт, замочки для випадкової генерації. Експорт карти й паспорта. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/planet-forge/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
@@ -24,8 +24,8 @@
     <div>Planet <span>Forge</span></div>
   </div>
   <div class="spacer"></div>
-  <button id="btnSurprise" title="Випадкові тип і параметри">Сюрприз</button>
-  <button id="btnNew" class="btn-primary" title="Нова планета того ж типу (Пробіл)">Нова планета</button>
+  <button id="btnSurprise" title="Усе випадково: тип, назва й усі параметри, крім замкнених">Сюрприз</button>
+  <button id="btnNew" class="btn-primary" title="Нове зерно, назва й параметри того ж типу (Пробіл)">Нова планета</button>
 </header>
 
 <main class="wrap">
@@ -37,26 +37,16 @@
   </section>
 
   <aside class="side">
-    <div class="card"><h2>Тип і зерно</h2>
+    <div class="card"><h2>Тип планети</h2>
       <div class="kinds" id="kinds"></div>
-      <label class="ctl txt"><span>Зерно</span><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
-      <label class="ctl txt"><span>Назва (порожньо = авто)</span><input type="text" id="tName" maxlength="28"></label>
+      <div class="lockrow"><button type="button" class="lock" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: «Сюрприз» його не змінюватиме</span></div>
+      <label class="ctl txt"><span>Зерно</span><button type="button" class="lock" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
+      <label class="ctl txt"><span>Назва</span><button type="button" class="lock" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
+      <p class="hint">Замочок біля параметра фіксує його: «Сюрприз» і «Нова планета» залишать його як є, а решту перемішають.</p>
     </div>
-    <div class="card"><h2>Поверхня</h2>
-      <label class="ctl"><span>Вода</span><output id="oSea"></output><input type="range" id="rSea" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Розмір континентів</span><output id="oScale"></output><input type="range" id="rScale" min="6" max="40" step="1"></label>
-      <label class="ctl"><span>Гори</span><output id="oMount"></output><input type="range" id="rMount" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Клімат (холод ↔ спека)</span><output id="oTemp"></output><input type="range" id="rTemp" min="-100" max="100" step="1"></label>
-      <label class="ctl"><span>Вологість</span><output id="oHumid"></output><input type="range" id="rHumid" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Полярні шапки</span><output id="oCaps"></output><input type="range" id="rCaps" min="0" max="100" step="1"></label>
-    </div>
-    <div class="card"><h2>Небо й життя</h2>
-      <label class="ctl"><span>Атмосфера</span><output id="oAtmo"></output><input type="range" id="rAtmo" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Хмари</span><output id="oCloud"></output><input type="range" id="rCloud" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Вогні міст</span><output id="oLights"></output><input type="range" id="rLights" min="0" max="100" step="1"></label>
-      <label class="ctl"><span>Нахил осі</span><output id="oTilt"></output><input type="range" id="rTilt" min="0" max="60" step="1"></label>
-      <label class="ctl"><span>Супутники</span><output id="oMoons"></output><input type="range" id="rMoons" min="0" max="4" step="1"></label>
-      <label class="chk"><input type="checkbox" id="cRing"><span>Кільця</span></label>
+    <div class="card"><h2>Поверхня</h2><div id="surfCtl" class="ctls"></div></div>
+    <div class="card"><h2>Небо й життя</h2><div id="skyCtl" class="ctls"></div>
+      <div class="ctl chkrow"><label class="chk"><input type="checkbox" id="cRing"><span>Кільця</span></label><button type="button" class="lock" id="lkRing" aria-pressed="false"></button></div>
     </div>
     <div class="card"><h2>Експорт</h2>
       <div class="exp"><button id="btnPng" class="btn-primary">Картинка планети</button><button id="btnMap">Карта PNG</button><button id="btnHeight">Висоти PNG</button><button id="btnJson">Паспорт JSON</button></div>
@@ -72,6 +62,7 @@
 (function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
 if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
+<script src="./planet-kinds.js"></script>
 <script src="./planet-core.js"></script>
 <script src="./app.js"></script>
 </body>

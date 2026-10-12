@@ -7,9 +7,13 @@
     get(k, d) { try { const v = localStorage.getItem('pf_' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem('pf_' + k, JSON.stringify(v)); } catch {} },
   };
-  const randSeed = () => Math.random().toString(36).slice(2, 8);
-  const st = Object.assign(PC.fromKind('earth', randSeed()), { name: '', spin: 40, sun: 35, auto: true }, store.get('state', {}));
-  const save = () => store.set('state', st);
+  const randSeed = () => Math.random().toString(36).slice(2, 8).padEnd(6, "0");
+  const UI = ['spin', 'sun', 'auto', 'locks'];
+  let st = Object.assign(PC.fromKind('earth', randSeed()), { spin: 40, sun: 35, auto: true, locks: {} });
+  { const saved = store.get('state3', null); if (saved && PC.KINDS[saved.kind]) Object.assign(st, saved); st = Object.assign(st, PC.clampParams(st)); if (!st.locks || typeof st.locks !== 'object') st.locks = {}; if (!st.name) st.name = PC.planetName(st.seed, st.kind); }
+  const save = () => store.set('state3', st);
+  const keepUI = () => Object.fromEntries(UI.map(k => [k, st[k]]));
+  const KD = () => PC.KINDS[st.kind];
   const toast = (m, ms = 1800) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v)), smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -33,7 +37,7 @@
     if (sphere.width !== S) { sphere.width = sphere.height = S; }
     const img = sctx.createImageData(S, S), d = img.data, tilt = st.tilt * Math.PI / 180, cT = Math.cos(tilt), sT = Math.sin(tilt), cS = Math.cos(spin), sS = Math.sin(spin);
     const phi = st.sun * Math.PI / 180, Lx = -Math.cos(phi), Ly = .22, Lz = Math.sin(phi), Ll = Math.hypot(Lx, Ly, Lz), lx = Lx / Ll, ly = Ly / Ll, lz = Lz / Ll;
-    const hx = lx, hy = ly, hz = lz + 1, hl = Math.hypot(hx, hy, hz), atmo = st.atmo, ac = PC.atmoColor(st), gas = st.kind === 'gas', col = [0, 0, 0];
+    const hx = lx, hy = ly, hz = lz + 1, hl = Math.hypot(hx, hy, hz), atmo = st.atmo, ac = PC.atmoColor(st), cc = PC.cloudColor(st), flat = KD().flat, shine = PC.shineOf(st), col = [0, 0, 0];
     const half = S / 2, halo = (S / 2 - R) / R;
     for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) {
       const nx = (px + .5 - half) / R, ny = -(py + .5 - half) / R, r2 = nx * nx + ny * ny, o = (py * S + px) * 4;
@@ -47,11 +51,12 @@
       sample3(tex, tex.rgb, u, v, col);
       const diff = nx * lx + ny * ly + nz * lz, shade = .05 + .95 * smooth(-.06, .3, diff) * (.55 + .45 * clamp(diff, 0, 1) * 1.2);
       let r = col[0] * shade, g = col[1] * shade, b = col[2] * shade;
-      if (!gas && tex.biome[(clamp(Math.round(v * tex.H - .5), 0, tex.H - 1)) * tex.W + (((Math.round(u * tex.W - .5)) % tex.W) + tex.W) % tex.W] <= 1 && st.kind !== 'lava') { const sp = Math.pow(Math.max(0, (nx * hx + ny * hy + nz * hz) / hl), 48) * .65 * smooth(0, .3, diff); r += 255 * sp; g += 255 * sp; b += 255 * sp; }
-      if (st.kind === 'lava') { const bl = (col[0] > 200) ? 1 : 0; if (bl) { r = Math.max(r, col[0] * .75); g = Math.max(g, col[1] * .7); b = Math.max(b, col[2] * .5); } }
+      if (!flat && shine > 0 && tex.liq[(clamp(Math.round(v * tex.H - .5), 0, tex.H - 1)) * tex.W + (((Math.round(u * tex.W - .5)) % tex.W) + tex.W) % tex.W]) { const sp = Math.pow(Math.max(0, (nx * hx + ny * hy + nz * hz) / hl), 48) * .65 * shine * smooth(0, .3, diff); r += 255 * sp; g += 255 * sp; b += 255 * sp; }
+      const gl = flat ? 0 : sample1(tex, tex.glow, u, v) / 255; // власне світіння: лава, кристали, біолюмінесценція, розломи
+      if (gl > 0.004) { r = Math.max(r, col[0] * gl * .85); g = Math.max(g, col[1] * gl * .85); b = Math.max(b, col[2] * gl * .85); }
       let cl = 0;
-      if (st.cloud > 0 && !gas) { cl = sample1(tex, tex.cloud, (u + cloudDrift) % 1, v) / 255 * .92; if (cl > 0) { const cs = .06 + 1.05 * shade; r = r * (1 - cl) + 238 * cs * cl; g = g * (1 - cl) + 240 * cs * cl; b = b * (1 - cl) + 246 * cs * cl; } }
-      if (st.lights > 0 && !gas) { const li = sample1(tex, tex.light, u, v) / 255 * smooth(.12, -.08, diff) * (1 - cl * .8); if (li > 0) { r += 255 * li * .95; g += 200 * li * .9; b += 110 * li * .8; } }
+      if (st.cloud > 0 && !flat) { cl = sample1(tex, tex.cloud, (u + cloudDrift) % 1, v) / 255 * .92; if (cl > 0) { const cs = .06 + 1.05 * shade; r = r * (1 - cl) + cc[0] * cs * cl; g = g * (1 - cl) + cc[1] * cs * cl; b = b * (1 - cl) + cc[2] * cs * cl; } }
+      if (st.lights > 0 && !flat) { const li = sample1(tex, tex.light, u, v) / 255 * smooth(.12, -.08, diff) * (1 - cl * .8); if (li > 0) { r += 255 * li * .95; g += 200 * li * .9; b += 110 * li * .8; } }
       const rim = Math.pow(1 - nz, 2.6) * atmo * (.18 + .82 * smooth(-.35, .45, diff)) * 1.05;
       r += ac[0] * rim; g += ac[1] * rim; b += ac[2] * rim;
       d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = 255;
@@ -67,7 +72,7 @@
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#05060d'; ctx.fillRect(0, 0, w, h);
     for (const s of stars) { ctx.globalAlpha = s.a; ctx.fillStyle = '#fff'; ctx.fillRect(s.x * w, s.y * h, s.r, s.r); } ctx.globalAlpha = 1;
-    const cx = w / 2, cy = h / 2 - 10, Rp = Math.min(w, h) * (st.ring ? .26 : .33), tilt = st.tilt * Math.PI / 180, k = .24;
+    const cx = w / 2, cy = h / 2 - 10, Rp = Math.min(w, h) * (st.ring ? .3 - .05 * (st.ringw ?? .5) : .33), tilt = st.tilt * Math.PI / 180, k = .24;
     const phi = st.sun * Math.PI / 180, lx = -Math.cos(phi), lz = Math.sin(phi);
     const moons = info.moons;
     const drawMoon = m => {
@@ -78,8 +83,8 @@
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(tilt);
     for (const m of moons) if (Math.sin(m.phase) < 0) drawMoon(m);
     const ring = (from, to) => {
-      const R = PC.rngFromSeed('ring:' + st.seed);
-      for (let i = 0; i < 46; i++) { const rr = 1.38 + i * .02, a = (R() < .18 ? .02 : .1 + R() * .3) * (i > 18 && i < 22 ? .15 : 1), col = i % 5 === 0 ? '230,215,190' : '200,180,150'; ctx.strokeStyle = `rgba(${col},${a})`; ctx.lineWidth = Rp * .022; ctx.beginPath(); ctx.ellipse(0, 0, rr * Rp * 1.45, rr * Rp * 1.45 * k, 0, from, to); ctx.stroke(); }
+      const R = PC.rngFromSeed('ring:' + st.seed), nr = 16 + Math.round((st.ringw ?? .5) * 60), dens = .4 + (st.ringd ?? .5) * 1.2;
+      for (let i = 0; i < nr; i++) { const rr = 1.38 + i * .02, a = Math.min(.95, (R() < .18 ? .02 : .1 + R() * .3) * (i > 18 && i < 22 ? .15 : 1) * dens), col = i % 5 === 0 ? '230,215,190' : '200,180,150'; ctx.strokeStyle = `rgba(${col},${a})`; ctx.lineWidth = Rp * .022; ctx.beginPath(); ctx.ellipse(0, 0, rr * Rp * 1.45, rr * Rp * 1.45 * k, 0, from, to); ctx.stroke(); }
     };
     if (st.ring) ring(Math.PI, Math.PI * 2);
     ctx.restore();
@@ -106,40 +111,54 @@
     const c = $('card'), i = info; c.replaceChildren();
     const habCol = i.habitability >= 70 ? '#7bd88f' : i.habitability >= 40 ? '#e8c35a' : i.habitability >= 12 ? '#e8924a' : '#e86a6a';
     const palette = ['#5cb8e6', '#8fd6a0', '#e8c35a', '#e079a8', '#b39ddb', '#e8924a', '#6fc3c0', '#c9a766'];
-    c.append(el('div', { class: 'p-head' }, el('h3', {}, i.name), el('span', { class: 'des' }, i.designation), el('span', { class: 'kind' }, i.kindName)),
-      el('div', { class: 'p-grid' }, [['Радіус', i.radiusKm.toLocaleString('uk') + ' км'], ['Гравітація', f1(i.gravity) + ' g'], ['Доба', f1(i.dayH) + ' год'], ['Рік', i.yearD + ' діб'], ['Температура', (i.tempC > 0 ? '+' : '') + i.tempC + ' °C'], ['Тиск', f1(i.pressure) + ' атм'], ['Вода', pct(i.water)], ['Супутники', i.moons.length]].map(([l, v]) => el('div', { class: 'stat' }, el('b', {}, v), el('span', {}, l)))),
+    c.append(el('div', { class: 'p-head' }, el('h3', {}, i.name), el('span', { class: 'des' }, i.designation), el('span', { class: 'kind' }, i.kindName)), el('p', { class: 'p-blurb' }, i.blurb),
+      el('div', { class: 'p-grid' }, [['Радіус', i.radiusKm.toLocaleString('uk') + ' км'], ['Гравітація', f1(i.gravity) + ' g'], ['Доба', f1(i.dayH) + ' год'], ['Рік', i.yearD + ' діб'], ['Температура', (i.tempC > 0 ? '+' : '') + i.tempC + ' °C'], ['Тиск', f1(i.pressure) + ' атм'], i.water > 0 ? [i.liquidName, pct(i.water)] : null, ['Супутники', i.moons.length]].filter(Boolean).map(([l, v]) => el('div', { class: 'stat' }, el('b', {}, v), el('span', {}, l)))),
       el('div', { class: 'p-cols' },
-        el('div', {}, el('h4', {}, 'Придатність для життя'), el('div', { class: 'hab' }, el('div', { class: 'meter' }, el('i', { style: `width:${i.habitability}%;background:${habCol}` })), el('div', {}, el('b', { style: `color:${habCol}` }, i.habitability + '%'), el('small', {}, i.habLabel))),
+        el('div', {}, el('h4', {}, 'Придатність для життя'), el('div', { class: 'hab' }, el('div', { class: 'meter' }, el('i', { style: `width:${i.habitability}%;background:${habCol}` })), el('div', {}, el('b', { style: `color:${habCol}` }, i.habitability + '%'), el('small', {}, i.habLabel))), el('p', { class: 'hint', style: 'margin:6px 0 0' }, i.life),
           el('h4', { style: 'margin-top:16px' }, 'Ресурси'), el('div', { class: 'res' }, i.resources.map(r => el('div', {}, el('span', {}, r.name), el('span', { class: 'st' }, '★'.repeat(r.rich) + '☆'.repeat(5 - r.rich)))))),
         el('div', { class: 'bars' }, el('h4', {}, 'Атмосфера'), i.atmosphere.map(([n, v], k) => el('div', { class: 'row' }, el('span', {}, n), el('div', { class: 'b' }, el('i', { style: `width:${Math.min(100, v)}%;background:${palette[k % palette.length]}` })), el('span', {}, v + '%')))),
         el('div', { class: 'bars' }, el('h4', {}, 'Поверхня'), i.biomes.slice(0, 7).map(b => el('div', { class: 'row' }, el('span', {}, b.name), el('div', { class: 'b' }, el('i', { style: `width:${b.share * 100}%;background:rgb(${PC.BIOMES[b.id].c.join(',')})` })), el('span', {}, pct(b.share)))))));
   }
 
-  /* ---------- керування ---------- */
-  const SL = [['rSea', 'oSea', 'sea', 100, v => v + '%'], ['rScale', 'oScale', 'scale', 10, v => (v / 10).toFixed(1)], ['rMount', 'oMount', 'mount', 100, v => v + '%'], ['rTemp', 'oTemp', 'temp', 100, v => (v > 0 ? '+' : '') + v], ['rHumid', 'oHumid', 'humid', 100, v => v + '%'],
-    ['rCaps', 'oCaps', 'caps', 100, v => v + '%'], ['rAtmo', 'oAtmo', 'atmo', 100, v => v + '%'], ['rCloud', 'oCloud', 'cloud', 100, v => v + '%'], ['rLights', 'oLights', 'lights', 100, v => v + '%'], ['rTilt', 'oTilt', 'tilt', 1, v => v + '°'], ['rMoons', 'oMoons', 'moons', 1, v => v]];
+  /* ---------- керування: набір ручок залежить від типу ---------- */
+  const FMT = { pct: v => Math.round(v * 100) + '%', num: v => (Math.round(v * 100) / 100).toFixed(2), int: v => String(Math.round(v)), deg: v => Math.round(v) + '°', sgn: v => (v > 0 ? '+' : '') + Math.round(v * 100) };
+  function syncLocks() { document.querySelectorAll('.lock').forEach(b => { const on = !!st.locks[b.dataset.lock]; b.setAttribute('aria-pressed', on); b.textContent = on ? '🔒' : '🔓'; }); }
+  const lockBtn = key => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lock'; b.dataset.lock = key; b.title = 'Зафіксувати: «Сюрприз» і «Нова планета» цього не змінять'; b.onclick = e => { e.preventDefault(); st.locks[key] = !st.locks[key]; save(); syncLocks(); }; return b; };
+  let built = '';
+  function buildControls() {
+    if (built === st.kind) return; built = st.kind;
+    for (const [id, grp] of [['surfCtl', 'surf'], ['skyCtl', 'sky']]) {
+      const box = $(id); box.replaceChildren();
+      for (const kb of KD().knobs.filter(k => k.g === grp)) {
+        const out = el('output', { id: 'o_' + kb.k }), inp = el('input', { type: 'range', id: 'r_' + kb.k, min: kb.min, max: kb.max, step: kb.step });
+        inp.addEventListener('input', e => { st[kb.k] = +e.target.value; out.textContent = FMT[kb.f](st[kb.k]); save(); regenerate(); });
+        box.append(el('div', { class: 'ctl' }, el('span', {}, kb.l), out, lockBtn(kb.k), inp));
+      }
+    }
+  }
+  for (const [id, key] of [['lkKind', 'kind'], ['lkSeed', 'seed'], ['lkName', 'name'], ['lkRing', 'ring']]) { const b = $(id); b.dataset.lock = key; b.onclick = () => { st.locks[key] = !st.locks[key]; save(); syncLocks(); }; }
   function sync() {
-    for (const [r, o, key, mul, fmt] of SL) { const v = Math.round(st[key] * mul); $(r).value = v; $(o).textContent = fmt(v); }
+    buildControls();
+    for (const kb of KD().knobs) { const r = $('r_' + kb.k); if (r) { r.value = st[kb.k]; $('o_' + kb.k).textContent = FMT[kb.f](st[kb.k]); } }
     $('tSeed').value = st.seed; $('tName').value = st.name || ''; $('cRing').checked = !!st.ring; $('cSpin').checked = st.auto; $('rSpin').value = Math.round(((spin * 180 / Math.PI) % 360 + 360) % 360); $('rSun').value = st.sun;
     document.querySelectorAll('.kinds button').forEach(b => b.classList.toggle('on', b.dataset.kind === st.kind));
+    syncLocks();
   }
-  for (const [r, , key, mul] of SL) $(r).addEventListener('input', e => { st[key] = +e.target.value / mul; save(); sync(); regenerate(); });
   $('cRing').onchange = e => { st.ring = e.target.checked; save(); draw(); };
   $('cSpin').onchange = e => { st.auto = e.target.checked; save(); };
   $('rSpin').oninput = e => { spin = +e.target.value * Math.PI / 180; draw(); };
   $('rSun').oninput = e => { st.sun = +e.target.value; save(); draw(); };
-  $('tSeed').onchange = e => { st.seed = e.target.value.trim() || randSeed(); save(); sync(); regenerate(); };
-  $('tName').oninput = e => { st.name = e.target.value.trim(); save(); if (info) { info.name = st.name || PC.planetName(st.seed); renderCard(); } };
+  $('tSeed').onchange = e => { st.seed = e.target.value.trim() || randSeed(); if (!st.locks.name) st.name = PC.planetName(st.seed, st.kind); save(); sync(); regenerate(); };
+  $('tName').oninput = e => { st.name = e.target.value.trim(); if (st.name) st.locks.name = true; save(); syncLocks(); if (info) { info.name = st.name || PC.planetName(st.seed, st.kind); renderCard(); } };
+  $('tName').onchange = () => { if (!st.name) { st.locks.name = false; st.name = PC.planetName(st.seed, st.kind); save(); sync(); if (info) { info.name = st.name; renderCard(); } } };
   const kb = $('kinds');
-  for (const [k, v] of Object.entries(PC.KINDS)) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { Object.assign(st, PC.fromKind(k, st.seed), { name: st.name, spin: st.spin, sun: st.sun, auto: st.auto }); save(); sync(); regenerate(); }; kb.append(b); }
-  $('btnNew').onclick = () => { st.seed = randSeed(); save(); sync(); regenerate(); };
-  $('btnSurprise').onclick = () => {
-    const kinds = Object.keys(PC.KINDS), k = kinds[Math.floor(Math.random() * kinds.length)], rnd = (a, b) => a + Math.random() * (b - a);
-    Object.assign(st, PC.fromKind(k, randSeed()), { name: '', spin: st.spin, sun: st.sun, auto: st.auto });
-    if (k !== 'gas' && k !== 'lava') { st.sea = rnd(.15, .9); st.temp = rnd(-.8, .8); st.humid = rnd(.1, .95); st.mount = rnd(.2, .9); st.scale = rnd(.7, 3.2); st.caps = rnd(0, 1); }
-    st.cloud = rnd(0, .9); st.atmo = rnd(.2, 1); st.tilt = Math.round(rnd(0, 45)); st.moons = Math.floor(rnd(0, 4.99)); st.ring = k === 'gas' || Math.random() < .18; st.lights = k === 'earth' || k === 'desert' ? rnd(0, .9) : 0;
-    save(); sync(); regenerate();
-  };
+  for (const grp of [['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
+    kb.append(el('h5', {}, grp[1]));
+    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); }; kb.append(b); }
+  }
+  const reroll = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); save(); sync(); regenerate(); };
+  $('btnNew').onclick = () => reroll({ keepKind: true });
+  $('btnSurprise').onclick = () => reroll({});
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, spin }; cv.setPointerCapture(e.pointerId); });

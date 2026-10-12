@@ -33,7 +33,7 @@ test('типи планет: пустеля пустельніша за ліси
   const frac = (t, id) => t.biome.reduce((s, b) => s + (b === id ? 1 : 0), 0) / t.biome.length;
   const des = P.generateTexture(P.fromKind('desert', 'k'), W, H), earth = P.generateTexture(P.fromKind('earth', 'k'), W, H), ice = P.generateTexture(P.fromKind('ice', 'k'), W, H), ocean = P.generateTexture(P.fromKind('ocean', 'k'), W, H);
   assert.ok(frac(des, 7) > frac(earth, 7)); assert.ok(frac(ice, 2) > frac(earth, 2)); assert.ok(ocean.water > earth.water);
-  const lava = P.generateTexture(P.fromKind('lava', 'k'), W, H); assert.ok(frac(lava, 13) + frac(lava, 14) > .99); assert.equal(lava.water, 0);
+  const lava = P.generateTexture(P.fromKind('lava', 'k'), W, H); assert.ok(lava.biome.every(b => /лав|магм|вулкан|попіл/i.test(P.BIOMES[b].name)), 'на вулканічній лише лава, магма, порода й попіл'); assert.ok(!lava.biome.some(b => b <= 1), 'води на вулканічній немає');
   const gas = P.generateTexture(P.fromKind('gas', 'k'), W, H); assert.ok(gas.height.every(v => v === 0));
 });
 
@@ -54,13 +54,84 @@ test('описові характеристики: діапазони, прид�
   assert.equal(d.moons.length, 3); assert.ok(Math.abs(d.atmosphere.reduce((s, a) => s + a[1], 0) - 100) < 1.5); assert.equal(d.resources.length, 3);
   assert.ok(Math.abs(d.biomes.reduce((s, b) => s + b.share, 0) - 1) < 1e-9);
   assert.equal(P.describe(P.fromKind('gas', 'g'), P.generateTexture(P.fromKind('gas', 'g'), W, H)).habitability, 0);
-  assert.equal(P.describe(P.fromKind('lava', 'g')).habitability, 0);
+  assert.equal(P.describe(P.fromKind('lava', 'g')).habitability, 0); assert.equal(P.describe(P.fromKind('lava', 'g')).liquidName, 'Лава');
   assert.equal(P.planetName('x'), P.planetName('x')); assert.notEqual(P.planetName('x'), P.planetName('y')); assert.match(P.designation('x'), /^ZB-[A-Z]{2}-\d{3}$/);
 });
 
 test('придатність: помірний клімат і вода дають більше, ніж спека чи холод', () => {
   const hab = o => { const p = Object.assign(P.fromKind('earth', 'h'), o); return P.describe(p, P.generateTexture(p, 64, 32)).habitability; };
   assert.ok(hab({ temp: .05 }) > hab({ temp: .95 })); assert.ok(hab({ temp: .05 }) > hab({ temp: -.95 })); assert.ok(hab({ sea: .6 }) >= hab({ sea: 0 }));
+});
+
+/* ---------- нове: каталог типів, ручки, випадковість, замочки ---------- */
+const ids = Object.keys(P.KINDS), seq = n => { let a = n; return () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; }; };
+
+test('типів не менше 30: і реальні, і фантастичні, у кожного назва, опис, ручки й склад атмосфери', () => {
+  assert.ok(ids.length >= 30, 'типів ' + ids.length); assert.ok(ids.filter(k => P.KINDS[k].group === 'real').length >= 12); assert.ok(ids.filter(k => P.KINDS[k].group === 'fantasy').length >= 15);
+  assert.equal(new Set(ids.map(k => P.KINDS[k].name)).size, ids.length, 'назви унікальні');
+  for (const k of ids) { const K = P.KINDS[k]; assert.ok(K.name && K.blurb && K.life && K.gases.length && K.res.length >= 3 && K.knobs.length >= 5, k); assert.ok(Math.abs(K.gases.reduce((s, a) => s + a[1], 0) - 100) < 1.5, k + ': атмосфера'); for (const kb of K.knobs) assert.ok(kb.min < kb.max && kb.def >= kb.min && kb.def <= kb.max && kb.l, `${k}.${kb.k}`); }
+});
+
+test('кожен тип генерує коректну текстуру й паспорт', () => {
+  for (const k of ids) { const p = P.fromKind(k, 'v1'), t = P.generateTexture(p, 96, 48), d = P.describe(p, t);
+    for (const v of t.rgb) assert.ok(Number.isFinite(v) && v >= 0 && v <= 255, k); for (const b of t.biome) assert.ok(P.BIOMES[b], k + ': біом ' + b);
+    assert.ok(d.name && d.biomes.length && d.habitability >= 0 && d.habitability <= 100, k); assert.ok(Math.abs(d.biomes.reduce((s, b) => s + b.share, 0) - 1) < 1e-9, k); }
+});
+
+test('типи виглядають по-різному: середні кольори різних типів помітно відрізняються', () => {
+  const avg = k => { const t = P.generateTexture(P.fromKind(k, 's'), 96, 48), a = [0, 0, 0]; for (let i = 0; i < t.rgb.length; i++) a[i % 3] += t.rgb[i]; return a.map(v => v / (t.rgb.length / 3)); };
+  const cols = ids.map(avg); let close = 0; for (let i = 0; i < cols.length; i++) for (let j = i + 1; j < cols.length; j++) if (Math.hypot(cols[i][0] - cols[j][0], cols[i][1] - cols[j][1], cols[i][2] - cols[j][2]) < 6) close++;
+  assert.ok(close <= 12, 'надто багато схожих пар типів: ' + close);
+});
+
+test('адаптація під тип: вулканічна має лаву, титаноподібна метан, льодяна без лави, у літаючих островів є мости', () => {
+  const names = (k, o) => { const p = Object.assign(P.fromKind(k, 'ad'), o), t = P.generateTexture(p, 128, 64); return new Set(Array.from(t.biome, b => P.BIOMES[b].name)); };
+  assert.ok(names('lava').has('Магмове море') || names('lava').has('Лава')); assert.ok(names('titan').has('Метанове озеро') || names('titan').has('Етанова мілина')); assert.ok(!names('ice').has('Лава'));
+  assert.ok(names('floating', { bridge: 1 }).has('Мости')); assert.ok(!names('floating', { bridge: 0 }).has('Мости'));
+  assert.equal(P.describe(P.fromKind('titan', 'a')).liquidName, 'Метан');
+});
+
+test('кожна ручка кожного типу змінює вигляд планети (кольори, світіння, хмари чи вогні), а не лише розмір', () => {
+  const sig = p => { const t = P.generateTexture(p, 96, 48); let s = 0; for (let i = 0; i < t.rgb.length; i++) s += t.rgb[i] * (1 + i % 7); for (let i = 0; i < t.glow.length; i++) s += t.glow[i] * (3 + i % 5) + t.cloud[i] * (2 + i % 3) + t.light[i] * (1 + i % 11); return s + P.describe(p).pressure * 1e5 + P.describe(p).tempC * 1e3; };
+  const dead = [];
+  for (const k of ids) for (const kb of P.KINDS[k].knobs) {
+    if (['tilt', 'moons', 'ringw', 'ringd', 'shine'].includes(kb.k)) continue; // ці лише в рендері сфери
+    const base = P.fromKind(k, 'knob'), v = [kb.min, (kb.min + kb.max) / 2, kb.max].map(x => sig(Object.assign({}, base, { [kb.k]: x })));
+    if (v[0] === v[1] && v[1] === v[2]) dead.push(k + '.' + kb.k);
+  }
+  assert.deepEqual(dead, []);
+});
+
+test('відтінок повертає палітру, а нуль її не чіпає', () => {
+  const a = P.generateTexture(P.fromKind('earth', 'h'), 64, 32), b = P.generateTexture(Object.assign(P.fromKind('earth', 'h'), { hue: .1 }), 64, 32); assert.notDeepEqual(a.rgb, b.rgb);
+  assert.deepEqual(a.rgb, P.generateTexture(Object.assign(P.fromKind('earth', 'h'), { hue: 0 }), 64, 32).rgb);
+});
+
+test('Сюрприз: різні типи, назви й значення ручок; значення в допустимих діапазонах', () => {
+  const R = seq(7); let prev = P.fromKind('earth', 'a'); const kinds = new Set(), names = new Set(), seeds = new Set(), vals = {};
+  for (let i = 0; i < 900; i++) { prev = P.randomPlanet(prev, {}, R); kinds.add(prev.kind); names.add(prev.name); seeds.add(prev.seed); const K = P.KINDS[prev.kind];
+    for (const kb of K.knobs) { assert.ok(prev[kb.k] >= kb.min - 1e-9 && prev[kb.k] <= kb.max + 1e-9, `${prev.kind}.${kb.k}=${prev[kb.k]}`); (vals[prev.kind + '.' + kb.k] ||= new Set()).add(Math.round(prev[kb.k] * 20)); } }
+  assert.ok(kinds.size >= 25, 'типів у вибірці ' + kinds.size); assert.ok(names.size >= 850 && seeds.size >= 890);
+  const flat = Object.entries(vals).filter(([k, s]) => s.size < 2 && !k.endsWith('.moons')); assert.ok(flat.length === 0, 'ручки без різноманіття: ' + flat.map(f => f[0]).join(','));
+});
+
+test('замочки: тип, назва, зерно, ручки й кільця лишаються, решта міняється; «Нова планета» зберігає тип', () => {
+  const R = seq(3), prev = Object.assign(P.fromKind('lava', 'keepme'), { name: 'Моя Лава', veins: .123, heat: .9, ring: true });
+  const locks = { kind: true, name: true, seed: true, veins: true, ring: true };
+  for (let i = 0; i < 20; i++) { const n = P.randomPlanet(prev, locks, R); assert.equal(n.kind, 'lava'); assert.equal(n.name, 'Моя Лава'); assert.equal(n.seed, 'keepme'); assert.ok(Math.abs(n.veins - .123) < 1e-9); assert.equal(n.ring, true); }
+  const heats = new Set(); for (let i = 0; i < 20; i++) heats.add(P.randomPlanet(prev, locks, R).heat.toFixed(2)); assert.ok(heats.size > 10);
+  for (let i = 0; i < 20; i++) assert.equal(P.randomPlanet(prev, {}, R, { keepKind: true }).kind, 'lava');
+  const sw = P.switchKind(prev, 'ice', { cracks: true, name: true }); assert.equal(sw.kind, 'ice'); assert.equal(sw.name, 'Моя Лава');
+  const clamped = P.randomPlanet({ kind: 'earth', seed: 'x', sea: 5 }, { sea: true }, R, { keepKind: true }); assert.ok(clamped.sea <= .95);
+});
+
+test('назва: завжди є, залежить від зерна й типу, не порожня для кожного типу', () => {
+  for (const k of ids) assert.ok(P.planetName('seed1', k).length >= 3, k);
+  assert.notEqual(P.planetName('s', 'lava'), P.planetName('t', 'lava')); assert.equal(P.planetName('s', 'lava'), P.planetName('s', 'lava')); assert.ok(P.fromKind('crystal', 'zz').name);
+});
+
+test('clampParams: застарілі або чужі значення приводяться до діапазонів типу', () => {
+  const c = P.clampParams({ kind: 'lava', seed: 'q', sea: 5, heat: -3, moons: 9 }); assert.ok(c.sea <= .7 && c.heat >= .2 && c.moons <= 3); assert.equal(P.clampParams({ kind: 'nope' }).kind, 'earth');
 });
 
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
