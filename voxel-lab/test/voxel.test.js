@@ -99,5 +99,70 @@ test('heightmap і counts узгоджені', () => {
   assert.equal(hm.length, 400); assert.equal(c.reduce((a, b) => a + b, 0), w.blocks.length); assert.ok(Math.max(...hm) > Math.min(...hm));
 });
 
+const blank = (sx, sy, sz) => ({ sx, sy, sz, blocks: new Uint8Array(sx * sy * sz), opts: {}, heights: new Int16Array(sx * sz) });
+const meshAll = (w, cut) => { let f = 0; const [nx, nz] = V.chunkCount(w); for (let cz = 0; cz < nz; cz++) for (let cx = 0; cx < nx; cx++) f += V.meshChunk(w, cx, cz, cut).faces; return f; };
+
+test('меш: один блок дає 5 граней (низ світу не малюється), два сусідні ховають спільну грань, закритий блок не дає жодної', () => {
+  const w = blank(8, 8, 8); V.set(w, 3, 3, 3, V.ID.STONE); assert.equal(meshAll(w), 6);
+  V.set(w, 4, 3, 3, V.ID.STONE); assert.equal(meshAll(w), 10);
+  const g = blank(8, 8, 8); V.set(g, 3, 0, 3, V.ID.STONE); assert.equal(meshAll(g), 5);
+  const c = blank(8, 8, 8); for (let dz = -1; dz <= 1; dz++) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) V.set(c, 4 + dx, 4 + dy, 4 + dz, V.ID.STONE);
+  assert.equal(meshAll(c), 54, 'куб 3×3×3: лише 6 стін по 9 граней, центр і прихований внутрішній шар не малюються');
+});
+
+test('меш: кількість граней збігається з перевіркою visibleDir, через межі чанків теж, а прихованих граней у світі переважна більшість', () => {
+  const w = V.generate({ seed: 'mesh', sx: 40, sz: 37, sy: 30 }); let expect = 0;
+  const dirs = [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
+  for (let y = 0; y < w.sy; y++) for (let z = 0; z < w.sz; z++) for (let x = 0; x < w.sx; x++) for (const d of dirs) { if (d[1] < 0 && y === 0) continue; if (V.visibleDir(w, x, y, z, d[0], d[1], d[2])) expect++; }
+  assert.equal(meshAll(w), expect);
+  const solid = w.blocks.reduce((s, v) => s + (v ? 1 : 0), 0); assert.ok(meshAll(w) < solid * 6 * .25, 'видимих граней менше чверті від усіх граней блоків');
+});
+
+test('меш: вода окремо з прозорістю, формат вершин 8 байт, координати в межах чанка', () => {
+  const w = blank(20, 6, 20); for (let x = 0; x < 20; x++) for (let z = 0; z < 20; z++) { V.set(w, x, 1, z, V.ID.SAND); V.set(w, x, 2, z, V.ID.WATER); }
+  const m = V.meshChunk(w, 1, 1); assert.ok(m.opaque && m.water); assert.equal(m.water.v.length, m.water.n * 32);
+  for (let i = 0; i < m.water.v.length; i += 8) { assert.equal(m.water.v[i + 7], 184); assert.ok(m.water.v[i] <= V.CS && m.water.v[i + 2] <= V.CS); }
+  for (let i = 7; i < m.opaque.v.length; i += 8) assert.equal(m.opaque.v[i], 255);
+  assert.equal(V.quadIndices(2).length, 12); assert.deepEqual([...V.quadIndices(2)].slice(6, 12), [4, 5, 6, 4, 6, 7]);
+});
+
+test('меш зі зрізом: блоки вище зрізу зникають, на рівні зрізу з’являється «кришка»', () => {
+  const w = blank(6, 8, 6); for (let y = 0; y < 6; y++) for (let z = 0; z < 6; z++) for (let x = 0; x < 6; x++) V.set(w, x, y, z, V.ID.STONE);
+  const full = V.meshChunk(w, 0, 0), cut = V.meshChunk(w, 0, 0, 2);
+  assert.equal(full.faces, 36 + 4 * 6 * 6 /* верх + стіни */ + 36 - 36 /* низ світу не малюється */);
+  assert.equal(cut.faces, 6 * 6 + 4 * 6 * 3); // верх 6×6 + чотири стіни висотою 3
+  let maxY = 0; for (let i = 1; i < cut.opaque.v.length; i += 8) maxY = Math.max(maxY, cut.opaque.v[i]); assert.equal(maxY, 3);
+});
+
+test('raycast: влучає в перший блок і дає нормаль грані, промахується повз, працює ззовні світу і зі зрізом', () => {
+  const w = blank(10, 10, 10); V.set(w, 5, 4, 5, V.ID.STONE); V.set(w, 5, 2, 5, V.ID.STONE);
+  let h = V.raycast(w, [5.5, 9.5, 5.5], [0, -1, 0]); assert.deepEqual([h.x, h.y, h.z, h.nx, h.ny, h.nz], [5, 4, 5, 0, 1, 0]);
+  h = V.raycast(w, [-5, 4.5, 5.5], [1, 0, 0]); assert.deepEqual([h.x, h.y, h.z, h.nx, h.ny, h.nz], [5, 4, 5, -1, 0, 0]);
+  h = V.raycast(w, [5.5, 4.5, 20], [0, 0, -1]); assert.deepEqual([h.nz, h.z], [1, 5]);
+  assert.equal(V.raycast(w, [0.5, 9.5, 0.5], [0, -1, 0]), null);
+  assert.equal(V.raycast(w, [5.5, 9.5, 5.5], [0, 1, 0]), null);
+  h = V.raycast(w, [5.5, 9.5, 5.5], [0, -1, 0], 1e9, 3); assert.equal(h.y, 2); // зріз ховає блок на висоті 4
+  const d = [1, -1.3, .7], l = Math.hypot(...d); h = V.raycast(w, [1, 8, 3.2], d.map(v => v / l)); if (h) assert.ok(V.get(w, h.x, h.y, h.z) !== 0);
+});
+
+test('raycast на згенерованому світі збігається з дрібним покроковим маршем по променю', () => {
+  const w = V.generate({ seed: 'ray', sx: 48, sz: 48, sy: 40 }), R = V.rngFromSeed('rays');
+  let hits = 0, agree = 0;
+  for (let i = 0; i < 300; i++) {
+    const o = [R() * 48, 39.5, R() * 48], d = [R() - .5, -.3 - R(), R() - .5], l = Math.hypot(...d), u = d.map(v => v / l), h = V.raycast(w, o, u);
+    let m = null; for (let t = 0; t < 200 && !m; t += .01) { const x = Math.floor(o[0] + u[0] * t), y = Math.floor(o[1] + u[1] * t), z = Math.floor(o[2] + u[2] * t); if (V.get(w, x, y, z)) m = [x, y, z]; }
+    if (!h) { assert.equal(m, null); continue; } hits++; assert.ok(V.get(w, h.x, h.y, h.z) !== 0);
+    if (m && m[0] === h.x && m[1] === h.y && m[2] === h.z) agree++;
+  }
+  assert.ok(hits > 150, 'влучань ' + hits); assert.ok(agree >= hits * .97, `збіг ${agree} з ${hits}`);
+});
+
+test('великий світ 512×512 генерується й будується мешем; видимі грані — мала частка від усіх', () => {
+  const w = V.generate({ seed: 'big', sx: 512, sz: 512, sy: 40 }); assert.equal(w.blocks.length, 512 * 512 * 40);
+  assert.deepEqual(V.chunkCount(w), [32, 32]);
+  const t0 = Date.now(), f = meshAll(w), ms = Date.now() - t0, solid = w.blocks.reduce((s, v) => s + (v ? 1 : 0), 0);
+  assert.ok(f < solid * 6 * .3, `граней ${f} з ${solid * 6}`); assert.ok(ms < 15000, 'меш за ' + ms + ' мс');
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

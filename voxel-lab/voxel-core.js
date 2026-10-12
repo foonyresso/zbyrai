@@ -127,19 +127,96 @@ const VoxelCore = (() => {
   /* ---------- знаходження блока для кліку: найближча до глядача грань під точкою ---------- */
   function neighborOf(x, y, z, face) { return face === 0 ? [x, y + 1, z] : face === 1 ? [x, y, z + 1] : [x + 1, y, z]; }
 
+  /* ---------- чанковий меш: лише видимі грані (сусід — повітря/вода/листя), без прихованих блоків ----------
+     Чанк CS×CS по x/z і на всю висоту. Вершини: pos Uint8 (x,y,z,0) відносно кута чанка, col Uint8 (r,g,b,a) з уже «запеченим» освітленням.
+     Грані, закриті твердим сусідом, у меш не потрапляють; змінений блок перебудовує лише свій чанк (і сусідній, якщо стоїть на межі). */
+  const CS = 16;
+  const FACES = [ // [dx, dy, dz, світло, 4 кути (x,y,z)]
+    [0, 1, 0, 1, [0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0]], [0, -1, 0, .5, [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1]],
+    [1, 0, 0, .82, [1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1]], [-1, 0, 0, .7, [0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0]],
+    [0, 0, 1, .66, [0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1]], [0, 0, -1, .78, [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0]],
+  ];
+  const hash3 = (x, y, z) => (Math.imul(x * 73856093 ^ y * 19349663 ^ z * 83492791, 2654435761) >>> 0 & 255) / 255;
+  const chunkCount = w => [Math.ceil(w.sx / CS), Math.ceil(w.sz / CS)];
+  // вершина = 8 байт: x,y,z,0 (відносно кута чанка) і r,g,b,a; грань = 4 вершини, індекси для всіх граней однакові (quadIndices)
+  function newBuf(maxFaces) { return { v: new Uint8Array(maxFaces * 32), n: 0 }; }
+  const sliceBuf = b => (b.n ? { v: b.v.slice(0, b.n * 32), n: b.n } : null);
+  function quadIndices(nFaces) {
+    const idx = new Uint32Array(nFaces * 6);
+    for (let f = 0, i = 0; f < nFaces; f++, i += 6) { const v = f * 4; idx[i] = v; idx[i + 1] = v + 1; idx[i + 2] = v + 2; idx[i + 3] = v; idx[i + 4] = v + 2; idx[i + 5] = v + 3; }
+    return idx;
+  }
+  let scratch = null;
+  /* meshChunk(w, cx, cz, cut) → { opaque, water, faces }; cut — показувати лише y <= cut (блоки вище вважаються повітрям, тож на зрізі видно «кришку») */
+  function meshChunk(w, cx, cz, cut = 999) {
+    const ym = Math.min(cut, w.sy - 1), x0 = cx * CS, z0 = cz * CS, x1 = Math.min(w.sx, x0 + CS), z1 = Math.min(w.sz, z0 + CS), sx = w.sx, sz = w.sz, blocks = w.blocks, layer = sx * sz;
+    const cap = (x1 - x0) * (z1 - z0) * (ym + 1) * 6; // межа зверху: шість граней на клітинку
+    if (!scratch || scratch.cap < cap) scratch = { cap, o: newBuf(cap), w: newBuf(cap) };
+    const O = scratch.o, Wt = scratch.w; O.n = 0; Wt.n = 0;
+    const at = (x, y, z) => (x < 0 || z < 0 || x >= sx || z >= sz || y < 0 || y > ym ? 0 : blocks[x + sx * z + layer * y]);
+    for (let z = z0; z < z1; z++) for (let x = x0; x < x1; x++) {
+      for (let y = 0; y <= ym; y++) {
+        const b = blocks[x + sx * z + layer * y]; if (!b) continue;
+        const B = BLOCKS[b], liquid = B.liquid, c = B.color, buf = liquid ? Wt : O;
+        const tint = .94 + hash3(x, y, z) * .1, depth = liquid ? 1 : .86 + .14 * Math.min(1, (y + 1) / w.sy);
+        for (let f = 0; f < 6; f++) {
+          const F = FACES[f]; if (F[1] < 0 && y === 0) continue; // низ світу не видно
+          const nb = at(x + F[0], y + F[1], z + F[2]);
+          if (nb && (liquid || !(BLOCKS[nb].liquid || nb === ID.LEAVES && b !== ID.LEAVES))) continue; // закрита грань
+          const m = F[3] * tint * depth, r = Math.min(255, c[0] * m) | 0, g = Math.min(255, c[1] * m) | 0, bl = Math.min(255, c[2] * m) | 0, a = liquid ? 184 : 255, k = F[4], v = buf.v;
+          let o = buf.n * 32;
+          for (let q = 0; q < 4; q++, o += 8) { v[o] = x - x0 + k[q * 3]; v[o + 1] = y + k[q * 3 + 1]; v[o + 2] = z - z0 + k[q * 3 + 2]; v[o + 3] = 0; v[o + 4] = r; v[o + 5] = g; v[o + 6] = bl; v[o + 7] = a; }
+          buf.n++;
+        }
+      }
+    }
+    return { opaque: sliceBuf(O), water: sliceBuf(Wt), faces: O.n + Wt.n };
+  }
+
+  /* ---------- промінь через воксельну сітку (DDA Амантідеса-Ву): перший непорожній блок, нормаль грані влучання ---------- */
+  function raycast(w, o, d, maxDist = 1e9, cut = 999) {
+    const ym = Math.min(cut, w.sy - 1); let t0 = 0, t1 = maxDist;
+    const lo = [0, 0, 0], hi = [w.sx, ym + 1, w.sz]; // вхід променя в коробку світу, щоб не крокувати по порожнечі
+    for (let a = 0; a < 3; a++) {
+      if (Math.abs(d[a]) < 1e-12) { if (o[a] < lo[a] || o[a] > hi[a]) return null; continue; }
+      let ta = (lo[a] - o[a]) / d[a], tb = (hi[a] - o[a]) / d[a]; if (ta > tb) [ta, tb] = [tb, ta];
+      t0 = Math.max(t0, ta); t1 = Math.min(t1, tb); if (t0 > t1) return null;
+    }
+    const e = 1e-6, p = [o[0] + d[0] * (t0 + e), o[1] + d[1] * (t0 + e), o[2] + d[2] * (t0 + e)], c = p.map(Math.floor), step = [], tMax = [], tDelta = [];
+    c[0] = Math.min(w.sx - 1, Math.max(0, c[0])); c[1] = Math.min(ym, Math.max(0, c[1])); c[2] = Math.min(w.sz - 1, Math.max(0, c[2]));
+    for (let a = 0; a < 3; a++) {
+      step[a] = d[a] > 0 ? 1 : -1; tDelta[a] = Math.abs(d[a]) < 1e-12 ? Infinity : Math.abs(1 / d[a]);
+      tMax[a] = Math.abs(d[a]) < 1e-12 ? Infinity : t0 + e + ((d[a] > 0 ? c[a] + 1 - p[a] : p[a] - c[a]) * tDelta[a]);
+    }
+    let n = [0, 0, 0], t = t0, first = true;
+    for (let i = 0; i < w.sx + w.sy + w.sz + 8; i++) {
+      if (c[0] < 0 || c[1] < 0 || c[2] < 0 || c[0] >= w.sx || c[1] > ym || c[2] >= w.sz || t > t1 + 1e-6) return null;
+      if (w.blocks[c[0] + w.sx * c[2] + w.sx * w.sz * c[1]]) {
+        if (first && n[0] === 0 && n[1] === 0 && n[2] === 0) { /* початок усередині блока: нормаль проти променя за домінантною віссю */ let m = 0; for (let a = 1; a < 3; a++) if (Math.abs(d[a]) > Math.abs(d[m])) m = a; n[m] = -step[m]; }
+        return { x: c[0], y: c[1], z: c[2], nx: n[0], ny: n[1], nz: n[2], t };
+      }
+      first = false;
+      const a = tMax[0] < tMax[1] ? (tMax[0] < tMax[2] ? 0 : 2) : (tMax[1] < tMax[2] ? 1 : 2);
+      t = tMax[a]; tMax[a] += tDelta[a]; c[a] += step[a]; n = [0, 0, 0]; n[a] = -step[a];
+    }
+    return null;
+  }
+
   /* ---------- експорт MagicaVoxel (.vox, версія 150) ----------
      Вісі .vox: x праворуч, y вглиб, z вгору; максимум 256 на сторону. Палітра = кольори блоків (індекс = id блока). */
   function toVox(w) {
-    if (w.sx > 256 || w.sz > 256 || w.sy > 256) throw new Error('.vox підтримує до 256 вокселів на сторону');
-    const vox = []; for (let y = 0; y < w.sy; y++) for (let z = 0; z < w.sz; z++) for (let x = 0; x < w.sx; x++) { const b = w.blocks[idx(w, x, y, z)]; if (b) vox.push([x, w.sz - 1 - z, y, b]); }
+    if (w.sx > 256 || w.sz > 256 || w.sy > 256) throw new Error('.vox підтримує до 256 вокселів на сторону: зменште світ до 256×256');
+    let cnt = 0; for (let i = 0; i < w.blocks.length; i++) if (w.blocks[i]) cnt++;
+    const xyzi = new Uint8Array(4 + cnt * 4), dv = new DataView(xyzi.buffer); dv.setUint32(0, cnt, true);
+    let o = 4; for (let y = 0; y < w.sy; y++) for (let z = 0; z < w.sz; z++) for (let x = 0; x < w.sx; x++) { const b = w.blocks[idx(w, x, y, z)]; if (b) { xyzi[o++] = x; xyzi[o++] = w.sz - 1 - z; xyzi[o++] = y; xyzi[o++] = b; } }
     const u32 = v => [v & 255, v >> 8 & 255, v >> 16 & 255, v >>> 24 & 255], tag = s => [...s].map(c => c.charCodeAt(0));
-    const size = [...u32(w.sx), ...u32(w.sz), ...u32(w.sy)], xyzi = [...u32(vox.length)]; for (const v of vox) xyzi.push(v[0], v[1], v[2], v[3]);
+    const size = Uint8Array.from([...u32(w.sx), ...u32(w.sz), ...u32(w.sy)]);
     const rgba = []; for (let i = 0; i < 256; i++) { const c = BLOCKS[i] ? BLOCKS[i].color : [0, 0, 0]; rgba.push(c[0], c[1], c[2], 255); }
     // в .vox колір вокселя з індексом i береться з palette[i-1]: зсуваємо палітру на один
-    const pal = rgba.slice(4).concat([0, 0, 0, 255]);
-    const chunk = (id, content, children = []) => [...tag(id), ...u32(content.length), ...u32(children.length), ...content, ...children];
-    const main = chunk('MAIN', [], [...chunk('SIZE', size), ...chunk('XYZI', xyzi), ...chunk('RGBA', pal)]);
-    return new Uint8Array([...tag('VOX '), ...u32(150), ...main]);
+    const pal = Uint8Array.from(rgba.slice(4).concat([0, 0, 0, 255]));
+    const chunk = (id, content, children = []) => { const kids = children.reduce((s, k) => s + k.length, 0), out = new Uint8Array(12 + content.length + kids); out.set(tag(id), 0); out.set(u32(content.length), 4); out.set(u32(kids), 8); out.set(content, 12); let p = 12 + content.length; for (const k of children) { out.set(k, p); p += k.length; } return out; };
+    const main = chunk('MAIN', [], [chunk('SIZE', size), chunk('XYZI', xyzi), chunk('RGBA', pal)]), out = new Uint8Array(8 + main.length);
+    out.set(tag('VOX '), 0); out.set(u32(150), 4); out.set(main, 8); return out;
   }
 
   function toJson(w) {
@@ -158,7 +235,7 @@ const VoxelCore = (() => {
     return w;
   }
 
-  return { BLOCKS, ID, DEFAULTS, rngFromSeed, makeNoise, generate, idx, inb, get, set, faceVisible, visibleDir, SCREEN_DIRS, solidAt, walk, extents, topSolid, heightmap, counts, neighborOf, toVox, toJson, fromJson };
+  return { BLOCKS, ID, DEFAULTS, rngFromSeed, makeNoise, generate, idx, inb, get, set, faceVisible, visibleDir, SCREEN_DIRS, solidAt, walk, extents, topSolid, heightmap, counts, neighborOf, CS, chunkCount, meshChunk, quadIndices, raycast, toVox, toJson, fromJson };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = VoxelCore;

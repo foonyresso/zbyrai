@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Voxel World Lab: воксельна лабораторія</title>
-<meta name="description" content="Генератор воксельних світів в ізометрії: шум, біоми, печери, руди, дерева, зріз за висотою, будівництво блоками й експорт у MagicaVoxel .vox, JSON і PNG. Безкоштовно, працює офлайн.">
+<meta name="description" content="Генератор воксельних світів до 512×512 з 3D-камерою: шум, біоми, печери, руди, дерева, зріз за висотою, будівництво блоками й експорт у MagicaVoxel .vox, JSON і PNG. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/voxel-lab/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
@@ -23,28 +23,28 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8.5 4.8v9.4L12 21.5l-8.5-4.8V7.3zM3.5 7.3 12 12l8.5-4.7M12 12v9.5"/></svg>
     <div>Voxel World <span>Lab</span></div>
   </div>
-  <div class="spacer"></div>
-  <button id="btnNew" class="btn-primary" title="Новий випадковий світ (Пробіл)">Новий світ</button>
 </header>
 
 <main class="wrap">
   <section class="stage">
     <div class="stage-h">
+      <button id="btnNew" class="btn-primary" title="Новий випадковий світ (Пробіл)">Новий світ</button>
       <div class="seg" id="tools" role="group" aria-label="Інструмент"><button data-tool="look" class="on">Дивитись</button><button data-tool="place">Ставити</button><button data-tool="break">Ламати</button></div>
-      <button id="btnRotL" title="Повернути вліво (Q)">⟲</button><button id="btnRotR" title="Повернути вправо (E)">⟳</button>
+      <button id="btnRotL" title="Повернути вліво (Q)">⟲</button><button id="btnRotR" title="Повернути вправо (E)">⟳</button><button id="btnReset" title="Скинути ракурс (R)">Скинути вид</button><button id="btnProj" title="Перспектива чи ізометрія"></button>
       <label class="ctl-inline">Зріз <input type="range" id="rCut" min="1" max="40" step="1"><output id="oCut"></output></label>
-      <label class="ctl-inline">Масштаб <input type="range" id="rZoom" min="40" max="300" step="5"><output id="oZoom"></output></label>
       <button id="btnUndo" title="Скасувати (Ctrl+Z)">Скасувати</button>
     </div>
     <div class="palette" id="palette" role="group" aria-label="Блок для будівництва"></div>
-    <div class="canvaswrap" id="wrap"><canvas id="cv" aria-label="Воксельний світ"></canvas></div>
-    <p class="hint" id="status">Колесо миші масштабує, Q/E обертають. Інструмент «Ставити» додає блок до грані, на яку клікнули, «Ламати» прибирає блок.</p>
+    <div class="canvaswrap" id="wrap"><canvas id="cv" aria-label="Воксельний світ"></canvas><div class="busy" id="busy" hidden>Генерація світу…</div></div>
+    <p class="hint" id="status"></p>
   </section>
 
   <aside class="side">
     <div class="card"><h2>Світ</h2>
+      <button id="btnNew2" class="btn-primary wide" title="Новий випадковий світ (Пробіл)">Новий світ</button>
       <label class="ctl txt"><span>Зерно</span><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
-      <label class="ctl"><span>Розмір (x × z)</span><output id="oSize"></output><input type="range" id="rSize" min="16" max="96" step="8"></label>
+      <label class="ctl"><span>Розмір світу</span><output id="oSize"></output><input type="range" id="rSize" min="16" max="512" step="16"></label>
+      <p class="hint" id="sizeWarn" hidden>Більше 256 блоків на сторону: експорт у .vox недоступний (ліміт формату), JSON і PNG працюють.</p>
       <label class="ctl"><span>Висота шару</span><output id="oSy"></output><input type="range" id="rSy" min="16" max="64" step="4"></label>
     </div>
     <div class="card"><h2>Рельєф</h2>
@@ -61,7 +61,7 @@
       <label class="ctl"><span>Дерева</span><output id="oTrees"></output><input type="range" id="rTrees" min="0" max="100" step="1"></label>
       <label class="ctl"><span>Руди</span><output id="oOres"></output><input type="range" id="rOres" min="0" max="100" step="1"></label>
     </div>
-    <div class="card"><h2>Блоки у світі</h2><div id="counts" class="counts"></div></div>
+    <div class="card"><h2>Блоки у світі</h2><p class="hint" id="info"></p><div id="counts" class="counts"></div></div>
     <div class="card"><h2>Експорт</h2>
       <div class="exp"><button id="btnVox" class="btn-primary">MagicaVoxel .vox</button><button id="btnJson">JSON</button><button id="btnPng">Картинка PNG</button><button id="btnHm">Карта висот PNG</button><button id="btnImport">Імпорт JSON</button></div>
       <input type="file" id="file" accept="application/json,.json" hidden>
