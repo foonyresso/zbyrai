@@ -32,6 +32,58 @@ test('removeBg: допуск і м\'який край', () => {
   assert.ok(a > 0 && a < 255, 'частково прозорий: ' + a);
 });
 
+test('removeColors: кілька кольорів фону, кожен зі своїм допуском (небо + пісок), фото-подібний сценарій', () => {
+  const SKY = [120, 180, 240], SAND = [230, 210, 150], RED = [200, 20, 20];
+  const img = make(40, 20, SKY); rect(img, 0, 10, 40, 10, SAND); rect(img, 15, 5, 10, 10, RED); // небо зверху, пісок знизу, предмет посередині
+  const one = S.removeColors(img, { colors: [{ color: SKY, tol: 5 }], mode: 'flood' });
+  assert.equal(alpha(one, 1, 1), 0); assert.equal(alpha(one, 1, 18), 255, 'пісок один колір не бере');
+  const two = S.removeColors(img, { colors: [{ color: SKY, tol: 5 }, { color: SAND, tol: 5 }], mode: 'flood' });
+  assert.equal(alpha(two, 1, 1), 0); assert.equal(alpha(two, 1, 18), 0); assert.equal(alpha(two, 20, 10), 255);
+  // допуск у кожного власний: вузький для піску не зачіпає близький відтінок
+  const near = make(10, 10, SKY); rect(near, 0, 5, 10, 5, [225, 205, 150]);
+  assert.equal(alpha(S.removeColors(near, { colors: [{ color: SKY, tol: 5 }, { color: SAND, tol: 0 }], mode: 'global' }), 2, 8), 255);
+  assert.equal(alpha(S.removeColors(near, { colors: [{ color: SKY, tol: 5 }, { color: SAND, tol: 5 }], mode: 'global' }), 2, 8), 0);
+  assert.equal(alpha(S.removeColors(img, { colors: [], mode: 'flood' }), 1, 1), 255, 'порожній список нічого не прибирає');
+});
+
+test('removeColors (flood): колір фону всередині предмета, не з\'єднаний з краєм, лишається; global прибирає', () => {
+  const img = make(30, 30, GREEN); rect(img, 5, 5, 20, 20, [200, 0, 0]); rect(img, 12, 12, 5, 5, [0, 0, 255]);
+  const o = { colors: [{ color: GREEN, tol: 3 }, { color: [0, 0, 255], tol: 3 }], feather: 0 };
+  assert.equal(alpha(S.removeColors(img, { ...o, mode: 'flood' }), 14, 14), 255);
+  assert.equal(alpha(S.removeColors(img, { ...o, mode: 'global' }), 14, 14), 0);
+});
+
+test('removeColors: м\'який край береться мінімумом по кольорах', () => {
+  const img = make(6, 6, GREEN); rect(img, 2, 2, 2, 2, [0, 230, 0]);
+  const a = alpha(S.removeColors(img, { colors: [{ color: GREEN, tol: 1 }, { color: [255, 0, 255], tol: 1 }], feather: 20, mode: 'global' }), 2, 2);
+  assert.ok(a > 0 && a < 255, 'частково прозорий: ' + a);
+});
+
+test('edgeColors знаходить кілька різних кольорів по краях і не повторює близькі', () => {
+  const img = make(40, 20, [120, 180, 240]); rect(img, 0, 10, 40, 10, [230, 210, 150]); rect(img, 10, 4, 12, 12, [200, 20, 20]);
+  const e = S.edgeColors(img, 3);
+  assert.equal(e.length, 2);
+  assert.deepEqual(e.map(x => x.color).sort((a, b) => a[0] - b[0]), [[120, 180, 240], [230, 210, 150]]);
+  assert.ok(e[0].share > 0.4);
+});
+
+test('ручні правки: паличка (суміжна й глобальна), пензель, рамка, відновлення', () => {
+  const img = make(20, 10, [10, 10, 10]); rect(img, 0, 0, 5, 10, [250, 250, 250]); rect(img, 15, 0, 5, 10, [250, 250, 250]);
+  const em = new Uint8Array(200);
+  assert.equal(S.wandMask(em, img, 2, 2, 5, true, 1), 50); // лише ліва смуга
+  assert.equal(em[2 * 20 + 17], 0);
+  const em2 = new Uint8Array(200); assert.equal(S.wandMask(em2, img, 2, 2, 5, false, 1), 100); // обидві смуги
+  let o = S.applyEdits(img, img, em); assert.equal(alpha(o, 2, 2), 0); assert.equal(alpha(o, 17, 2), 255);
+  const e3 = new Uint8Array(200); S.paintLine(e3, 20, 10, 2, 5, 17, 5, 1, 1);
+  assert.ok([2, 8, 17].every(x => e3[5 * 20 + x] === 1), 'лінія без дірок'); assert.equal(e3[0], 0);
+  const e4 = new Uint8Array(200); S.paintRect(e4, 20, 10, 18, 8, 25, 12, 1); // виходить за межі: обрізається
+  assert.equal(e4[9 * 20 + 19], 1); assert.equal(e4[7 * 20 + 19], 0);
+  // відновлення бере піксель з оригіналу
+  const cleared = S.removeColors(img, { colors: [{ color: [10, 10, 10], tol: 2 }], mode: 'global' }); assert.equal(alpha(cleared, 10, 5), 0);
+  const e5 = new Uint8Array(200); e5[5 * 20 + 10] = 2; const back = S.applyEdits(cleared, img, e5);
+  assert.equal(alpha(back, 10, 5), 255); assert.deepEqual([...back.data.slice((5 * 20 + 10) * 4, (5 * 20 + 10) * 4 + 3)], [10, 10, 10]);
+});
+
 test('findSprites: знаходить окремі спрайти в порядку читання, зі щільними рамками', () => {
   const img = make(60, 40, GREEN); rect(img, 30, 2, 10, 10, [255, 0, 0]); rect(img, 4, 4, 8, 6, [0, 0, 255]); rect(img, 10, 25, 12, 12, [255, 255, 0]);
   const cl = S.removeBg(img, { color: GREEN, tol: 3, feather: 0, mode: 'flood' }), r = S.findSprites(cl);

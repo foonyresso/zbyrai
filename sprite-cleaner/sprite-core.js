@@ -16,24 +16,84 @@ const SpriteCore = (() => {
     return [Math.round(best[1] / best[0]), Math.round(best[2] / best[0]), Math.round(best[3] / best[0])];
   }
 
-  /* Прибрати фон. color = [r,g,b]; tol 0..100 (%, повна прозорість до цієї відстані); feather 0..50 (м'який перехід за межею tol);
-     mode 'flood' — лише область фону, з'єднана з краєм (кольори всередині спрайта лишаються), 'global' — усі пікселі цього кольору. */
-  function removeBg(img, o) {
-    const out = clone(img), W = img.width, H = img.height, d = out.data, c = o.color, t = o.tol / 100, f = Math.max(0, o.feather || 0) / 100;
-    const alphaFor = dd => (dd <= t ? 0 : f > 0 && dd < t + f ? (dd - t) / f : 1);
+  /* Прибрати кілька кольорів фону. colors = [{ color:[r,g,b], tol:0..100 }] (кожен зі своїм допуском, %), feather 0..50 (м'який перехід
+     за межею допуску), mode 'flood' — лише області, з'єднані з краєм (однакові кольори всередині спрайта лишаються), 'global' — усі пікселі.
+     Піксель прозорий, якщо він близький до БУДЬ-ЯКОГО з кольорів; на межі допуску альфа росте плавно. */
+  function removeColors(img, o) {
+    const out = clone(img), W = img.width, H = img.height, d = out.data, f = Math.max(0, o.feather || 0) / 100;
+    const cs = (o.colors || []).map(e => ({ c: e.color, t: Math.max(0, e.tol) / 100 }));
+    if (!cs.length) return out;
+    const alphaAt = i => {
+      let a = 1;
+      for (const e of cs) { const dd = dist(d, i, e.c), v = dd <= e.t ? 0 : f > 0 && dd < e.t + f ? (dd - e.t) / f : 1; if (v < a) { a = v; if (!a) break; } }
+      return a;
+    };
     if (o.mode === 'global') {
-      for (let i = 0; i < d.length; i += 4) d[i + 3] = Math.round(d[i + 3] * alphaFor(dist(d, i, c)));
+      for (let i = 0; i < d.length; i += 4) d[i + 3] = Math.round(d[i + 3] * alphaAt(i));
       return out;
     }
-    const lim = t + f, seen = new Uint8Array(W * H), stack = [];
-    const push = (x, y) => { const p = y * W + x; if (!seen[p] && dist(d, p * 4, c) <= lim) { seen[p] = 1; stack.push(p); } };
+    const seen = new Uint8Array(W * H), stack = [], a0 = new Float32Array(W * H);
+    for (let p = 0; p < W * H; p++) a0[p] = alphaAt(p * 4);
+    const push = (x, y) => { const p = y * W + x; if (!seen[p] && a0[p] < 1) { seen[p] = 1; stack.push(p); } };
     for (let x = 0; x < W; x++) { push(x, 0); push(x, H - 1); }
     for (let y = 0; y < H; y++) { push(0, y); push(W - 1, y); }
     while (stack.length) {
       const p = stack.pop(), x = p % W, y = (p - x) / W;
       if (x > 0) push(x - 1, y); if (x < W - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < H - 1) push(x, y + 1);
     }
-    for (let p = 0; p < W * H; p++) if (seen[p]) d[p * 4 + 3] = Math.round(d[p * 4 + 3] * alphaFor(dist(d, p * 4, c)));
+    for (let p = 0; p < W * H; p++) if (seen[p]) d[p * 4 + 3] = Math.round(d[p * 4 + 3] * a0[p]);
+    return out;
+  }
+  // один колір (сумісність): color = [r,g,b], tol %, feather %, mode
+  const removeBg = (img, o) => removeColors(img, { colors: [{ color: o.color, tol: o.tol }], feather: o.feather, mode: o.mode });
+
+  // до n найпоширеніших «різних» кольорів по периметру (для складного фону: небо + море тощо); [{color, share}]
+  function edgeColors(img, n = 3, minDist = 0.12) {
+    const W = img.width, H = img.height, d = img.data, cnt = new Map();
+    const add = (x, y) => { const i = px(img, x, y), k = (d[i] >> 3) << 10 | (d[i + 1] >> 3) << 5 | (d[i + 2] >> 3); const e = cnt.get(k) || [0, 0, 0, 0]; e[0]++; e[1] += d[i]; e[2] += d[i + 1]; e[3] += d[i + 2]; cnt.set(k, e); };
+    for (let x = 0; x < W; x++) { add(x, 0); add(x, H - 1); }
+    for (let y = 1; y < H - 1; y++) { add(0, y); add(W - 1, y); }
+    const total = 2 * W + 2 * Math.max(0, H - 2), res = [];
+    for (const e of [...cnt.values()].sort((a, b) => b[0] - a[0])) {
+      const c = [Math.round(e[1] / e[0]), Math.round(e[2] / e[0]), Math.round(e[3] / e[0])];
+      if (res.every(r => Math.hypot(r.color[0] - c[0], r.color[1] - c[1], r.color[2] - c[2]) / 441.6729559 >= minDist)) res.push({ color: c, share: e[0] / total });
+      if (res.length >= n) break;
+    }
+    return res;
+  }
+
+  /* ---------- ручні правки: маска em (Uint8Array W*H): 0 — без змін, 1 — стерто, 2 — відновлено з оригіналу ---------- */
+  // чарівна паличка: усі (contiguous=false) або з'єднані з (x,y) пікселі, схожі на колір у (x,y) з допуском tol (%) — у маску значення val; повертає кількість
+  function wandMask(em, img, x, y, tol, contiguous, val) {
+    const W = img.width, H = img.height, d = img.data, i0 = px(img, x, y), c = [d[i0], d[i0 + 1], d[i0 + 2]], t = tol / 100;
+    const near = p => dist(d, p * 4, c) <= t;
+    let n = 0;
+    if (!contiguous) { for (let p = 0; p < W * H; p++) if (near(p)) { em[p] = val; n++; } return n; }
+    const seen = new Uint8Array(W * H), st = [y * W + x]; seen[st[0]] = 1;
+    while (st.length) {
+      const p = st.pop(); em[p] = val; n++;
+      const px_ = p % W, py_ = (p - px_) / W;
+      const go = q => { if (!seen[q] && near(q)) { seen[q] = 1; st.push(q); } };
+      if (px_ > 0) go(p - 1); if (px_ < W - 1) go(p + 1); if (py_ > 0) go(p - W); if (py_ < H - 1) go(p + W);
+    }
+    return n;
+  }
+  function paintCircle(em, W, H, cx, cy, r, val) {
+    const r2 = r * r, x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(W - 1, Math.ceil(cx + r)), y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(H - 1, Math.ceil(cy + r));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x - cx) ** 2 + (y - cy) ** 2 <= r2) em[y * W + x] = val;
+  }
+  // лінія пензлем (кроки не більші за пів радіуса, щоб не було дірок)
+  function paintLine(em, W, H, ax, ay, bx, by, r, val) {
+    const len = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(len / Math.max(0.5, r / 2)));
+    for (let i = 0; i <= n; i++) paintCircle(em, W, H, ax + (bx - ax) * i / n, ay + (by - ay) * i / n, r, val);
+  }
+  function paintRect(em, W, H, x0, y0, x1, y1, val) {
+    for (let y = Math.max(0, Math.min(y0, y1)); y <= Math.min(H - 1, Math.max(y0, y1)); y++) for (let x = Math.max(0, Math.min(x0, x1)); x <= Math.min(W - 1, Math.max(x0, x1)); x++) em[y * W + x] = val;
+  }
+  // накласти маску правок на результат: 1 -> альфа 0, 2 -> альфа з оригіналу (повне відновлення піксель-у-піксель)
+  function applyEdits(img, orig, em) {
+    const out = clone(img), d = out.data;
+    for (let p = 0; p < em.length; p++) { if (em[p] === 1) d[p * 4 + 3] = 0; else if (em[p] === 2) { d[p * 4] = orig.data[p * 4]; d[p * 4 + 1] = orig.data[p * 4 + 1]; d[p * 4 + 2] = orig.data[p * 4 + 2]; d[p * 4 + 3] = orig.data[p * 4 + 3]; } }
     return out;
   }
 
@@ -188,7 +248,7 @@ const SpriteCore = (() => {
     return out;
   }
 
-  return { detectBg, removeBg, findSprites, sortReading, gridRects, crop, trimRect, medianCut, applyPalette, quantize, packShelf, atlasJson, blit, crc32, zip, nextPow2 };
+  return { detectBg, removeBg, removeColors, edgeColors, wandMask, paintCircle, paintLine, paintRect, applyEdits, findSprites, sortReading, gridRects, crop, trimRect, medianCut, applyPalette, quantize, packShelf, atlasJson, blit, crc32, zip, nextPow2 };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = SpriteCore;

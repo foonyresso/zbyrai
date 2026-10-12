@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sprite Sheet Cleaner: чистильник спрайт-листів</title>
-<meta name="description" content="Прибери фон зі спрайт-листа (наприклад, згенерованого ШІ), наріж на спрайти автоматично або по сітці, зменш палітру й збери атлас PNG + JSON. Безкоштовно, працює офлайн.">
+<meta name="description" content="Прибери фон із будь-якого зображення: кілька кольорів із допуском, чарівна паличка, пензлі, великий редактор на весь екран. Нарізка на спрайти, палітра, атлас PNG + JSON. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/sprite-cleaner/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
@@ -24,71 +24,142 @@
     <div>Sprite Sheet <span>Cleaner</span></div>
   </div>
   <div class="spacer"></div>
-  <div class="top-note">Усе рахується у вашому браузері</div>
+  <div class="savebar" role="toolbar" aria-label="Файл, збереження й обмін">
+    <div class="grp" role="group" aria-label="Файл">
+      <button id="btnPick" title="Відкрити зображення з комп'ютера (PNG, JPG, WebP, GIF). Можна й просто перетягнути файл у вікно.">Відкрити…</button>
+      <button id="btnPaste" title="Вставити зображення з буфера обміну (те саме, що Ctrl+V)">Вставити</button>
+      <button id="btnDemo" title="Завантажити демо-спрайт-лист із шумним зеленим фоном, щоб випробувати інструмент">Демо</button>
+      <input type="file" id="file" accept="image/*" hidden>
+    </div>
+    <div class="grp" role="group" aria-label="Зберегти">
+      <button id="btnSheet" class="btn-primary" title="Завантажити весь очищений малюнок як PNG із прозорістю">Завантажити PNG</button>
+      <button id="btnCopyPng" title="Скопіювати очищений малюнок у буфер обміну як зображення, щоб вставити в інший застосунок">Копіювати PNG</button>
+      <button id="btnZip" title="Усі знайдені спрайти окремими PNG в одному ZIP-архіві">Спрайти (ZIP)</button>
+      <button id="btnAtlas" title="Один атлас-малюнок PNG + файл розмітки JSON (формат TexturePacker JSON Hash для Phaser, PixiJS тощо)">Атлас (PNG + JSON)</button>
+    </div>
+    <div class="grp" role="group" aria-label="Налаштування">
+      <button id="btnCopyJson" title="Скопіювати поточні налаштування (кольори фону, допуски, нарізка, палітра) як JSON у буфер обміну. Саме зображення й ручні правки не входять.">Копіювати JSON</button>
+      <button id="btnExportJson" title="Зберегти налаштування у файл .json, щоб застосувати їх до іншого зображення">Експорт JSON</button>
+      <button id="btnImportJson" title="Завантажити налаштування з файлу .json. Також можна вставити скопійований JSON через Ctrl+V">Імпорт JSON</button>
+      <input type="file" id="jsonFile" accept="application/json,.json" hidden>
+    </div>
+    <label class="namefld" title="Початок імені всіх збережених файлів: ім'я_sheet.png, ім'я_01.png, ім'я_atlas.json">Ім'я <input type="text" id="tName" maxlength="24" aria-label="Префікс імені файлів"></label>
+  </div>
 </header>
 
-<main class="wrap">
-  <section class="stage" aria-label="Спрайт-лист">
-    <div class="stage-h">
-      <button id="btnPick">Обрати файл…</button>
-      <button id="btnPaste" title="Вставити зображення з буфера (Ctrl+V)">Вставити</button>
-      <button id="btnDemo">Демо</button>
-      <input type="file" id="file" accept="image/*" hidden>
-      <span class="spacer"></span>
-      <label class="chk"><input type="checkbox" id="cBoxes" checked><span>Рамки спрайтів</span></label>
-      <label class="ctl-inline">Масштаб <select id="selZoom"><option value="0">Вмістити</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select></label>
+<div class="work">
+  <nav class="rail" aria-label="Інструменти">
+    <button class="tool" data-tool="hand" title="Рух (H): тягніть, щоб посунути картинку. Колесо миші: масштаб. Пробіл + тягнення працює з будь-яким інструментом.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Рух</span></button>
+    <button class="tool" data-tool="pipette" title="Піпетка (I): клік по картинці ДОДАЄ колір цього пікселя до списку «кольорів фону». Додайте кілька (небо, пісок, море), і всі вони стануть прозорими.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l5 5-3 3-5-5zM12 7 4 15v5h5l8-8"/></svg><span>Піпетка</span></button>
+    <button class="tool" data-tool="wand" title="Чарівна паличка (W): клік стирає суміжну область, схожу за кольором на піксель під курсором (допуск у панелі праворуч). Shift + клік відновлює область.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 15 9M14 4v3M14 11v3M9 9h3M17 9h3M18 4l-1 1M18 14l-1-1"/></svg><span>Паличка</span></button>
+    <button class="tool" data-tool="erase" title="Ластик-пензель (B): малюйте по картинці, щоб зробити ці місця прозорими. Розмір пензля в панелі праворуч.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h12M5 15l9-9 5 5-6 6H8zM9 11l5 5"/></svg><span>Ластик</span></button>
+    <button class="tool" data-tool="restore" title="Відновлення (R): малюйте, щоб повернути стерті або прибрані пікселі з оригінального зображення.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/></svg><span>Відновити</span></button>
+    <button class="tool" data-tool="rect" title="Рамка (M): виділіть прямокутник, і все всередині стане прозорим. Shift: відновити все всередині.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14v14H5z" stroke-dasharray="3 2.5"/></svg><span>Рамка</span></button>
+    <i class="sep"></i>
+    <button id="btnUndo" title="Скасувати останню дію (Ctrl+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 8h-3"/></svg><span>Назад</span></button>
+    <button id="btnRedo" title="Повторити скасовану дію (Ctrl+Y або Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 7 5 5-5 5M20 12H10a6 6 0 0 0 0 8h3"/></svg><span>Вперед</span></button>
+    <button id="btnResetEdits" title="Скинути ручні правки (паличка, пензлі, рамка). Кольори фону лишаються. Це можна скасувати.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span>Скинути</span></button>
+  </nav>
+
+  <section class="center" aria-label="Редактор">
+    <details class="about" id="about" open>
+      <summary title="Показати або сховати довідку"><b>Що це, для чого, як користуватися</b></summary>
+      <div class="about-body">
+        <p><b>Що це.</b> Редактор прибирає фон із зображення й робить його прозорим. Працює і зі спрайт-листами (в тому числі від ШІ), і зі звичайними фотографіями.</p>
+        <p><b>Для чого.</b> Підготувати спрайти для гри, вирізати предмет чи людину з фото, нарізати лист на окремі спрайти й зібрати атлас PNG + JSON.</p>
+        <p><b>Як користуватися.</b></p>
+        <ol>
+          <li>Відкрийте картинку: кнопка «Відкрити…» зверху, перетягування у вікно або Ctrl+V. Або натисніть «Демо».</li>
+          <li>Інструментом «Піпетка» клікайте по кольорах фону (небо, пісок, море): кожен колір потрапляє у список праворуч зі своїм допуском. Усе схоже на ці кольори стає прозорим (шашка).</li>
+          <li>Що лишилося зайвим, доправте вручну: «Паличка» стирає суміжну область, «Ластик» і «Відновити» працюють пензлем, «Рамка» стирає прямокутник. Помилилися: Ctrl+Z.</li>
+          <li>Колесо миші змінює масштаб, пробіл + тягнення (або інструмент «Рух») пересуває картинку. Утримуйте O, щоб порівняти з оригіналом.</li>
+          <li>Зверху збережіть результат: PNG, копія в буфер, ZIP зі спрайтами, атлас або JSON налаштувань.</li>
+        </ol>
+      </div>
+    </details>
+    <div class="viewport" id="vp">
+      <canvas id="cv" aria-label="Робоча область із зображенням"></canvas>
+      <div class="empty" id="empty">Перетягніть зображення сюди, вставте через Ctrl+V або натисніть «Відкрити…» чи «Демо»</div>
+      <div class="dropmask">Відпустіть, щоб завантажити</div>
     </div>
-    <div class="canvaswrap" id="wrap"><canvas id="cv" aria-label="Спрайт-лист із рамками"></canvas><div class="dropmask">Відпустіть, щоб завантажити</div></div>
-    <p class="hint" id="info">Перетягніть картинку сюди, вставте через Ctrl+V або натисніть «Демо».</p>
+    <div class="statusbar">
+      <span class="grp">
+        <button id="zOut" title="Зменшити масштаб (клавіша −)">−</button>
+        <output id="zVal" title="Поточний масштаб">100%</output>
+        <button id="zIn" title="Збільшити масштаб (клавіша +)">+</button>
+        <button id="zFit" title="Вмістити зображення у вікно (клавіша 0)">Вмістити</button>
+        <button id="z100" title="Масштаб 100%: один піксель зображення = один піксель екрана (клавіша 1)">100%</button>
+      </span>
+      <label class="ctl-inline" title="На якому тлі показувати результат. Шашка показує прозорість; кольорове тло допомагає знайти залишки фону.">Тло
+        <select id="selBg"><option value="checker">Шашка</option><option value="white">Біле</option><option value="black">Чорне</option><option value="magenta">Рожеве</option><option value="gray">Сіре</option></select></label>
+      <label class="chk" title="Показувати оригінал замість результату. Те саме, що утримувати клавішу O."><input type="checkbox" id="cCompare"><span>Оригінал</span></label>
+      <label class="chk" title="Показувати рамки знайдених спрайтів і їхні номери"><input type="checkbox" id="cBoxes"><span>Рамки спрайтів</span></label>
+      <span class="spacer"></span>
+      <span class="readout" id="readout" title="Координати й колір пікселя оригіналу під курсором">—</span>
+      <span class="readout" id="info"></span>
+    </div>
   </section>
 
-  <aside class="side">
-    <div class="card">
-      <h2><span class="n">1</span> Фон</h2>
-      <label class="chk"><input type="checkbox" id="bgOn" checked><span>Прибрати фон</span></label>
+  <aside class="panel" aria-label="Налаштування">
+    <details class="card" open>
+      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">1</span> Кольори фону</h2></summary>
+      <p class="hint">Усе, що схоже на ці кольори, стає прозорим. Кожен колір має власний допуск: чим більший, тим ширший діапазон відтінків.</p>
       <div class="row2">
-        <input type="color" id="bgColor" value="#00ff00" aria-label="Колір фону">
-        <button id="btnEye" title="Клікніть по картинці, щоб взяти колір фону">Піпетка</button>
-        <button id="btnAuto" title="Колір по краях картинки">Авто</button>
+        <button id="btnAddPip" title="Увімкнути піпетку: клікніть по картинці, щоб додати колір до списку">+ Піпеткою</button>
+        <button id="btnEdge" title="Знайти до 3 найпоширеніших кольорів по краях картинки й додати їх до списку">З країв</button>
+        <button id="btnClearColors" title="Видалити всі кольори зі списку (фон перестане прибиратися)">Очистити</button>
       </div>
-      <label class="ctl"><span>Допуск</span><output id="oTol"></output><input type="range" id="rTol" min="0" max="60" step="1"></label>
-      <label class="ctl"><span>М'який край</span><output id="oFea"></output><input type="range" id="rFea" min="0" max="30" step="1"></label>
-      <label class="ctl"><span>Режим</span><select id="selMode"><option value="flood">Лише зовнішній фон (з краю)</option><option value="global">Усі пікселі цього кольору</option></select></label>
-    </div>
+      <div class="colors" id="colors"></div>
+      <label class="ctl" title="Робить межу між прозорим і непрозорим плавною: пікселі трохи за межею допуску стають напівпрозорими. Корисно для фото й м'яких країв.">
+        <span>М'який край</span><output id="oFea"></output><input type="range" id="rFea" min="0" max="30" step="1"></label>
+      <label class="ctl" title="«З краю» прибирає лише фон, з'єднаний з краєм картинки (такий самий колір усередині предмета лишається). «Скрізь» прибирає ці кольори в усіх місцях.">
+        <span>Де прибирати</span><select id="selMode"><option value="flood">З краю (суміжний фон)</option><option value="global">Скрізь, де є цей колір</option></select></label>
+    </details>
 
-    <div class="card">
-      <h2><span class="n">2</span> Нарізка</h2>
-      <label class="ctl"><span>Спосіб</span><select id="selSlice"><option value="auto">Автоматично (знайти спрайти)</option><option value="grid">Сітка</option><option value="none">Без нарізки</option></select></label>
+    <details class="card" open>
+      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">2</span> Ручні правки</h2></summary>
+      <p class="hint">Налаштування інструментів «Паличка», «Ластик», «Відновити». Працюють поверх кольорів фону.</p>
+      <label class="ctl" title="Розмір круглого пензля для інструментів «Ластик» і «Відновити» у пікселях зображення"><span>Розмір пензля</span><output id="oBrush"></output><input type="range" id="rBrush" min="1" max="200" step="1"></label>
+      <label class="ctl" title="Наскільки відтінок може відрізнятися від піксела, по якому клікнули паличкою. Більше значення: ширша область."><span>Допуск палички</span><output id="oWand"></output><input type="range" id="rWand" min="0" max="100" step="1"></label>
+      <label class="chk" title="Увімкнено: паличка зачіпає лише область, що торкається місця кліку. Вимкнено: усі схожі піксели на всій картинці."><input type="checkbox" id="cContig"><span>Паличка: лише суміжна область</span></label>
+    </details>
+
+    <details class="card">
+      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">3</span> Нарізка</h2></summary>
+      <p class="hint">Розділяє лист на окремі спрайти для ZIP і атласу.</p>
+      <label class="ctl" title="«Автоматично» шукає окремі непрозорі плями. «Сітка» ділить лист на рівні клітинки. «Без нарізки» експортує весь лист."><span>Спосіб</span><select id="selSlice"><option value="auto">Автоматично (знайти спрайти)</option><option value="grid">Сітка</option><option value="none">Без нарізки</option></select></label>
       <div id="boxAuto">
-        <label class="ctl"><span>Зливати частини ближче ніж</span><output id="oGap"></output><input type="range" id="rGap" min="0" max="24" step="1"></label>
-        <label class="ctl"><span>Ігнорувати плями менше ніж</span><output id="oMin"></output><input type="range" id="rMin" min="1" max="200" step="1"></label>
+        <label class="ctl" title="Частини ближче одна до одної за цю відстань вважаються одним спрайтом (корисно, коли в спрайта відірвані деталі)"><span>Зливати частини ближче ніж</span><output id="oGap"></output><input type="range" id="rGap" min="0" max="24" step="1"></label>
+        <label class="ctl" title="Дрібні плями меншої площі ігноруються як сміття"><span>Ігнорувати плями менше ніж</span><output id="oMin"></output><input type="range" id="rMin" min="1" max="200" step="1"></label>
       </div>
       <div id="boxGrid" hidden>
-        <div class="row2"><label class="num">Стовпчиків <input type="number" id="nCols" min="1" max="64"></label><label class="num">Рядків <input type="number" id="nRows" min="1" max="64"></label></div>
-        <label class="chk"><input type="checkbox" id="cTrim"><span>Обрізати порожні краї кожного спрайта</span></label>
+        <div class="row2"><label class="num" title="Скільки клітинок по горизонталі">Стовпчиків <input type="number" id="nCols" min="1" max="64"></label><label class="num" title="Скільки клітинок по вертикалі">Рядків <input type="number" id="nRows" min="1" max="64"></label></div>
+        <label class="chk" title="Обрізати кожну клітинку до непорожньої частини, порожні клітинки відкинути"><input type="checkbox" id="cTrim"><span>Обрізати порожні краї кожного спрайта</span></label>
       </div>
       <p class="hint" id="sliceInfo"></p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2><span class="n">3</span> Палітра</h2>
-      <label class="ctl"><span>Кольорів (0 = не чіпати)</span><output id="oPal"></output><input type="range" id="rPal" min="0" max="64" step="1"></label>
+    <details class="card">
+      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">4</span> Палітра</h2></summary>
+      <p class="hint">Зменшує кількість кольорів (стиль піксель-арту). Для фото краще вимкнути.</p>
+      <label class="ctl" title="Скільки кольорів залишити (медіанний зріз). 0 означає не чіпати кольори."><span>Кольорів (0 = не чіпати)</span><output id="oPal"></output><input type="range" id="rPal" min="0" max="64" step="1"></label>
       <div class="swatches" id="swatches"></div>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2><span class="n">4</span> Експорт</h2>
-      <label class="ctl"><span>Ім'я файлів</span><input type="text" id="tName" maxlength="24" aria-label="Префікс імені"></label>
-      <div class="exp">
-        <button id="btnSheet">Очищений лист (PNG)</button>
-        <button id="btnZip" class="btn-primary">Спрайти (ZIP)</button>
-      </div>
-      <div class="row2"><label class="num">Відступ в атласі <input type="number" id="nPad" min="0" max="16"></label><label class="chk"><input type="checkbox" id="cPow2"><span>Степені двійки</span></label></div>
-      <div class="exp"><button id="btnAtlas">Атлас (PNG + JSON)</button></div>
-      <p class="hint">Атлас у форматі JSON Hash (TexturePacker): його читають Phaser, PixiJS та інші рушії.</p>
-    </div>
+    <details class="card">
+      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">5</span> Параметри атласу</h2></summary>
+      <p class="hint">Як пакувати спрайти кнопкою «Атлас» зверху. Формат JSON Hash (TexturePacker) читають Phaser, PixiJS та інші рушії.</p>
+      <div class="row2"><label class="num" title="Порожній проміжок між спрайтами в атласі, у пікселях"><span>Відступ</span><input type="number" id="nPad" min="0" max="16"></label><label class="chk" title="Зробити ширину й висоту атласу степенями двійки (256, 512, 1024…), як вимагають деякі відеокарти"><input type="checkbox" id="cPow2"><span>Степені двійки</span></label></div>
+    </details>
   </aside>
-</main>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
