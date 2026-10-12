@@ -23,16 +23,50 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c.8-5 3.6-7 7.5-7s6.7 2 7.5 7"/></svg>
     <div>Colonist <span>Foundry</span></div>
   </div>
-  <nav class="tabs" role="tablist"><button role="tab" data-tab="roster" aria-selected="true">Колоністи</button><button role="tab" data-tab="bonds" aria-selected="false">Стосунки</button><button role="tab" data-tab="day" aria-selected="false">Доба</button></nav>
   <div class="spacer"></div>
-  <label class="ctl-inline">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
-  <label class="ctl-inline">Зерно <input type="text" id="tSeed" maxlength="20" spellcheck="false"></label>
-  <button id="btnNew" class="btn-primary" title="Нова колонія (Пробіл)">Нова колонія</button>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережену колонію з файлу .json (зерно, склад, замкнені колоністи)">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати колонію як JSON">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити колонію як файл colonists.json (можна потім імпортувати назад)">Зберегти .json</button>
+    <button class="btn-primary" id="btnCsv" title="Завантажити таблицю колоністів у CSV (для Excel і Google Таблиць)">Зберегти .csv</button>
+  </div>
 </header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Кузня колоністів: створює групу людей для поселення, кожен зі своїми рисами, навичками, пристрастями, передісторією, а також стосунками між собою. Потім можна прожити добу й побачити, що вони роблять.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Для ігор про колонії та виживання, настільних сценаріїв, історій. Швидко отримати живих персонажів, а не набір цифр.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Створи колонію</b>: обери кількість людей і натисни «Нова колонія» (або Пробіл).</li>
+        <li><b>Замкни 🔒</b> тих, хто сподобався, і створи нову: решта зміниться.</li>
+        <li><b>«Стосунки»</b> показують, хто кого любить чи не терпить. <b>«Доба»</b> моделює один день поселення.</li>
+        <li><b>Збережи або поділись</b> кнопками угорі: JSON, CSV, імпорт.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<div class="toolbar">
+  <nav class="tabs" role="tablist"><button role="tab" data-tab="roster" aria-selected="true" title="Картки колоністів: риси, навички, передісторія">Колоністи</button><button role="tab" data-tab="bonds" aria-selected="false" title="Схема й таблиця: хто кого як сприймає">Стосунки</button><button role="tab" data-tab="day" aria-selected="false" title="Симуляція однієї доби поселення">Доба</button></nav>
+  <div class="spacer"></div>
+  <label class="ctl-inline" title="Скільки людей у колонії">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
+  <label class="ctl-inline" title="Зерно: число-код колонії. Те саме зерно дає ту саму колонію">Зерно <input type="text" id="tSeed" maxlength="20" spellcheck="false"></label>
+  <button id="btnNew" class="btn-primary" title="Створити нову випадкову колонію (Пробіл). Замкнені колоністи лишаються">Нова колонія</button>
+</div>
 
 <main class="wrap">
   <section id="tabRoster">
-    <div class="bar"><span class="hint">Замкніть 🔒 тих, кого хочете залишити, і створіть нову колонію: решта зміниться. 🎲 перегенеровує одного.</span><span class="spacer"></span><button id="btnJson">JSON</button><button id="btnCsv">CSV</button></div>
+    <div class="bar"><span class="hint">Замкніть 🔒 тих, кого хочете залишити, і створіть нову колонію: решта зміниться. 🎲 перегенеровує одного.</span></div>
     <div class="grid" id="grid"></div>
   </section>
 
@@ -42,7 +76,7 @@
   </section>
 
   <section id="tabDay" hidden>
-    <div class="bar"><button id="btnDay" class="btn-primary">Прожити добу</button><label class="ctl-inline">Доба № <input type="number" id="nDay" min="1" max="9999" step="1"></label><span class="hint">Вночі сплять, удень працюють за пріоритетами, ввечері розмовляють. Потреби спадають залежно від рис.</span></div>
+    <div class="bar"><button id="btnDay" class="btn-primary" title="Змоделювати одну добу з номера, вказаного поруч">Прожити добу</button><label class="ctl-inline" title="Номер доби: від нього залежить випадковість подій">Доба № <input type="number" id="nDay" min="1" max="9999" step="1"></label><span class="hint">Вночі сплять, удень працюють за пріоритетами, ввечері розмовляють. Потреби спадають залежно від рис.</span></div>
     <div id="dayOut"></div>
   </section>
 </main>

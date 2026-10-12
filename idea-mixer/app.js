@@ -112,6 +112,11 @@
     toast('Додано: ' + r.added + (r.skipped ? ', пропущено: ' + r.skipped : ''));
   });
   $('customText').addEventListener('keydown', e => { if (e.key === 'Enter') $('customAdd').click(); });
+  $('btnMd').addEventListener('click', () => {
+    const l = document.createElement('a');
+    l.href = URL.createObjectURL(new Blob([M.pitch(idea)], { type: 'text/markdown;charset=utf-8' }));
+    l.download = 'idea-pitch.md'; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 1000); toast('Пітч збережено');
+  });
   $('btnMix').addEventListener('click', mix);
   $('btnFav').addEventListener('click', () => {
     if (favs.some(f => M.pitch(f) === M.pitch(idea))) { toast('Ця ідея вже у вибраному'); return; }

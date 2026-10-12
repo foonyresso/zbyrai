@@ -24,17 +24,46 @@
     <div>Idea <span>Mixer</span></div>
   </div>
   <div class="spacer"></div>
-  <button id="btnCopy" title="Скопіювати пітч як Markdown">Копіювати пітч</button>
-  <button id="btnFav" title="Додати ідею у вибране">★ У вибране</button>
+  <div class="top-actions">
+    <button id="customImport" title="Завантажити власні механіки з файлу .json">Імпорт</button>
+    <input id="customFile" type="file" accept="application/json,.json" hidden>
+    <button id="customExport" title="Зберегти власні механіки у файл .json, щоб перенести їх в інший браузер">Експорт механік</button>
+    <button id="btnMd" title="Завантажити пітч як файл Markdown (.md)">Зберегти .md</button>
+    <button id="btnFav" title="Додати поточну ідею у вибране (зберігається в цьому браузері)">★ У вибране</button>
+    <button class="btn-primary" id="btnCopy" title="Скопіювати пітч як Markdown">Копіювати пітч</button>
+  </div>
 </header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Змішувач ігрових ідей: випадково збирає концепт гри з кількох слотів: ядро, прогресія, світ, твіст, обмеження, тон.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Для гейм-джемів, пошуку незвичних поєднань і розгойдування, коли немає ідеї. Готовий пітч можна скопіювати й одразу використати.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Натисни «Змішати»</b> (або Пробіл): усі слоти зміняться.</li>
+        <li><b>Замкни 🔒</b> слот, що сподобався, або перекинь один слот кнопкою 🎲.</li>
+        <li><b>Додай свої механіки</b> праворуч: вони потрапляють у кубик нарівні з вбудованими.</li>
+        <li><b>Збережи чи скопіюй</b> кнопками угорі: пітч, Markdown, вибране, імпорт і експорт механік.</li>
+      </ol>
+    </div>
+  </div>
+</details>
 
 <main class="mixer">
   <section class="deck" aria-label="Слоти ідеї">
     <div class="deck-top">
       <h1 class="title" id="title" aria-live="polite"></h1>
       <div class="deck-actions">
-        <button class="btn-mix" id="btnMix">Змішати</button>
-        <kbd>Пробіл</kbd>
+        <button class="btn-mix" id="btnMix" title="Перемішати всі незамкнені слоти (Пробіл)">Змішати</button>
+        <kbd title="Гаряча клавіша">Пробіл</kbd>
       </div>
     </div>
     <div class="slots" id="slots"></div>
@@ -44,7 +73,7 @@
   <aside class="side">
     <section class="card">
       <h2>Пітч</h2>
-      <pre class="pitch" id="pitch"></pre>
+      <pre class="pitch" id="pitch" title="Готовий пітч: копіюється кнопкою угорі"></pre>
     </section>
     <section class="card">
       <h2>Вибране <span class="n" id="favN"></span></h2>
@@ -53,17 +82,12 @@
     <section class="card">
       <h2>Свої механіки</h2>
       <div class="form">
-        <select id="customSlot" aria-label="Слот для власної механіки"></select>
-        <input id="customText" type="text" maxlength="140" placeholder="Напр.: жителі заздрять сусідам" aria-label="Текст власної механіки">
-        <button id="customAdd">Додати до пулу</button>
+        <select id="customSlot" title="До якого слота додати механіку" aria-label="Слот для власної механіки"></select>
+        <input id="customText" title="Текст власної механіки (до 140 символів)" type="text" maxlength="140" placeholder="Напр.: жителі заздрять сусідам" aria-label="Текст власної механіки">
+        <button id="customAdd" title="Додати механіку до кубика">Додати до пулу</button>
       </div>
       <div id="customList"></div>
-      <div class="form">
-        <button id="customExport">Експорт JSON</button>
-        <button id="customImport">Імпорт JSON</button>
-        <input id="customFile" type="file" accept="application/json,.json" hidden>
-      </div>
-      <p class="hint">Свої записи потрапляють у кубик нарівні з вбудованими й зберігаються в цьому браузері.</p>
+      <p class="hint">Свої записи потрапляють у кубик нарівні з вбудованими й зберігаються в цьому браузері. Імпорт і експорт — у верхній панелі.</p>
     </section>
   </aside>
 </main>

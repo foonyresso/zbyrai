@@ -104,7 +104,20 @@
   $('btnNew').onclick = () => { st.seed = randSeed(); build(); save(); syncTop(); renderAll(); };
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
   $('btnDay').onclick = () => { st.day = Math.max(1, +$('nDay').value || 1); sim = C.simulateDay(colony, st.day); $('nDay').value = st.day = st.day + 1; save(); renderDay(); };
-  $('btnJson').onclick = () => download(JSON.stringify({ seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), priorities: C.priorities(c) })), relations: colony.relations.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type })) }, null, 2), 'colonists.json', 'application/json');
-  $('btnCsv').onclick = () => download(C.toCsv(colony), 'colonists.csv', 'text/csv');
+  const exportObj = () => ({ tool: 'colonist-foundry', state: { seed: st.seed, n: st.n, day: st.day, locks: st.locks }, seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), priorities: C.priorities(c) })), relations: colony.relations.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type })) });
+  $('btnJson').onclick = () => { download(JSON.stringify(exportObj(), null, 2), 'colonists.json', 'application/json'); toast('Файл збережено'); };
+  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(exportObj(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
+  $('btnImport').onclick = () => $('fileImport').click();
+  $('fileImport').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text()), s = d.state;
+      if (d.tool !== 'colonist-foundry' || !s || !s.seed) throw new Error('bad');
+      st.seed = String(s.seed).slice(0, 20); st.n = Math.min(24, Math.max(2, +s.n || 8)); st.day = Math.max(1, +s.day || 1);
+      st.locks = s.locks && typeof s.locks === 'object' ? s.locks : {};
+      build(); save(); syncTop(); renderAll(); toast('Колонію завантажено');
+    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
+  };
+  $('btnCsv').onclick = () => { download(C.toCsv(colony), 'colonists.csv', 'text/csv'); toast('Файл збережено'); };
   build(); syncTop(); renderAll();
 })();

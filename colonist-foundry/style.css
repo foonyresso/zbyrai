@@ -9,7 +9,8 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
 .brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
 .spacer { flex: 1; }
-.tabs { display: flex; gap: 4px; margin-left: 10px; }
+.tabs { display: flex; gap: 4px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 18px 0; width: 100%; max-width: 1360px; margin: 0 auto; }
 .tabs button { border-radius: 99px; padding: 6px 16px; }
 .tabs button[aria-selected=true] { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
 .ctl-inline { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
