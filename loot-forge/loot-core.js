@@ -71,7 +71,14 @@ const LootCore = (() => {
   /* ---------- пресети ---------- */
   const PRESETS = {
     fantasy: () => ({
-      version: 1, name: 'Фентезі-RPG', levelScale: 0.08,
+      version: 1, name: 'Фентезі-RPG', levelScale: 0.08, uniqueChance: 2,
+      sets: [{ id: 'wolf', name: 'Вовча зграя', bonuses: [{ n: 2, stats: { ms: 8 } }, { n: 3, stats: { crit: 10, vamp: 3 } }] }],
+      uniques: [
+        { id: 'u_wolfblade', name: 'Іклоріз', slot: 'sword', set: 'wolf', lvl: 1, weight: 1, fixed: { dmg: 8, crit: 6 }, flavor: 'Пахне лісом і трохи кров’ю.' },
+        { id: 'u_wolfhelm', name: 'Череп вожака', slot: 'helm', set: 'wolf', lvl: 1, weight: 1, fixed: { armor: 10, ms: 5 }, flavor: '' },
+        { id: 'u_wolfring', name: 'Кільце зграї', slot: 'ring', set: 'wolf', lvl: 1, weight: 1, fixed: { agi: 8, luck: 6 }, flavor: '' },
+        { id: 'u_spark', name: 'Остання іскра', slot: 'staff', lvl: 5, weight: 1, fixed: { int: 14, aspd: 10 }, flavor: 'Горить, навіть коли ніхто не дивиться.' },
+      ],
       stats: {
         dmg: { name: 'Шкода', w: 1 }, crit: { name: 'Шанс крита', w: 4, pct: true }, aspd: { name: 'Швидкість атаки', w: 2.5, pct: true },
         str: { name: 'Сила', w: 1.5 }, agi: { name: 'Спритність', w: 1.5 }, int: { name: 'Інтелект', w: 1.5 },
@@ -86,7 +93,7 @@ const LootCore = (() => {
         { id: 'legendary', name: 'Легендарний', color: '#e8b04a', weight: 5, min: 4, max: 5, mult: 2.1 },
       ],
       slots: [
-        { id: 'sword', name: 'Меч', tags: ['weapon'], base: { dmg: [8, 14] }, on: true },
+        { id: 'sword', name: 'Меч', tags: ['weapon'], base: { dmg: [8, 14] }, on: true, weight: 1 },
         { id: 'bow', name: 'Лук', tags: ['weapon', 'ranged'], base: { dmg: [6, 12] }, on: true },
         { id: 'staff', name: 'Посох', tags: ['weapon', 'magic'], base: { dmg: [5, 10], int: [3, 6] }, on: true },
         { id: 'helm', name: 'Шолом', tags: ['armor'], base: { armor: [4, 8] }, on: true },
@@ -158,13 +165,44 @@ const LootCore = (() => {
     return cfg.rarities.map(r => (total > 0 ? Math.max(0, r.weight) / total : 0));
   }
 
+  /* ---------- унікальні предмети й комплекти ---------- */
+  // cfg.uniqueChance = відсоток предметів, що стають унікальними (0 = вимкнено)
+  function pickUnique(cfg, rng, ilvl) {
+    if (!(cfg.uniqueChance > 0) || !cfg.uniques || !cfg.uniques.length) return null;
+    if (rng() * 100 >= cfg.uniqueChance) return null;
+    const pool = cfg.uniques.filter(u => (u.lvl || 1) <= ilvl && cfg.slots.some(s => s.id === u.slot));
+    return pool.length ? pickWeighted(pool.map(u => ({ u, weight: u.weight == null ? 1 : u.weight })), rng).u : null;
+  }
+  function makeUnique(cfg, u, ilvl, rng) {
+    const slot = cfg.slots.find(s => s.id === u.slot);
+    const rarity = cfg.rarities.find(r => r.id === u.rarity) || cfg.rarities[cfg.rarities.length - 1];
+    const k = itemScale(cfg, rarity, ilvl);
+    const base = {};
+    for (const [stat, [lo, hi]] of Object.entries(slot.base || {})) if (cfg.stats[stat]) base[stat] = Math.max(0, fmtVal(cfg.stats[stat], lerp(lo, hi, rng()) * k));
+    const affixes = [];
+    for (const [stat, v] of Object.entries(u.fixed || {})) if (cfg.stats[stat]) affixes.push({ id: 'fixed_' + stat, stat, value: fmtVal(cfg.stats[stat], v * (1 + cfg.levelScale * (ilvl - 1))) });
+    let power = 0;
+    for (const [s, v] of Object.entries(base)) power += v * cfg.stats[s].w;
+    for (const a of affixes) power += a.value * cfg.stats[a.stat].w;
+    const set = u.set && (cfg.sets || []).find(x => x.id === u.set);
+    return { slot: slot.id, slotName: slot.name, rarity: rarity.id, rarityName: rarity.name, color: rarity.color, ilvl, name: u.name, flavor: u.flavor || '', base, affixes, power: Math.round(power * 10) / 10, unique: true, set: set ? set.id : undefined, setName: set ? set.name : undefined };
+  }
+  // Бонуси комплектів для набору предметів: [{ set, name, count, active:[{n, stats}] }]
+  function setBonuses(cfg, items) {
+    const cnt = {};
+    for (const it of items || []) if (it && it.set) cnt[it.set] = (cnt[it.set] || 0) + 1;
+    return (cfg.sets || []).filter(s => cnt[s.id]).map(s => ({ set: s.id, name: s.name, count: cnt[s.id], active: (s.bonuses || []).filter(b => b.n <= cnt[s.id]) }));
+  }
+
   /* ---------- генерація одного предмета ---------- */
   function rollItem(cfg, rng, opts = {}) {
     const ilvl = Math.max(1, opts.ilvl | 0 || 1);
     const rarity = (opts.rarity && cfg.rarities.find(r => r.id === opts.rarity)) || pickWeighted(cfg.rarities, rng);
     const rIdx = cfg.rarities.indexOf(rarity);
     const slots = activeSlots(cfg);
-    const slot = (opts.slot && slots.find(s => s.id === opts.slot)) || slots[Math.floor(rng() * slots.length)];
+    const uq = !opts.rarity && !opts.slot ? pickUnique(cfg, rng, ilvl) : null;
+    if (uq) return makeUnique(cfg, uq, ilvl, rng);
+    const slot = (opts.slot && slots.find(s => s.id === opts.slot)) || pickWeighted(slots.map(x => ({ x, weight: x.weight == null ? 1 : x.weight })), rng).x;
     const k = itemScale(cfg, rarity, ilvl);
 
     const base = {};
@@ -204,12 +242,14 @@ const LootCore = (() => {
     const probs = rarityProbs(cfg);
     const byRarity = cfg.rarities.map((r, i) => ({ id: r.id, name: r.name, color: r.color, count: 0, expected: probs[i] }));
     const bySlot = {};
+    let uniques = 0;
     const stats = {};
     const powers = new Float64Array(n);
     for (let i = 0; i < n; i++) {
       const it = rollItem(cfg, rng, { ilvl, humor: 0 });
       byRarity[cfg.rarities.findIndex(r => r.id === it.rarity)].count++;
       bySlot[it.slot] = (bySlot[it.slot] || 0) + 1;
+      if (it.unique) uniques++;
       powers[i] = it.power;
       const seen = Object.assign({}, it.base);
       for (const a of it.affixes) seen[a.stat] = (seen[a.stat] || 0) + a.value;
@@ -237,7 +277,7 @@ const LootCore = (() => {
       const pool = allowedAffixes(cfg, s, ilvl).length;
       if (pool < maxWant) warnings.push(`Для «${s.name}» на рівні ${ilvl} доступно лише ${pool} афіксів, а найвища рідкість просить до ${maxWant}.`);
     }
-    return { n, byRarity, bySlot, stats: Object.values(stats).map(o => ({ id: o.id, name: o.name, pct: o.pct, min: o.min, max: o.max, avg: o.sum / o.count, count: o.count })), power, warnings };
+    return { n, uniques, byRarity, bySlot, stats: Object.values(stats).map(o => ({ id: o.id, name: o.name, pct: o.pct, min: o.min, max: o.max, avg: o.sum / o.count, count: o.count })), power, warnings };
   }
 
   /* ---------- шанси: скільки вбивств до потрібного предмета ---------- */
@@ -274,6 +314,10 @@ const LootCore = (() => {
     }
     for (const r of cfg.rarities || []) if (r.min > r.max) out.push(`Рідкість «${r.name}»: мінімум афіксів більший за максимум.`);
     for (const s of cfg.slots || []) for (const k of Object.keys(s.base || {})) if (!cfg.stats || !cfg.stats[k]) out.push(`Тип «${s.name}»: база посилається на невідому характеристику «${k}».`);
+    for (const u of cfg.uniques || []) {
+      if (!(cfg.slots || []).some(s => s.id === u.slot)) out.push(`Унікальний «${u.name}»: невідомий тип «${u.slot}».`);
+      if (u.set && !(cfg.sets || []).some(x => x.id === u.set)) out.push(`Унікальний «${u.name}»: невідомий комплект «${u.set}».`);
+    }
     return out;
   }
 
@@ -284,7 +328,7 @@ const LootCore = (() => {
   function sanitize(raw) {
     const src = raw && raw.config ? raw.config : raw;
     if (!src || typeof src !== 'object') throw new Error('Це не схоже на конфіг Loot Forge.');
-    const cfg = { version: 1, name: str(src.name, 'Без назви'), levelScale: num(src.levelScale, .08, 0, 2), stats: {}, rarities: [], slots: [], affixes: [] };
+    const cfg = { version: 1, name: str(src.name, 'Без назви'), levelScale: num(src.levelScale, .08, 0, 2), stats: {}, rarities: [], slots: [], affixes: [], uniqueChance: num(src.uniqueChance, 0, 0, 100), uniques: [], sets: [] };
     for (const [id, s] of Object.entries(src.stats || {})) {
       if (!s || typeof s !== 'object') continue;
       const o = { name: str(s.name, id), w: num(s.w, 1, 0, 1000) };
@@ -298,12 +342,18 @@ const LootCore = (() => {
     (src.slots || []).forEach((s, i) => {
       const base = {};
       for (const [k, v] of Object.entries(s.base || {})) if (Array.isArray(v) && v.length === 2) base[k] = [num(v[0], 0), num(v[1], 0)];
-      cfg.slots.push({ id: str(s.id, 's' + i), name: str(s.name, 'Тип ' + (i + 1)), tags: (Array.isArray(s.tags) ? s.tags : []).map(String), base, on: s.on !== false });
+      cfg.slots.push({ id: str(s.id, 's' + i), name: str(s.name, 'Тип ' + (i + 1)), tags: (Array.isArray(s.tags) ? s.tags : []).map(String), base, on: s.on !== false, ...(s.weight != null ? { weight: num(s.weight, 1, 0, 1000) } : {}) });
     });
     (src.affixes || []).forEach((a, i) => cfg.affixes.push({
       id: str(a.id, 'a' + i), stat: String(a.stat || ''), min: num(a.min, 0), max: num(a.max, 0),
       tags: (Array.isArray(a.tags) && a.tags.length ? a.tags : ['any']).map(String), lvl: Math.round(num(a.lvl, 1, 1, 999)), on: a.on !== false,
     }));
+    const statsOnly = o => { const r = {}; for (const [k, v] of Object.entries(o || {})) if (cfg.stats[k]) r[k] = num(v, 0); return r; };
+    (src.sets || []).forEach((x, i) => cfg.sets.push({ id: str(x.id, 'set' + i), name: str(x.name, 'Комплект ' + (i + 1)),
+      bonuses: (Array.isArray(x.bonuses) ? x.bonuses : []).map(b => ({ n: Math.round(num(b.n, 2, 1, 12)), stats: statsOnly(b.stats) })) }));
+    (src.uniques || []).forEach((u, i) => cfg.uniques.push({ id: str(u.id, 'u' + i), name: str(u.name, 'Унікальний ' + (i + 1)), slot: String(u.slot || ''),
+      ...(u.rarity ? { rarity: String(u.rarity) } : {}), ...(u.set ? { set: String(u.set) } : {}), lvl: Math.round(num(u.lvl, 1, 1, 999)), weight: num(u.weight, 1, 0, 1000),
+      fixed: statsOnly(u.fixed), flavor: typeof u.flavor === 'string' ? u.flavor.slice(0, 140) : '' }));
     const problems = validate(cfg);
     if (problems.length) throw new Error(problems[0]);
     return cfg;
@@ -330,7 +380,7 @@ const LootCore = (() => {
 
   return {
     rngFromSeed, randomSeed, PRESETS, PRESET_NAMES, NAMES, rarityProbs, allowedAffixes, activeSlots, itemScale, fmtVal,
-    rollItem, rollMany, simulate, expectedTries, triesForChance, formatMinutes, validate, sanitize, exportJSON, baseToText, textToBase,
+    rollItem, rollMany, setBonuses, simulate, expectedTries, triesForChance, formatMinutes, validate, sanitize, exportJSON, baseToText, textToBase,
   };
 })();
 

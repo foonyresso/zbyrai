@@ -88,6 +88,7 @@
       h('div', { class: 'row' }, h('label', null, 'Seed'), seedIn, h('button', { title: 'Новий випадковий seed', onclick: () => { S.seed = L.randomSeed(); seedIn.value = S.seed; save(); roll(); } }, '🎲')),
       h('div', { class: 'row' }, h('label', null, 'Рівень предмета'), numIn(S.ilvl, v => { S.ilvl = Math.round(clampNum(v, 1, 1, 200)); save(); roll(); }, { min: 1, max: 200, step: 1, label: 'Рівень предмета' }), h('span', { class: 'hint' }, 'відкриває афікси з вимогою рівня')),
       h('div', { class: 'row' }, h('label', null, 'Приріст за рівень'), numIn(Math.round(C.levelScale * 1000) / 10, v => { C.levelScale = clampNum(v, 8, 0, 200) / 100; save(); roll(); }, { min: 0, max: 200, step: 0.5, label: 'Приріст за рівень, відсотків' }), h('span', { class: 'hint' }, '% до значень на кожен рівень')),
+      h('div', { class: 'row' }, h('label', null, 'Шанс унікального'), numIn(C.uniqueChance || 0, v => { C.uniqueChance = clampNum(v, 0, 0, 100); save(); roll(); }, { min: 0, max: 100, step: 0.5, label: 'Шанс унікального предмета, відсотків' }), h('span', { class: 'hint' }, '% предметів стають унікальними (список унікальних і комплектів задається в JSON-конфігу)')),
       h('div', { class: 'row' }, h('label', null, 'Гумор текстів'),
         h('div', { class: 'seg small', role: 'group', 'aria-label': 'Гумор текстів' }, ['Серйозно', 'Іронічно', 'Чорний', 'Без гальм'].map((n, i) =>
           h('button', { class: S.humor === i ? 'on' : '', onclick: () => { S.humor = i; save(); renderRules(); roll(); } }, n)))),
@@ -119,16 +120,17 @@
     root.append(section('stat', 'Характеристики', Object.keys(C.stats).length, [st, h('p', { class: 'hint' }, 'Вага визначає внесок у «силу» предмета: так порівнюються різні стати.')]));
 
     // типи предметів
-    const sl = h('div', { class: 'tbl' }, h('div', { class: 'tr head slot' }, h('span'), h('span', null, 'Тип'), h('span', null, 'Теги'), h('span', null, 'База (ключ:від-до)'), h('span')));
+    const sl = h('div', { class: 'tbl' }, h('div', { class: 'tr head slot' }, h('span'), h('span', null, 'Тип'), h('span', null, 'Теги'), h('span', null, 'Вага'), h('span', null, 'База (ключ:від-до)'), h('span')));
     C.slots.forEach((s, i) => sl.append(h('div', { class: 'tr slot' },
       h('input', { type: 'checkbox', checked: s.on !== false, 'aria-label': 'Увімкнено', onchange: e => { s.on = e.target.checked; save(); } }),
       txtIn(s.name, v => { s.name = v.trim() || s.name; save(); }, { label: 'Назва типу' }),
       txtIn(s.tags.join(', '), v => { s.tags = v.split(',').map(x => x.trim()).filter(Boolean); save(); }, { label: 'Теги' }),
+      numIn(s.weight == null ? 1 : s.weight, v => { s.weight = clampNum(v, 1, 0, 1000); save(); }, { min: 0, step: 0.1, label: 'Вага випадіння типу' }),
       txtIn(L.baseToText(s.base), v => { s.base = L.textToBase(v, C.stats); save(); renderRules(); }, { label: 'База' }),
       h('button', { class: 'x', title: 'Видалити тип', onclick: () => { C.slots.splice(i, 1); save(); renderRules(); } }, '✕'),
     )));
     sl.append(h('button', { class: 'add', onclick: () => { C.slots.push({ id: uid('slot_'), name: 'Новий тип', tags: ['weapon'], base: {}, on: true }); save(); renderRules(); } }, '+ тип предмета'));
-    root.append(section('slot', 'Типи предметів', C.slots.length, [sl, h('p', { class: 'hint' }, 'Теги вирішують, які афікси сюди підходять (афікс з тегом «any» підходить усім).')]));
+    root.append(section('slot', 'Типи предметів', C.slots.length, [sl, h('p', { class: 'hint' }, 'Теги вирішують, які афікси сюди підходять (афікс з тегом «any» підходить усім). Вага типу: чим більша, тим частіше випадає (0 = ніколи).')]));
 
     // афікси
     const af = h('div', { class: 'tbl' }, h('div', { class: 'tr head aff' }, h('span'), h('span', null, 'Стат'), h('span', null, 'Від'), h('span', null, 'До'), h('span', { class: 'tg' }, 'Теги'), h('span', { class: 'lv' }, 'Рів.'), h('span')));
@@ -192,7 +194,7 @@
       const li = [];
       for (const [s, v] of Object.entries(it.base)) li.push(h('li', null, statLine(C.stats[s], v)));
       grid.append(h('article', { class: 'item', style: `--c:${/^#[0-9a-f]{3,8}$/i.test(it.color) ? it.color : '#a39e93'}` },
-        h('div', { class: 'sub' }, `${it.rarityName} · рів. ${it.ilvl}`),
+        h('div', { class: 'sub' }, `${it.unique ? '★ Унікальний · ' : ''}${it.rarityName} · рів. ${it.ilvl}${it.setName ? ' · ' + it.setName : ''}`),
         h('h3', null, it.name),
         li.length ? h('ul', { class: 'base' }, li) : null,
         it.affixes.length ? h('ul', { class: 'aff' }, it.affixes.map(a => h('li', null, statLine(C.stats[a.stat], a.value, true)))) : null,
@@ -201,6 +203,9 @@
           h('button', { title: 'Скопіювати цей предмет як JSON', onclick: () => copyText(JSON.stringify(it, null, 2), 'Предмет скопійовано') }, 'JSON')),
       ));
     }
+    const sb = L.setBonuses(C, items);
+    if (sb.length) out.append(h('div', { class: 'sets' }, sb.map(b => h('p', { class: 'hint' },
+      '⛓ ' + b.name + ': ' + b.count + ' шт. у кидку. ' + ((C.sets.find(x => x.id === b.set).bonuses || []).map(x => x.n + ' → ' + Object.entries(x.stats).map(([k, v]) => (C.stats[k] ? C.stats[k].name : k) + ' +' + v).join(', ') + (x.n <= b.count ? ' ✓' : '')).join(' · '))))));
     out.append(grid, h('p', { class: 'hint' }, 'Seed «' + S.seed + '» дає ті самі предмети щоразу: запиши його, щоб повернутися до цього кидка.'));
   }
 

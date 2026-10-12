@@ -13,7 +13,7 @@ function test(name, fn) {
 console.log('Loot Forge: тести');
 
 test('той самий seed дає ті самі предмети, інший seed дає інші', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   const a = L.rollMany(cfg, 50, 'abc', { ilvl: 5, humor: 2 });
   const b = L.rollMany(cfg, 50, 'abc', { ilvl: 5, humor: 2 });
   const c = L.rollMany(cfg, 50, 'abd', { ilvl: 5, humor: 2 });
@@ -23,14 +23,14 @@ test('той самий seed дає ті самі предмети, інший s
 
 test('частоти рідкостей збігаються з вагами (100 000 кидків, допуск 0.6 в.п.)', () => {
   for (const key of ['fantasy', 'survival']) {
-    const cfg = L.PRESETS[key]();
+    const cfg = L.PRESETS[key](); cfg.uniqueChance = 0;
     const sim = L.simulate(cfg, 100000, 'freq-' + key);
     for (const r of sim.byRarity) assert.ok(Math.abs(r.actual - r.expected) < .006, `${key}/${r.id}: очікувано ${r.expected}, є ${r.actual}`);
   }
 });
 
 test('значення афіксів лежать у [min·k, max·k], кількість афіксів у межах рідкості, афікси не повторюються', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   for (const ilvl of [1, 10, 50]) {
     const items = L.rollMany(cfg, 4000, 'range' + ilvl, { ilvl });
     for (const it of items) {
@@ -47,7 +47,7 @@ test('значення афіксів лежать у [min·k, max·k], кіль
 });
 
 test('афікси з вимогою рівня не з’являються нижче цього рівня; теги слотів дотримані', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   const low = L.rollMany(cfg, 5000, 'lvl', { ilvl: 3 });
   assert.ok(low.every(it => it.affixes.every(a => a.id !== 'a_vamp')), 'вампіризм на рівні 3');
   const high = L.rollMany(cfg, 5000, 'lvl', { ilvl: 20 });
@@ -62,14 +62,14 @@ test('афікси з вимогою рівня не з’являються н�
 });
 
 test('сила предмета зростає з рівнем і рідкістю (у середньому)', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   const avg = o => { const xs = L.rollMany(cfg, 3000, 'pw', o); return xs.reduce((s, x) => s + x.power, 0) / xs.length; };
   assert.ok(avg({ ilvl: 20 }) > avg({ ilvl: 1 }) * 1.5);
   assert.ok(avg({ ilvl: 10, rarity: 'legendary' }) > avg({ ilvl: 10, rarity: 'common' }) * 2);
 });
 
 test('примусова рідкість і тип працюють', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   const xs = L.rollMany(cfg, 200, 'force', { rarity: 'epic', slot: 'ring' });
   assert.ok(xs.every(x => x.rarity === 'epic' && x.slot === 'ring'));
 });
@@ -101,7 +101,7 @@ test('форматування часу', () => {
 
 test('експорт → імпорт повертає той самий конфіг; обгортка й «голий» конфіг приймаються однаково', () => {
   for (const key of Object.keys(L.PRESETS)) {
-    const cfg = L.PRESETS[key]();
+    const cfg = L.PRESETS[key](); cfg.uniqueChance = 0;
     const back = L.sanitize(JSON.parse(L.exportJSON(cfg)));
     assert.deepEqual(back, cfg);
     assert.deepEqual(L.sanitize(JSON.parse(JSON.stringify(cfg))), cfg);
@@ -120,7 +120,7 @@ test('перевірка конфігу ловить биті посилання
 });
 
 test('сміттєвий імпорт не ламає ядро: числа обмежуються, кольори перевіряються', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   cfg.rarities[0].weight = 'abc'; cfg.rarities[0].color = 'url(javascript:alert(1))'; cfg.levelScale = 99;
   const clean = L.sanitize(cfg);
   assert.equal(clean.rarities[0].weight, 1);
@@ -129,7 +129,7 @@ test('сміттєвий імпорт не ламає ядро: числа об�
 });
 
 test('текст бази ⇄ об’єкт', () => {
-  const cfg = L.PRESETS.fantasy();
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
   const text = L.baseToText({ dmg: [5, 10], int: [3, 6] });
   assert.equal(text, 'dmg:5-10, int:3-6');
   assert.deepEqual(L.textToBase(text, cfg.stats), { dmg: [5, 10], int: [3, 6] });
@@ -137,9 +137,41 @@ test('текст бази ⇄ об’єкт', () => {
 });
 
 test('симуляція: попередження про надто рідкісну легендарку', () => {
-  const cfg = L.PRESETS.fantasy(); cfg.rarities[4].weight = .001;
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0; cfg.rarities[4].weight = .001;
   const sim = L.simulate(cfg, 5000, 'warn');
   assert.ok(sim.warnings.length > 0);
+});
+
+test('вага типів: нульова вага вимикає тип, великі ваги переважають', () => {
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 0;
+  cfg.slots.forEach(x => { x.weight = x.id === 'bow' ? 1 : 0; });
+  assert.ok(L.rollMany(cfg, 50, 'w').every(i => i.slot === 'bow'));
+  cfg.slots.forEach(x => { x.weight = x.id === 'bow' ? 9 : 1; });
+  const sim = L.simulate(cfg, 4000, 'w2');
+  assert.ok(sim.bySlot.bow / 4000 > 0.5);
+});
+
+test('унікальні предмети: шанс, комплект, бонуси, детермінізм', () => {
+  const cfg = L.PRESETS.fantasy(); cfg.uniqueChance = 100;
+  const a = L.rollMany(cfg, 30, 'u', { ilvl: 10 });
+  assert.deepEqual(a, L.rollMany(cfg, 30, 'u', { ilvl: 10 }));
+  assert.ok(a.every(i => i.unique && i.affixes.length > 0));
+  const wolves = L.rollMany(cfg, 400, 'u3', { ilvl: 1 }).filter(i => i.set === 'wolf');
+  assert.ok(wolves.length >= 3);
+  const sb = L.setBonuses(cfg, wolves.slice(0, 3));
+  assert.equal(sb[0].count, 3); assert.equal(sb[0].active.length, 2);
+  cfg.uniqueChance = 0;
+  assert.ok(L.rollMany(cfg, 200, 'u4').every(i => !i.unique));
+  assert.equal(L.simulate(cfg, 500, 's').uniques, 0);
+});
+
+test('імпорт зберігає унікальних і ваги; биті посилання відхиляються', () => {
+  const cfg = L.PRESETS.fantasy();
+  const back = L.sanitize(JSON.parse(L.exportJSON(cfg)));
+  assert.equal(back.uniques.length, cfg.uniques.length);
+  assert.equal(back.uniqueChance, 2);
+  back.uniques[0].slot = 'nope';
+  assert.throws(() => L.sanitize(JSON.parse(L.exportJSON(back))));
 });
 
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
