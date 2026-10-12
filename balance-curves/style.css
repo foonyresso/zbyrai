@@ -1,0 +1,78 @@
+/* Wave & Balance Curves: розмітка поверх спільної теми (theme.css). Акцент інструмента: м'ятний зелений. */
+:root { --accent: #73d6a0; --accent-hi: #a6ecc4; --accent-glow: rgba(115, 214, 160, .14); }
+body { min-height: 100vh; display: flex; flex-direction: column;
+  background: radial-gradient(1200px 460px at 50% -120px, rgba(115, 214, 160, .09), transparent 70%), var(--bg); }
+header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 18px;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
+header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .55; }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-display); font-weight: 700; font-size: 24px; white-space: nowrap; }
+.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
+.brand span { color: var(--accent); }
+.spacer { flex: 1; }
+.tabs { display: flex; gap: 4px; margin-left: 10px; }
+.tabs button { border-radius: 99px; padding: 6px 16px; }
+.tabs button[aria-selected=true] { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+
+main.wrap { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; padding: 16px 18px 32px; align-items: start; }
+main.wrap[hidden] { display: none; }
+.chartcard, .card, .cardrow { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); }
+.chartcard { min-width: 0; overflow: hidden; }
+.chart-h { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.ctl-inline { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.ctl-inline input[type=number] { width: 72px; font-family: var(--ff-mono); }
+.plot { position: relative; height: 380px; }
+.plot svg { width: 100%; height: 100%; display: block; }
+.plot .tip { position: absolute; pointer-events: none; background: var(--panel-3); border: 1px solid var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-family: var(--ff-mono); white-space: nowrap; transform: translate(12px, -50%); box-shadow: var(--shadow-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 4px 16px 12px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.cardrow { margin: 0 14px 14px; padding: 12px 14px; }
+.cardrow h2, .card h2, .side-h h2 { margin: 0 0 8px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.cardrow h2 button, .card h2 button { margin-left: auto; padding: 3px 10px; font-size: 12px; letter-spacing: 0; text-transform: none; }
+.cardrow h2 button + button { margin-left: 0; }
+.row2 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.op { color: var(--faint); }
+.hint { font-size: 12px; color: var(--faint); margin: 8px 0 0; line-height: 1.5; }
+.tablewrap { max-height: 320px; overflow: auto; border: 1px solid var(--line-soft); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-family: var(--ff-mono); font-size: 12px; }
+th, td { padding: 4px 10px; text-align: right; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--panel-3); color: var(--accent-hi); font-weight: 600; }
+td:first-child, th:first-child { text-align: left; color: var(--muted); }
+tr.boss td { color: var(--gold-hi, #e8d29e); }
+.enemies { text-align: left; white-space: normal; font-family: var(--ff-ui); }
+
+.side { display: flex; flex-direction: column; gap: 12px; }
+.side-h { display: flex; align-items: center; justify-content: space-between; }
+.side-h h2 { margin: 0; }
+.card { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 9px; }
+.cv { border-left: 3px solid var(--k); }
+.cv-top { display: flex; gap: 8px; align-items: center; }
+.cv-top input[type=text] { flex: 1; min-width: 0; }
+.cv-top input[type=color] { width: 30px; height: 30px; padding: 1px; border-radius: 6px; background: var(--bg-elev); border: 1px solid var(--line); cursor: pointer; }
+.cv .formula { font-family: var(--ff-mono); font-size: 12px; color: var(--accent-hi); }
+.params { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.params label, .num { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--muted); }
+.params input, .num input { width: 100%; font-family: var(--ff-mono); }
+.cv-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.cv-btns button { padding: 3px 10px; font-size: 12px; }
+.fit { display: none; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: end; }
+.fit.open { display: grid; }
+.fit button { grid-column: 1 / -1; }
+.trow { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)) 28px; gap: 6px; align-items: end; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
+.trow:last-child { border-bottom: 0; }
+.trow .num { font-size: 10px; }
+.trow button { padding: 4px 0; }
+
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
+  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%); }
+
+@media (max-width: 960px) {
+  main.wrap { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 28px; }
+  header.top { padding: 12px 16px; }
+  .plot { height: 300px; }
+  .cardrow { margin: 0 10px 12px; }
+  .trow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.plot.small { height: 170px; }
+th.enemies { text-align: left; }
