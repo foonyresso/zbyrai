@@ -171,5 +171,15 @@ test('приклад «три класи» валідний і проходит�
   assert.equal(T.canAllocate(t, st, 'w5').ok, false);
 });
 
+test('шаблони валідні, дають ненульове дерево, а tech — вимоги без циклів', () => {
+  for (const k of Object.keys(T.TEMPLATES)) {
+    const t = T.templateTree(k);
+    assert.deepEqual(T.validate(t), [], k);
+    assert.ok(t.nodes.length >= 9, k);
+    assert.deepEqual(T.sanitize(JSON.parse(JSON.stringify(t))).nodes.length, t.nodes.length);
+  }
+  assert.equal(T.templateTree('tech').mode, 'prereq');
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

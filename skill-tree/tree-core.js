@@ -363,7 +363,37 @@ const TreeCore = (() => {
     return tree;
   }
 
-  return { KINDS, STATS, index, emptyState, rankOf, spentPoints, canAllocate, allocate, canRefund, refund, validState, summary, analyze, validate, sanitize, exportJSON, autoLayout, generateTree, tiersExample, rngFromSeed };
+  /* ---------- шаблони ---------- */
+  const TEMPLATES = { fan: 'Віяло (4 гілки зі старту)', chain: 'Ланцюг (одна лінія)', tech: 'Технології (вимоги, сітка 4×4)' };
+  function templateTree(kind) {
+    const stats = { dmg: { name: 'Шкода' }, hp: { name: 'Здоров’я' }, ms: { name: 'Швидкість руху', pct: true }, crit: { name: 'Шанс крита', pct: true } };
+    const keys = Object.keys(stats), nodes = [], links = [];
+    const node = (id, name, kindN, i, extra = {}) => nodes.push(Object.assign({ id, x: 0, y: 0, name, desc: '', kind: kindN, max: kindN === 'small' ? 3 : 1, cost: kindN === 'keystone' ? 3 : kindN === 'notable' ? 2 : 1, need: 0, stats: { [keys[i % keys.length]]: kindN === 'small' ? 3 : 8 } }, extra));
+    if (kind === 'chain') {
+      node('c0', 'Початок', 'start', 0, { max: 1, cost: 0, stats: {} });
+      for (let i = 1; i <= 8; i++) { node('c' + i, i === 8 ? 'Вершина' : i % 4 === 0 ? 'Значний ' + i : 'Крок ' + i, i === 8 ? 'keystone' : i % 4 === 0 ? 'notable' : 'small', i); links.push(['c' + (i - 1), 'c' + i]); }
+      const t = { version: 1, name: 'Ланцюг', points: 14, mode: 'path', nodes, links, stats };
+      autoLayout(t); return t;
+    }
+    if (kind === 'tech') {
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+        const id = `t${r}${c}`, last = r === 3;
+        node(id, last ? 'Прорив ' + (c + 1) : `Тех ${r + 1}.${c + 1}`, last ? 'keystone' : r === 2 ? 'notable' : 'small', r + c, { need: r * 2 });
+        if (r) { links.push([`t${r - 1}${c}`, id]); if (c) links.push([`t${r - 1}${c - 1}`, id]); }
+      }
+      const t = { version: 1, name: 'Дерево технологій', points: 16, mode: 'prereq', nodes, links, stats };
+      autoLayout(t); return t;
+    }
+    node('s', 'Початок', 'start', 0, { max: 1, cost: 0, stats: {} });
+    for (let b = 0; b < 4; b++) {
+      let prev = 's';
+      for (let i = 1; i <= 4; i++) { const id = `b${b}${i}`; node(id, i === 4 ? 'Печатка ' + (b + 1) : `Гілка ${b + 1}.${i}`, i === 4 ? 'keystone' : i === 2 ? 'notable' : 'small', b + i); links.push([prev, id]); prev = id; }
+    }
+    const t = { version: 1, name: 'Віяло', points: 16, mode: 'path', nodes, links, stats };
+    autoLayout(t); return t;
+  }
+
+  return { TEMPLATES, templateTree, KINDS, STATS, index, emptyState, rankOf, spentPoints, canAllocate, allocate, canRefund, refund, validState, summary, analyze, validate, sanitize, exportJSON, autoLayout, generateTree, tiersExample, rngFromSeed };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = TreeCore;

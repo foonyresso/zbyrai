@@ -41,6 +41,19 @@
   let sel = null, hover = null, edited = false, A = null;
   let saveTimer = 0;
   const dirty = () => { A = null; };
+  /* скасування/повтор: знімки {tree, ranks} */
+  const undoStack = [], redoStack = [];
+  const snapshot = () => JSON.stringify({ tree, ranks: build.ranks });
+  function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 100) undoStack.shift(); redoStack.length = 0; syncUndo(); }
+  function restore(str) {
+    const o = JSON.parse(str); tree = o.tree; build = { ranks: o.ranks }; multi.clear();
+    if (sel && !tree.nodes.some(n => n.id === sel)) sel = null;
+    dirty(); refreshAll(); persist();
+  }
+  function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); syncUndo(); }
+  function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); syncUndo(); }
+  function syncUndo() { $('btnUndo').disabled = !undoStack.length; $('btnRedo').disabled = !redoStack.length; }
+  const multi = new Set(); // додаткові вибрані вузли (редагування)
   const analysis = () => A || (A = T.analyze(tree, build));
   const byId = id => analysis().idx.byId.get(id);
   function persist() { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.set('state', { tree, build, mode, view }), 250); }
@@ -122,6 +135,7 @@
         if (r >= 11) ctx.fillText(rank + '/' + n.max, n.x, n.y + .5);
         else { ctx.fillStyle = rank ? COL.goldHi : '#8a867d'; ctx.fillText(rank + '/' + n.max, n.x, n.y + r + 9); }
       }
+      if (multi.has(n.id)) { ctx.strokeStyle = '#e8d29e'; ctx.setLineDash([2, 3]); shape(n, r + 6); ctx.stroke(); ctx.setLineDash([]); }
       if (n.id === sel) { ctx.strokeStyle = '#fff'; ctx.setLineDash([4, 3]); shape(n, r + 6); ctx.stroke(); ctx.setLineDash([]); }
       else if (n.id === hover) { ctx.strokeStyle = 'rgba(169,200,242,.8)'; shape(n, r + 4); ctx.stroke(); }
       if ((k >= 1.25 && (n.kind === 'notable' || n.kind === 'keystone')) || k >= 2.2 || n.id === sel || (small && k >= .7)) {
@@ -143,21 +157,37 @@
     }
     return best;
   }
-  let drag = null;
+  let drag = null, pinch = null;
+  const ptrs = new Map();
+  const pinchState = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 }; };
   cv.addEventListener('pointerdown', e => {
     if (e.button === 2) return;
     cv.setPointerCapture(e.pointerId); cv.focus({ preventScroll: true });
-    const p = pos(e), n = nodeAt(p);
-    drag = { sx: p.x, sy: p.y, vx: view.x, vy: view.y, moved: false, n, mod: e.shiftKey || e.ctrlKey || e.metaKey, type: n && mode === 'edit' ? 'node' : 'pan', nx: n ? n.x : 0, ny: n ? n.y : 0 };
+    const p = pos(e); ptrs.set(e.pointerId, p);
+    if (ptrs.size === 2) { drag = null; const ps = pinchState(); pinch = { d: ps.d, k: view.k, cx: ps.cx, cy: ps.cy, vx: view.x, vy: view.y }; hideTip(); return; }
+    const n = nodeAt(p);
+    drag = { sx: p.x, sy: p.y, vx: view.x, vy: view.y, moved: false, n, mod: e.shiftKey || e.ctrlKey || e.metaKey, alt: e.altKey, type: n && mode === 'edit' ? 'node' : 'pan', nx: n ? n.x : 0, ny: n ? n.y : 0, group: null };
   });
   cv.addEventListener('pointermove', e => {
     const p = pos(e);
+    if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, p);
+    if (pinch && ptrs.size >= 2) {
+      const ps = pinchState(), k = clamp(pinch.k * ps.d / pinch.d, 0.12, 4), r = k / pinch.k;
+      view.k = k; view.x = ps.cx - (pinch.cx - pinch.vx) * r; view.y = ps.cy - (pinch.cy - pinch.vy) * r; schedule(); return;
+    }
     if (drag) {
       const dx = p.x - drag.sx, dy = p.y - drag.sy;
-      if (!drag.moved && Math.hypot(dx, dy) > 4) { drag.moved = true; if (drag.type === 'pan') cv.classList.add('grabbing'); hideTip(); }
+      if (!drag.moved && Math.hypot(dx, dy) > 4) {
+        drag.moved = true; if (drag.type === 'pan') cv.classList.add('grabbing'); hideTip();
+        if (drag.type === 'node') {
+          pushUndo();
+          const ids = multi.has(drag.n.id) || (sel === drag.n.id && multi.size) ? new Set([...multi, sel, drag.n.id]) : new Set([drag.n.id]);
+          drag.group = tree.nodes.filter(m => ids.has(m.id)).map(m => ({ m, x: m.x, y: m.y }));
+        }
+      }
       if (drag.moved) {
         if (drag.type === 'pan') { view.x = drag.vx + dx; view.y = drag.vy + dy; }
-        else { drag.n.x = Math.round((drag.nx + dx / view.k) / 5) * 5; drag.n.y = Math.round((drag.ny + dy / view.k) / 5) * 5; edited = true; }
+        else { const sx = Math.round(dx / view.k / 5) * 5, sy = Math.round(dy / view.k / 5) * 5; for (const g of drag.group) { g.m.x = g.x + sx; g.m.y = g.y + sy; } edited = true; }
         schedule();
       }
       return;
@@ -166,11 +196,15 @@
     if (id !== hover) { hover = id; cv.classList.toggle('pointer', !!id); schedule(); }
     if (n) showTip(n, p); else hideTip();
   });
-  cv.addEventListener('pointerup', () => {
+  const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) { if (pinch) persist(); pinch = null; drag = null; cv.classList.remove('grabbing'); } };
+  cv.addEventListener('pointercancel', endPtr);
+  cv.addEventListener('pointerup', e => {
+    const wasPinch = !!pinch; ptrs.delete(e.pointerId);
+    if (wasPinch) { endPtr(e); return; }
     if (!drag) return;
     const d = drag; drag = null; cv.classList.remove('grabbing');
     if (d.moved) { if (d.type === 'node') { refreshLight(); renderInspector(); } persist(); return; }
-    clickNode(d.n, d.mod);
+    clickNode(d.n, d.mod, d.alt);
   });
   cv.addEventListener('pointerleave', () => { if (!drag) { hover = null; hideTip(); schedule(); } });
   cv.addEventListener('contextmenu', e => { e.preventDefault(); const n = nodeAt(pos(e)); if (n && mode === 'play') { sel = n.id; tryRefund(n); } });
@@ -182,7 +216,9 @@
   });
   document.addEventListener('keydown', e => {
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || $('dlgImport').open) return;
-    if (e.key === 'Escape') { sel = null; refreshAll(); }
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+    else if (e.key === 'Escape') { sel = null; multi.clear(); refreshAll(); }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && mode === 'edit' && sel) { e.preventDefault(); deleteNode(sel); }
   });
 
@@ -201,8 +237,10 @@
   const hideTip = () => { tip.hidden = true; };
 
   /* ---------- дії ---------- */
-  function clickNode(n, mod) {
-    if (!n) { if (sel) { sel = null; refreshAll(); } return; }
+  function clickNode(n, mod, alt) {
+    if (!n) { if (sel || multi.size) { sel = null; multi.clear(); refreshAll(); } return; }
+    if (mode === 'edit' && alt) { if (sel && sel !== n.id) multi.add(sel); if (multi.has(n.id)) multi.delete(n.id); else multi.add(n.id); sel = n.id; refreshAll(); return; }
+    if (mode === 'edit') multi.clear();
     if (mode === 'play') { sel = n.id; if (mod) tryRefund(n); else tryAllocate(n); return; }
     if (sel && sel !== n.id && mod) { toggleLink(sel, n.id); return; }
     sel = n.id; refreshAll();
@@ -210,12 +248,12 @@
   function tryAllocate(n) {
     const r = T.canAllocate(tree, build, n.id, analysis().idx);
     if (!r.ok) { toast(r.reason); refreshAll(); return; }
-    build = T.allocate(tree, build, n.id, analysis().idx); dirty(); refreshAll(); persist();
+    pushUndo(); build = T.allocate(tree, build, n.id, analysis().idx); dirty(); refreshAll(); persist();
   }
   function tryRefund(n) {
     const idx = analysis().idx;
     if (!T.canRefund(tree, build, n.id, idx)) { toast((build.ranks[n.id] | 0) ? 'Не можна забрати: від цього вузла залежать інші.' : 'Тут нічого забирати.'); refreshAll(); return; }
-    build = T.refund(tree, build, n.id, idx); dirty(); refreshAll(); persist();
+    pushUndo(); build = T.refund(tree, build, n.id, idx); dirty(); refreshAll(); persist();
   }
   function repairBuild() {
     const ids = new Set(tree.nodes.map(n => n.id));
@@ -225,6 +263,7 @@
   }
   function uniqueId() { const ids = new Set(tree.nodes.map(n => n.id)); let i = tree.nodes.length + 1; while (ids.has('n' + i)) i++; return 'n' + i; }
   function addNode(x, y) {
+    pushUndo();
     const first = !tree.nodes.length && tree.mode === 'path';
     const n = { id: uniqueId(), x, y, name: first ? 'Початок' : 'Новий вузол', desc: '', kind: first ? 'start' : 'small', max: 1, cost: first ? 0 : 1, need: 0, stats: {} };
     tree.nodes.push(n);
@@ -232,11 +271,15 @@
     sel = n.id; edited = true; dirty(); refreshAll(); persist();
   }
   function deleteNode(id) {
-    tree.nodes = tree.nodes.filter(n => n.id !== id);
-    tree.links = tree.links.filter(([a, b]) => a !== id && b !== id);
-    delete build.ranks[id]; sel = null; hover = null; hideTip(); edited = true; repairBuild(); refreshAll(); persist();
+    pushUndo();
+    const gone = new Set([id, ...multi]); multi.clear();
+    tree.nodes = tree.nodes.filter(n => !gone.has(n.id));
+    tree.links = tree.links.filter(([a, b]) => !gone.has(a) && !gone.has(b));
+    for (const g of gone) delete build.ranks[g];
+    sel = null; hover = null; hideTip(); edited = true; repairBuild(); refreshAll(); persist();
   }
   function toggleLink(a, b) {
+    pushUndo();
     const same = (l, x, y) => l[0] === x && l[1] === y;
     const prereq = tree.mode === 'prereq';
     const i = tree.links.findIndex(l => same(l, a, b) || (!prereq && same(l, b, a)) || (prereq && same(l, b, a)));
@@ -250,7 +293,7 @@
   }
   function replaceTree(next, nextBuild) {
     if (edited && !window.confirm('Замінити поточне дерево? Незбережені зміни буде втрачено.')) return false;
-    tree = next; build = nextBuild || T.emptyState(); sel = null; hover = null; edited = false; view = null; dirty(); fit(); refreshAll(); persist();
+    pushUndo(); tree = next; build = nextBuild || T.emptyState(); multi.clear(); sel = null; hover = null; edited = false; view = null; dirty(); fit(); refreshAll(); persist();
     return true;
   }
 
@@ -282,7 +325,7 @@
     if (!n) { box.append(h('p', { class: 'empty' }, mode === 'play' ? 'Клікни вузол, щоб вкласти очко. Наведи курсор, щоб побачити опис.' : 'Вибери вузол, щоб змінити його. Подвійний клік по порожньому місцю додає новий.')); return; }
     const a = analysis(), st = a.status.get(n.id), rank = build.ranks[n.id] | 0;
     if (mode === 'edit') {
-      const on = (fn, rerender) => e => { fn(e.target); edited = true; dirty(); refreshLight(); if (rerender) renderInspector(); persist(); };
+      const on = (fn, rerender) => e => { pushUndo(); fn(e.target); edited = true; dirty(); refreshLight(); if (rerender) renderInspector(); persist(); };
       box.append(h('div', { class: 'form' },
         h('label', null, 'Назва', h('input', { type: 'text', value: n.name, onchange: on(el => { n.name = el.value.trim() || n.name; }) })),
         h('label', null, 'Тип', h('select', { onchange: on(el => { n.kind = el.value; if (n.kind === 'start') n.cost = 0; }, true) }, Object.entries(T.KINDS).map(([k, v]) => h('option', { value: k, selected: k === n.kind }, v.name)))),
@@ -313,7 +356,7 @@
 
   function renderTreeSet() {
     const box = $('treeset'); box.textContent = '';
-    const on = fn => e => { fn(e.target); edited = true; repairBuild(); refreshLight(); renderTreeSet(); persist(); };
+    const on = fn => e => { pushUndo(); fn(e.target); edited = true; repairBuild(); refreshLight(); renderTreeSet(); persist(); };
     box.append(h('div', { class: 'form' },
       h('label', null, 'Назва дерева', h('input', { type: 'text', value: tree.name, onchange: on(el => { tree.name = el.value.trim() || tree.name; }) })),
       h('div', { class: 'two', style: 'grid-template-columns:1fr 1fr' },
@@ -331,10 +374,11 @@
       h('div', { class: 'btns' },
         h('button', { class: 'btn-primary', onclick: () => { const t = T.generateTree({ seed: g.seed, branches: g.branches, depth: g.depth }); if (replaceTree(t)) toast(`Згенеровано ${t.nodes.length} вузлів`); } }, 'Згенерувати'),
         h('button', { onclick: () => { if (replaceTree(T.tiersExample())) toast('Приклад: три класи'); } }, 'Три класи'),
+        Object.entries(T.TEMPLATES).map(([k, label]) => h('button', { onclick: () => { if (replaceTree(T.templateTree(k))) toast('Шаблон: ' + label); } }, label.split(' (')[0])),
         h('button', { onclick: () => { if (replaceTree({ version: 1, name: 'Нове дерево', points: 10, mode: 'path', nodes: [{ id: 'start', x: 0, y: 0, name: 'Початок', desc: '', kind: 'start', max: 1, cost: 0, need: 0, stats: {} }], links: [], stats: {} })) { mode = 'edit'; applyMode(); } } }, 'Порожнє')),
     ));
     box.append(h('p', { class: 'hint' }, 'Генератор будує дерево зі стартом у центрі: гілки-теми, значні й ключові вузли, перехресні зв’язки. Той самий seed дає те саме дерево.'));
-    box.append(h('div', { class: 'btns' }, h('button', { onclick: () => { T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); } }, 'Розкласти вузли автоматично')));
+    box.append(h('div', { class: 'btns' }, h('button', { onclick: () => { pushUndo(); T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); } }, 'Розкласти вузли автоматично')));
   }
 
   function refreshLight() { $('pts').replaceChildren(document.createTextNode('Очок: '), h('b', null, `${analysis().left}`), document.createTextNode(` з ${tree.points}`)); renderSummary(); schedule(); }
@@ -346,12 +390,24 @@
     document.querySelectorAll('#modeSeg button').forEach(b => { const on = b.dataset.mode === mode; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     $('help').textContent = mode === 'play'
       ? 'Клік вкладає очко · правий клік або Shift+клік повертає · колесо масштабує · тягни полотно.'
-      : 'Тягни вузол · подвійний клік по порожньому місцю додає вузол (з’єднується з вибраним) · Shift+клік по іншому вузлу з’єднує · Delete видаляє.';
+      : 'Тягни вузол · подвійний клік по порожньому місцю додає вузол (з’єднується з вибраним) · Shift+клік по іншому вузлу з’єднує · Alt+клік додає до вибору (тягнеться разом) · Delete видаляє · Ctrl+Z скасовує.';
     refreshAll(); persist();
   }
   document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; applyMode(); }));
-  $('btnResetBuild').addEventListener('click', () => { build = T.emptyState(); dirty(); refreshAll(); persist(); });
-  $('btnLayout').addEventListener('click', () => { T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); });
+  $('btnResetBuild').addEventListener('click', () => { pushUndo(); build = T.emptyState(); dirty(); refreshAll(); persist(); });
+  $('btnLayout').addEventListener('click', () => { pushUndo(); T.autoLayout(tree); edited = true; fit(); dirty(); refreshAll(); persist(); toast('Вузли розкладено'); });
+  $('btnUndo').addEventListener('click', undo); $('btnRedo').addEventListener('click', redo); syncUndo();
+  $('btnPng').addEventListener('click', () => {
+    const keep = view; fit(); draw();
+    const out = document.createElement('canvas'); out.width = cv.width; out.height = cv.height;
+    const o = out.getContext('2d'); o.fillStyle = '#0b0b0f'; o.fillRect(0, 0, out.width, out.height); o.drawImage(cv, 0, 0);
+    view = keep; schedule();
+    out.toBlob(b => {
+      if (!b) { toast('Не вдалося створити PNG'); return; }
+      const url = URL.createObjectURL(b), a = h('a', { href: url, download: 'skill-tree.png' }); document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000); toast('skill-tree.png збережено');
+    }, 'image/png');
+  });
   $('zoomIn').addEventListener('click', () => zoomAt(W / 2, H / 2, 1.3));
   $('zoomOut').addEventListener('click', () => zoomAt(W / 2, H / 2, 1 / 1.3));
   $('zoomFit').addEventListener('click', () => { fit(); schedule(); persist(); });

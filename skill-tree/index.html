@@ -29,6 +29,7 @@
   </div>
   <div class="spacer"></div>
   <button id="btnImport">Імпорт</button>
+  <button id="btnPng" title="Зберегти все дерево як картинку PNG">PNG</button>
   <button id="btnCopy" title="Скопіювати дерево й поточний розподіл як JSON">Копіювати JSON</button>
   <button class="btn-primary" id="btnSave" title="Завантажити skill-tree.json">Зберегти .json</button>
 </header>
@@ -38,6 +39,8 @@
     <canvas id="cv" tabindex="0" aria-label="Полотно дерева. Клік вкладає очко, правий клік або Shift+клік повертає."></canvas>
     <div class="hud tl">
       <span class="pts" id="pts"></span>
+      <button id="btnUndo" title="Скасувати (Ctrl+Z)" aria-label="Скасувати">↶</button>
+      <button id="btnRedo" title="Повторити (Ctrl+Shift+Z)" aria-label="Повторити">↷</button>
       <button id="btnResetBuild" title="Забрати всі вкладені очки">Скинути</button>
     </div>
     <div class="hud br">
