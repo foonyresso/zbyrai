@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colonist Foundry: кузня колоністів</title>
+<meta name="description" content="Генератор колоністів для ігор-поселень: риси, навички з пристрастями, передісторії, потреби, стосунки між людьми й симуляція доби поселення. Експорт у JSON і CSV. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/colonist-foundry/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Colonist Foundry: кузня колоністів">
+<meta property="og:description" content="Колоністи з характерами, навичками й стосунками, а також симуляція їхньої доби: хто з ким посварився і хто зірвався.">
+<meta property="og:url" content="https://zbyrai.pages.dev/colonist-foundry/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%245%27 fill=%27none%27 stroke=%27%23c98fdc%27 stroke-width=%272%27/%3E%3Cpath d=%27M6 27c1-7 5-9 10-9s9 2 10 9%27 fill=%27none%27 stroke=%27%23c98fdc%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c.8-5 3.6-7 7.5-7s6.7 2 7.5 7"/></svg>
+    <div>Colonist <span>Foundry</span></div>
+  </div>
+  <nav class="tabs" role="tablist"><button role="tab" data-tab="roster" aria-selected="true">Колоністи</button><button role="tab" data-tab="bonds" aria-selected="false">Стосунки</button><button role="tab" data-tab="day" aria-selected="false">Доба</button></nav>
+  <div class="spacer"></div>
+  <label class="ctl-inline">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
+  <label class="ctl-inline">Зерно <input type="text" id="tSeed" maxlength="20" spellcheck="false"></label>
+  <button id="btnNew" class="btn-primary" title="Нова колонія (Пробіл)">Нова колонія</button>
+</header>
+
+<main class="wrap">
+  <section id="tabRoster">
+    <div class="bar"><span class="hint">Замкніть 🔒 тих, кого хочете залишити, і створіть нову колонію: решта зміниться. 🎲 перегенеровує одного.</span><span class="spacer"></span><button id="btnJson">JSON</button><button id="btnCsv">CSV</button></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="tabBonds" hidden>
+    <div class="two"><div class="card"><h2>Схема стосунків</h2><div id="web"></div><div class="legend" id="relLegend"></div></div>
+    <div class="card"><h2>Хто що думає про кого <span class="sub">рядок думає про стовпчик</span></h2><div class="tablewrap"><table id="matrix"></table></div></div></div>
+  </section>
+
+  <section id="tabDay" hidden>
+    <div class="bar"><button id="btnDay" class="btn-primary">Прожити добу</button><label class="ctl-inline">Доба № <input type="number" id="nDay" min="1" max="9999" step="1"></label><span class="hint">Вночі сплять, удень працюють за пріоритетами, ввечері розмовляють. Потреби спадають залежно від рис.</span></div>
+    <div id="dayOut"></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./colonist-core.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
