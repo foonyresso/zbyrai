@@ -16,7 +16,24 @@
   // «Розетка» (мандала) живе лише в застосунку: вона не вимощує клітинку, а складає зображення навколо центру
   const MODES = Object.assign({}, PMCore.MODES, { ros: { name: 'Розетка', sub: 'мандала · N променів' } });
   if (!MODES[st.mode]) st.mode = DEFAULTS.mode;
-  const saveSettings = () => store.set('settings', st);
+  /* ---------- історія (скасування), «рецепти» ефектів і посилання зі станом ---------- */
+  const STATE_KEYS = ['mode', 'a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline', 'fx'];
+  const snap = () => JSON.stringify(STATE_KEYS.reduce((o, k) => (o[k] = st[k], o), {}));
+  function applySnap(json) {
+    try {
+      const o = JSON.parse(json);
+      for (const k of STATE_KEYS) if (k !== 'fx' && k in o) st[k] = o[k];
+      st.fx = Object.assign({}, DEFAULTS.fx, o.fx);
+      if (!MODES[st.mode]) st.mode = DEFAULTS.mode;
+      return true;
+    } catch { return false; }
+  }
+  const hist = [snap()]; let histTimer = 0, restoring = false;
+  function pushHist() {
+    clearTimeout(histTimer);
+    histTimer = setTimeout(() => { const j = snap(); if (!restoring && j !== hist[hist.length - 1]) { hist.push(j); if (hist.length > 60) hist.shift(); } }, 350);
+  }
+  const saveSettings = () => { store.set('settings', st); pushHist(); };
 
   const BASE = 512;          // логічна ширина клітинки в превʼю (зум 100% = 512 px на клітинку)
   const MAX_SIDE = 3200;     // більші зображення зменшуємо, щоб не з'їсти памʼять
@@ -561,12 +578,59 @@
     } catch { toast('Не вдалося скопіювати: збережіть PNG'); }
   };
 
+  function restore(json) {
+    restoring = true; applySnap(json); syncControls(); drawSource(); requestRender(); store.set('settings', st); restoring = false;
+  }
+  function undo() {
+    clearTimeout(histTimer); const cur = snap();
+    if (cur !== hist[hist.length - 1]) hist.push(cur); // незафіксована правка теж стає кроком
+    if (hist.length < 2) { toast('Немає що скасовувати'); return; }
+    hist.pop(); restore(hist[hist.length - 1]); toast('Крок скасовано');
+  }
+  $('btnUndo').onclick = undo;
+  addEventListener('keydown', e => {
+    const t = document.activeElement, typing = t && (t.tagName === 'SELECT' || (t.tagName === 'INPUT' && t.type === 'number'));
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); undo(); }
+  });
+
+  // рецепти: іменовані набори ефектів у localStorage
+  let recipes = store.get('recipes', []);
+  function drawRecipes() {
+    const sel2 = $('selRecipe'); sel2.textContent = '';
+    sel2.add(new Option(recipes.length ? 'Обрати рецепт…' : 'Рецептів ще немає', ''));
+    recipes.forEach((r, i) => sel2.add(new Option(r.name, String(i))));
+  }
+  $('btnRecipeSave').onclick = () => {
+    const name = (prompt('Назва рецепта:', 'Мій рецепт ' + (recipes.length + 1)) || '').trim().slice(0, 40);
+    if (!name) return;
+    const i = recipes.findIndex(r => r.name === name), r = { name, fx: Object.assign({}, st.fx) };
+    if (i >= 0) recipes[i] = r; else recipes.push(r);
+    store.set('recipes', recipes); drawRecipes(); toast('Рецепт збережено');
+  };
+  $('selRecipe').onchange = e => {
+    const r = recipes[+e.target.value]; if (!r) return;
+    st.fx = Object.assign({}, DEFAULTS.fx, r.fx); syncFx(); drawPreview(); saveSettings(); toast('Рецепт застосовано: ' + r.name);
+  };
+  $('btnRecipeDel').onclick = () => {
+    const i = +$('selRecipe').value; if (!recipes[i] || $('selRecipe').value === '') return;
+    recipes.splice(i, 1); store.set('recipes', recipes); drawRecipes(); toast('Рецепт видалено');
+  };
+
+  // посилання на стан: #s=base64(JSON); зображення в посилання не входить
+  $('btnLink').onclick = async () => {
+    const url = location.href.split('#')[0] + '#s=' + btoa(unescape(encodeURIComponent(snap())));
+    try { history.replaceState(null, '', url); } catch {}
+    try { await navigator.clipboard.writeText(url); toast('Посилання зі станом скопійовано (без зображення)'); } catch { toast('Посилання у адресному рядку'); }
+  };
+  if (/^#s=/.test(location.hash)) { try { applySnap(decodeURIComponent(escape(atob(location.hash.slice(3))))); hist[0] = snap(); } catch {} }
+
   /* ---------- розміри й запуск ---------- */
   const relayout = () => { layoutSource(); drawSource(); sizePreview(); drawPreview(); };
   if (window.ResizeObserver) { const ro = new ResizeObserver(relayout); ro.observe($('srcWrap')); ro.observe($('prevWrap')); }
   addEventListener('resize', relayout);
 
   buildFxUi();
+  drawRecipes();
   addResets();
   syncControls();
   sizePreview();

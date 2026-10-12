@@ -65,6 +65,8 @@
     <div class="pane-h">
       <h2>Візерунок</h2>
       <span class="spacer"></span>
+      <button id="btnUndo" title="Скасувати останню зміну (Ctrl+Z)">Скасувати</button>
+      <button id="btnLink" title="Скопіювати посилання, що відновлює всі повзунки й ефекти">Посилання</button>
       <button id="btnSurprise" title="Випадкові повзунки й ефекти (зображення й режим лишаються)">Сюрприз</button>
       <button id="btnResetAll" title="Повернути всі повзунки й ефекти до початкових значень (режим і зображення лишаються)">Скинути все</button>
       <button id="btnReset" title="Повернути масштаб і зсув превʼю">Скинути вигляд</button>
@@ -77,6 +79,7 @@
       </div>
 
       <h3 class="sec-t eyebrow">Ефекти кінцевого результату</h3>
+      <div class="recipes"><select id="selRecipe" aria-label="Збережені рецепти ефектів"></select><button id="btnRecipeSave" title="Зберегти поточні ефекти як рецепт">Зберегти рецепт</button><button id="btnRecipeDel" title="Видалити вибраний рецепт">Видалити</button></div>
       <div class="ctls" id="fxCtls"></div>
       <p class="hint">Ефекти діють на готовий візерунок, а не на текстуру: піксель-арт видно за будь-якого масштабу. Піксель-арт, хвиля, сканлінії, зерно й нахил потрапляють лише в експорт полотна; у PNG-тайл йдуть тільки колірні ефекти, щоб він лишався безшовним.</p>
 

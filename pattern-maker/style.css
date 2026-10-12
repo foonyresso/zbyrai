@@ -92,3 +92,6 @@ body.dragging .dropmask { display: flex; }
   .exp-row .lbl { width: 100%; }
   .exp-row button { margin-left: 0; }
 }
+
+.recipes { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+.recipes select { flex: 1 1 140px; min-width: 0; }
