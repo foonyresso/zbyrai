@@ -36,6 +36,7 @@
       <button id="btnPick">Обрати файл…</button>
       <button id="btnPaste" title="Вставити зображення з буфера обміну (Ctrl+V)">Вставити</button>
       <button id="btnDemo">Демо</button>
+      <button id="btnRandom" title="Випадкове зображення з інтернету (picsum.photos або Вікісховище). Єдина дія, що звертається до мережі">Випадкове</button>
       <input type="file" id="file" accept="image/*" hidden>
     </div>
     <div class="pane-b">
@@ -50,10 +51,11 @@
 
       <div class="ctls">
         <label class="ctl"><span>Розмір виділення</span><output id="oSize"></output><input type="range" id="rSize" min="3" max="100" step="1"></label>
-        <label class="ctl"><span>Поворот</span><output id="oRot"></output><input type="range" id="rRot" min="-180" max="180" step="1"></label>
+        <label class="ctl" data-for="pmm p4m p6m p3m1 tex"><span>Поворот</span><output id="oRot"></output><input type="range" id="rRot" min="-180" max="180" step="1"></label>
         <label class="ctl" data-for="pmm tex"><span>Пропорції (ширина : висота)</span><output id="oAsp"></output><input type="range" id="rAsp" min="50" max="200" step="1"></label>
+        <label class="ctl" data-for="ros"><span>Кількість променів</span><output id="oSeg"></output><input type="range" id="rSeg" min="3" max="24" step="1"></label>
+        <label class="ctl" data-for="ros"><span>Поворот розетки</span><output id="oSpin"></output><input type="range" id="rSpin" min="-180" max="180" step="1"></label>
         <label class="ctl" data-for="tex"><span>Ширина змішування</span><output id="oBlend"></output><input type="range" id="rBlend" min="5" max="100" step="1"></label>
-        <label class="chk"><input type="checkbox" id="cPixel"><span>Піксель-арт (без згладжування)</span></label>
       </div>
     </div>
   </section>
@@ -63,6 +65,7 @@
     <div class="pane-h">
       <h2>Візерунок</h2>
       <span class="spacer"></span>
+      <button id="btnResetAll" title="Повернути всі повзунки й ефекти до початкових значень (режим і зображення лишаються)">Скинути все</button>
       <button id="btnReset" title="Повернути масштаб і зсув превʼю">Скинути вигляд</button>
     </div>
     <div class="pane-b">
@@ -71,6 +74,10 @@
         <label class="ctl"><span>Масштаб</span><output id="oZoom"></output><input type="range" id="rZoom" min="10" max="300" step="1"></label>
         <label class="chk"><input type="checkbox" id="cOutline"><span>Показати межі клітинки</span></label>
       </div>
+
+      <h3 class="sec-t eyebrow">Ефекти кінцевого результату</h3>
+      <div class="ctls" id="fxCtls"></div>
+      <p class="hint">Ефекти діють на готовий візерунок, а не на текстуру: піксель-арт видно за будь-якого масштабу. Піксель-арт, хвиля, сканлінії, зерно й нахил потрапляють лише в експорт полотна; у PNG-тайл йдуть тільки колірні ефекти, щоб він лишався безшовним.</p>
 
       <h3 class="sec-t eyebrow">Експорт</h3>
       <div class="export">
@@ -100,6 +107,7 @@
 if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
 <script src="./pattern-core.js"></script>
+<script src="./pattern-fx.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

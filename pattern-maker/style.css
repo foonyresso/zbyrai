@@ -51,11 +51,16 @@ body.dragging .dropmask { display: flex; }
 
 /* ---------- повзунки ---------- */
 .ctls { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
-.ctl { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: baseline; font-size: 13px; }
+.ctl { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 10px; align-items: baseline; font-size: 13px; }
 .ctl span { color: var(--muted); }
 .ctl output { color: var(--gold-hi); font-family: var(--ff-mono); font-size: 12px; }
 .ctl input[type="range"] { grid-column: 1 / -1; width: 100%; }
 .ctl[hidden] { display: none; }
+.ctl .rst { grid-row: 1; grid-column: 3; padding: 0 7px; min-width: 26px; height: 22px; line-height: 1; font-size: 14px; color: var(--faint); background: transparent; border-radius: 6px; }
+.ctl .rst:hover { color: var(--gold-hi); border-color: var(--gold-lo); }
+.ctl select { grid-column: 1 / -1; width: 100%; }
+.fx-chk { display: flex; align-items: center; gap: 9px; }
+.fx-chk .rst { margin-left: auto; }
 .chk { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); cursor: pointer; width: fit-content; }
 .chk:hover { color: var(--text); }
 

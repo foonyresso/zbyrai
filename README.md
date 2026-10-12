@@ -2,6 +2,7 @@
 
 Збірка безкоштовних браузерних інструментів. Без реєстрації, без встановлення, без інтернету після завантаження:
 відкрив сторінку й працюєш. Усе рахується у твоєму браузері, нічого не надсилається на сервер.
+Єдиний виняток: кнопка «Випадкове» в Pattern Maker завантажує випадкове фото з picsum.photos або Вікісховища (ваші дані при цьому не надсилаються).
 
 **Сайт:** https://zbyrai.pages.dev/
 
@@ -50,6 +51,7 @@ sitemap.xml         сторінки сайту для пошуковиків
 python -m http.server 8000        # локальний сервер, далі http://localhost:8000/
 node tools/sync-theme.mjs         # після змін у shared/theme.css оновити копії в інструментах
 node pattern-maker/test/fold.test.js   # тести математики Pattern Maker (потрібен лише Node)
+node pattern-maker/test/fx.test.js     # тести ефектів Pattern Maker
 node loot-forge/test/loot.test.js      # тести Loot Forge
 node skill-tree/test/tree.test.js      # тести Skill Tree Lab
 node idea-mixer/test/mixer.test.js     # тести Idea Mixer

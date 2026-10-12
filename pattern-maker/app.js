@@ -9,9 +9,13 @@
     get(k, d) { try { const v = localStorage.getItem('pm_' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem('pm_' + k, JSON.stringify(v)); } catch {} },
   };
-  const DEFAULTS = { mode: 'p6m', a: 1, size: .4, rot: 0, k: .5, pixel: false, zoom: .5, outline: false, tileW: 1024, cw: 1920, ch: 1080 };
-  const st = Object.assign({}, DEFAULTS, store.get('settings', {}));
-  if (!PMCore.MODES[st.mode]) st.mode = DEFAULTS.mode;
+  const DEFAULTS = { mode: 'p6m', a: 1, size: .4, rot: 0, k: .5, seg: 8, spin: 0, zoom: .5, outline: false, tileW: 1024, cw: 1920, ch: 1080, fx: Object.assign({}, PMFx.DEFAULT_FX) };
+  const savedSt = store.get('settings', {});
+  const st = Object.assign({}, DEFAULTS, savedSt, { fx: Object.assign({}, DEFAULTS.fx, savedSt.fx) });
+  delete st.pixel; // старий прапорець «піксель-арт для текстури»: тепер ефект працює на кінцевому результаті (st.fx.px)
+  // «Розетка» (мандала) живе лише в застосунку: вона не вимощує клітинку, а складає зображення навколо центру
+  const MODES = Object.assign({}, PMCore.MODES, { ros: { name: 'Розетка', sub: 'мандала · N променів' } });
+  if (!MODES[st.mode]) st.mode = DEFAULTS.mode;
   const saveSettings = () => store.set('settings', st);
 
   const BASE = 512;          // логічна ширина клітинки в превʼю (зум 100% = 512 px на клітинку)
@@ -43,7 +47,7 @@
     const cx = c.getContext('2d', { willReadFrequently: true });
     cx.drawImage(img, 0, 0, w, h);
     const id = cx.getImageData(0, 0, w, h);
-    src = { data: id.data, width: w, height: h, canvas: c };
+    src = { data: id.data, width: w, height: h, canvas: c }; srcId++;
     sel.cx = w / 2; sel.cy = h / 2;
     $('srcInfo').textContent = `${label ? label + ' · ' : ''}${w}×${h} px. Перетягніть виділення, колесо миші змінює розмір.`;
     layoutSource(); drawSource(); requestRender();
@@ -135,6 +139,10 @@
     sv.k = k; sv.w = cw; sv.h = ch; sv.ox = (cw - src.width * k) / 2; sv.oy = (ch - src.height * k) / 2;
   }
   const regionPolyImg = () => {
+    if (st.mode === 'ros') { // у розетці виділення — коло навколо центру
+      const R = st.size * Math.min(src.width, src.height);
+      return Array.from({ length: 48 }, (_, i) => [sel.cx + R * Math.cos(i / 48 * 2 * Math.PI), sel.cy + R * Math.sin(i / 48 * 2 * Math.PI)]);
+    }
     const g = PMCore.geometry(st.mode, st.a), p = params();
     return g.poly.map(([x, y]) => PMCore.regionToSource(p, g, x, y));
   };
@@ -143,7 +151,7 @@
     const cvs = $('src'), ctx = cvs.getContext('2d'), dpr = devicePixelRatio || 1;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, sv.w, sv.h);
-    ctx.imageSmoothingEnabled = !st.pixel;
+    ctx.imageSmoothingEnabled = true;
     ctx.drawImage(src.canvas, sv.ox, sv.oy, src.width * sv.k, src.height * sv.k);
     const pts = regionPolyImg().map(([x, y]) => [sv.ox + x * sv.k, sv.oy + y * sv.k]);
     ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath();
@@ -201,8 +209,9 @@
     finalTimer = setTimeout(() => renderTo(BASE, 0), 170);
   }
   function renderTo(w, ssaa) {
-    cell = toCanvas(PMCore.renderCell(src, params(), w, { nearest: st.pixel, ssaa }));
-    drawPreview();
+    if (st.mode === 'ros') { cell = null; drawPreview(ssaa === 1); return; }
+    cell = toCanvas(PMCore.renderCell(src, params(), w, { ssaa }));
+    drawPreview(ssaa === 1);
   }
 
   /* ---------- превʼю ---------- */
@@ -212,25 +221,59 @@
     if (!w || !h) return;
     cvs.width = Math.round(w * dpr); cvs.height = Math.round(h * dpr);
   }
-  function drawPreview() {
+  /* ----- малювання: тайли або розетка, потім ефекти кінцевого результату ----- */
+  let fxTimer = 0, srcId = 0, rosCache = { key: '', canvas: null };
+  const imgOf = () => ({ data: src.data, width: src.width, height: src.height });
+  const rosOpts = () => ({ n: st.seg, spin: st.spin * Math.PI / 180, cx: sel.cx, cy: sel.cy, R: Math.max(2, st.size * Math.min(src.width, src.height)) });
+  // розетка без ефектів кешується: повзунки ефектів не мають перераховувати її щоразу
+  function rosetteCanvas(W, H) {
+    const key = [srcId, st.seg, st.spin, sel.cx, sel.cy, st.size, W, H].join('|');
+    if (rosCache.key !== key) {
+      const r = PMFx.rosette(imgOf(), W, H, rosOpts());
+      const c = document.createElement('canvas'); c.width = W; c.height = H;
+      c.getContext('2d').putImageData(new ImageData(r.data, W, H), 0, 0);
+      rosCache = { key, canvas: c };
+    }
+    return rosCache.canvas;
+  }
+  function paintRosette(ctx, W, H, quality) {
+    const rw = Math.max(16, Math.round(W * quality)), rh = Math.max(16, Math.round(H * quality));
+    ctx.imageSmoothingEnabled = quality < 1; ctx.drawImage(rosetteCanvas(rw, rh), 0, 0, W, H);
+  }
+  // нахил візерунка: вся решітка повертається навколо центру полотна
+  function tileTransform(ctx, W, H, k, ox, oy) {
+    ctx.translate(W / 2, H / 2); ctx.rotate(st.fx.ang * Math.PI / 180); ctx.translate(-W / 2 + ox, -H / 2 + oy); ctx.scale(k, k);
+  }
+  function paintTiles(ctx, W, H, k, tile, ox, oy) {
+    ctx.save(); tileTransform(ctx, W, H, k, ox, oy);
+    ctx.fillStyle = ctx.createPattern(tile, 'repeat'); const big = (W + H) * 2 / k; ctx.fillRect(-big, -big, big * 2, big * 2);
+    ctx.restore();
+  }
+  function applyFx(ctx, W, H, scale, colorOnly) {
+    const out = PMFx.process(ctx.getImageData(0, 0, W, H), st.fx, scale, colorOnly);
+    ctx.putImageData(new ImageData(out.data, W, H), 0, 0);
+  }
+  function drawPreview(fast) {
     const cvs = $('prev'), ctx = cvs.getContext('2d'), dpr = devicePixelRatio || 1, W = cvs.width, H = cvs.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = '#09090c'; ctx.fillRect(0, 0, W, H);
-    if (!cell) return;
-    const k = st.zoom * BASE / cell.width * dpr; // пікселів екрана на піксель клітинки
-    ctx.imageSmoothingEnabled = !st.pixel; ctx.imageSmoothingQuality = 'high';
-    ctx.save();
-    ctx.translate(view.px * dpr, view.py * dpr); ctx.scale(k, k);
-    ctx.fillStyle = ctx.createPattern(cell, 'repeat');
-    ctx.fillRect(-view.px * dpr / k, -view.py * dpr / k, W / k, H / k);
-    ctx.restore();
-    if (st.outline) {
-      const tw = cell.width * k, th = cell.height * k, ox = view.px * dpr, oy = view.py * dpr;
-      ctx.strokeStyle = 'rgba(232,210,158,.75)'; ctx.lineWidth = dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
+    if (!src) return;
+    const ros = st.mode === 'ros';
+    if (!ros && !cell) return;
+    const k = ros ? 1 : st.zoom * BASE / cell.width * dpr; // пікселів екрана на піксель клітинки
+    if (ros) paintRosette(ctx, W, H, fast ? .3 : 1);
+    else { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; paintTiles(ctx, W, H, k, cell, view.px * dpr, view.py * dpr); }
+    clearTimeout(fxTimer);
+    if (fast) fxTimer = setTimeout(() => drawPreview(false), 130); // під час перетягування чернетка, у спокої повна якість з ефектами
+    else if (PMFx.active(st.fx)) applyFx(ctx, W, H, dpr, false);
+    if (st.outline && !ros) {
+      const big = (W + H) * 2 / k, n = Math.ceil(big / cell.width) + 1, m = Math.ceil(big / cell.height) + 1;
+      ctx.save(); tileTransform(ctx, W, H, k, view.px * dpr, view.py * dpr);
+      ctx.strokeStyle = 'rgba(232,210,158,.75)'; ctx.lineWidth = dpr / k; ctx.setLineDash([6 * dpr / k, 5 * dpr / k]);
       ctx.beginPath();
-      for (let x = ((ox % tw) + tw) % tw; x < W; x += tw) { ctx.moveTo(Math.round(x) + .5, 0); ctx.lineTo(Math.round(x) + .5, H); }
-      for (let y = ((oy % th) + th) % th; y < H; y += th) { ctx.moveTo(0, Math.round(y) + .5); ctx.lineTo(W, Math.round(y) + .5); }
-      ctx.stroke(); ctx.setLineDash([]);
+      for (let i = -n; i <= n; i++) { ctx.moveTo(i * cell.width, -big); ctx.lineTo(i * cell.width, big); }
+      for (let j = -m; j <= m; j++) { ctx.moveTo(-big, j * cell.height); ctx.lineTo(big, j * cell.height); }
+      ctx.stroke(); ctx.restore();
     }
   }
   let pdrag = null;
@@ -240,7 +283,7 @@
   });
   $('prev').addEventListener('pointermove', e => {
     if (!pdrag) return;
-    view.px = pdrag.px + e.clientX - pdrag.x; view.py = pdrag.py + e.clientY - pdrag.y; drawPreview();
+    view.px = pdrag.px + e.clientX - pdrag.x; view.py = pdrag.py + e.clientY - pdrag.y; drawPreview(true);
   });
   const endPdrag = () => { pdrag = null; $('prev').classList.remove('drag'); };
   $('prev').addEventListener('pointerup', endPdrag);
@@ -250,7 +293,7 @@
     const r = $('prev').getBoundingClientRect(), cx = e.clientX - r.left, cy = e.clientY - r.top;
     const z0 = st.zoom, z1 = clamp(z0 * Math.exp(-e.deltaY * .0015), .1, 3);
     view.px = cx - (cx - view.px) * z1 / z0; view.py = cy - (cy - view.py) * z1 / z0; // точка під курсором лишається на місці
-    st.zoom = z1; syncControls(); drawPreview(); saveSettings();
+    st.zoom = z1; syncControls(); drawPreview(true); saveSettings();
   }, { passive: false });
 
   /* ---------- режими й елементи керування ---------- */
@@ -260,9 +303,10 @@
     p6m: '<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9"/>',
     p3m1: '<path d="M12 3.5 21 19.5H3z"/><path d="M12 3.5v16M3 19.5l13.5-8M21 19.5 7.5 11.5"/>',
     tex: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12c4-6 12 6 16 0"/>',
+    ros: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17M6 6l12 12M18 6 6 18"/>',
   };
   const modesBox = $('modes');
-  Object.entries(PMCore.MODES).forEach(([key, m]) => {
+  Object.entries(MODES).forEach(([key, m]) => {
     const b = document.createElement('button');
     b.className = 'mode'; b.dataset.mode = key; b.type = 'button';
     b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[key]}</svg><span><b>${m.name}</b><small>${m.sub}</small></span>`;
@@ -279,7 +323,9 @@
     $('rRot').value = st.rot; $('oRot').textContent = st.rot + '°';
     $('rAsp').value = Math.round(st.a * 100); $('oAsp').textContent = st.a.toFixed(2) + ' : 1';
     $('rBlend').value = Math.round(st.k * 100); $('oBlend').textContent = Math.round(st.k * 100) + '%';
-    $('cPixel').checked = st.pixel; $('cOutline').checked = st.outline;
+    $('cOutline').checked = st.outline;
+    $('rSeg').value = st.seg; $('oSeg').textContent = st.seg; $('rSpin').value = st.spin; $('oSpin').textContent = st.spin + '°';
+    syncFx();
     $('rZoom').value = Math.round(st.zoom * 100); $('oZoom').textContent = Math.round(st.zoom * 100) + '%';
     $('selTile').value = String(st.tileW); $('inW').value = st.cw; $('inH').value = st.ch;
   }
@@ -292,7 +338,8 @@
   bind('rRot', t => { st.rot = +t.value; });
   bind('rAsp', t => { st.a = +t.value / 100; });
   bind('rBlend', t => { st.k = +t.value / 100; });
-  bind('cPixel', t => { st.pixel = t.checked; });
+  bind('rSeg', t => { st.seg = +t.value; });
+  bind('rSpin', t => { st.spin = +t.value; });
   bind('rZoom', t => { st.zoom = +t.value / 100; }, false);
   bind('cOutline', t => { st.outline = t.checked; }, false);
   $('selTile').addEventListener('change', e => { st.tileW = +e.target.value; saveSettings(); });
@@ -301,6 +348,114 @@
     st[id === 'inW' ? 'cw' : 'ch'] = v; syncControls(); saveSettings();
   });
   $('btnReset').onclick = () => { st.zoom = DEFAULTS.zoom; view.px = 0; view.py = 0; syncControls(); drawPreview(); saveSettings(); };
+
+  /* ---------- кнопки скидання (↺ біля кожного повзунка) і «Скинути все» ---------- */
+  function resetBtn(onClick, title = 'Скинути до початкового') {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'rst'; b.textContent = '↺'; b.title = title; b.setAttribute('aria-label', title);
+    b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onClick(); });
+    return b;
+  }
+  const EXIST = { rSize: ['size', true], rRot: ['rot', true], rAsp: ['a', true], rBlend: ['k', true], rSeg: ['seg', true], rSpin: ['spin', true], rZoom: ['zoom', false] };
+  function addResets() {
+    for (const [id, [key, redrawSrc]] of Object.entries(EXIST)) {
+      $(id).closest('.ctl').append(resetBtn(() => {
+        st[key] = DEFAULTS[key]; syncControls();
+        if (redrawSrc) { drawSource(); requestRender(); } else drawPreview();
+        saveSettings();
+      }));
+    }
+  }
+  $('btnResetAll').onclick = () => {
+    for (const k of ['a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline']) st[k] = DEFAULTS[k];
+    st.fx = Object.assign({}, DEFAULTS.fx); view.px = 0; view.py = 0;
+    syncControls(); drawSource(); requestRender(); saveSettings(); toast('Усе скинуто до початкових значень');
+  };
+
+  /* ---------- ефекти кінцевого результату: панель керування ---------- */
+  const FXC = [
+    { k: 'px', label: 'Піксель-арт: розмір пікселя', min: 1, max: 48, fmt: v => (v <= 1 ? 'вимкнено' : v + ' px') },
+    { k: 'pal', label: 'Палітра', type: 'select' },
+    { k: 'dith', label: 'Дізерінг (растрове змішування)', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'post', label: 'Постеризація: рівнів на канал', min: 0, max: 16, fmt: v => (v < 2 ? 'вимкнено' : v) },
+    { k: 'hue', label: 'Відтінок', min: -180, max: 180, fmt: v => v + '°' },
+    { k: 'sat', label: 'Насиченість', min: 0, max: 300, fmt: v => v + '%' },
+    { k: 'bri', label: 'Яскравість', min: -100, max: 100, fmt: v => (v > 0 ? '+' : '') + v },
+    { k: 'con', label: 'Контраст', min: 20, max: 300, fmt: v => v + '%' },
+    { k: 'wave', label: 'Хвиля: розмах', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'waveL', label: 'Хвиля: довжина', min: 20, max: 300, fmt: v => v + ' px' },
+    { k: 'scan', label: 'Сканлінії (ЕПТ)', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'grain', label: 'Зерно', min: 0, max: 100, fmt: v => v + '%' },
+    { k: 'ang', label: 'Нахил візерунка', min: -180, max: 180, fmt: v => v + '°' },
+    { k: 'inv', label: 'Інвертувати кольори', type: 'check' },
+  ];
+  const fxCtl = {};
+  function onFx() { syncFx(); drawPreview(); saveSettings(); }
+  function buildFxUi() {
+    const box = $('fxCtls');
+    for (const c of FXC) {
+      const reset = resetBtn(() => { st.fx[c.k] = DEFAULTS.fx[c.k]; onFx(); });
+      if (c.type === 'check') {
+        const inp = document.createElement('input'); inp.type = 'checkbox';
+        inp.addEventListener('input', () => { st.fx[c.k] = inp.checked; onFx(); });
+        const lab = document.createElement('label'); lab.className = 'chk fx-chk';
+        const sp = document.createElement('span'); sp.textContent = c.label;
+        lab.append(inp, sp, reset); box.append(lab); fxCtl[c.k] = { inp };
+      } else if (c.type === 'select') {
+        const sel2 = document.createElement('select'); sel2.setAttribute('aria-label', c.label);
+        sel2.add(new Option('Без палітри', 'none'));
+        for (const [key, p] of Object.entries(PMFx.PALETTES)) sel2.add(new Option(`${p.name} (${p.rgb.length})`, key));
+        sel2.addEventListener('input', () => { st.fx[c.k] = sel2.value; onFx(); });
+        const lab = document.createElement('label'); lab.className = 'ctl';
+        const sp = document.createElement('span'); sp.textContent = c.label;
+        const out = document.createElement('output');
+        lab.append(sp, out, reset, sel2); box.append(lab); fxCtl[c.k] = { inp: sel2, out };
+      } else {
+        const lab = document.createElement('label'); lab.className = 'ctl';
+        const sp = document.createElement('span'); sp.textContent = c.label;
+        const out = document.createElement('output');
+        const inp = document.createElement('input'); inp.type = 'range'; inp.min = c.min; inp.max = c.max; inp.step = 1; inp.setAttribute('aria-label', c.label);
+        inp.addEventListener('input', () => { st.fx[c.k] = +inp.value; onFx(); });
+        lab.append(sp, out, reset, inp); box.append(lab); fxCtl[c.k] = { inp, out };
+      }
+    }
+  }
+  function syncFx() {
+    for (const c of FXC) {
+      const el = fxCtl[c.k]; if (!el) continue;
+      const v = st.fx[c.k];
+      if (c.type === 'check') el.inp.checked = !!v;
+      else if (c.type === 'select') { el.inp.value = v; el.out.textContent = ''; }
+      else { el.inp.value = v; el.out.textContent = c.fmt(v); }
+    }
+  }
+
+  /* ---------- випадкове зображення з інтернету ----------
+     Єдине місце, де інструмент звертається до мережі. Потрібні сервіси з CORS (інакше полотно «забруднюється»
+     й PNG не експортується): пробуємо picsum.photos, потім випадковий файл зі Вікісховища. */
+  const loadUrl = url => new Promise((res, rej) => {
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => res(im); im.onerror = () => rej(new Error('не завантажилось')); im.src = url;
+  });
+  const RANDOM_SOURCES = [
+    async () => `https://picsum.photos/seed/${Math.random().toString(36).slice(2, 10)}/1200/900`,
+    async () => {
+      const api = 'https://commons.wikimedia.org/w/api.php?action=query&generator=random&grnnamespace=6&grnlimit=10&prop=imageinfo&iiprop=url%7Cmime&iiurlwidth=1200&format=json&origin=*';
+      const j = await (await fetch(api)).json();
+      const ok = Object.values((j.query && j.query.pages) || {}).map(p => p.imageinfo && p.imageinfo[0]).filter(i => i && /^image\/(jpeg|png|webp)$/.test(i.mime));
+      if (!ok.length) throw new Error('порожньо');
+      return ok[Math.floor(Math.random() * ok.length)].thumburl || ok[0].url;
+    },
+  ];
+  $('btnRandom').onclick = async () => {
+    const btn = $('btnRandom'); btn.disabled = true; toast('Шукаю випадкове зображення…', 12000);
+    let ok = false;
+    for (const next of RANDOM_SOURCES) {
+      try { setSource(await loadUrl(await next()), 'випадкове'); ok = true; break; } catch (e) { /* пробуємо наступне джерело */ }
+    }
+    btn.disabled = false;
+    toast(ok ? 'Випадкове зображення завантажено' : 'Не вдалося: потрібен інтернет, або сервіси недоступні', ok ? 1800 : 3500);
+  };
 
   /* ---------- файли: вибір, вставка, перетягування ---------- */
   $('btnPick').onclick = () => $('file').click();
@@ -338,36 +493,43 @@
   }
   // тайл: одна клітинка заданої ширини
   async function tileBlob(w) {
-    return toBlob(toCanvas(PMCore.renderCell(src, params(), w, { nearest: st.pixel })));
+    let r = PMCore.renderCell(src, params(), w, {});
+    if (PMFx.hasColorOnly(st.fx)) r = PMFx.process(r, st.fx, 1, true); // лише колір: геометрію тайла не чіпаємо, він лишається безшовним
+    return toBlob(toCanvas(r));
   }
   // полотно: клітинка в масштабі превʼю, вимощена на W×H
   async function canvasBlob(W, H) {
-    const cw = Math.max(16, Math.round(BASE * st.zoom));
-    const tile = toCanvas(PMCore.renderCell(src, params(), cw, { nearest: st.pixel }));
     const c = document.createElement('canvas'); c.width = W; c.height = H;
-    const ctx = c.getContext('2d'); ctx.fillStyle = ctx.createPattern(tile, 'repeat'); ctx.fillRect(0, 0, W, H);
+    const ctx = c.getContext('2d');
+    if (st.mode === 'ros') paintRosette(ctx, W, H, 1);
+    else {
+      const cw = Math.max(16, Math.round(BASE * st.zoom));
+      paintTiles(ctx, W, H, 1, toCanvas(PMCore.renderCell(src, params(), cw, {})), 0, 0);
+    }
+    if (PMFx.active(st.fx)) applyFx(ctx, W, H, 1, false);
     return toBlob(c);
   }
   const canvasDims = () => {
     const W = clamp(Math.round(+$('inW').value) || DEFAULTS.cw, 16, 8192), H = clamp(Math.round(+$('inH').value) || DEFAULTS.ch, 16, 8192);
-    return W * H > 64e6 ? null : [W, H];
+    return W * H > (PMFx.active(st.fx) ? 16e6 : 64e6) ? null : [W, H];
   };
   $('btnTile').onclick = async () => {
     if (!src) return;
+    if (st.mode === 'ros') { toast('Розетка не вимощується: збережіть полотно'); return; }
     toast('Готуємо тайл…', 8000); await tick();
     try { download(await tileBlob(st.tileW), `pattern-${st.mode}-${st.tileW}px.png`); toast('Тайл збережено'); }
     catch { toast('Не вдалося створити PNG (замало памʼяті?)'); }
   };
   $('btnCanvas').onclick = async () => {
     if (!src) return;
-    const d = canvasDims(); if (!d) { toast('Полотно завелике: не більше 64 мегапікселів'); return; }
+    const d = canvasDims(); if (!d) { toast(PMFx.active(st.fx) ? 'З ефектами полотно не більше 16 мегапікселів' : 'Полотно завелике: не більше 64 мегапікселів'); return; }
     toast('Готуємо полотно…', 8000); await tick();
     try { download(await canvasBlob(d[0], d[1]), `pattern-${st.mode}-${d[0]}x${d[1]}.png`); toast('Полотно збережено'); }
     catch { toast('Не вдалося створити PNG (замало памʼяті?)'); }
   };
   $('btnCopy').onclick = async () => {
     if (!src) return;
-    const d = canvasDims(); if (!d) { toast('Полотно завелике: не більше 64 мегапікселів'); return; }
+    const d = canvasDims(); if (!d) { toast(PMFx.active(st.fx) ? 'З ефектами полотно не більше 16 мегапікселів' : 'Полотно завелике: не більше 64 мегапікселів'); return; }
     if (!navigator.clipboard || typeof ClipboardItem === 'undefined') { toast('Цей браузер не вміє копіювати зображення: збережіть PNG'); return; }
     try {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': tick().then(() => canvasBlob(d[0], d[1])) })]);
@@ -380,6 +542,8 @@
   if (window.ResizeObserver) { const ro = new ResizeObserver(relayout); ro.observe($('srcWrap')); ro.observe($('prevWrap')); }
   addEventListener('resize', relayout);
 
+  buildFxUi();
+  addResets();
   syncControls();
   sizePreview();
   setSource(makeDemo(), 'демо');
