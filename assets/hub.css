@@ -1,0 +1,91 @@
+/* Головна сторінка Zbyrai. Токени, кнопки й типографіка беруться зі shared/theme.css. */
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { min-height: 100vh; display: flex; flex-direction: column; font-size: 15px;
+  background:
+    radial-gradient(900px 420px at 50% -90px, rgba(201, 167, 102, .20), transparent 70%),
+    radial-gradient(600px 300px at 12% 8%, rgba(136, 169, 214, .05), transparent 70%),
+    var(--bg); }
+main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px; }
+
+/* ---------- шапка ---------- */
+.bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px max(16px, calc((100% - 1140px) / 2 + 16px));
+  background: rgba(9, 9, 12, .72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line-soft); }
+.mark { font-family: var(--ff-display); font-weight: 700; font-size: 28px; letter-spacing: .01em; color: var(--text); line-height: 1; }
+.mark:hover { text-decoration: none; }
+.mark span { color: var(--gold); }
+.bar nav { display: flex; gap: 6px; }
+.bar nav a { color: var(--muted); font-size: 13px; letter-spacing: .02em; padding: 7px 12px; border-radius: 99px; transition: color .18s var(--ease), background .18s var(--ease); }
+.bar nav a:hover { color: var(--gold-hi); background: var(--gold-glow); text-decoration: none; }
+
+/* ---------- hero ---------- */
+.hero { text-align: center; padding: clamp(56px, 11vw, 120px) 0 clamp(36px, 6vw, 64px); }
+.hero .eyebrow { margin: 0 0 20px; display: inline-flex; align-items: center; gap: 14px; }
+.hero .eyebrow::before, .hero .eyebrow::after { content: ""; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-lo)); }
+.hero .eyebrow::after { transform: scaleX(-1); }
+.hero h1 { margin: 0 auto; max-width: 14em; font-size: clamp(40px, 8vw, 78px); line-height: 1.04; font-weight: 600; letter-spacing: -.005em;
+  background: linear-gradient(180deg, #f7f1e3 20%, var(--gold-hi) 75%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; text-wrap: balance; }
+.lead { margin: 22px auto 0; max-width: 46ch; color: var(--muted); font-size: clamp(15px, 2.2vw, 18px); line-height: 1.55; }
+.hero .hairline { margin: clamp(36px, 6vw, 60px) auto 0; max-width: 520px; }
+
+/* ---------- картки ---------- */
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; padding-bottom: 72px; }
+.card { position: relative; display: flex; flex-direction: column; overflow: hidden; color: var(--text);
+  background: linear-gradient(180deg, #15151b, #0f0f14); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
+  transition: transform .45s var(--ease), border-color .3s var(--ease), box-shadow .45s var(--ease); }
+a.card:hover { text-decoration: none; transform: translateY(-5px); border-color: var(--gold-lo); box-shadow: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 28px 70px rgba(0, 0, 0, .6), 0 0 44px rgba(201, 167, 102, .09); }
+.card::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .35s var(--ease);
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 0%), rgba(201, 167, 102, .15), transparent 60%); }
+a.card:hover::before { opacity: 1; }
+.card > * { position: relative; z-index: 1; }
+
+.art { height: 190px; display: grid; place-items: center; border-bottom: 1px solid var(--line-soft); overflow: hidden;
+  background:
+    radial-gradient(240px 130px at 50% 46%, rgba(201, 167, 102, .12), transparent 70%),
+    linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 24px,
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 24px 100%;
+  -webkit-mask-image: linear-gradient(180deg, #000 70%, rgba(0, 0, 0, .55)); mask-image: linear-gradient(180deg, #000 70%, rgba(0, 0, 0, .55)); }
+.art svg { width: 100%; height: 100%; color: var(--gold); opacity: .92; transition: transform .7s var(--ease), color .3s var(--ease), opacity .3s var(--ease); }
+.art svg .dim { opacity: .38; }
+a.card:hover .art svg { transform: scale(1.045); color: var(--gold-hi); opacity: 1; }
+
+.body { display: flex; flex-direction: column; flex: 1; padding: 22px 24px 22px; }
+.body .eyebrow { margin: 0 0 8px; }
+.card h2 { margin: 0 0 10px; font-size: 29px; line-height: 1.12; text-wrap: balance; }
+.desc { margin: 0; color: var(--muted); line-height: 1.55; }
+.tags { margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.foot { margin-top: auto; padding-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.open { display: inline-flex; align-items: center; gap: 9px; padding: 9px 18px; border-radius: var(--r-sm); font-weight: 650; letter-spacing: .01em;
+  color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); border: 1px solid #d6bb82;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px rgba(201, 167, 102, .16); transition: filter .2s var(--ease); }
+.open svg { width: 15px; height: 15px; transition: transform .3s var(--ease); }
+a.card:hover .open { filter: brightness(1.08); }
+a.card:hover .open svg { transform: translateX(3px); }
+.offline { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--faint); }
+.offline::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(141, 191, 149, .14); }
+a.card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-1); }
+
+/* картка «скоро» */
+.card.soon { background: transparent; border: 1px dashed var(--line); box-shadow: none; }
+.card.soon .art { background: none; border-bottom: 0; height: 150px; -webkit-mask-image: none; mask-image: none; }
+.card.soon .art svg { width: 72px; height: 72px; color: var(--gold-lo); opacity: .8; }
+.card.soon .body { align-items: center; text-align: center; padding-top: 0; }
+.card.soon h2 { font-size: 24px; color: var(--muted); }
+/* на широких екранах «скоро» стає тонкою смугою на всю ширину: не висить самотньою карткою в новому ряду */
+@media (min-width: 760px) {
+  .card.soon { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: center; gap: 28px; padding: 22px 28px; }
+  .card.soon .art { height: 84px; width: 84px; flex: none; }
+  .card.soon .body { flex: 0 1 auto; align-items: flex-start; text-align: left; padding: 0; }
+  .card.soon h2 { margin-bottom: 6px; }
+}
+
+/* ---------- підвал ---------- */
+.site-foot { border-top: 1px solid var(--line-soft); text-align: center; padding: 28px 16px 36px; color: var(--faint); font-size: 13px; }
+.site-foot p { margin: 0 0 6px; }
+
+@media (max-width: 560px) {
+  .bar { padding: 12px 16px; }
+  .mark { font-size: 24px; }
+  .tools { gap: 16px; padding-bottom: 48px; }
+  .body { padding: 18px 18px 18px; }
+  .card h2 { font-size: 26px; }
+}

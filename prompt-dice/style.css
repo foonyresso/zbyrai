@@ -1,0 +1,108 @@
+/* Prompt Dice — розмітка поверх спільної теми (theme.css, «Обсидіан і золото»). */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; line-height: 1.45;
+  background: radial-gradient(1200px 420px at 50% -120px, rgba(201, 167, 102, .09), transparent 70%), var(--bg); }
+
+/* ---------- верхня панель ---------- */
+header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 18px;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
+header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-lo), transparent); opacity: .55; }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-display); font-weight: 700; font-size: 24px; letter-spacing: .01em; margin-right: 8px; white-space: nowrap; }
+.brand svg { width: 24px; height: 24px; color: var(--gold); flex: none; }
+.brand span { color: var(--gold); }
+.top .hub-back { margin-right: 4px; }
+.gtab { display: flex; align-items: center; gap: 10px; text-align: left; padding: 6px 10px; min-width: 168px; }
+.gtab .ic { font-size: 22px; filter: saturate(.75); }
+.gtab small { display: block; color: var(--faint); font-size: 10.5px; line-height: 1.1; text-transform: uppercase; letter-spacing: .1em; }
+.gtab b { font-size: 14px; font-weight: 600; }
+.gtab .car { margin-left: auto; color: var(--gold-lo); }
+.gtab[disabled] { opacity: .35; cursor: not-allowed; }
+.spacer { flex: 1; }
+.btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); color: var(--gold-ink); border-color: #d6bb82;
+  font-weight: 700; font-size: 15px; padding: 9px 20px; letter-spacing: .01em; box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px rgba(201, 167, 102, .18); }
+.btn-main:hover { background: linear-gradient(180deg, #f1dfae, #d3b274 55%, #bf9b58); border-color: #e6cd96; }
+.btn-copy { background: transparent; border-color: var(--gold-lo); color: var(--gold-hi); font-weight: 600; padding: 9px 16px; }
+.btn-copy:hover { background: var(--gold-glow); border-color: var(--gold); }
+.dice { display: inline-block; transition: transform .35s var(--ease); }
+.rolling .dice { transform: rotate(360deg); }
+
+/* ---------- дві панелі ---------- */
+main.panes { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr); gap: 14px; padding: 14px 18px 18px; }
+@media (max-width: 900px) { main.panes { grid-template-columns: 1fr; padding: 12px 16px 16px; } body { height: auto; } header.top { padding: 12px 16px; } .gtab { min-width: 0; flex: 1 1 150px; } }
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); display: flex; flex-direction: column; min-height: 0; overflow: hidden; box-shadow: var(--shadow-1); }
+.pane-h { padding: 11px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: center; background: rgba(255, 255, 255, .012); }
+.pane-h h2 { margin: 0; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--gold); font-weight: 600; }
+.pane-b { overflow: auto; padding: 12px 14px 18px; flex: 1; min-height: 0; }
+.rtabs { display: flex; gap: 2px; flex-wrap: wrap; }
+.rtab { padding: 6px 13px; background: transparent; border-color: transparent; color: var(--muted); border-radius: 99px; }
+.rtab:hover { color: var(--text); background: var(--panel-2); border-color: transparent; }
+.rtab.on { background: var(--gold-glow); color: var(--gold-hi); border-color: var(--gold-line); }
+
+/* ---------- параметри ---------- */
+details.sec { margin-bottom: 9px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg-elev); }
+details.sec > summary { cursor: pointer; padding: 9px 14px; font-weight: 600; color: var(--gold-hi); list-style: none; user-select: none; font-size: 13px; letter-spacing: .02em; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary::before { content: "▸ "; color: var(--gold-lo); }
+details.sec[open] > summary::before { content: "▾ "; }
+.rows { padding: 0 9px 9px; display: flex; flex-direction: column; gap: 5px; }
+.row { display: grid; grid-template-columns: 34px 138px 1fr 34px; gap: 8px; align-items: center; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 5px 7px; transition: border-color .18s var(--ease); }
+.row.locked { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-glow) inset; }
+.row.manual { border-color: var(--info); }
+.row button { padding: 3px 0; width: 34px; }
+.row.locked .lock { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+.lbl { font-size: 12px; color: var(--muted); line-height: 1.2; }
+.lbl small { display: block; font-size: 10.5px; opacity: .65; }
+.val { cursor: pointer; padding: 4px 6px; border-radius: 6px; word-break: break-word; font-size: 13.5px; transition: background .18s var(--ease); }
+.val:hover { background: var(--panel-3); }
+.val:focus-visible { outline: none; box-shadow: var(--ring); }
+.val.empty { color: var(--faint); font-style: italic; }
+.val .tag { font-size: 10px; padding: 1px 7px; border-radius: 99px; background: rgba(136, 169, 214, .14); border-color: rgba(136, 169, 214, .35); color: var(--info); margin-right: 6px; }
+.val .tag.off { background: var(--panel-3); border-color: var(--line); color: var(--muted); }
+@media (max-width: 600px) { .row { grid-template-columns: 34px 1fr 34px; } .lbl { grid-column: 2; } .val { grid-column: 1/-1; } }
+.stat { font-size: 12px; color: var(--faint); padding: 4px 4px 0; }
+
+/* ---------- вихід ---------- */
+textarea.out { width: 100%; min-height: 260px; resize: vertical; font: 13px/1.6 var(--ff-mono); }
+.hint { font-size: 12px; color: var(--faint); margin: 8px 0 12px; }
+.negbox h3 { margin: 16px 0 6px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--gold); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5 var(--ff-mono); }
+
+/* ---------- історія ---------- */
+.h-item { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 12px; margin-bottom: 7px; cursor: pointer; transition: border-color .18s var(--ease), background .18s var(--ease); }
+.h-item:hover { border-color: var(--gold-lo); background: var(--panel-3); }
+.h-item .meta { display: flex; justify-content: space-between; gap: 6px; color: var(--gold-hi); font-weight: 600; font-size: 12px; margin-bottom: 3px; }
+.h-item .meta span { color: var(--faint); font-weight: 400; }
+.h-item .t { color: var(--muted); font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+.h-item .cp { float: right; padding: 2px 9px; font-size: 12px; }
+
+/* ---------- налаштування ---------- */
+.set label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 4px; }
+.set textarea { width: 100%; min-height: 110px; resize: vertical; font: 12.5px/1.5 var(--ff-mono); }
+.set textarea.tall { min-height: 340px; }
+
+/* ---------- модальні вікна / плитки ---------- */
+.overlay { position: fixed; inset: 0; background: rgba(5, 5, 8, .74); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: none; align-items: flex-start; justify-content: center; padding: 4vh 16px; z-index: 20; overflow: auto; }
+.overlay.show { display: flex; }
+.dlg { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); width: min(1000px, 100%); padding: 20px; box-shadow: var(--shadow-2); }
+.dlg-h { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.dlg-h h3 { margin: 0; font-size: 24px; flex: 1; }
+.dlg h4 { margin: 18px 0 9px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--gold); font-weight: 600; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 10px; }
+.tile { aspect-ratio: 1; border-radius: var(--r-md); border: 1px solid var(--line); padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  /* відтінок --h з JS лише ледь підфарбовує поверхню, щоб плитки лишалися стриманими */
+  background: linear-gradient(150deg, hsl(var(--h) 16% 19%), hsl(var(--h) 12% 11%)); color: var(--text); }
+.tile:hover { transform: translateY(-2px); border-color: var(--gold-lo); background: linear-gradient(150deg, hsl(var(--h) 18% 23%), hsl(var(--h) 13% 13%)); }
+.tile.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 24px var(--gold-glow); }
+.tile .big { font-size: 38px; line-height: 1; filter: saturate(.8) drop-shadow(0 2px 3px #0008); }
+.tile .nm { font-weight: 600; font-size: 13px; line-height: 1.15; }
+.tile .ds { font-size: 10.5px; color: var(--muted); line-height: 1.2; }
+.tile.rand { background: repeating-linear-gradient(45deg, var(--panel-2), var(--panel-2) 10px, var(--panel-3) 10px, var(--panel-3) 20px); border: 1px dashed var(--gold-lo); }
+.picker-top { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.picker-top input { flex: 1; min-width: 180px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 56vh; overflow: auto; padding: 2px; }
+.chip { padding: 5px 12px; font-size: 13px; border-radius: 99px; }
+.chip.on { background: var(--gold-glow); border-color: var(--gold); color: var(--gold-hi); }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--gold-hi); border: 1px solid var(--gold-lo);
+  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; }
+.toast.show { opacity: 1; transform: translateX(-50%); }

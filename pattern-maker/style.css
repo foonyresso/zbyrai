@@ -1,0 +1,89 @@
+/* Pattern Maker: розмітка поверх спільної теми (theme.css, «Обсидіан і золото»). */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column;
+  background: radial-gradient(1200px 420px at 50% -120px, rgba(201, 167, 102, .09), transparent 70%), var(--bg); }
+
+/* ---------- шапка ---------- */
+header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 18px;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
+header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-lo), transparent); opacity: .55; }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-display); font-weight: 700; font-size: 24px; letter-spacing: .01em; white-space: nowrap; }
+.brand svg { width: 24px; height: 24px; color: var(--gold); flex: none; }
+.brand span { color: var(--gold); }
+.spacer { flex: 1; }
+.top-note { color: var(--faint); font-size: 12px; letter-spacing: .02em; }
+
+/* ---------- дві панелі ---------- */
+main.panes { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(360px, 5fr) minmax(400px, 6fr); gap: 14px; padding: 14px 18px 18px; }
+.pane { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); display: flex; flex-direction: column; min-height: 0; overflow: hidden; box-shadow: var(--shadow-1); }
+.pane-h { padding: 10px 14px 10px 16px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(255, 255, 255, .012); }
+.pane-h h2 { margin: 0; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--gold); font-weight: 600; }
+.pane-b { overflow: auto; padding: 14px 16px 18px; flex: 1; min-height: 0; }
+.sec-t { margin: 20px 0 10px; font-family: var(--ff-ui); font-size: 11px; font-weight: 600; }
+.hint { font-size: 12px; color: var(--faint); margin: 9px 0 0; line-height: 1.5; }
+
+/* ---------- джерело ---------- */
+.srcwrap, .prevwrap { position: relative; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background:
+  linear-gradient(45deg, #111116 25%, transparent 25%, transparent 75%, #111116 75%), linear-gradient(45deg, #111116 25%, transparent 25%, transparent 75%, #111116 75%), var(--bg-elev);
+  background-size: 16px 16px, 16px 16px, auto; background-position: 0 0, 8px 8px, 0 0; }
+.srcwrap { height: 280px; }
+.srcwrap canvas { display: block; max-width: 100%; touch-action: none; cursor: grab; }
+.srcwrap canvas.drag { cursor: grabbing; }
+.prevwrap { height: clamp(300px, 46vh, 560px); }
+.prevwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.prevwrap canvas.drag { cursor: grabbing; }
+.dropmask { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 16px;
+  background: rgba(9, 9, 12, .78); border: 2px dashed var(--gold); border-radius: var(--r-md); color: var(--gold-hi); font-family: var(--ff-display); font-size: 22px; pointer-events: none; }
+body.dragging .dropmask { display: flex; }
+
+/* ---------- режими ---------- */
+.modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.mode { display: flex; align-items: center; gap: 10px; text-align: left; padding: 9px 12px; border-radius: var(--r-md); }
+.mode svg { width: 26px; height: 26px; flex: none; color: var(--gold-lo); transition: color .18s var(--ease); }
+.mode b { display: block; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.mode small { display: block; color: var(--faint); font-size: 11px; margin-top: 1px; }
+.mode:hover svg { color: var(--gold); }
+.mode.on { background: var(--gold-glow); border-color: var(--gold); box-shadow: 0 0 22px var(--gold-glow); }
+.mode.on svg { color: var(--gold-hi); }
+.mode.on b { color: var(--gold-hi); }
+.mode.on small { color: var(--gold); opacity: .85; }
+
+/* ---------- повзунки ---------- */
+.ctls { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+.ctl { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: baseline; font-size: 13px; }
+.ctl span { color: var(--muted); }
+.ctl output { color: var(--gold-hi); font-family: var(--ff-mono); font-size: 12px; }
+.ctl input[type="range"] { grid-column: 1 / -1; width: 100%; }
+.ctl[hidden] { display: none; }
+.chk { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); cursor: pointer; width: fit-content; }
+.chk:hover { color: var(--text); }
+
+/* ---------- експорт ---------- */
+.export { display: flex; flex-direction: column; gap: 10px; }
+.exp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); }
+.exp-row .lbl { width: 84px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+.exp-row select { min-width: 96px; }
+.size { display: inline-flex; align-items: center; gap: 6px; }
+.size i { color: var(--faint); font-style: normal; }
+.size input { width: 82px; padding: 8px; font-family: var(--ff-mono); font-size: 13px; }
+.exp-row button { margin-left: auto; }
+.exp-row button + button { margin-left: 0; }
+
+/* ---------- тост ---------- */
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--gold-hi); border: 1px solid var(--gold-lo);
+  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%); }
+
+/* ---------- вузькі екрани: панелі в стовпчик ---------- */
+@media (max-width: 900px) {
+  body { height: auto; }
+  main.panes { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 16px; }
+  header.top { padding: 12px 16px; }
+  .top-note { display: none; }
+  .pane { overflow: visible; }
+  .pane-b { overflow: visible; }
+  .prevwrap { height: clamp(260px, 50vh, 420px); }
+  .exp-row .lbl { width: 100%; }
+  .exp-row button { margin-left: 0; }
+}

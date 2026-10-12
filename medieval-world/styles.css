@@ -1,0 +1,114 @@
+/* Medieval World — розмітка поверх спільної теми (theme.css, «Обсидіан і золото»).
+   Колір самої мапи малюється в JS і від цих стилів не залежить: темна лише рамка навколо неї. */
+:root {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { height: 100%; margin: 0; }
+body { line-height: 1.35; display: flex; overflow: hidden; }
+
+aside {
+  width: 320px;
+  flex: none;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev));
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  z-index: 5;
+  box-shadow: 8px 0 40px rgba(0, 0, 0, .35);
+}
+.hd { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; flex-wrap: wrap; }
+.hd > b { font-family: var(--ff-display); font-size: 24px; font-weight: 700; letter-spacing: .01em; flex: 1 1 100%; line-height: 1.1; }
+
+.tabs { display: flex; gap: 2px; padding: 4px 10px 0; border-bottom: 1px solid var(--line); }
+.tabs button {
+  flex: 1; background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+  padding: 8px 2px; font-size: 12px; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.tabs button:hover { color: var(--text); background: none; }
+.tabs button.on { color: var(--gold-hi); border-bottom-color: var(--gold); background: none; }
+
+.pn { display: none; padding: 14px 16px 18px; overflow-y: auto; flex: 1; min-height: 0; }
+.pn.on { display: block; }
+aside.closed .pn { display: none; }
+
+label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin: 14px 0 5px; font-weight: 600; }
+label:first-child { margin-top: 0; }
+select { width: 100%; }
+.row { display: flex; gap: 6px; }
+.row > * { min-width: 0; }
+#seed { flex: 1; font-family: var(--ff-mono); }
+
+.pri {
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f);
+  color: var(--gold-ink); border-color: #d6bb82;
+  width: 100%; margin-top: 16px; font-weight: 700; padding: 11px; letter-spacing: .01em;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px rgba(201, 167, 102, .18);
+}
+.pri:hover { background: linear-gradient(180deg, #f1dfae, #d3b274 55%, #bf9b58); border-color: #e6cd96; }
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0; background: none; border: 0; }
+.seg button { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); border-radius: var(--r-sm); }
+.seg button:hover { background: var(--panel-3); border-color: var(--gold-lo); }
+.seg button.on { background: var(--gold-glow); color: var(--gold-hi); border-color: var(--gold); }
+
+.chip {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  margin-bottom: 7px; padding: 10px 13px; border-radius: var(--r-md); font-size: 13px;
+}
+.chip.on { background: var(--gold-glow); color: var(--gold-hi); border-color: var(--gold); }
+.chip small { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+.chip.on small { color: var(--gold); opacity: .85; }
+.chip span { font-size: 18px; }
+
+.hint { color: var(--faint); font-size: 12px; margin: 12px 0 0; line-height: 1.5; }
+
+.bar { position: relative; display: flex; justify-content: space-between; padding: 5px 9px; margin-bottom: 4px; border-radius: 6px; overflow: hidden; font-size: 13px; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); opacity: .22; z-index: 0; }
+.bar span, .bar b { position: relative; z-index: 1; }
+
+main { flex: 1; min-width: 0; position: relative; background: #0c0c10; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+/* плашки поверх мапи: темне скло, щоб читалося на світлому пергаменті */
+#leg, #scl, #hud, #tip {
+  background: rgba(14, 14, 19, .86);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+}
+#leg { position: absolute; left: 12px; bottom: 12px; padding: 9px 12px; font-size: 12px; display: none; pointer-events: none; line-height: 1.7; }
+#leg i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 7px; vertical-align: -1px; }
+#scl { position: absolute; right: 12px; bottom: 12px; padding: 5px 10px; font-size: 11px; color: var(--muted); pointer-events: none; }
+#scl i { display: block; height: 4px; border: 1px solid var(--gold-lo); border-top: 0; margin-bottom: 2px; }
+#hud { position: absolute; left: 12px; top: 12px; padding: 9px 14px; pointer-events: none; }
+#hud b { font-family: var(--ff-display); font-size: 20px; font-weight: 700; display: block; line-height: 1.15; }
+#stat { font-size: 12px; color: var(--muted); }
+#home {
+  position: absolute; right: 12px; top: 12px; display: none; z-index: 3;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f);
+  color: var(--gold-ink); border-color: #d6bb82; font-weight: 650;
+}
+#home:hover { background: linear-gradient(180deg, #f1dfae, #d3b274 55%, #bf9b58); border-color: #e6cd96; }
+
+#tip { position: fixed; pointer-events: none; padding: 8px 11px; max-width: 280px; min-width: 210px; display: none; z-index: 9; font-size: 13px; }
+#tip .tt-h { font-weight: 700; display: flex; align-items: center; gap: 7px; }
+#tip .tt-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+#tip .tt-s { font-size: 11px; color: var(--muted); margin: 1px 0 4px; }
+#tip .tt-p { font-size: 12px; opacity: .85; }
+#tip .tt-g { display: grid; grid-template-columns: 1fr auto; gap: 1px 16px; font-size: 12px; margin-top: 5px; }
+#tip .tt-g b { text-align: right; }
+#tip .tt-sec { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--gold); }
+
+@media (max-width: 760px) {
+  body { flex-direction: column-reverse; }
+  aside { width: 100%; max-height: 48vh; border-right: 0; border-top: 1px solid var(--line); box-shadow: 0 -8px 40px rgba(0, 0, 0, .35); }
+  .hd { padding: 10px 14px 6px; }
+  .hd > b { font-size: 20px; }
+  .pn { padding: 12px 14px 14px; }
+}

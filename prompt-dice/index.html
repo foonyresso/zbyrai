@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt Dice</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/></svg><div>Prompt <span>Dice</span></div></div>
+  <button class="gtab" id="tabType"><span class="ic"></span><span><small>Тип промпта</small><b></b></span><span class="car">▾</span></button>
+  <button class="gtab" id="tabModel"><span class="ic"></span><span><small>Модель</small><b></b></span><span class="car">▾</span></button>
+  <button class="gtab" id="tabStyle"><span class="ic"></span><span><small>Стиль</small><b></b></span><span class="car">▾</span></button>
+  <button class="gtab" id="tabTheme"><span class="ic"></span><span><small>Тематика</small><b></b></span><span class="car">▾</span></button>
+  <div class="spacer"></div>
+  <button class="btn-main" id="roll"><span class="dice">🎲</span> Кинути кубик</button>
+  <button class="btn-copy" id="copy">📋 Копіювати</button>
+</header>
+
+<main class="panes">
+  <section class="pane">
+    <div class="pane-h"><h2>Параметри</h2><span class="spacer"></span>
+      <button id="unlockAll" title="Зняти всі замки та ручний вибір">🔓 Скинути вибір</button></div>
+    <div class="pane-b"><div id="params"></div><div class="stat" id="stat"></div></div>
+  </section>
+
+  <section class="pane">
+    <div class="pane-h">
+      <div class="rtabs">
+        <button class="rtab on" data-r="out">Промпт</button>
+        <button class="rtab" data-r="hist">Історія</button>
+        <button class="rtab" data-r="pre">Пресети</button>
+        <button class="rtab" data-r="set">Налаштування</button>
+      </div>
+    </div>
+    <div class="pane-b">
+      <div id="r-out">
+        <textarea class="out" id="out" spellcheck="false"></textarea>
+        <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
+        <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
+        <div class="negbox" id="negbox" hidden>
+          <h3>Негативний промпт <button id="copyNeg" style="padding:3px 10px;font-size:12px">📋 Копіювати</button></h3>
+          <textarea class="neg" id="neg" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div id="r-hist" hidden></div>
+      <div id="r-pre" hidden></div>
+      <div id="r-set" class="set" hidden></div>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay"><div class="dlg" id="dlg"></div></div>
+<div class="toast" id="toast">Скопійовано!</div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./pools.js"></script>
+<script src="./styles.js"></script>
+<script src="./types.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

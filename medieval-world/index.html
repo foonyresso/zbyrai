@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Генератор середньовічних міст</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <aside id="side">
+      <div class="hd">
+        <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+        <b>Генератор міст</b>
+      </div>
+      <div
+        class="tabs"><button data-tab="a" title="Основні параметри генерації міста." class="on">Місто</button><button data-tab="b" title="Додаткові шари поверх карти.">Шари</button><button data-tab="c" title="Ручне редагування міста.">Редактор</button><button data-tab="e" title="Світ навколо міста: рельєф, моря, річки, ліси, поля, села й дороги. Генерується нескінченно.">Світ</button><button data-tab="d" title="Статистика будівель за категоріями.">Інфо</button></div>
+      <section class="pn on" data-pn="a">
+<label>Розмір</label><select id="size" title="Розмір поселення: від хутора до столиці. Впливає на кількість будівель, ворота, замок і набір закладів."><option value="0">Хутір</option><option value="1">Село</option><option value="2">Велике село</option><option value="3">Містечко</option><option value="4" selected>Місто</option><option value="5">Велике місто</option><option value="6">Столиця</option></select>
+<label>Seed</label><div class="row"><input id="seed" title="Seed — число, з якого створюється місто. Те саме число й ті самі параметри дають те саме місто."></div>
+<label>Планування</label><select id="lay" title="Планування: форма стіни, доріг і воріт. Радіальне, решітка, звивисте, витягнуте. «Випадково» обирає за seed."><option value="r">Випадково</option><option value="rad">Радіальне</option><option value="grid">Решітка</option><option value="wind">Звивисте</option><option value="long">Витягнуте</option></select>
+<label>Біом</label><select id="bio" title="Біом: колір землі, лісів і полів та відтінок будівель. «Випадково» обирає за seed."><option value="r">Випадково</option><option value="grass">Луки</option><option value="snow">Сніг</option><option value="desert">Пустеля</option><option value="swamp">Болото</option></select>
+<label>Вода</label><div class="row"><select id="riv" title="Чи буде через місто річка з мостами."><option value="r">Річка: авто</option><option value="1">Річка: є</option><option value="0">Річка: ні</option></select><select id="sea" title="Чи буде місто на узбережжі з причалами, кораблями та верф’ю."><option value="r">Море: авто</option><option value="1">Море: є</option><option value="0">Море: ні</option></select></div>
+<button id="gen" title="Створити нове місто з випадковим seed і поточними налаштуваннями." class="pri">Згенерувати</button></section>
+      <section class="pn" data-pn="b">
+        <button class="chip" id="mag"
+          title="Магія: аура мани навколо храмів, веж, гільдії магів і кромлеха. Наведи курсор: побачиш рівень мани й чим він корисний чи небезпечний."><div>Магія<small>рівень мани та вузли сили</small></div></button>
+        <button class="chip" id="nit"
+          title="Нічний режим: затемнення карти й світло у вікнах, таверни світяться завжди."><div>Ніч<small>вогні у вікнах</small></div></button>
+        <button class="chip" id="lbl"
+          title="Райони: кольорові зони як у City Skylines (багаті, торгові, ремісничі, бідні, нетрі, промзона, порт) з назвами та легендою."><div>Назви<small>райони, замок, місто</small></div></button>
+        <button class="chip" id="ugr"
+          title="Підземелля: тунелі під вулицями, кільцева каналізація, склепи та лігво гільдії злодіїв."><div>Підземелля<small>каналізація, склепи, лігво</small></div></button>
+        <button class="chip" id="rel"
+          title="Рельєф: горизонталі та світлі/темні плями висот за мурами. Лише візуальний шар."><div>Рельєф<small>горизонталі та тіні за мурами</small></div></button>
+        <p
+          class="hint">У режимі «Огляд» курсор взаємодіє з активним шаром: підземелля, потім райони, потім мана. Ніч і рельєф на курсор не впливають.</p>
+      </section>
+      <section class="pn"
+        data-pn="c"><label>Режим</label><div class="seg"><button data-m="info" title="Огляд: наведи курсор на об’єкт, щоб побачити опис." class="on">Огляд</button><button data-m="build" title="Будувати: клік по вільному місцю ставить вибрану споруду.">Будувати</button><button data-m="del" title="Видалити: клік по споруді прибирає її (поля й ліс за мурами теж).">Видалити</button><button data-m="wall" title="Власна стіна: проведи замкнену лінію навколо міста, мури перебудуються.">Своя стіна</button></div>
+<label>Що будувати</label><select id="type" title="Яку споруду ставити в режимі «Будувати»."></select><button id="undo" title="Скасувати останню дію (будівництво, видалення)." style="margin-top:10px;width:100%">Скасувати</button>
+<p class="hint">Будувати: клік по карті. Своя стіна: проведи замкнену лінію. Колесо миші — масштаб, перетягування — рух.</p></section>
+      <section class="pn" data-pn="e">
+<button class="chip on" id="won" title="Показувати згенерований світ навколо міста: поля, ліси, села, дороги, гори, моря, річки."><div>Світ навколо<small>поля, ліси, села, дороги, гори, води</small></div></button>
+<button class="chip on" id="wrd" title="Дороги між поселеннями: прокладаються за найпростішим шляхом з обходом води, гір і боліт, через річки — мости."><div>Дороги<small>тракти між поселеннями</small></div></button>
+<label>Тип світу</label><select id="wtype" title="Співвідношення суші й води: материки, архіпелаги з багатьма островами або суходіл із невеликими морями."><option value="cont">Материки</option><option value="arch">Архіпелаги</option><option value="land">Суходіл</option></select>
+<label>Seed світу</label><input id="wseed" placeholder="як у міста" style="width:100%;box-sizing:border-box" title="Окремий seed світу. Порожньо: світ залежить від seed міста.">
+<label>Випадкове поселення</label><select id="rsz" title="Розмір поселення, до якого перейти."><option value="a">Будь-якого розміру</option><option value="0">Хутір</option><option value="1">Село</option><option value="2">Велике село</option><option value="3">Містечко</option><option value="4">Місто</option><option value="5">Велике місто</option><option value="6">Столиця</option></select><button id="rnd" style="width:100%;margin-top:6px" title="Перелетіти до випадкового поселення поруч. Подвійний клік по поселенню на карті теж переходить до нього.">Перейти до випадкового</button>
+<div class="row" style="margin-top:12px"><button id="wall1" style="flex:1" title="Віддалитись, щоб побачити материки, моря й гірські хребти.">Весь світ</button><button id="wcity" style="flex:1" title="Повернутися до міста.">До свого міста</button></div>
+<p class="hint">Світ генерується під час руху й масштабування і ніколи не закінчується. Наведи курсор на місцевість, щоб побачити її тип.</p></section>
+      <section class="pn" data-pn="d">
+        <div id="cats"></div>
+      </section>
+    </aside>
+    <main><canvas id="cv"></canvas><button id="home" title="Повернутися до згенерованого міста.">До свого міста</button><div id="scl"></div><div id="leg"></div><div id="hud"><b id="cn"></b><span id="stat"></span></div></main>
+    <div id="tip"></div>
+    <script>
+      (function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+      if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+    </script>
+    <script src="src/data/buildings.js"></script>
+    <script src="src/core/city-core.js"></script>
+    <script src="src/generation/city/water.js"></script>
+    <script src="src/render/city-water.js"></script>
+    <script src="src/generation/city/layout.js"></script>
+    <script src="src/generation/city/setup.js"></script>
+    <script src="src/ui/city-editor.js"></script>
+    <script src="src/render/city/buildings.js"></script>
+    <script src="src/render/city/fortifications.js"></script>
+    <script src="src/render/city/layers.js"></script>
+    <script src="src/generation/world/terrain.js"></script>
+    <script src="src/generation/world/rivers.js"></script>
+    <script src="src/render/world/terrain-tiles.js"></script>
+    <script src="src/generation/world/settlements.js"></script>
+    <script src="src/generation/world/roads.js"></script>
+    <script src="src/generation/world/local-settlement-city.js"></script>
+    <script src="src/render/world/canvas.js"></script>
+    <script src="src/generation/world/regions.js"></script>
+    <script src="src/render/world/regions.js"></script>
+    <script src="src/render/world/settlements.js"></script>
+    <script src="src/ui/world-info.js"></script>
+    <script src="src/render/layers/relief.js"></script>
+    <script src="src/render/layers/effects.js"></script>
+    <script src="src/main.js"></script>
+  </body>
+</html>
