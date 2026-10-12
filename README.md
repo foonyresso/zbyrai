@@ -16,6 +16,7 @@
 | [**Loot Forge**](loot-forge/) | Кузня предметів: рідкості, афікси, випадкові стати, симуляція дропу, калькулятор шансів, експорт у JSON. |
 | [**Skill Tree Lab**](skill-tree/) | Редактор дерев скілів: вузли, зв’язки, вимоги, режим «грати», генератор дерев на сотні вузлів, експорт у JSON. |
 | [**Idea Mixer**](idea-mixer/) | Змішувач ігрових ідей: ядро, прогресія, світ, твіст, обмеження, тон; пітч у Markdown. |
+| [**Voxel World Lab**](voxel-lab/) | Воксельна лабораторія: ізометричний світ із печерами, рудами й деревами, зріз, будівництво, експорт .vox / JSON / PNG. |
 | [**Colonist Foundry**](colonist-foundry/) | Кузня колоністів: риси, навички з пристрастями, передісторії, стосунки й симуляція доби поселення. |
 | [**Production Chain Planner**](production-planner/) | Планувальник виробничих ланцюжків: машини, сировина, побічні продукти й схема потоків за заданою швидкістю виробництва. |
 | [**Wave & Balance Curves**](balance-curves/) | Криві балансу (лінійні, степеневі, експоненційні, S-криві), підбір за двома точками, співвідношення кривих, хвилі ворогів за бюджетом; експорт CSV/JSON/код. |
@@ -57,6 +58,7 @@ node tools/sync-theme.mjs         # після змін у shared/theme.css он
 node pattern-maker/test/fold.test.js   # тести математики Pattern Maker (потрібен лише Node)
 node pattern-maker/test/fx.test.js     # тести ефектів Pattern Maker
 node loot-forge/test/loot.test.js      # тести Loot Forge
+node voxel-lab/test/voxel.test.js      # тести Voxel World Lab
 node colonist-foundry/test/colonist.test.js      # тести Colonist Foundry
 node production-planner/test/planner.test.js      # тести Production Chain Planner
 node balance-curves/test/curves.test.js      # тести Wave & Balance Curves

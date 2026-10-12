@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voxel World Lab: воксельна лабораторія</title>
+<meta name="description" content="Генератор воксельних світів в ізометрії: шум, біоми, печери, руди, дерева, зріз за висотою, будівництво блоками й експорт у MagicaVoxel .vox, JSON і PNG. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/voxel-lab/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Voxel World Lab: воксельна лабораторія">
+<meta property="og:description" content="Воксельні світи з печерами, рудами й деревами. Повертай, ріж за висотою, будуй і експортуй у .vox.">
+<meta property="og:url" content="https://zbyrai.pages.dev/voxel-lab/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5l9 5v11l-9 6-9-6V10zM7 10l9 5 9-5M16 15v12%27 fill=%27none%27 stroke=%27%2381c784%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8.5 4.8v9.4L12 21.5l-8.5-4.8V7.3zM3.5 7.3 12 12l8.5-4.7M12 12v9.5"/></svg>
+    <div>Voxel World <span>Lab</span></div>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnNew" class="btn-primary" title="Новий випадковий світ (Пробіл)">Новий світ</button>
+</header>
+
+<main class="wrap">
+  <section class="stage">
+    <div class="stage-h">
+      <div class="seg" id="tools" role="group" aria-label="Інструмент"><button data-tool="look" class="on">Дивитись</button><button data-tool="place">Ставити</button><button data-tool="break">Ламати</button></div>
+      <button id="btnRotL" title="Повернути вліво (Q)">⟲</button><button id="btnRotR" title="Повернути вправо (E)">⟳</button>
+      <label class="ctl-inline">Зріз <input type="range" id="rCut" min="1" max="40" step="1"><output id="oCut"></output></label>
+      <label class="ctl-inline">Масштаб <input type="range" id="rZoom" min="40" max="300" step="5"><output id="oZoom"></output></label>
+      <button id="btnUndo" title="Скасувати (Ctrl+Z)">Скасувати</button>
+    </div>
+    <div class="palette" id="palette" role="group" aria-label="Блок для будівництва"></div>
+    <div class="canvaswrap" id="wrap"><canvas id="cv" aria-label="Воксельний світ"></canvas></div>
+    <p class="hint" id="status">Колесо миші масштабує, Q/E обертають. Інструмент «Ставити» додає блок до грані, на яку клікнули, «Ламати» прибирає блок.</p>
+  </section>
+
+  <aside class="side">
+    <div class="card"><h2>Світ</h2>
+      <label class="ctl txt"><span>Зерно</span><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
+      <label class="ctl"><span>Розмір (x × z)</span><output id="oSize"></output><input type="range" id="rSize" min="16" max="96" step="8"></label>
+      <label class="ctl"><span>Висота шару</span><output id="oSy"></output><input type="range" id="rSy" min="16" max="64" step="4"></label>
+    </div>
+    <div class="card"><h2>Рельєф</h2>
+      <label class="ctl"><span>Масштаб рельєфу</span><output id="oScale"></output><input type="range" id="rScale" min="8" max="64" step="1"></label>
+      <label class="ctl"><span>Деталізація</span><output id="oOct"></output><input type="range" id="rOct" min="1" max="6" step="1"></label>
+      <label class="ctl"><span>Різкість</span><output id="oRough"></output><input type="range" id="rRough" min="20" max="80" step="1"></label>
+      <label class="ctl"><span>Рівень води</span><output id="oWater"></output><input type="range" id="rWater" min="0" max="80" step="1"></label>
+      <label class="ctl"><span>Острів (краї вниз)</span><output id="oIsland"></output><input type="range" id="rIsland" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Рівнинність</span><output id="oFlat"></output><input type="range" id="rFlat" min="0" max="90" step="1"></label>
+      <label class="ctl"><span>Лінія снігу</span><output id="oSnow"></output><input type="range" id="rSnow" min="40" max="100" step="1"></label>
+    </div>
+    <div class="card"><h2>Наповнення</h2>
+      <label class="ctl"><span>Печери</span><output id="oCaves"></output><input type="range" id="rCaves" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Дерева</span><output id="oTrees"></output><input type="range" id="rTrees" min="0" max="100" step="1"></label>
+      <label class="ctl"><span>Руди</span><output id="oOres"></output><input type="range" id="rOres" min="0" max="100" step="1"></label>
+    </div>
+    <div class="card"><h2>Блоки у світі</h2><div id="counts" class="counts"></div></div>
+    <div class="card"><h2>Експорт</h2>
+      <div class="exp"><button id="btnVox" class="btn-primary">MagicaVoxel .vox</button><button id="btnJson">JSON</button><button id="btnPng">Картинка PNG</button><button id="btnHm">Карта висот PNG</button><button id="btnImport">Імпорт JSON</button></div>
+      <input type="file" id="file" accept="application/json,.json" hidden>
+      <p class="hint">Правки (ставити й ламати) зберігаються в експорті, але нова генерація їх замінює.</p>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./voxel-core.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
