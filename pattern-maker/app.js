@@ -9,7 +9,7 @@
     get(k, d) { try { const v = localStorage.getItem('pm_' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem('pm_' + k, JSON.stringify(v)); } catch {} },
   };
-  const DEFAULTS = { mode: 'p6m', a: 1, size: .4, rot: 0, k: .5, seg: 8, spin: 0, zoom: .5, outline: false, tileW: 1024, cw: 1920, ch: 1080, fx: Object.assign({}, PMFx.DEFAULT_FX) };
+  const DEFAULTS = { mode: 'p6m', a: 1, size: .4, rot: 0, k: .5, seg: 8, spin: 0, zoom: .5, outline: false, layout: 'grid', tileW: 1024, cw: 1920, ch: 1080, fx: Object.assign({}, PMFx.DEFAULT_FX) };
   const savedSt = store.get('settings', {});
   const st = Object.assign({}, DEFAULTS, savedSt, { fx: Object.assign({}, DEFAULTS.fx, savedSt.fx) });
   delete st.pixel; // старий прапорець «піксель-арт для текстури»: тепер ефект працює на кінцевому результаті (st.fx.px)
@@ -17,7 +17,7 @@
   const MODES = Object.assign({}, PMCore.MODES, { ros: { name: 'Розетка', sub: 'мандала · N променів' } });
   if (!MODES[st.mode]) st.mode = DEFAULTS.mode;
   /* ---------- історія (скасування), «рецепти» ефектів і посилання зі станом ---------- */
-  const STATE_KEYS = ['mode', 'a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline', 'fx'];
+  const STATE_KEYS = ['mode', 'a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline', 'layout', 'fx'];
   const snap = () => JSON.stringify(STATE_KEYS.reduce((o, k) => (o[k] = st[k], o), {}));
   function applySnap(json) {
     try {
@@ -261,9 +261,26 @@
   function tileTransform(ctx, W, H, k, ox, oy) {
     ctx.translate(W / 2, H / 2); ctx.rotate(st.fx.ang * Math.PI / 180); ctx.translate(-W / 2 + ox, -H / 2 + oy); ctx.scale(k, k);
   }
+  // розкладки: «цегла» зсуває кожен другий рядок на півклітинки, «півкрок» зсуває кожен другий стовпчик на піввисоти.
+  // Дзеркальні клітинки в зсуві не збігаються краями, тож шви видно навмисне. Складена плитка = 2 клітинки, кешується.
+  let layCache = { tile: null, layout: '', canvas: null };
+  function layoutTile(tile) {
+    if (st.layout === 'grid') return tile;
+    if (layCache.tile === tile && layCache.layout === st.layout) return layCache.canvas;
+    const w = tile.width, h = tile.height, c = document.createElement('canvas'), g = c.getContext('2d');
+    if (st.layout === 'brick') {
+      c.width = w; c.height = h * 2; g.drawImage(tile, 0, 0);
+      const o = Math.floor(w / 2); g.drawImage(tile, o, h); g.drawImage(tile, o - w, h);
+    } else {
+      c.width = w * 2; c.height = h; g.drawImage(tile, 0, 0);
+      const o = Math.floor(h / 2); g.drawImage(tile, w, o); g.drawImage(tile, w, o - h);
+    }
+    layCache = { tile, layout: st.layout, canvas: c };
+    return c;
+  }
   function paintTiles(ctx, W, H, k, tile, ox, oy) {
     ctx.save(); tileTransform(ctx, W, H, k, ox, oy);
-    ctx.fillStyle = ctx.createPattern(tile, 'repeat'); const big = (W + H) * 2 / k; ctx.fillRect(-big, -big, big * 2, big * 2);
+    ctx.fillStyle = ctx.createPattern(layoutTile(tile), 'repeat'); const big = (W + H) * 2 / k; ctx.fillRect(-big, -big, big * 2, big * 2);
     ctx.restore();
   }
   function applyFx(ctx, W, H, scale, colorOnly) {
@@ -283,7 +300,7 @@
     clearTimeout(fxTimer);
     if (fast) fxTimer = setTimeout(() => drawPreview(false), 130); // під час перетягування чернетка, у спокої повна якість з ефектами
     else if (PMFx.active(st.fx)) applyFx(ctx, W, H, dpr, false);
-    if (st.outline && !ros) {
+    if (st.outline && !ros && st.layout === 'grid') {
       const big = (W + H) * 2 / k, n = Math.ceil(big / cell.width) + 1, m = Math.ceil(big / cell.height) + 1;
       ctx.save(); tileTransform(ctx, W, H, k, view.px * dpr, view.py * dpr);
       ctx.strokeStyle = 'rgba(232,210,158,.75)'; ctx.lineWidth = dpr / k; ctx.setLineDash([6 * dpr / k, 5 * dpr / k]);
@@ -340,7 +357,7 @@
     $('rRot').value = st.rot; $('oRot').textContent = st.rot + '°';
     $('rAsp').value = Math.round(st.a * 100); $('oAsp').textContent = st.a.toFixed(2) + ' : 1';
     $('rBlend').value = Math.round(st.k * 100); $('oBlend').textContent = Math.round(st.k * 100) + '%';
-    $('cOutline').checked = st.outline;
+    $('cOutline').checked = st.outline; $('selLayout').value = st.layout;
     $('rSeg').value = st.seg; $('oSeg').textContent = st.seg; $('rSpin').value = st.spin; $('oSpin').textContent = st.spin + '°';
     syncFx();
     $('rZoom').value = Math.round(st.zoom * 100); $('oZoom').textContent = Math.round(st.zoom * 100) + '%';
@@ -364,6 +381,7 @@
     const v = clamp(Math.round(+e.target.value) || DEFAULTS[id === 'inW' ? 'cw' : 'ch'], 16, 8192);
     st[id === 'inW' ? 'cw' : 'ch'] = v; syncControls(); saveSettings();
   });
+  $('selLayout').addEventListener('change', e => { st.layout = e.target.value; drawPreview(); saveSettings(); });
   $('btnReset').onclick = () => { st.zoom = DEFAULTS.zoom; view.px = 0; view.py = 0; syncControls(); drawPreview(); saveSettings(); };
 
   /* ---------- кнопки скидання (↺ біля кожного повзунка) і «Скинути все» ---------- */
@@ -384,7 +402,7 @@
     }
   }
   $('btnResetAll').onclick = () => {
-    for (const k of ['a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline']) st[k] = DEFAULTS[k];
+    for (const k of ['a', 'size', 'rot', 'k', 'seg', 'spin', 'zoom', 'outline', 'layout']) st[k] = DEFAULTS[k];
     st.fx = Object.assign({}, DEFAULTS.fx); view.px = 0; view.py = 0;
     syncControls(); drawSource(); requestRender(); saveSettings(); toast('Усе скинуто до початкових значень');
   };
@@ -409,6 +427,7 @@
   /* ---------- ефекти кінцевого результату: панель керування ---------- */
   const FXC = [
     { k: 'px', label: 'Піксель-арт: розмір пікселя', min: 1, max: 48, fmt: v => (v <= 1 ? 'вимкнено' : v + ' px') },
+    { k: 'pgrid', label: 'Форма пікселя', type: 'select', list: [['sq', 'Квадрат'], ['hex', 'Шестикутник'], ['dia', 'Ромб']], noOut: true },
     { k: 'pal', label: 'Палітра', type: 'select', opts: 'PALETTES', none: 'Без палітри' },
     { k: 'dith', label: 'Дізерінг (растрове змішування)', min: 0, max: 100, fmt: v => v + '%' },
     { k: 'post', label: 'Постеризація: рівнів на канал', min: 0, max: 16, fmt: v => (v < 2 ? 'вимкнено' : v) },
@@ -444,8 +463,11 @@
         lab.append(inp, sp, reset); box.append(lab); fxCtl[c.k] = { inp };
       } else if (c.type === 'select') {
         const sel2 = document.createElement('select'); sel2.setAttribute('aria-label', c.label);
-        sel2.add(new Option(c.none, 'none'));
-        for (const [key, p] of Object.entries(PMFx[c.opts])) sel2.add(new Option(`${p.name} (${p.rgb.length})`, key));
+        if (c.list) c.list.forEach(([v, t]) => sel2.add(new Option(t, v)));
+        else {
+          sel2.add(new Option(c.none, 'none'));
+          for (const [key, p] of Object.entries(PMFx[c.opts])) sel2.add(new Option(`${p.name} (${p.rgb.length})`, key));
+        }
         sel2.addEventListener('input', () => { st.fx[c.k] = sel2.value; onFx(); });
         const lab = document.createElement('label'); lab.className = 'ctl';
         const sp = document.createElement('span'); sp.textContent = c.label;

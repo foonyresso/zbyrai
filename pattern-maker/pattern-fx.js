@@ -30,7 +30,7 @@ const PMFx = (() => {
   };
 
   const DEFAULT_FX = { px: 1, pal: 'none', dith: 0, post: 0, hue: 0, sat: 100, bri: 0, con: 100, inv: false, grain: 0, scan: 0, wave: 0, waveL: 60, ang: 0,
-    lens: 0, swirl: 0, ca: 0, relief: 0, edge: 0, gmap: 'none', vig: 0 };
+    lens: 0, swirl: 0, ca: 0, relief: 0, edge: 0, gmap: 'none', vig: 0, pgrid: 'sq' };
 
   const hasGmap = fx => fx.gmap !== 'none' && !!GRADS[fx.gmap];
   const hasColor = fx => fx.hue !== 0 || fx.sat !== 100 || fx.bri !== 0 || fx.con !== 100 || !!fx.inv || hasGmap(fx);
@@ -127,6 +127,34 @@ const PMFx = (() => {
     }
   }
 
+  /* ---------- піксельна сітка не з квадратів: шестикутники й ромби ----------
+     Кожен піксель належить найближчому центру комірки; колір комірки = середнє її пікселів. Розмір комірки B. */
+  function cellId(x, y, B, kind) {
+    if (kind === 'dia') { const u = Math.floor((x + y) / B), v = Math.floor((x - y) / B); return [u, v]; }
+    // шестикутна решітка: рядки висотою .866·B, непарні зсунуті на півкрок; обираємо найближчий із сусідніх центрів
+    const h = B * .866, j0 = Math.floor(y / h);
+    let best = null, bd = Infinity;
+    for (let j = j0 - 1; j <= j0 + 1; j++) {
+      const sh = (j & 1) ? .5 : 0, i0 = Math.floor(x / B - sh);
+      for (let i = i0 - 1; i <= i0 + 1; i++) {
+        const dx = x - (i + sh + .5) * B, dy = y - (j + .5) * h, d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; best = [i, j]; }
+      }
+    }
+    return best;
+  }
+  function cellPixelate(img, B, kind) {
+    const W = img.width, H = img.height, s = img.data, out = new Uint8ClampedArray(s.length), acc = new Map(), ids = new Array(W * H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const id = cellId(x + .5, y + .5, B, kind), key = id[0] * 100003 + id[1], p = y * W + x, i = p * 4;
+      ids[p] = key;
+      let a = acc.get(key); if (!a) { a = [0, 0, 0, 0, 0]; acc.set(key, a); }
+      a[0] += s[i]; a[1] += s[i + 1]; a[2] += s[i + 2]; a[3] += s[i + 3]; a[4]++;
+    }
+    for (let p = 0; p < W * H; p++) { const a = acc.get(ids[p]), i = p * 4; out[i] = a[0] / a[4]; out[i + 1] = a[1] / a[4]; out[i + 2] = a[2] / a[4]; out[i + 3] = a[3] / a[4]; }
+    return { data: out, width: W, height: H };
+  }
+
   /* ---------- лінза й вир: радіальне спотворення навколо центру (на місці не можна: повертає нове) ----------
      lens > 0: опуклість (центр збільшується), lens < 0: увігнутість; swirl: закручування, градуси на край. Центр і краї лишаються на місці. */
   function lensWarp(img, lens, swirl) {
@@ -204,11 +232,12 @@ const PMFx = (() => {
     if (!colorOnly && fx.ca > 0) work = chromatic(work, fx.ca * scale);
     if (!colorOnly && (fx.relief > 0 || fx.edge > 0)) work = relief(work, fx.relief, fx.edge);
     const B = colorOnly ? 1 : Math.max(1, Math.round(fx.px * scale));
-    let low = B > 1 ? boxDown(work, B) : work;
+    const shaped = B > 1 && (fx.pgrid === 'hex' || fx.pgrid === 'dia'); // комірки не квадратні: колір на повному розмірі, без зменшення
+    let low = shaped ? cellPixelate(work, B, fx.pgrid) : (B > 1 ? boxDown(work, B) : work);
     if (hasColor(fx)) colorAdjust(low, fx);
     if (hasGmap(fx)) gradientMap(low, fx.gmap);
     if (hasQuant(fx)) quantize(low, fx);
-    let out = B > 1 ? upNearest(low, B, img.width, img.height) : low;
+    let out = B > 1 && !shaped ? upNearest(low, B, img.width, img.height) : low;
     if (!colorOnly && fx.scan > 0) scanlines(out, fx.scan, Math.max(2, Math.round(3 * scale)));
     if (!colorOnly && fx.vig > 0) vignette(out, fx.vig);
     if (!colorOnly && fx.grain > 0) grain(out, fx.grain, 12345);
@@ -233,7 +262,7 @@ const PMFx = (() => {
     return { data: out, width: W, height: H };
   }
 
-  return { PALETTES, GRADS, DEFAULT_FX, active, hasColorOnly, hasSpatial, process, boxDown, upNearest, colorAdjust, quantize, wave, rosette, lensWarp, chromatic, relief, gradientMap, vignette };
+  return { PALETTES, GRADS, DEFAULT_FX, active, hasColorOnly, hasSpatial, process, boxDown, upNearest, cellPixelate, cellId, colorAdjust, quantize, wave, rosette, lensWarp, chromatic, relief, gradientMap, vignette };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PMFx;

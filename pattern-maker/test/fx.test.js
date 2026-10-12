@@ -186,5 +186,17 @@ test('віньєтка: центр не темнішає, кути темніш�
   assert.ok(d[0] < 60);
 });
 
+test('шестикутна й ромбічна піксельна сітка: колір комірки однорідний, форма не квадратна', () => {
+  const img = noise(60, 60);
+  for (const kind of ['hex', 'dia']) {
+    const out = F.process(img, fx({ px: 10, pgrid: kind })), seen = new Map();
+    for (let y = 0; y < 60; y++) for (let x = 0; x < 60; x++) {
+      const id = F.cellId(x + .5, y + .5, 10, kind).join(','), i = (y * 60 + x) * 4, v = out.data[i] + ',' + out.data[i + 1] + ',' + out.data[i + 2];
+      if (seen.has(id)) assert.equal(v, seen.get(id), kind + ' ' + id); else seen.set(id, v);
+    }
+    assert.ok(seen.size > 6 && !same(out, F.process(img, fx({ px: 10 }))));
+  }
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
