@@ -16,6 +16,7 @@
 | [**Loot Forge**](loot-forge/) | Кузня предметів: рідкості, афікси, випадкові стати, симуляція дропу, калькулятор шансів, експорт у JSON. |
 | [**Skill Tree Lab**](skill-tree/) | Редактор дерев скілів: вузли, зв’язки, вимоги, режим «грати», генератор дерев на сотні вузлів, експорт у JSON. |
 | [**Idea Mixer**](idea-mixer/) | Змішувач ігрових ідей: ядро, прогресія, світ, твіст, обмеження, тон; пітч у Markdown. |
+| [**Character Roller**](character-roller/) | Листок персонажа D&D 5e (SRD 5.1): раса, клас, рівень 1-20, характеристики, навички, HP, КБ, закляття, риси класу, спорядження, особистість; фіксація полів, експорт JSON, друк. |
 | [**Planet Forge**](planet-forge/) | Кузня планет: обертова 3D-планета з біомами, хмарами, кільцями й супутниками, паспорт і придатність для життя, експорт карти PNG. |
 | [**Voxel World Lab**](voxel-lab/) | Воксельна лабораторія: ізометричний світ із печерами, рудами й деревами, зріз, будівництво, експорт .vox / JSON / PNG. |
 | [**Colonist Foundry**](colonist-foundry/) | Кузня колоністів: риси, навички з пристрастями, передісторії, стосунки й симуляція доби поселення. |
@@ -43,6 +44,7 @@ pattern-maker/      інструмент (+ test/ з тестами матема
 loot-forge/         інструмент (+ test/)
 skill-tree/         інструмент (+ test/)
 idea-mixer/         інструмент (+ test/)
+character-roller/   інструмент (+ test/)
 taste/              закрита довідка про ігрові смаки: не в меню й не на головній, відкривається лише за прямим посиланням
 robots.txt          правила для пошукових систем + адреса sitemap
 sitemap.xml         сторінки сайту для пошуковиків
@@ -67,11 +69,12 @@ node balance-curves/test/curves.test.js      # тести Wave & Balance Curves
 node sprite-cleaner/test/sprite.test.js      # тести Sprite Sheet Cleaner
 node skill-tree/test/tree.test.js      # тести Skill Tree Lab
 node idea-mixer/test/mixer.test.js     # тести Idea Mixer
+node character-roller/test/char.test.js      # тести Character Roller
 ```
 
 Новий інструмент: створи папку з `index.html`, підключи власну копію `theme.css` (її створить `sync-theme.mjs`),
 додай картку в `index.html` і не використовуй шляхи за межами папки інструмента.
-Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`, Sprite Sheet Cleaner: `sc_`).
+Якщо інструмент зберігає щось у `localStorage`, дай ключам власний префікс (Prompt Dice: `pd2_`, Pattern Maker: `pm_`, Loot Forge: `lf_`, Skill Tree Lab: `st_`, Idea Mixer: `im_`, Sprite Sheet Cleaner: `sc_`, Character Roller: `cr_`).
 Кожен інструмент має власний акцент: колір у `:root` свого `style.css` (`--accent`) і клас `.c-…` у `assets/hub.css` для картки на головній.
 
 Адреса сайту (`https://zbyrai.pages.dev`) стоїть у `canonical` та `og:url` кожної сторінки, у `sitemap.xml` і `robots.txt`.
