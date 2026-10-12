@@ -76,3 +76,17 @@ tr.boss td { color: var(--gold-hi, #e8d29e); }
 
 .plot.small { height: 170px; }
 th.enemies { text-align: left; }
+
+/* верхня панель: збереження, обмін, код */
+.hdr-field { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.hdr-field select { max-width: 150px; }
+header.top button { padding: 5px 12px; }
+
+/* довідка «Що це, для чого, як користуватися» */
+.about { width: calc(100% - 36px); max-width: 1284px; margin: 14px auto 0; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); box-shadow: var(--shadow-1); }
+.about summary { cursor: pointer; padding: 10px 16px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
+.about-body { padding: 0 18px 14px; color: var(--muted); line-height: 1.6; font-size: 14px; }
+.about-body p { margin: 0 0 8px; }
+.about-body b { color: var(--text); font-weight: 600; }
+.about-body ol { margin: 0 0 8px; padding-left: 22px; }
+.about-body li { margin-bottom: 3px; }

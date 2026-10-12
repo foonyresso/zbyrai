@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Production Chain Planner: планувальник виробничих ланцюжків</title>
+<title>Планувальник виробничих ланцюжків (Production Chain Planner)</title>
 <meta name="description" content="Скільки машин і сировини потрібно, щоб виробляти потрібну кількість продукту за хвилину: рецепти, будівлі зі швидкістю, побічні продукти, схема потоків, експорт. Для Factorio-подібних і колонізаторських ігор. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/production-planner/">
 <meta property="og:type" content="website">
@@ -21,26 +21,48 @@
   <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4" width="7" height="6" rx="1"/><rect x="14.5" y="14" width="7" height="6" rx="1"/><path d="M9.5 7h3v10h2"/></svg>
-    <div>Production Chain <span>Planner</span></div>
+    <div>Виробничі <span>ланцюжки</span></div>
   </div>
   <div class="spacer"></div>
-  <select id="selPreset" aria-label="Приклад"></select>
-  <button id="btnExport">Експорт JSON</button>
-  <button id="btnImport">Імпорт JSON</button>
+  <label class="hdr-field" title="Завантажити готовий приклад: заміняє поточні рецепти й цілі"><span>Приклад</span><select id="selPreset" aria-label="Готовий приклад" title="Завантажити готовий приклад: заміняє поточні рецепти й цілі"></select></label>
+  <button id="btnExample" class="btn-primary" title="Одним кліком завантажити приклад «Середньовічне селище» і одразу побачити результат">Показати приклад</button>
+  <button id="btnCopyJson" title="Скопіювати всі рецепти, цілі й налаштування як JSON, щоб надіслати або вставити пізніше">Копіювати JSON</button>
+  <button id="btnImport" title="Завантажити збережений файл .json із рецептами й цілями">Імпорт JSON</button>
+  <button id="btnExport" title="Зберегти рецепти, цілі й налаштування у файл production-chain.json">Експорт JSON</button>
+  <button id="btnCopy" title="Скопіювати розрахунок звичайним текстом (машини, сировина, надлишок)">Копіювати текст</button>
+  <button id="btnCsv" title="Завантажити таблицю машин як CSV для Excel або Google Таблиць">CSV</button>
   <input type="file" id="file" accept="application/json,.json" hidden>
 </header>
+
+
+<details class="about" open>
+  <summary title="Згорнути або розгорнути довідку">Що це, для чого, як користуватися</summary>
+  <div class="about-body">
+    <p><b>Що це.</b> Калькулятор виробництва. Ви описуєте рецепти (з чого що робиться і за скільки секунд), вказуєте, скільки продукту треба за хвилину, а інструмент рахує, <b>скільки машин</b> побудувати і <b>скільки сировини</b> подавати.</p>
+    <p><b>Для чого.</b> Ігри на кшталт Factorio, колонізаторів і міських симуляторів: щоб не гадати, скільки пекарень потрібно на 20 хлібин за хвилину і чи вистачить млинів. Також для дизайну економіки власної гри: видно найвужче місце ланцюжка.</p>
+    <p><b>Як користуватися.</b></p>
+    <ol>
+      <li>Натисніть <b>«Показати приклад»</b> угорі: з'являться готові рецепти й результат. Так найлегше зрозуміти, як усе працює.</li>
+      <li>У блоці <b>«Що виробляти»</b> оберіть продукт і скільки штук за хвилину потрібно.</li>
+      <li>У блоці <b>«Рецепти»</b> змініть чи додайте рецепти. Входи й виходи пишуться так: <code>руда:2, вугілля:1</code>. Ресурс, який ніхто не виробляє, автоматично вважається сировиною.</li>
+      <li>У <b>«Налаштуваннях»</b> оберіть спосіб виробництва (якщо рецептів кілька), відмітьте, що брати ззовні, та задайте швидкість будівель.</li>
+      <li>Результат оновлюється одразу: підсумок, схема потоків і таблиця машин. Збереження, імпорт і експорт: кнопки угорі.</li>
+    </ol>
+    <p><b>Коли це потрібно.</b> Порахувати базу в Factorio; перевірити, чи не «зламає» економіку нова будівля; підібрати баланс рецептів для своєї гри; отримати список сировини для закупівлі.</p>
+  </div>
+</details>
 
 <main class="wrap">
   <section class="result">
     <div class="card" id="summary"></div>
-    <div class="card"><h2>Схема потоків <span class="sub">шт/хв; ліворуч сировина, праворуч продукт</span></h2><div class="graph" id="graph"></div></div>
-    <div class="card"><h2>Машини <button id="btnCopy">Копіювати текст</button><button id="btnCsv">CSV</button></h2><div class="tablewrap"><table id="tbl"></table></div></div>
+    <div class="card"><h2 title="Стрілки показують, скільки одиниць ресурсу за хвилину йде від сировини до продукту">Схема потоків <span class="sub">шт/хв; ліворуч сировина, праворуч продукт</span></h2><div class="graph" id="graph"></div></div>
+    <div class="card"><h2 title="Скільки будівель потрібно для кожного рецепта">Машини</h2><div class="tablewrap"><table id="tbl"></table></div></div>
   </section>
 
   <aside class="side">
-    <div class="card"><h2>Що виробляти <button id="btnTarget">+ Ціль</button></h2><div id="targets"></div></div>
-    <div class="card"><h2>Налаштування</h2><div id="opts"></div><p class="hint">«Ззовні» означає, що ресурс не виробляється, а надходить як сировина. Швидкість будівлі множить продуктивність (модулі, рівні).</p></div>
-    <div class="card"><h2>Рецепти <button id="btnRecipe">+ Рецепт</button></h2><div id="recipes"></div><p class="hint">Формат входів і виходів: <code>руда:2, вугілля:1</code>. Час: секунд на один цикл машини.</p></div>
+    <div class="card"><h2 title="Що саме і в якій кількості треба виробляти">Що виробляти <button id="btnTarget" title="Додати ще один продукт, який треба виробляти">+ Ціль</button></h2><div id="targets"></div></div>
+    <div class="card"><h2 title="Як саме рахувати: спосіб виробництва, сировина ззовні, швидкість будівель">Налаштування</h2><div id="opts"></div><p class="hint">«Ззовні» означає, що ресурс не виробляється, а надходить як сировина. Швидкість будівлі множить продуктивність (модулі, рівні).</p></div>
+    <div class="card"><h2 title="Усі рецепти: з чого, що і за скільки секунд виробляє будівля">Рецепти <button id="btnRecipe" title="Додати новий порожній рецепт">+ Рецепт</button></h2><div id="recipes"></div><p class="hint">Формат входів і виходів: <code>руда:2, вугілля:1</code>. Час: секунд на один цикл машини.</p></div>
   </aside>
 </main>
 

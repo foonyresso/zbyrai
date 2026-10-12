@@ -84,24 +84,24 @@
     for (const c of st.curves) {
       const T = B.TYPES[c.type], fit = el('div', { class: 'fit' });
       const fv = c.fit || { x1: from, y1: B.evalCurve(c, from) || 1, x2: to, y2: B.evalCurve(c, to) || 10 };
-      const fin = (k, lab) => { const i = el('input', { type: 'number', step: 'any', value: Math.round(fv[k] * 1e4) / 1e4, 'aria-label': lab }); i.oninput = () => { fv[k] = +i.value; c.fit = fv; }; return el('label', { class: 'num' }, lab, i); };
-      fit.append(fin('x1', 'x₁'), fin('y1', 'y₁'), fin('x2', 'x₂'), fin('y2', 'y₂'), el('button', { onclick: () => { const r = B.fitTwo(c.type, fv.x1, fv.y1, fv.x2, fv.y2); if (!r) return toast('Для цієї кривої точки недопустимі (потрібні різні x й додатні y)'); Object.assign(c, { a: r.a, b: r.b, p: r.p }); c.fit = null; commit(true); toast('Параметри підібрано'); } }, 'Підібрати'));
+      const fin = (k, lab) => { const i = el('input', { type: 'number', step: 'any', value: Math.round(fv[k] * 1e4) / 1e4, 'aria-label': lab, title: lab.startsWith('x') ? 'Рівень (крок), для якого задаємо бажане значення' : 'Бажане значення кривої на цьому рівні' }); i.oninput = () => { fv[k] = +i.value; c.fit = fv; }; return el('label', { class: 'num' }, lab, i); };
+      fit.append(fin('x1', 'x₁'), fin('y1', 'y₁'), fin('x2', 'x₂'), fin('y2', 'y₂'), el('button', { title: 'Порахувати параметри кривої так, щоб вона пройшла через обидві точки', onclick: () => { const r = B.fitTwo(c.type, fv.x1, fv.y1, fv.x2, fv.y2); if (!r) return toast('Для цієї кривої точки недопустимі (потрібні різні x й додатні y)'); Object.assign(c, { a: r.a, b: r.b, p: r.p }); c.fit = null; commit(true); toast('Параметри підібрано'); } }, 'Підібрати'));
       const canFit = ['linear', 'power', 'exp'].includes(c.type);
-      const name = el('input', { type: 'text', value: c.name, maxlength: 32, 'aria-label': 'Назва' }); name.oninput = () => { c.name = name.value; commit(false); };
-      const color = el('input', { type: 'color', value: c.color, 'aria-label': 'Колір' }); color.oninput = () => { c.color = color.value; commit(false); };
-      const on = el('input', { type: 'checkbox', checked: c.on, 'aria-label': 'Показувати' }); on.onchange = () => { c.on = on.checked; commit(false); };
-      const sel = el('select', { 'aria-label': 'Тип кривої' }, Object.entries(B.TYPES).map(([k, t]) => el('option', { value: k, selected: k === c.type }, t.name)));
+      const name = el('input', { type: 'text', value: c.name, maxlength: 32, 'aria-label': 'Назва', title: 'Назва кривої' }); name.oninput = () => { c.name = name.value; commit(false); };
+      const color = el('input', { type: 'color', value: c.color, 'aria-label': 'Колір', title: 'Колір лінії на графіку' }); color.oninput = () => { c.color = color.value; commit(false); };
+      const on = el('input', { type: 'checkbox', checked: c.on, 'aria-label': 'Показувати', title: 'Показувати цю криву на графіку й у таблиці' }); on.onchange = () => { c.on = on.checked; commit(false); };
+      const sel = el('select', { 'aria-label': 'Тип кривої', title: 'Форма росту: лінійна — рівномірно, степенева — прискорюється, експоненційна — швидко вибухає, S-крива — виходить на стелю, логарифмічна — швидко на початку й повільно далі' }, Object.entries(B.TYPES).map(([k, t]) => el('option', { value: k, selected: k === c.type }, t.name)));
       sel.onchange = () => { c.type = sel.value; if (c.type === 'logistic' && !c.p) { c.a = Math.max(c.a, 100); c.b = .2; c.p = (from + to) / 2; } if (c.type === 'log' && !c.b) c.b = .5; if (c.type === 'exp' && (!c.b || c.b < 1)) c.b = 1.1; c.fit = null; commit(true); };
-      const params = el('div', { class: 'params' }, Object.entries(T.params).map(([k, lab]) => { const i = el('input', { type: 'number', step: 'any', value: c[k], 'aria-label': lab }); i.oninput = () => { c[k] = +i.value || 0; commit(false, true); }; return el('label', {}, lab, i); }));
-      const code = lang => async () => { const t = B.toCode(c, lang); try { await navigator.clipboard.writeText(t); toast('Скопійовано: ' + lang.toUpperCase()); } catch { toast(t, 5000); } };
-      box.append(el('div', { class: 'card cv', style: `--k:${c.color}` },
-        el('div', { class: 'cv-top' }, on, color, name, el('button', { title: 'Видалити', onclick: () => { st.curves = st.curves.filter(x => x !== c); commit(true); } }, '✕')),
-        el('div', { class: 'row2' }, sel, el('span', { class: 'formula' }, T.f)), params,
-        el('div', { class: 'cv-btns' }, canFit ? el('button', { onclick: () => fit.classList.toggle('open') }, 'Підібрати під точки') : null, el('button', { onclick: code('js') }, 'JS'), el('button', { onclick: code('py') }, 'Python'), el('button', { onclick: code('cs') }, 'C#'),
-          el('button', { onclick: () => { st.curves.push(Object.assign({}, c, { id: Date.now(), name: c.name + ' копія', color: COLORS[st.curves.length % COLORS.length] })); commit(true); } }, 'Дублювати')), fit));
+      const params = el('div', { class: 'params' }, Object.entries(T.params).map(([k, lab]) => { const i = el('input', { type: 'number', step: 'any', value: c[k], 'aria-label': lab, title: 'Параметр формули: ' + lab }); i.oninput = () => { c[k] = +i.value || 0; commit(false, true); }; return el('label', { title: 'Параметр формули: ' + lab }, lab, i); }));
+            box.append(el('div', { class: 'card cv', style: `--k:${c.color}` },
+        el('div', { class: 'cv-top' }, on, color, name, el('button', { title: 'Видалити цю криву', onclick: () => { st.curves = st.curves.filter(x => x !== c); commit(true); } }, '✕')),
+        el('div', { class: 'row2' }, sel, el('span', { class: 'formula', title: 'Формула кривої' }, T.f)), params,
+        el('div', { class: 'cv-btns' }, canFit ? el('button', { title: 'Задати, яке значення хочете на двох рівнях, і порахувати параметри автоматично', onclick: () => fit.classList.toggle('open') }, 'Підібрати під точки') : null,
+          el('button', { title: 'Створити копію цієї кривої, щоб поекспериментувати', onclick: () => { st.curves.push(Object.assign({}, c, { id: Date.now(), name: c.name + ' копія', color: COLORS[st.curves.length % COLORS.length] })); commit(true); } }, 'Дублювати')), fit));
     }
     const opts = st.curves.map(c => el('option', { value: c.id }, c.name));
     for (const [id, key] of [['selA', 'a'], ['selB', 'b']]) { const s = $(id); s.replaceChildren(...st.curves.map(c => el('option', { value: c.id, selected: String(c.id) === String(st.curves[st.ratioPick?.[key] ?? (key === 'a' ? 1 : 0)]?.id) }, c.name))); }
+    const cc = $('selCodeCurve'), keep = cc.value; cc.replaceChildren(...st.curves.map(c => el('option', { value: c.id }, c.name))); if (keep) cc.value = keep;
     $('nFrom').value = st.from; $('nTo').value = st.to; $('selView').value = st.view; $('cLog').checked = st.log;
   }
   function renderChart() {
@@ -131,23 +131,24 @@
   $('cLog').onchange = e => { st.log = e.target.checked; commit(false); };
   const pickRatio = () => { st.ratioPick = { a: st.curves.findIndex(c => String(c.id) === $('selA').value), b: st.curves.findIndex(c => String(c.id) === $('selB').value) }; commit(false); };
   $('selA').onchange = pickRatio; $('selB').onchange = pickRatio;
-  $('btnCsv').onclick = () => { const [f, t] = range(); download(B.toCsv(st.curves.filter(c => c.on), f, t), 'balance-curves.csv', 'text/csv'); };
-  $('btnJson').onclick = () => { const [f, t] = range(); download(JSON.stringify({ from: f, to: t, curves: st.curves.map(c => ({ name: c.name, type: c.type, a: c.a, b: c.b, p: c.p, values: B.series(c, f, t).map(p => Math.round(p.y * 1e4) / 1e4) })) }, null, 2), 'balance-curves.json', 'application/json'); };
+  const curvesCsv = () => { const [f, t] = range(); download(B.toCsv(st.curves.filter(c => c.on), f, t), 'balance-curves.csv', 'text/csv'); };
+  const curvesJson = () => { const [f, t] = range(); download(JSON.stringify({ from: f, to: t, curves: st.curves.map(c => ({ name: c.name, type: c.type, a: c.a, b: c.b, p: c.p, values: B.series(c, f, t).map(p => Math.round(p.y * 1e4) / 1e4) })) }, null, 2), 'balance-curves-table.json', 'application/json'); };
 
   /* ---------- вкладка «Хвилі» ---------- */
   let wavesCache = [];
   function renderWaveUi() {
     const w = st.waves;
     $('wTo').value = w.to; $('wSeed').value = w.seed; $('wBoss').value = w.boss; $('wShare').value = w.share;
-    const T = B.TYPES, bd = w.budget, bs = el('select', { 'aria-label': 'Тип кривої бюджету' }, Object.entries(T).map(([k, t]) => el('option', { value: k, selected: k === bd.type }, t.name)));
+    const T = B.TYPES, bd = w.budget, bs = el('select', { 'aria-label': 'Тип кривої бюджету', title: 'Як росте бюджет складності від хвилі до хвилі' }, Object.entries(T).map(([k, t]) => el('option', { value: k, selected: k === bd.type }, t.name)));
     bs.onchange = () => { bd.type = bs.value; if (bd.type === 'exp' && bd.b < 1) bd.b = 1.08; if (bd.type === 'logistic') { bd.a = 200; bd.b = .15; bd.p = w.to / 2; } renderWaveUi(); wcommit(); };
-    $('wBudget').replaceChildren(el('div', { class: 'row2' }, bs, el('span', { class: 'formula' }, T[bd.type].f)),
-      el('div', { class: 'params' }, Object.entries(T[bd.type].params).map(([k, lab]) => { const i = el('input', { type: 'number', step: 'any', value: bd[k], 'aria-label': lab }); i.oninput = () => { bd[k] = +i.value || 0; wcommit(); }; return el('label', {}, lab, i); })));
+    $('wBudget').replaceChildren(el('div', { class: 'row2' }, bs, el('span', { class: 'formula', title: 'Формула бюджету' }, T[bd.type].f)),
+      el('div', { class: 'params' }, Object.entries(T[bd.type].params).map(([k, lab]) => { const i = el('input', { type: 'number', step: 'any', value: bd[k], 'aria-label': lab, title: 'Параметр бюджету: ' + lab }); i.oninput = () => { bd[k] = +i.value || 0; wcommit(); }; return el('label', {}, lab, i); })));
+    const wtips = { name: 'Назва типу ворога', cost: 'Скільки бюджету складності забирає один ворог цього типу', hp: 'Здоров\'я одного ворога (для підрахунку загального HP хвилі)', minWave: 'З якої хвилі цей тип починає з\'являтися', weight: 'Як часто тип обирається, коли є вибір: більша вага означає частіше' };
     const box = $('wTypes'); box.replaceChildren();
     w.types.forEach((t, idx) => {
-      const f = (k, lab, type = 'number', props = {}) => { const i = el('input', Object.assign({ type, value: t[k], 'aria-label': lab }, props)); i.oninput = () => { t[k] = type === 'number' ? (+i.value || 0) : i.value; wcommit(); }; return el('label', { class: 'num' }, lab, i); };
+      const f = (k, lab, type = 'number', props = {}) => { const i = el('input', Object.assign({ type, value: t[k], 'aria-label': lab, title: wtips[k] }, props)); i.oninput = () => { t[k] = type === 'number' ? (+i.value || 0) : i.value; wcommit(); }; return el('label', { class: 'num', title: wtips[k] }, lab, i); };
       box.append(el('div', { class: 'trow' }, f('name', 'Назва', 'text'), f('cost', 'Вартість', 'number', { min: .1, step: 'any' }), f('hp', 'HP', 'number', { min: 0, step: 'any' }), f('minWave', 'З хвилі', 'number', { min: 1 }), f('weight', 'Вага', 'number', { min: 0, step: 'any' }),
-        el('button', { title: 'Видалити', onclick: () => { w.types.splice(idx, 1); renderWaveUi(); wcommit(); } }, '✕')));
+        el('button', { title: 'Видалити цей тип ворога', onclick: () => { w.types.splice(idx, 1); renderWaveUi(); wcommit(); } }, '✕')));
     });
   }
   function wcommit() { save(); renderWaves(); }
@@ -169,8 +170,26 @@
   $('wShare').oninput = e => { st.waves.share = Math.min(90, Math.max(5, Math.round(+e.target.value) || 40)); wcommit(); };
   $('btnWReroll').onclick = () => { st.waves.seed = 1 + Math.floor(Math.random() * 99999); renderWaveUi(); wcommit(); };
   $('btnWType').onclick = () => { st.waves.types.push({ name: 'Новий ' + (st.waves.types.length + 1), cost: 3, hp: 60, minWave: 1, weight: 1 }); renderWaveUi(); wcommit(); };
-  $('btnWCsv').onclick = () => { const names = [...new Set(wavesCache.flatMap(x => x.enemies.map(e => e.name)))]; download(['wave,budget,total,hp,boss,' + names.map(n => JSON.stringify(n)).join(','), ...wavesCache.map(x => [x.wave, Math.round(x.budget * 100) / 100, x.total, Math.round(x.hp), x.boss ? 1 : 0, ...names.map(n => x.enemies.find(e => e.name === n)?.count || 0)].join(','))].join('\n'), 'waves.csv', 'text/csv'); };
-  $('btnWJson').onclick = () => download(JSON.stringify({ seed: st.waves.seed, waves: wavesCache }, null, 2), 'waves.json', 'application/json');
+  const wavesCsv = () => { const names = [...new Set(wavesCache.flatMap(x => x.enemies.map(e => e.name)))]; download(['wave,budget,total,hp,boss,' + names.map(n => JSON.stringify(n)).join(','), ...wavesCache.map(x => [x.wave, Math.round(x.budget * 100) / 100, x.total, Math.round(x.hp), x.boss ? 1 : 0, ...names.map(n => x.enemies.find(e => e.name === n)?.count || 0)].join(','))].join('\n'), 'waves.csv', 'text/csv'); };
+  const wavesJson = () => download(JSON.stringify({ seed: st.waves.seed, waves: wavesCache }, null, 2), 'waves.json', 'application/json');
+  const curTab = () => store.get('tab', 'curves');
+  $('btnCsv').onclick = () => (curTab() === 'curves' ? curvesCsv() : wavesCsv());
+  $('btnJson').onclick = () => (curTab() === 'curves' ? curvesJson() : wavesJson());
+  const snapshot = () => JSON.parse(JSON.stringify(st));
+  $('btnExport').onclick = () => download(JSON.stringify(snapshot(), null, 2), 'balance-curves.json', 'application/json');
+  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(snapshot(), null, 2)); toast('JSON скопійовано'); } catch { toast('Не вдалося скопіювати'); } };
+  $('btnImport').onclick = () => $('file').click();
+  $('file').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      const j = JSON.parse(await f.text()); if (!Array.isArray(j.curves)) throw new Error('немає curves');
+      const d = DEFAULTS(); for (const k of Object.keys(st)) delete st[k];
+      Object.assign(st, d, j); st.waves = Object.assign(d.waves, j.waves || {});
+      st.curves = j.curves.map((c, i) => ({ id: c.id || Date.now() + i, name: String(c.name || 'Крива ' + (i + 1)), type: B.TYPES[c.type] ? c.type : 'linear', a: +c.a || 0, b: +c.b || 0, p: +c.p || 0, color: c.color || COLORS[i % COLORS.length], on: c.on !== false }));
+      save(); renderCurves(); renderWaveUi(); tab(curTab()); toast('Імпортовано');
+    } catch { toast('Не вдалося прочитати файл'); }
+  };
+  $('selCodeLang').onchange = async e => { const lang = e.target.value; e.target.value = ''; const c = curveById($('selCodeCurve').value) || st.curves[0]; if (!lang || !c) return; const t = B.toCode(c, lang); try { await navigator.clipboard.writeText(t); toast('Скопійовано: ' + c.name + ' (' + lang.toUpperCase() + ')'); } catch { toast(t, 5000); } };
 
   /* ---------- вкладки й запуск ---------- */
   function tab(which) {

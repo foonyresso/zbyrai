@@ -79,5 +79,13 @@ test('validate і текстові експорти', () => {
   const r = P.plan(iron, { механізм: 6 }); assert.match(P.toText(r), /руда: 60/); assert.match(P.toCsv(r), /рецепт,будівля/);
 });
 
+test('сторінка: довідка, підказки й збереження у верхній панелі', () => {
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(html, /Що це, для чого, як користуватися/);
+  const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+  for (const id of ['btnExample', 'btnCopyJson', 'btnImport', 'btnExport', 'btnCopy', 'btnCsv']) assert.ok(header.includes('id="' + id + '"'), id + ' має бути в шапці');
+  for (const m of header.matchAll(/<button [^>]*id="(\w+)"[^>]*>/g)) assert.match(m[0], /title="/, 'підказка для ' + m[1]);
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

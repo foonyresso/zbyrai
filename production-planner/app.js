@@ -43,28 +43,29 @@
     const box = $('targets'); box.replaceChildren();
     const res = allResources();
     st.targets.forEach((t, i) => {
-      const sel = el('select', { 'aria-label': 'Ресурс' }, res.map(r => el('option', { value: r, selected: r === t.res }, r)));
+      const sel = el('select', { 'aria-label': 'Ресурс', title: 'Який продукт виробляти' }, res.map(r => el('option', { value: r, selected: r === t.res }, r)));
       sel.onchange = () => { t.res = sel.value; commit(); };
-      const n = el('input', { type: 'number', min: 0, step: 'any', value: t.rate, 'aria-label': 'Штук за хвилину' }); n.oninput = () => { t.rate = Math.max(0, +n.value || 0); commit(false); };
-      box.append(el('div', { class: 'row t' }, el('label', { class: 'num' }, 'Ресурс', sel), el('label', { class: 'num' }, 'шт/хв', n), el('button', { title: 'Видалити', onclick: () => { st.targets.splice(i, 1); commit(); } }, '✕')));
+      const n = el('input', { type: 'number', min: 0, step: 'any', value: t.rate, 'aria-label': 'Штук за хвилину', title: 'Скільки штук цього продукту потрібно за хвилину' }); n.oninput = () => { t.rate = Math.max(0, +n.value || 0); commit(false); };
+      box.append(el('div', { class: 'row t' }, el('label', { class: 'num', title: 'Який продукт виробляти' }, 'Ресурс', sel), el('label', { class: 'num', title: 'Скільки штук за хвилину' }, 'шт/хв', n), el('button', { title: 'Видалити цю ціль', onclick: () => { st.targets.splice(i, 1); commit(); } }, '✕')));
     });
     if (!st.targets.length) box.append(el('p', { class: 'hint' }, 'Додайте ціль: що і скільки за хвилину потрібно виробляти.'));
   }
   function renderOpts() {
     const box = $('opts'); box.replaceChildren();
     const P = PC.producers(st.recipes), multi = [...P].filter(([, l]) => l.length > 1);
-    if (multi.length) { box.append(el('div', { class: 'sub-t' }, 'Спосіб виробництва')); for (const [res, list] of multi) { const sel = el('select', {}, list.map(r => el('option', { value: r.id, selected: (st.choose[res] || list[0].id) === r.id }, r.name))); sel.onchange = () => { st.choose[res] = sel.value; commit(false); }; box.append(el('div', { class: 'optrow' }, el('span', {}, res + ':'), sel)); } }
+    if (multi.length) { box.append(el('div', { class: 'sub-t', title: 'Цей ресурс можна зробити кількома рецептами: оберіть, який використовувати' }, 'Спосіб виробництва')); for (const [res, list] of multi) { const sel = el('select', { title: 'Який рецепт використовувати для «' + res + '»' }, list.map(r => el('option', { value: r.id, selected: (st.choose[res] || list[0].id) === r.id }, r.name))); sel.onchange = () => { st.choose[res] = sel.value; commit(false); }; box.append(el('div', { class: 'optrow' }, el('span', {}, res + ':'), sel)); } }
     const prod = producedRes();
-    if (prod.length) { box.append(el('div', { class: 'sub-t' }, 'Брати ззовні (не виробляти)')); box.append(el('div', { class: 'optrow' }, prod.map(r => { const c = el('input', { type: 'checkbox', checked: st.raw.includes(r) }); c.onchange = () => { st.raw = c.checked ? [...st.raw, r] : st.raw.filter(x => x !== r); commit(false); }; return el('label', {}, c, r); }))); }
+    if (prod.length) { box.append(el('div', { class: 'sub-t', title: 'Відмічений ресурс не виробляється, а надходить як готова сировина' }, 'Брати ззовні (не виробляти)')); box.append(el('div', { class: 'optrow' }, prod.map(r => { const c = el('input', { type: 'checkbox', checked: st.raw.includes(r) }); c.onchange = () => { st.raw = c.checked ? [...st.raw, r] : st.raw.filter(x => x !== r); commit(false); }; return el('label', { title: 'Не виробляти «' + r + '», а брати готовим ззовні' }, c, r); }))); }
     const bs = [...new Set(st.recipes.map(r => r.building).filter(Boolean))];
-    if (bs.length) { box.append(el('div', { class: 'sub-t' }, 'Швидкість будівель')); box.append(el('div', { class: 'optrow' }, bs.map(b => { const n = el('input', { type: 'number', min: .1, step: .1, value: st.speed[b] ?? 1, 'aria-label': 'Швидкість ' + b }); n.oninput = () => { st.speed[b] = Math.max(.1, +n.value || 1); commit(false); }; return el('label', {}, b + ' ×', n); }))); }
+    if (bs.length) { box.append(el('div', { class: 'sub-t', title: 'Множник продуктивності: 2 означає вдвічі швидше (модулі, покращення, рівень будівлі)' }, 'Швидкість будівель')); box.append(el('div', { class: 'optrow' }, bs.map(b => { const n = el('input', { type: 'number', min: .1, step: .1, value: st.speed[b] ?? 1, 'aria-label': 'Швидкість ' + b, title: 'Множник швидкості для «' + b + '»: 1 = звичайна, 2 = удвічі швидше' }); n.oninput = () => { st.speed[b] = Math.max(.1, +n.value || 1); commit(false); }; return el('label', { title: 'Множник швидкості для «' + b + '»' }, b + ' ×', n); }))); }
   }
   function renderRecipes() {
     const box = $('recipes'); box.replaceChildren();
+    const tips = { name: 'Назва рецепта (для себе)', building: 'Яка будівля виробляє: рецепти з однаковою будівлею рахуються разом для швидкості', time: 'Скільки секунд триває один цикл машини', inputs: 'Що витрачається за один цикл. Формат: ресурс:кількість, через кому', outputs: 'Що виходить за один цикл. Кілька виходів = побічні продукти' };
     for (const r of st.recipes) {
-      const f = (k, lab, props = {}, conv) => { const i = el('input', Object.assign({ value: k === 'inputs' || k === 'outputs' ? fmtList(r[k]) : r[k], 'aria-label': lab }, props)); i.onchange = () => { r[k] = conv ? conv(i.value) : i.value; commit(true); }; return el('label', {}, lab, i); };
+      const f = (k, lab, props = {}, conv) => { const i = el('input', Object.assign({ value: k === 'inputs' || k === 'outputs' ? fmtList(r[k]) : r[k], 'aria-label': lab }, props)); i.onchange = () => { r[k] = conv ? conv(i.value) : i.value; commit(true); }; return el('label', { title: tips[k] }, lab, i); };
       box.append(el('div', { class: 'rec' }, f('name', 'Назва'), f('building', 'Будівля'), f('time', 'Секунд', { type: 'number', min: .1, step: 'any' }, v => +v || 1),
-        el('button', { title: 'Видалити', onclick: () => { st.recipes = st.recipes.filter(x => x !== r); commit(true); } }, '✕'),
+        el('button', { title: 'Видалити цей рецепт', onclick: () => { st.recipes = st.recipes.filter(x => x !== r); commit(true); } }, '✕'),
         el('div', { class: 'wide' }, f('inputs', 'Входи', { placeholder: 'руда:2, вугілля:1' }, parseList)), el('span'), el('span'),
         el('div', { class: 'wide' }, f('outputs', 'Виходи', { placeholder: 'залізо:1' }, parseList))));
     }
@@ -82,13 +83,14 @@
     last = compute();
     const sum = $('summary'); sum.replaceChildren();
     if (!last.ok) { sum.append(el('h2', {}, 'Результат'), el('p', { class: 'err' }, last.error)); $('graph').replaceChildren(); $('tbl').replaceChildren(); return; }
+    if (!last.lines.length) { sum.append(el('h2', {}, 'Результат'), el('p', { class: 'hint' }, 'Поки нічого рахувати. Додайте ціль («+ Ціль») або натисніть «Показати приклад» угорі.')); $('graph').replaceChildren(); $('tbl').replaceChildren(); return; }
     const machines = last.lines.reduce((s, l) => s + l.machinesCeil, 0), bn = PC.bottleneck(last), rawN = Object.keys(last.raw).length;
     sum.append(el('h2', {}, 'Результат'),
-      el('div', { class: 'kpis' }, el('div', { class: 'kpi' }, el('b', {}, machines), el('span', {}, 'машин усього')), el('div', { class: 'kpi' }, el('b', {}, last.lines.length), el('span', {}, 'видів рецептів')), el('div', { class: 'kpi' }, el('b', {}, rawN), el('span', {}, 'видів сировини')),
-        el('div', { class: 'kpi warn' }, el('b', {}, bn ? bn.recipe.name : '—'), el('span', {}, 'найбільше машин'))),
-      el('div', { class: 'chips' }, Object.entries(last.raw).map(([k, v]) => el('span', { class: 'chip' }, k + ' ', el('b', {}, f2(v) + '/хв'))), Object.entries(last.surplus).map(([k, v]) => el('span', { class: 'chip', title: 'Побічний продукт, що лишається' }, 'надлишок ' + k + ' ', el('b', {}, f2(v) + '/хв')))));
+      el('div', { class: 'kpis' }, el('div', { class: 'kpi', title: 'Скільки машин треба збудувати разом (округлено вгору)' }, el('b', {}, machines), el('span', {}, 'машин усього')), el('div', { class: 'kpi', title: 'Скільки різних рецептів задіяно в ланцюжку' }, el('b', {}, last.lines.length), el('span', {}, 'видів рецептів')), el('div', { class: 'kpi', title: 'Скільки різних ресурсів треба подавати ззовні' }, el('b', {}, rawN), el('span', {}, 'видів сировини')),
+        el('div', { class: 'kpi warn', title: 'Рецепт, якому треба найбільше машин: ймовірне вузьке місце' }, el('b', {}, bn ? bn.recipe.name : '—'), el('span', {}, 'найбільше машин'))),
+      el('div', { class: 'chips' }, Object.entries(last.raw).map(([k, v]) => el('span', { class: 'chip', title: 'Сировину треба подавати ззовні з такою швидкістю' }, k + ' ', el('b', {}, f2(v) + '/хв'))), Object.entries(last.surplus).map(([k, v]) => el('span', { class: 'chip', title: 'Побічний продукт, який нікуди не йде і лишається' }, 'надлишок ' + k + ' ', el('b', {}, f2(v) + '/хв')))));
     const rows = last.lines.slice().reverse().map(l => el('tr', { class: bn && l === bn ? 'bn' : '' }, el('td', {}, l.recipe.name), el('td', {}, l.recipe.building + (l.speed !== 1 ? ' ×' + l.speed : '')), el('td', {}, f2(l.machines)), el('td', {}, l.machinesCeil), el('td', {}, f2(l.runs)), el('td', {}, Object.entries(l.recipe.outputs).map(([k, v]) => `${k} ${f2(v * l.runs)}`).join(', '))));
-    $('tbl').replaceChildren(el('thead', {}, el('tr', {}, ...['Рецепт', 'Будівля', 'Машин', 'Округл.', 'Циклів/хв', 'Виробляє/хв'].map(h => el('th', {}, h)))), el('tbody', {}, rows));
+    $('tbl').replaceChildren(el('thead', {}, el('tr', {}, ...[['Рецепт', 'Який рецепт виконується'], ['Будівля', 'Яка будівля і множник її швидкості'], ['Машин', 'Точна потрібна кількість машин'], ['Округлено', 'Скільки машин будувати (округлено вгору)'], ['Циклів/хв', 'Скільки циклів за хвилину виконує рецепт'], ['Виробляє/хв', 'Що і скільки за хвилину виходить']].map(([h, t]) => el('th', { title: t }, h)))), el('tbody', {}, rows));
     drawGraph();
   }
 
@@ -134,7 +136,10 @@
   $('btnRecipe').onclick = () => { st.recipes.push({ id: 'r' + Date.now().toString(36), name: 'Новий рецепт', building: 'Машина', time: 5, inputs: {}, outputs: { новий: 1 } }); commit(true); };
   $('btnCopy').onclick = async () => { if (!last || !last.ok) return; try { await navigator.clipboard.writeText(PC.toText(last)); toast('Скопійовано'); } catch { toast('Не вдалося скопіювати'); } };
   $('btnCsv').onclick = () => { if (last && last.ok) download(PC.toCsv(last), 'production-plan.csv', 'text/csv'); };
-  $('btnExport').onclick = () => download(JSON.stringify({ recipes: st.recipes, targets: st.targets, choose: st.choose, raw: st.raw, speed: st.speed }, null, 2), 'production-chain.json', 'application/json');
+  const snapshot = () => ({ recipes: st.recipes, targets: st.targets, choose: st.choose, raw: st.raw, speed: st.speed });
+  $('btnExport').onclick = () => download(JSON.stringify(snapshot(), null, 2), 'production-chain.json', 'application/json');
+  $('btnCopyJson').onclick = async () => { const t = JSON.stringify(snapshot(), null, 2); try { await navigator.clipboard.writeText(t); toast('JSON скопійовано'); } catch { toast('Не вдалося скопіювати'); } };
+  $('btnExample').onclick = () => { st = fresh('medieval'); commit(true); toast('Завантажено приклад: середньовічне селище'); };
   $('btnImport').onclick = () => $('file').click();
   $('file').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
@@ -144,7 +149,7 @@
       commit(true); toast('Імпортовано');
     } catch { toast('Не вдалося прочитати файл'); }
   };
-  const sp = $('selPreset'); sp.replaceChildren(el('option', { value: '' }, 'Приклади…'), ...Object.entries(PRESETS).map(([k, p]) => el('option', { value: k }, p.name)));
+  const sp = $('selPreset'); sp.replaceChildren(el('option', { value: '' }, 'Оберіть…'), ...Object.entries(PRESETS).map(([k, p]) => el('option', { value: k }, p.name)));
   sp.onchange = () => { if (!sp.value) return; st = fresh(sp.value); sp.value = ''; commit(true); toast('Приклад завантажено'); };
   addEventListener('resize', () => { if (last && last.ok) drawGraph(); });
   renderTargets(); renderOpts(); renderRecipes(); render();
