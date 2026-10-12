@@ -11,7 +11,7 @@ main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px;
 /* ---------- шапка ---------- */
 .bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px max(16px, calc((100% - 1140px) / 2 + 16px));
   background: rgba(9, 9, 12, .72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line-soft); }
-.mark { font-family: var(--ff-display); font-weight: 700; font-size: 28px; letter-spacing: .01em; color: var(--text); line-height: 1; }
+.mark { font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; font-size: 22px; letter-spacing: .07em; text-shadow: 0 0 14px color-mix(in srgb, var(--gold) 50%, transparent); color: var(--text); line-height: 1; }
 .mark:hover { text-decoration: none; }
 .mark span { color: var(--gold); }
 .bar nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
@@ -24,8 +24,8 @@ main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px;
 .hero .eyebrow { margin: 0 0 20px; display: inline-flex; align-items: center; gap: 14px; }
 .hero .eyebrow::before, .hero .eyebrow::after { content: ""; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-lo)); }
 .hero .eyebrow::after { transform: scaleX(-1); }
-.hero h1 { margin: 0 auto; max-width: 14em; font-size: clamp(40px, 8vw, 78px); line-height: 1.04; font-weight: 600; letter-spacing: -.005em;
-  background: linear-gradient(180deg, #f7f1e3 20%, var(--gold-hi) 75%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; text-wrap: balance; }
+.hero h1 { margin: 0 auto; max-width: 14em; font-size: clamp(32px, 6.4vw, 60px); line-height: 1.04; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; letter-spacing: .05em;
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--gold) 45%, transparent)); background: linear-gradient(180deg, #f7f1e3 20%, var(--gold-hi) 75%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; text-wrap: balance; }
 .lead { margin: 22px auto 0; max-width: 46ch; color: var(--muted); font-size: clamp(15px, 2.2vw, 18px); line-height: 1.55; }
 .pills { margin: 22px 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .pills span { font-size: 12px; color: var(--faint); padding: 4px 12px; border: 1px solid var(--line-soft); border-radius: 99px; letter-spacing: .02em; }
@@ -36,7 +36,7 @@ main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px;
 .group { padding-top: clamp(32px, 5vw, 56px); }
 .g-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin: 0 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line-soft); }
 .g-num { font-family: var(--ff-display); font-size: 22px; font-weight: 600; color: var(--gold-lo); }
-.g-head h2 { margin: 0; font-size: clamp(28px, 4vw, 36px); line-height: 1.1; }
+.g-head h2 { margin: 0; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; letter-spacing: .07em; color: var(--gold-hi); text-shadow: 0 0 16px color-mix(in srgb, var(--gold) 45%, transparent); font-size: clamp(22px, 3.4vw, 28px); line-height: 1.1; }
 .g-head p { margin: 0; color: var(--faint); font-size: 14px; }
 .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
 .group:last-of-type { padding-bottom: 72px; }
@@ -89,15 +89,14 @@ a.card:hover .art svg { transform: scale(1.045); opacity: 1; }
 .c-loot:hover .art svg { transform: scale(1.06) rotate(-2deg); }
 .c-mix:hover .art svg { transform: scale(1.05) rotate(2deg); }
 
-.t-sprite { font-family: var(--ff-mono); font-size: 21px; font-weight: 650; color: var(--c); letter-spacing: -.01em; }
-.t-curves { font-weight: 700; color: #fff; border-bottom: 2px solid var(--c); width: fit-content; padding-bottom: 4px; }
-.t-chain { font-family: var(--ff-mono); font-size: 19px; font-weight: 600; color: var(--c); letter-spacing: -.01em; text-transform: uppercase; }
-.t-colony { font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); }
-.t-voxel { font-weight: 750; letter-spacing: .01em; color: #fff; width: fit-content; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--c) 40%, transparent) 62% 94%, transparent 94%); padding: 0 4px; margin-left: -4px; }
-.t-planet { font-weight: 650; letter-spacing: .02em; background: linear-gradient(180deg, #fff 20%, var(--c)); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 40%, transparent)); }
 .body { display: flex; flex-direction: column; flex: 1; padding: 22px 24px 22px; }
 .body .eyebrow { margin: 0 0 8px; color: var(--c); }
-.card h2 { margin: 0 0 10px; font-size: 29px; line-height: 1.12; text-wrap: balance; }
+.card h2 { margin: 0 0 10px; font-size: 24px; line-height: 1.12; text-wrap: balance; }
+
+/* ---------- заголовки: єдиний стиль Loot Forge, колір — від картки ---------- */
+.glow-title, .card:not(.soon) h2 { font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; letter-spacing: .07em;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, #fff), var(--c) 70%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 45%, transparent)); }
 .desc { margin: 0; color: var(--muted); line-height: 1.55; }
 .tags { margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .tags .tag { border-color: color-mix(in srgb, var(--c) 32%, var(--line)); }
@@ -111,22 +110,13 @@ a.card:hover .open svg { transform: translateX(3px); }
 a.card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-1); }
 
 /* ---------- заголовки: у кожного інструмента власний характер ---------- */
-.t-dice { font-style: italic; font-weight: 600; background: linear-gradient(180deg, #f1ecff 10%, var(--c)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.t-world { font-size: 25px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: #e6f0dc; display: flex; align-items: center; gap: 14px; }
-.t-world::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--c), transparent); }
-.t-pattern { padding-bottom: 6px; font-weight: 700; color: var(--text); text-decoration: underline wavy color-mix(in srgb, var(--c) 80%, transparent) 2px; text-underline-offset: 9px; text-decoration-skip-ink: none; }
-.t-loot { font-family: var(--ff-ui); font-size: 24px; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; background: linear-gradient(180deg, #ffe2c4, var(--c) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 45%, transparent)); }
-.t-tree { font-family: var(--ff-mono); font-size: 20px; font-weight: 600; letter-spacing: -.01em; color: #dbe8fb; }
-.t-tree::before { content: "› "; color: var(--c); }
-.t-mix { font-weight: 600; color: #fff; width: fit-content; background: linear-gradient(transparent 60%, color-mix(in srgb, var(--c) 42%, transparent) 60% 92%, transparent 92%); padding: 0 4px; margin-left: -4px; }
 
 /* широка картка: арт зліва, текст справа */
 @media (min-width: 760px) {
   .card.wide { flex-direction: row; }
   .card.wide .art { width: 44%; height: auto; min-height: 260px; border-bottom: 0; border-right: 1px solid var(--line-soft); -webkit-mask-image: none; mask-image: none; }
   .card.wide .body { justify-content: center; padding: 30px 34px; }
-  .card.wide h2 { font-size: 34px; }
-  .card.wide .t-world { font-size: 29px; }
+  .card.wide h2 { font-size: 28px; }
   .card.wide .desc { max-width: 52ch; }
   .card.wide .foot { margin-top: 0; padding-top: 26px; justify-content: flex-start; }
 }
@@ -151,11 +141,8 @@ a.card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-1); 
 
 @media (max-width: 560px) {
   .bar { padding: 12px 16px; }
-  .mark { font-size: 24px; }
+  .mark { font-size: 19px; }
   .row { gap: 16px; }
   .body { padding: 18px 18px 18px; }
-  .card h2 { font-size: 26px; }
-  .t-world { font-size: 22px; }
-  .t-loot { font-size: 21px; }
-  .t-tree { font-size: 18px; }
+  .card h2 { font-size: 21px; }
 }
