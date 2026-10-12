@@ -1,0 +1,140 @@
+/* Ігрові смаки. Токени, кнопки й типографіка беруться з theme.css. */
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { min-height: 100vh; display: flex; flex-direction: column; font-size: 15px;
+  background:
+    radial-gradient(900px 420px at 50% -90px, rgba(201, 167, 102, .18), transparent 70%),
+    radial-gradient(600px 300px at 88% 6%, rgba(136, 169, 214, .05), transparent 70%),
+    var(--bg); }
+main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px 56px; }
+section { padding-top: clamp(40px, 6vw, 72px); }
+
+/* ---------- шапка ---------- */
+.bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px max(16px, calc((100% - 1140px) / 2 + 16px));
+  background: rgba(9, 9, 12, .78); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line-soft); }
+.mark { font-family: var(--ff-display); font-weight: 700; font-size: 26px; letter-spacing: .01em; color: var(--text); line-height: 1; white-space: nowrap; }
+.mark span { color: var(--gold); }
+.mark small { font-family: var(--ff-ui); font-weight: 500; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin-left: 8px; }
+.bar nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.bar nav::-webkit-scrollbar { display: none; }
+.bar nav a { color: var(--muted); font-size: 13px; letter-spacing: .02em; padding: 7px 11px; border-radius: 99px; white-space: nowrap; transition: color .18s var(--ease), background .18s var(--ease); }
+.bar nav a:hover { color: var(--gold-hi); background: var(--gold-glow); text-decoration: none; }
+
+/* ---------- hero ---------- */
+.hero { text-align: center; padding: clamp(48px, 9vw, 96px) 0 0; }
+.hero .eyebrow { margin: 0 0 18px; display: inline-flex; align-items: center; gap: 14px; }
+.hero .eyebrow::before, .hero .eyebrow::after { content: ""; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-lo)); }
+.hero .eyebrow::after { transform: scaleX(-1); }
+.hero h1 { margin: 0; font-size: clamp(44px, 9vw, 84px); line-height: 1.04; font-weight: 600;
+  background: linear-gradient(180deg, #f7f1e3 20%, var(--gold-hi) 75%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lead { margin: 20px auto 0; max-width: 52ch; color: var(--muted); font-size: clamp(15px, 2.2vw, 18px); line-height: 1.55; }
+.meta { margin: 18px 0 0; color: var(--faint); font-size: 13px; letter-spacing: .02em; min-height: 1.4em; }
+.hero .hairline { margin: clamp(28px, 5vw, 48px) auto 0; max-width: 520px; }
+
+/* ---------- заголовки розділів ---------- */
+.sec-head { margin-bottom: 26px; max-width: 70ch; }
+.sec-head .eyebrow { margin: 0 0 8px; }
+.sec-head h2 { margin: 0; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; text-wrap: balance; }
+.sub { margin: 12px 0 0; color: var(--muted); line-height: 1.55; }
+
+.empty { text-align: center; color: var(--muted); padding: 28px 0; }
+
+/* ---------- портрет ---------- */
+.formula { margin: 0 0 22px; padding: 24px clamp(20px, 4vw, 36px); border: 1px solid var(--gold-line); border-radius: var(--r-lg);
+  background: radial-gradient(520px 200px at 0% 0%, var(--gold-glow), transparent 70%), linear-gradient(180deg, #15151b, #0f0f14); box-shadow: var(--shadow-1); }
+.formula .eyebrow { margin: 0 0 10px; }
+.formula p:last-child { margin: 0; font-family: var(--ff-display); font-size: clamp(21px, 3vw, 29px); line-height: 1.38; color: var(--text); text-wrap: pretty; }
+
+.traits { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.trait, .note, .game, .pillar { position: relative; background: linear-gradient(180deg, #15151b, #0f0f14); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); }
+.trait { padding: 20px 22px 18px; }
+.trait .num, .note .num { position: absolute; top: 14px; right: 18px; font-family: var(--ff-display); font-size: 26px; font-weight: 600; color: var(--gold-lo); opacity: .55; line-height: 1; }
+.trait h3 { margin: 0 34px 10px 0; font-size: 22px; line-height: 1.15; }
+.trait p { margin: 0 0 10px; color: var(--muted); line-height: 1.55; }
+.trait .ev { margin: 0; padding-top: 10px; border-top: 1px solid var(--line-soft); font-size: 12.5px; color: var(--faint); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; margin-top: 16px; }
+.box { padding: 20px 22px; }
+.box .eyebrow { margin: 0 0 12px; }
+.box ul { margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.55; }
+.box li { margin-bottom: 8px; }
+.box li:last-child { margin-bottom: 0; }
+.box li b { color: var(--text); font-weight: 600; }
+
+/* ---------- групи ---------- */
+.pillars { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.pillar { display: flex; flex-direction: column; align-items: stretch; text-align: left; padding: 16px 18px 15px; cursor: pointer; color: var(--text);
+  transition: transform .3s var(--ease), border-color .25s var(--ease), box-shadow .3s var(--ease); }
+.pillar:hover { transform: translateY(-3px); border-color: var(--gold-lo); background: linear-gradient(180deg, #15151b, #0f0f14); box-shadow: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 20px 50px rgba(0, 0, 0, .55), 0 0 36px rgba(201, 167, 102, .07); }
+.pillar-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pillar h3 { margin: 0; font-size: 21px; line-height: 1.15; }
+.count { flex: none; font-family: var(--ff-ui); font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--gold-hi); background: var(--gold-glow); border: 1px solid var(--gold-line); border-radius: 99px; padding: 1px 9px; }
+.pillar .pd { margin: 8px 0 12px; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+.bar-meter { height: 3px; border-radius: 99px; background: var(--line-soft); overflow: hidden; margin-top: auto; }
+.bar-meter i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi)); }
+.pillar .pg { margin: 10px 0 0; font-size: 12px; color: var(--faint); line-height: 1.45; }
+
+/* ---------- каталог ---------- */
+.toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.toolbar input { flex: 1 1 280px; max-width: 460px; padding: 10px 14px; border-radius: var(--r-md); }
+.found { color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chip .n { color: var(--faint); font-size: 11.5px; margin-left: 2px; }
+.chip.on .n { color: var(--gold); }
+
+.cat-group { padding-top: 28px; }
+.cat-group h3 { margin: 0; font-size: 27px; display: flex; align-items: center; gap: 12px; }
+.cat-desc { margin: 6px 0 16px; color: var(--muted); max-width: 70ch; }
+.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 14px; margin-top: 16px; }
+.cat-desc + .games { margin-top: 0; }
+.game { padding: 16px 18px; display: flex; flex-direction: column; gap: 9px; }
+.game h4 { margin: 0; font-family: var(--ff-display); font-size: 22px; font-weight: 600; line-height: 1.15; }
+.check { display: inline-grid; place-items: center; width: 17px; height: 17px; margin-left: 8px; vertical-align: 3px; border-radius: 50%; border: 1px solid var(--warn); color: var(--warn); font: 600 11px/1 var(--ff-ui); cursor: help; }
+.gtags, .tags { margin: 0; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.tag-btn { cursor: pointer; font-family: inherit; padding: 2px 9px; }
+.tag-btn:hover { border-color: var(--gold-lo); color: var(--gold-hi); background: var(--gold-glow); }
+.tag-btn.main { border-color: var(--gold-line); color: var(--gold-hi); }
+.game p { margin: 0; line-height: 1.5; }
+.likes, .minus { color: var(--text); font-size: 14px; }
+.likes b, .minus b { display: block; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.likes b { color: var(--ok); }
+.minus { color: var(--muted); }
+.minus b { color: var(--danger); }
+.game .tags .tag { font-size: 10.5px; color: var(--faint); }
+
+/* ---------- мінуси, візуал, задуми ---------- */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.note { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.note h3 { margin: 0; font-size: 22px; line-height: 1.15; }
+.note.idea h3 { margin-right: 34px; }
+.note p { margin: 0; color: var(--muted); line-height: 1.55; }
+.note .tags { margin-top: auto; padding-top: 4px; }
+.note .tag { font-size: 10.5px; }
+.from { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-right: 2px; }
+
+/* ---------- правила ---------- */
+.rules { margin: 0; padding: 0; list-style: none; counter-reset: r; display: grid; gap: 10px; max-width: 80ch; }
+.rules li { counter-increment: r; position: relative; padding: 14px 18px 14px 58px; background: linear-gradient(180deg, #15151b, #0f0f14); border: 1px solid var(--line); border-radius: var(--r-md); color: var(--muted); line-height: 1.55; }
+.rules li::before { content: counter(r, decimal-leading-zero); position: absolute; left: 18px; top: 11px; font-family: var(--ff-display); font-size: 26px; font-weight: 600; color: var(--gold-lo); }
+.rules b { color: var(--text); font-weight: 600; }
+
+/* ---------- як доповнювати ---------- */
+.howto { margin-top: clamp(40px, 6vw, 72px); border: 1px dashed var(--line); border-radius: var(--r-md); }
+.howto summary { cursor: pointer; padding: 14px 18px; color: var(--muted); letter-spacing: .02em; }
+.howto summary:hover { color: var(--gold-hi); }
+.howto-body { padding: 0 18px 16px; color: var(--muted); line-height: 1.6; }
+.howto-body p { margin: 0 0 10px; }
+.howto-body b { color: var(--text); font-weight: 600; }
+code { font-family: var(--ff-mono); font-size: 12.5px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; color: var(--gold-hi); }
+
+/* ---------- підвал ---------- */
+.site-foot { border-top: 1px solid var(--line-soft); text-align: center; padding: 24px 16px 32px; color: var(--faint); font-size: 13px; }
+.site-foot p { margin: 0; }
+
+@media (max-width: 640px) {
+  .bar { padding: 10px 16px; gap: 10px; }
+  .mark { font-size: 23px; }
+  .mark small { display: none; }
+  .game, .trait, .note { padding-left: 16px; padding-right: 16px; }
+  .rules li { padding-left: 50px; }
+  .rules li::before { left: 14px; }
+}
