@@ -32,6 +32,12 @@ const MixerCore = (() => {
       e('Збирати картки чи моди й комбінувати їх у білд', 'Warframe', 'Ragnarok Online'),
       e('Будувати з блоків і захищати споруди від нападів', 'Minecraft', 'Castle Story'),
       e('Битися з великими монстрами, ухиляючись і вичікуючи момент', 'Monster Hunter: World'),
+      e('Давати жителям завдання, а вони самі біжать працювати за потребами й вміннями', 'RimWorld', 'Colony Survival'),
+      e('Збирати підлеглих у поселення й ставити їх на місця, поки будуєш замок', 'Castle Story', 'Stronghold'),
+      e('Уникати ударів і вичікувати момент, підлаштовуючись під великого ворога', 'Monster Hunter: World'),
+      e('Збирати предмети й картки та поєднувати їх у дикий білд, що росте з хвилини в хвилину', 'Vampire Survivors', 'Warframe'),
+      e('Будувати поселення вшир без стелі: нескінченне розширення', 'Colony Survival', 'Cities: Skylines'),
+      e('Паркурити, фармити й літати з суперприйомами в красивому світі', 'Black Desert', 'Warframe'),
     ],
     prog: [
       e('Складність росте без стелі, а мета протриматися якнайдовше', 'Risk of Rain', 'Vampire Survivors'),
@@ -44,6 +50,11 @@ const MixerCore = (() => {
       e('Тех-дерево відкривається дослідженням руїн', 'Satisfactory'),
       e('Кожні N днів приходить орда сильніша за попередню', '7 Days to Die'),
       e('Нові класи відкриваються за приховані умови, але з чесними підказками', 'Vampire Survivors', 'Megabonk'),
+      e('Механіки відкриваються по одній, гра «розкривається» під час проходження', 'Vampire Survivors', 'Megabonk'),
+      e('Покоління колоністів: діти вчаться від батьків і наслідують риси', 'The Sims 4', 'RimWorld'),
+      e('Масштаб росте від одного будинку до міста, що живе власним життям', 'Anno', 'Cities: Skylines'),
+      e('Поселення розростається, а разом із ним росте й загроза зовні', 'Kingdom Two Crowns', 'Castle Story'),
+      e('Нескінченний цикл грінду з предметами, які змінюють правила гри', 'Borderlands', 'Diablo 4'),
     ],
     world: [
       e('Воксельна пісочниця з генерацією світу', 'Minecraft', 'Terraria'),
@@ -56,6 +67,12 @@ const MixerCore = (() => {
       e('Аніме-фентезі з ефектними героями: кішки, лисиці, ельфійки'),
       e('Піксель-арт збоку, затишний і вайбовий', 'Kingdom Two Crowns'),
       e('Космічна станція, засипана сміттям, і дивний гумор', 'Breathedge'),
+      e('Невеликий вайбовий світ із красивою стилізованою графікою', 'Valheim', 'Kingdom Two Crowns'),
+      e('Острови й моря, де поселення можна розширювати на нові землі', 'Anno', 'Raft'),
+      e('Подорож від мікроба до зірок, де кожна фаза має свій жанр', 'Spore'),
+      e('Фабрика на всю карту, де кожна ділянка виробляє своє', 'Satisfactory'),
+      e('Покинутий космічний корабель, повний дивних знахідок і чорного гумору', 'Breathedge'),
+      e('Світ безкінечної орди: кожні сім днів приходить нова загроза', '7 Days to Die'),
     ],
     twist: [
       e('Гравець не герой, а торговець чи ціле місто', 'Shop Heroes'),
@@ -70,6 +87,13 @@ const MixerCore = (() => {
       e('Жителі впливають на світ: ремонтують, сваряться, ночують', 'Conan Exiles'),
       e('Фізичні регдоли: усе виходить смішно', 'Human: Fall Flat'),
       e('Із кожного вбитого монстра випадають частини для крафту', 'Almighty: Kill Your Gods'),
+      e('Кожен колоніст має свій характер, потреби й вподобання, і від цього залежить усе', 'RimWorld', 'The Sims 4'),
+      e('Жителі справді взаємодіють між собою та зі світом, а не стоять декорацією', 'Conan Exiles', 'RimWorld'),
+      e('Гра гнучка: майже немає штучних обмежень, усе залежить від фантазії гравця', 'Minecraft', 'Terraria'),
+      e('Усе робиться командою на одному кораблі, у кожного своя роль', 'Sea of Thieves'),
+      e('Зброя й моди з випадковими статами, під які підлаштовується стиль гри', 'Borderlands', 'Warframe'),
+      e('Гумор усюди: від описів до катсцен, без самоцензури', 'Saints Row', 'Postal'),
+      e('Перехід між масштабами: герой, поселення, країна, світ', 'Spore'),
     ],
     limit: [
       e('Зробити за два тижні (game jam)'),
@@ -82,6 +106,11 @@ const MixerCore = (() => {
       e('Одна фаза, доведена до кінця (вертикальний зріз)'),
       e('Усі дані в JSON, які можна правити без коду'),
       e('Сесія тривалістю п’ять хвилин'),
+      e('Лише одна механіка, але доведена до досконалості'),
+      e('Жодного тексту, лише картинки й іконки'),
+      e('Максимум двадцять юнітів на екрані одночасно'),
+      e('Розмір збірки менший за 10 МБ'),
+      e('Без процедурної генерації, увесь вміст зроблений вручну'),
     ],
     tone: [
       e('Чорний відвертий гумор', 'Borderlands', 'Saints Row'),
@@ -90,6 +119,10 @@ const MixerCore = (() => {
       e('Іронія над самим жанром'),
       e('Тиха медитативна пісочниця', 'Raft'),
       e('Безглуздий хаос без цензури', 'Saints Row', 'Postal'),
+      e('Затишна й тепла історія про маленьку громаду', 'Kingdom Two Crowns', 'Stardew Valley'),
+      e('Космічна самотність і лагідний сум', 'No Man’s Sky'),
+      e('Динамічний і епічний, з купою спецефектів', 'Helldivers 2', 'Warframe'),
+      e('Іронічно-похмурий, з вайбом заміських руїн', 'S.T.A.L.K.E.R. 2'),
     ],
     view: [
       e('2D збоку'),
@@ -98,6 +131,9 @@ const MixerCore = (() => {
       e('Ізометрія'),
       e('Від першої особи'),
       e('Воксельна 3D-камера, яку можна обертати', 'Minecraft'),
+      e('Збоку, вайбовий піксель-арт', 'Kingdom Two Crowns'),
+      e('Ізометрична 3D-камера, яку можна обертати', 'Anno', 'Castle Story'),
+      e('Зверху, з вільним зумом від одного жителя до всього міста', 'RimWorld', 'Cities: Skylines'),
     ],
   };
 
@@ -126,6 +162,25 @@ const MixerCore = (() => {
     }
     return out;
   }
+
+  /* ---------- імпорт і експорт власних механік (JSON) ---------- */
+  const CUSTOM_LIMIT = 200;
+  function exportCustom(custom) { return { format: 'zbyrai-idea-mixer-1', custom: Object.fromEntries(SLOTS.filter(s => custom && custom[s.id] && custom[s.id].length).map(s => [s.id, custom[s.id].slice()])) }; }
+  // додає до existing лише нові, непорожні тексти відомих слотів; повертає { custom, added, skipped }
+  function importCustom(data, existing) {
+    const out = {}; let total = 0;
+    for (const s of SLOTS) { out[s.id] = ((existing && existing[s.id]) || []).slice(); total += out[s.id].length; }
+    let added = 0, skipped = 0;
+    const src = data && typeof data === 'object' ? (data.custom && typeof data.custom === 'object' ? data.custom : data) : null;
+    if (!src) return { custom: pruneEmpty(out), added: 0, skipped: 0, error: 'невідомий формат' };
+    for (const s of SLOTS) for (const raw of Array.isArray(src[s.id]) ? src[s.id] : []) {
+      const t = typeof raw === 'string' ? raw.trim().slice(0, 140) : '';
+      if (!t || out[s.id].includes(t) || total >= CUSTOM_LIMIT) { skipped++; continue; }
+      out[s.id].push(t); total++; added++;
+    }
+    return { custom: pruneEmpty(out), added, skipped };
+  }
+  const pruneEmpty = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v.length));
 
   /* ---------- кидок ---------- */
   function pickOne(rng, list, avoid) {
@@ -173,7 +228,7 @@ const MixerCore = (() => {
     return { title: typeof raw.title === 'string' && raw.title.trim() ? raw.title.trim().slice(0, 60) : 'Без назви', picks };
   }
 
-  return { SLOTS, POOLS, rngFromSeed, randomSeed, mergePools, rollAll, rollSlot, makeTitle, pitch, sources, sanitizeIdea };
+  return { SLOTS, POOLS, rngFromSeed, randomSeed, mergePools, exportCustom, importCustom, CUSTOM_LIMIT, rollAll, rollSlot, makeTitle, pitch, sources, sanitizeIdea };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = MixerCore;

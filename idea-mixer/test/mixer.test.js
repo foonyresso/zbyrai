@@ -102,5 +102,20 @@ test('відновлення ідеї: правильну приймає, бит
   assert.equal(M.sanitizeIdea(long).title.length, 60);
 });
 
+test('імпорт/експорт власних механік', () => {
+  const ex = M.exportCustom({ core: ['а', 'б'] });
+  assert.equal(ex.format, 'zbyrai-idea-mixer-1');
+  const r = M.importCustom(JSON.parse(JSON.stringify(ex)), { core: ['а'] });
+  assert.equal(r.added, 1);
+  assert.deepEqual(r.custom.core, ['а', 'б']);
+  assert.equal(M.importCustom({ format: 'x' }, {}).added, 0);
+  assert.ok(M.importCustom(null, {}).error);
+});
+
+test('пули без дублікатів тексту', () => {
+  const p = M.mergePools();
+  for (const k of Object.keys(p)) { const t = p[k].map(x => x.t || x); assert.equal(new Set(t).size, t.length, k); }
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
