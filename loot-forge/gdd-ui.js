@@ -213,13 +213,6 @@ const GddUI = (() => {
     /* ---------- предмети ---------- */
     const enhState = () => S.enh || (S.enh = { dust: 0, blessing: false, protection: false });
     function act(fn) { fn(); ctx.save(); ctx.renderOut(); }
-    function toolbarExtras() {
-      const E = enhState();
-      return h('span', { class: 'enh-tools' },
-        h('label', null, 'Пил', numIn(E.dust, v => { E.dust = Math.round(clampNum(v, 0, 0, 10)); ctx.save(); }, { min: 0, max: 10, step: 1, label: 'Пил точіння' })),
-        h('label', null, h('input', { type: 'checkbox', checked: E.blessing, onchange: e => { E.blessing = e.target.checked; ctx.save(); } }), 'Благословення'),
-        h('label', null, h('input', { type: 'checkbox', checked: E.protection, onchange: e => { E.protection = e.target.checked; ctx.save(); } }), 'Захист'));
-    }
     function insertOptions(it) {
       const g = gm(), c = G.idx(g), out = [];
       const tier = S.gemTier == null ? 0 : S.gemTier;
@@ -286,20 +279,78 @@ const GddUI = (() => {
         spent.essence || spent.stones ? h('p', { class: 'hint' }, `Витрачено: есенції ${fmtNum(spent.essence)}, каменів точіння ${fmtNum(spent.stones)}.`) : null);
       return card;
     }
+    /* ---------- лялька героя ---------- */
+    const DOLL = [
+      ['armor', 'Броня', [['Head', 'Голова'], ['Shoulders', 'Плечі'], ['Cloak', 'Плащ'], ['Chest', 'Груди'], ['Shirt', 'Сорочка'], ['Tabard', 'Гербова накидка'], ['Wrists', "Зап'ястя"], ['Hands', 'Руки'], ['Waist', 'Пояс'], ['Legs', 'Ноги'], ['Feet', 'Ступні']]],
+      ['jewel', 'Прикраси', [['Neck', 'Шия'], ['Ring', 'Кільце 1'], ['Ring', 'Кільце 2'], ['Trinket', 'Аксесуар 1'], ['Trinket', 'Аксесуар 2']]],
+      ['weapon', 'Зброя та інше', [['MainHand', 'Основна рука'], ['OffHand', 'Друга рука'], ['Extra', 'Додатковий'], ['Glider', 'Планер'], ['Mount', 'Маунт']]],
+    ];
+    function dollCells() {
+      const cells = [];
+      for (const [grp, , list] of DOLL) {
+        const seen = {};
+        for (const [slot, name] of list) {
+          seen[slot] = (seen[slot] || 0) + 1;
+          const id = slot + seen[slot];
+          const accepts = slot === 'MainHand' ? ['MainHand', 'TwoHand'] : [slot];
+          cells.push({ id, name, group: grp, accepts, blocks: slot === 'MainHand' ? 'OffHand1' : null });
+        }
+      }
+      return cells;
+    }
+    let selItem = null;
+    const miniOf = it => ({ name: it.name + (it.plus ? ' +' + it.plus : ''), sub: `${it.rarityName} · ${it.stars}★ · ${it.sockets} гн.`, color: /^#[0-9a-f]{3,8}$/i.test(it.color) ? it.color : '#a39e93', slot: it.slotName });
+    function tipNode(it) {
+      const C = cfg(), d = G.describe(C, it);
+      const li = (arr, cls) => (arr && arr.length ? h('ul', { class: cls }, arr.map(x => h('li', { class: x.flag ? 'flag' : '' }, x.text))) : null);
+      const m = miniOf(it);
+      return h('div', { class: 'tipc', style: `--c:${m.color}` },
+        h('div', { class: 'sub' }, `${it.rarityName} · ${it.slotName} · рів. ${it.level}${it.named ? ' · іменований' : ''}`),
+        h('h4', null, m.name),
+        h('div', { class: 'sub' }, `${it.stars}★ · гнізд ${it.sockets}`),
+        d.main ? h('p', { class: 'base' }, d.main) : null,
+        li(d.bonuses, 'aff'), li(d.uniques, 'aff uniq'),
+        d.enhance.length ? h('ul', { class: 'aff enh' }, d.enhance.map(x => h('li', null, '⚒ ' + x.text))) : null,
+        d.inserts.some(s => s.code) ? h('ul', { class: 'ins' }, d.inserts.filter(s => s.code).map(s => h('li', { class: s.muted ? 'muted' : '' }, h('b', { style: `color:${s.color}` }, s.name), s.lines.length ? ': ' + s.lines.join('; ') : ''))) : null,
+        d.inserts.some(s => !s.code) ? h('p', { class: 'hint' }, `Порожніх гнізд: ${d.inserts.filter(s => !s.code).length}`) : null,
+        d.runeword ? h('p', { class: 'rw' }, '᛭ «' + d.runeword.name + '»: ' + d.runeword.text) : null,
+        d.set ? h('p', { class: 'hint' }, 'Комплект: ' + d.set.name) : null,
+        h('p', { class: 'hint' }, `Сила ${fmtNum(it.power)}${d.durability ? ' · Міцн. ' + d.durability : ''} · ${fmtNum(d.sell)} ⛁`));
+    }
+
     function renderItems(out) {
       const C = cfg(), g = C.game;
-      const sel = (opts, cur, on, label) => h('select', { 'aria-label': label, onchange: e => on(e.target.value) }, opts.map(([v, t]) => h('option', { value: v, selected: String(v) === String(cur) }, t)));
+      const sel = (opts, cur, on, label, tip) => h('select', { 'aria-label': label, title: tip, onchange: e => on(e.target.value) }, opts.map(([v, t]) => h('option', { value: v, selected: String(v) === String(cur) }, t)));
+      const E = enhState();
       out.append(h('div', { class: 'bar-tools' },
-        h('button', { class: 'btn-forge', onclick: ctx.reseedAndRoll }, 'Кинути'), h('kbd', null, 'Пробіл'),
-        h('label', null, 'Скільки', sel([[3, '3'], [6, '6'], [12, '12'], [24, '24']], S.count, v => { S.count = +v; ctx.save(); ctx.roll(); }, 'Кількість предметів')),
-        h('label', null, 'Якість', sel([['any', 'Будь-яка']].concat(g.qualities.filter(x => x.on !== false).map(x => [x.id, x.name])), S.rarity, v => { S.rarity = v; ctx.save(); ctx.roll(); }, 'Якість')),
-        h('label', null, 'Слот', sel([['any', 'Будь-який']].concat(G.slotChoices(C)), S.slot, v => { S.slot = v; ctx.save(); ctx.roll(); }, 'Слот')),
-        h('label', null, 'Самоцвіти', sel(g.gemTiers.map((t, i) => [i, g.gemTierNames[i] || t]), S.gemTier || 0, v => { S.gemTier = +v; ctx.save(); ctx.renderOut(); }, 'Ступінь самоцвітів у списку вставок')),
-        toolbarExtras()));
+        h('button', { class: 'btn-forge', title: 'Згенерувати нові предмети з новим seed (Пробіл)', onclick: ctx.reseedAndRoll }, 'Кинути'), h('kbd', null, 'Пробіл'),
+        h('label', { title: 'Скільки предметів випадає за один кидок' }, 'Скільки', sel([[3, '3'], [6, '6'], [12, '12'], [24, '24']], S.count, v => { S.count = +v; ctx.save(); ctx.roll(); }, 'Кількість предметів')),
+        h('label', { title: 'Обмежити кидок однією якістю. «Будь-яка»: за шансами правил' }, 'Якість', sel([['any', 'Будь-яка']].concat(g.qualities.filter(x => x.on !== false).map(x => [x.id, x.name])), S.rarity, v => { S.rarity = v; ctx.save(); ctx.roll(); }, 'Якість')),
+        h('label', { title: 'Кидати тільки предмети для одного слота героя' }, 'Слот', sel([['any', 'Будь-який']].concat(G.slotChoices(C)), S.slot, v => { S.slot = v; ctx.save(); ctx.roll(); }, 'Слот')),
+        h('span', { class: 'seg mini', role: 'group', 'aria-label': 'Вигляд' },
+          ['slots:Слоти героя:Предмети лежать у слотах спорядження героя', 'cards:Картки:Усі предмети окремими картками'].map(x => { const [v, t, tip] = x.split(':'); return h('button', { class: (S.view || 'slots') === v ? 'on' : '', title: tip, onclick: () => { S.view = v; ctx.save(); ctx.renderOut(); } }, t); }))));
+      out.append(h('details', { class: 'more' }, h('summary', { title: 'Налаштування для кнопок «Точити» і «Вставити» на картках' }, 'Точіння та вставки'),
+        h('div', { class: 'bar-tools' },
+          h('label', { title: 'Ступінь самоцвітів у списку «Вставити…»' }, 'Самоцвіти', sel(g.gemTiers.map((t, i) => [i, g.gemTierNames[i] || t]), S.gemTier || 0, v => { S.gemTier = +v; ctx.save(); ctx.renderOut(); }, 'Ступінь самоцвітів у списку вставок')),
+          h('label', { title: 'Пил точіння: +1% до шансу за кожну одиницю, до 10' }, 'Пил', numIn(E.dust, v => { E.dust = Math.round(clampNum(v, 0, 0, 10)); ctx.save(); ctx.renderOut(); }, { min: 0, max: 10, step: 1, label: 'Пил точіння' })),
+          h('label', { title: 'Благословення: +15% до шансу точіння' }, h('input', { type: 'checkbox', checked: E.blessing, onchange: e => { E.blessing = e.target.checked; ctx.save(); ctx.renderOut(); } }), 'Благословення'),
+          h('label', { title: 'Сувій захисту: невдале точіння не знижує рівень' }, h('input', { type: 'checkbox', checked: E.protection, onchange: e => { E.protection = e.target.checked; ctx.save(); ctx.renderOut(); } }), 'Захист'))));
       const items = ctx.getItems();
-      const grid = h('div', { class: 'items' });
-      items.forEach((it, i) => grid.append(itemCard(it, i)));
-      out.append(grid);
+      if (!items.includes(selItem)) selItem = items[0] || null;
+      if ((S.view || 'slots') === 'cards') {
+        const grid = h('div', { class: 'items' });
+        items.forEach((it, i) => grid.append(itemCard(it, i)));
+        out.append(grid);
+      } else {
+        const cells = dollCells();
+        out.append(LootUI.view({
+          h, items, cells, groups: DOLL.map(d => ({ id: d[0], name: d[1] })),
+          itemSlot: it => it.gslot, isTwoHand: it => it.gslot === 'TwoHand',
+          tip: tipNode, mini: miniOf, selected: selItem,
+          onSelect: it => { selItem = it; LootUI.hide(); ctx.renderOut(); },
+          detail: it => itemCard(it, items.indexOf(it)),
+        }));
+      }
       const chars = items.length ? G.characterPower(C, items) : 0;
       const sets = G.setCounts(items);
       const lines = Object.entries(sets).filter(([, n]) => n >= 2).map(([code, n]) => {
@@ -308,7 +359,7 @@ const GddUI = (() => {
       });
       const cs = G.activeCardSets(g, items);
       out.append(h('div', { class: 'sets' }, lines, cs.map(s => h('p', { class: 'hint' }, '🂠 ' + s.name + ': ' + s.effects.map(([e]) => effName(e)).join('; ')))));
-      out.append(h('p', { class: 'hint' }, `Seed «${S.seed}» дає ті самі предмети щоразу. Сила всіх предметів разом із комплектами й наборами карток: ${fmtNum(chars)}. Кнопки на картках працюють як у грі: зірки, точіння, гнізда, вставки, знос.`));
+      out.append(h('p', { class: 'hint' }, `Seed «${S.seed}» дає ті самі предмети щоразу. Сила всіх предметів разом із комплектами й наборами карток: ${fmtNum(chars)}.`));
     }
 
     /* ---------- симуляція: доповнення ---------- */

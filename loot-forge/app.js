@@ -45,6 +45,7 @@
     src: 'mob', luck: 0, setCode: '', setChance: 0, gemTier: 0,
   }, S);
   let items = [];       // поточні предмети
+  let legacySel = null; // вибраний предмет у ляльці героя
   let simResult = null; // результат останньої симуляції
 
   function save() {
@@ -232,26 +233,41 @@
       h('button', { class: 'btn-forge', onclick: reseedAndRoll }, 'Кинути'), h('kbd', null, 'Пробіл'),
       h('label', null, 'Скільки', sel([[3, '3'], [6, '6'], [12, '12'], [24, '24']], S.count, v => { S.count = +v; save(); roll(); }, 'Кількість предметів')),
       h('label', null, 'Рідкість', sel([['any', 'Будь-яка']].concat(C.rarities.map(r => [r.id, r.name])), S.rarity, v => { S.rarity = v; save(); roll(); }, 'Рідкість')),
-      h('label', null, 'Тип', sel([['any', 'Будь-який']].concat(L.activeSlots(C).map(s => [s.id, s.name])), S.slot, v => { S.slot = v; save(); roll(); }, 'Тип')),
+      h('label', { title: 'Кидати тільки предмети одного типу' }, 'Тип', sel([['any', 'Будь-який']].concat(L.activeSlots(C).map(s => [s.id, s.name])), S.slot, v => { S.slot = v; save(); roll(); }, 'Тип')),
+      h('span', { class: 'seg mini', role: 'group', 'aria-label': 'Вигляд' },
+        [['slots', 'Слоти героя', 'Предмети лежать у слотах спорядження героя'], ['cards', 'Картки', 'Усі предмети окремими картками']].map(([v, t, tip]) => h('button', { class: (S.view || 'slots') === v ? 'on' : '', title: tip, onclick: () => { S.view = v; save(); renderOut(); } }, t))),
     ));
-    const grid = h('div', { class: 'items' });
-    for (const it of items) {
+    const cardOf = it => {
       const li = [];
       for (const [s, v] of Object.entries(it.base)) li.push(h('li', null, statLine(C.stats[s], v)));
-      grid.append(h('article', { class: 'item', style: `--c:${/^#[0-9a-f]{3,8}$/i.test(it.color) ? it.color : '#a39e93'}` },
+      return h('article', { class: 'item', style: `--c:${/^#[0-9a-f]{3,8}$/i.test(it.color) ? it.color : '#a39e93'}` },
         h('div', { class: 'sub' }, `${it.unique ? '★ Унікальний · ' : ''}${it.rarityName} · рів. ${it.ilvl}${it.setName ? ' · ' + it.setName : ''}`),
         h('h3', null, it.name),
         li.length ? h('ul', { class: 'base' }, li) : null,
         it.affixes.length ? h('ul', { class: 'aff' }, it.affixes.map(a => h('li', null, statLine(C.stats[a.stat], a.value, true)))) : null,
         it.flavor ? h('p', { class: 'flavor' }, it.flavor) : null,
         h('div', { class: 'foot' }, h('span', null, 'Сила ', h('b', null, fmtNum(it.power))),
-          h('button', { title: 'Скопіювати цей предмет як JSON', onclick: () => copyText(JSON.stringify(it, null, 2), 'Предмет скопійовано') }, 'JSON')),
-      ));
+          h('button', { title: 'Скопіювати цей предмет як JSON', onclick: () => copyText(JSON.stringify(it, null, 2), 'Предмет скопійовано') }, 'JSON')));
+    };
+    const colorOf = it => (/^#[0-9a-f]{3,8}$/i.test(it.color) ? it.color : '#a39e93');
+    const grid = h('div', { class: 'items' });
+    if (S.view === 'cards') { for (const it of items) grid.append(cardOf(it)); out.append(grid); }
+    else {
+      if (!items.includes(legacySel)) legacySel = items[0] || null;
+      const slots = L.activeSlots(C);
+      out.append(LootUI.view({
+        h, items, cells: slots.map(sl => ({ id: sl.id, name: sl.name, group: 'all', accepts: [sl.id] })), groups: [{ id: 'all', name: 'Слоти героя' }],
+        itemSlot: it => it.slot, isTwoHand: null, selected: legacySel,
+        mini: it => ({ name: it.name, sub: `${it.rarityName} · сила ${fmtNum(it.power)}`, color: colorOf(it), slot: (slots.find(x => x.id === it.slot) || {}).name }),
+        tip: it => { const c = cardOf(it); c.classList.add('tipc'); c.querySelector('.foot')?.remove(); return c; },
+        onSelect: it => { legacySel = it; LootUI.hide(); renderOut(); },
+        detail: cardOf,
+      }));
     }
     const sb = L.setBonuses(C, items);
     if (sb.length) out.append(h('div', { class: 'sets' }, sb.map(b => h('p', { class: 'hint' },
       '⛓ ' + b.name + ': ' + b.count + ' шт. у кидку. ' + ((C.sets.find(x => x.id === b.set).bonuses || []).map(x => x.n + ' → ' + Object.entries(x.stats).map(([k, v]) => (C.stats[k] ? C.stats[k].name : k) + ' +' + v).join(', ') + (x.n <= b.count ? ' ✓' : '')).join(' · '))))));
-    out.append(grid, h('p', { class: 'hint' }, 'Seed «' + S.seed + '» дає ті самі предмети щоразу: запиши його, щоб повернутися до цього кидка.'));
+    out.append(h('p', { class: 'hint' }, 'Seed «' + S.seed + '» дає ті самі предмети щоразу: запиши його, щоб повернутися до цього кидка.'));
   }
 
   function renderSim(out) {

@@ -367,5 +367,16 @@ test('опис предмета для інтерфейсу: рядки ефек
   assert.equal(d.inserts.length, it.sockets);
 });
 
+
+test('лялька героя: кільця, дворучна зброя й рюкзак', () => {
+  const U = require('../loot-ui.js');
+  const cells = [{ id: 'M', accepts: ['MainHand', 'TwoHand'], blocks: 'O' }, { id: 'O', accepts: ['OffHand'] }, { id: 'R1', accepts: ['Ring'] }, { id: 'R2', accepts: ['Ring'] }];
+  const mk = s => ({ s });
+  const r = U.assign([mk('TwoHand'), mk('OffHand'), mk('Ring'), mk('Ring'), mk('Ring')], cells, i => i.s, i => i.s === 'TwoHand');
+  assert.deepStrictEqual(Object.keys(r.put).sort(), ['M', 'R1', 'R2']);
+  assert.strictEqual(r.pack.length, 2);
+  assert.ok(r.blocked.O);
+});
+
 console.log(failed ? `\nПровалено ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

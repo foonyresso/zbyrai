@@ -24,11 +24,39 @@
     <div>Loot <span>Forge</span></div>
   </div>
   <div class="spacer"></div>
-  <label class="hdr-field"><span>Набір</span><select id="selPreset" aria-label="Готовий набір правил"></select></label>
-  <button id="btnImport">Імпорт</button>
+  <label class="hdr-field" title="Готовий набір правил: фентезі, фантастика тощо або правила гри GodsDontDie"><span>Набір</span><select id="selPreset" aria-label="Готовий набір правил"></select></label>
+  <button id="btnImport" title="Завантажити збережені правила й предмети: встав JSON або обери файл">Імпорт</button>
   <button id="btnCopy" title="Скопіювати конфіг і поточні предмети як JSON">Копіювати JSON</button>
   <button class="btn-primary" id="btnSave" title="Завантажити items.json">Зберегти .json</button>
 </header>
+
+<details class="about" id="about">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="about-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Кузня предметів для гри: випадково створює зброю, броню й прикраси з якістю, бонусами, зірками, гніздами для карток і рун. Режим «GodsDontDie» працює за тими самими правилами, що й сама гра.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Щоб придумати й перевірити систему предметів до того, як вона потрапить у гру: які шанси рідкісних речей, наскільки сильними вони виходять, чи не ламають баланс. Готові правила й предмети виходять у JSON.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Обери набір</b> угорі. Для гри GodsDontDie вибери «GodsDontDie».</li>
+        <li><b>Натисни «Кинути»</b> (або Пробіл): предмети з’являться у слотах героя. Наведи мишку, щоб побачити бонуси (на телефоні торкнись).</li>
+        <li><b>Клікни по предмету</b>, щоб відкрити його картку: зірки, точіння, гнізда, вставка карток і рун.</li>
+        <li><b>Правила ліворуч</b> змінюють шанси й числа. Вкладки «Симуляція» і «Шанси» показують, що буде на тисячах кидків.</li>
+        <li><b>Збережи або поділись</b> кнопками угорі: копіювати JSON, зберегти файл, імпорт.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Слоти героя</h3>
+      <p>Предмет потрапляє у свій слот: шолом на голову, меч у руку. Два кільця й два аксесуари, дворучна зброя займає обидві руки. Що не вмістилося, лежить у рюкзаку. Перемикач «Картки» показує всі предмети списком.</p>
+    </div>
+  </div>
+</details>
 
 <main class="panes">
   <!-- ЛІВА ПАНЕЛЬ: правила -->
@@ -41,11 +69,11 @@
   <section class="pane" id="paneOut">
     <div class="pane-h">
       <div class="seg" id="tabs" role="tablist" aria-label="Режим результатів">
-        <button role="tab" data-tab="items">Предмети</button>
-        <button role="tab" data-tab="sim">Симуляція</button>
-        <button role="tab" data-tab="calc">Шанси</button>
-        <button role="tab" data-tab="gcalc" hidden>Калькулятор гри</button>
-        <button role="tab" data-tab="gcat" hidden>Каталог гри</button>
+        <button role="tab" data-tab="items" title="Випалі предмети: слоти героя, бонуси, дії">Предмети</button>
+        <button role="tab" data-tab="sim" title="Тисячі кидків: які предмети і як часто випадають">Симуляція</button>
+        <button role="tab" data-tab="calc" title="Шанси кожної рідкості й скільки вбивств до потрібного предмета">Шанси</button>
+        <button role="tab" data-tab="gcalc" title="Калькулятор формул гри: сила, точіння, гнізда" hidden>Калькулятор гри</button>
+        <button role="tab" data-tab="gcat" title="Довідник усіх типів, ефектів, карток, рун і комплектів гри" hidden>Каталог гри</button>
       </div>
     </div>
     <div class="pane-b" id="out"></div>
@@ -77,6 +105,7 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./loot-core.js"></script>
 <script src="./gdd-data.js"></script>
 <script src="./gdd-core.js"></script>
+<script src="./loot-ui.js"></script>
 <script src="./gdd-ui.js"></script>
 <script src="./app.js"></script>
 </body>
