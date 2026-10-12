@@ -5,7 +5,7 @@
 
 ## Стан (жовтень 2026)
 
-Сайт: https://zbyrai.pages.dev (чиста статика, Cloudflare Pages). Гілка розробки: `claude/intelligent-euler-nb6tp7`; у `main` ще нічого не змерджено.
+Сайт: https://zbyrai.pages.dev (чиста статика, Cloudflare Pages). Вся робота вже в `main` (коміт 9b409b2). Cloudflare Pages має збирати саме `main`; якщо сайт не оновився, перевір у панелі Production branch та Deployments.
 
 | Інструмент | Стан |
 |---|---|
