@@ -179,7 +179,7 @@ $('overlay').addEventListener('mousedown', e => { if (e.target === $('overlay'))
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('overlay').classList.contains('show')) closeModal(); });
 
 function gallery(title, groups, curKey, onPick) {
-  openModal(`<div class="dlg-h"><h3>${esc(title)}</h3><button id="gx">✕ Закрити</button></div><div id="gbody"></div>`);
+  openModal(`<div class="dlg-h"><h3>${esc(title)}</h3><button id="gx" title="Закрити вікно (Esc)">✕ Закрити</button></div><div id="gbody"></div>`);
   const body = $('gbody');
   groups.forEach(g => {
     if (g.h) { const h = document.createElement('h4'); h.textContent = g.h; body.appendChild(h); }
@@ -224,7 +224,7 @@ $('tabTheme').onclick = () => {
 function openPicker(id) {
   const sl = SLOTS[id], s = ss(id), opts = sl.opts(ctx());
   const multi = sl.kind === 'multi';
-  openModal(`<div class="dlg-h"><h3>${esc(sl.label)} <small style="color:var(--muted);font-weight:400">· ${opts.length} варіантів</small></h3><button id="gx">✕ Закрити</button></div>
+  openModal(`<div class="dlg-h"><h3>${esc(sl.label)} <small style="color:var(--muted);font-weight:400">· ${opts.length} варіантів</small></h3><button id="gx" title="Закрити вікно (Esc)">✕ Закрити</button></div>
     <div class="picker-top"><input id="psearch" placeholder="Пошук…" autocomplete="off">
       <button id="prand">🎲 Випадково</button><button id="poff">∅ Не вказувати</button>${multi ? '<button id="pclear">Очистити вибір</button><button id="pdone" class="btn-copy">Готово</button>' : ''}</div>
     <div class="chips" id="chips"></div>`);
@@ -358,7 +358,7 @@ function renderHistory() {
 function renderPresets() {
   const box = $('r-pre');
   box.innerHTML = `<div class="hint">Збережи поточні параметри (тип, модель, стиль, тему та всі вибрані/заблоковані значення) під своєю назвою і повертайся до них в один клік.</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px"><input id="pname" placeholder="Назва пресета, напр. «Мій SDXL аніме»" style="flex:1"><button id="psave" class="btn-copy">💾 Зберегти</button></div><div id="plist"></div>`;
+    <div style="display:flex;gap:8px;margin-bottom:12px"><input id="pname" title="Назва нового пресета" placeholder="Назва пресета, напр. «Мій SDXL аніме»" style="flex:1"><button id="psave" class="btn-copy" title="Зберегти поточні параметри як пресет у цьому браузері">💾 Зберегти</button></div><div id="plist"></div>`;
   const list = $('plist');
   if (!st.presets.length) list.innerHTML = '<div class="hint">Пресетів ще немає.</div>';
   st.presets.forEach((p, i) => {
@@ -386,7 +386,7 @@ function renderSettings() {
     ta.oninput = () => { onInput(ta.value); save(); renderOut(); };
     box.append(l, ta); return ta;
   };
-  const addReset = fn => { const b = document.createElement('button'); b.textContent = '↺ Скинути до стандартного'; b.style.marginTop = '8px'; b.onclick = () => { fn(); save(); renderSettings(); renderOut(); }; box.appendChild(b); };
+  const addReset = fn => { const b = document.createElement('button'); b.textContent = '↺ Скинути до стандартного'; b.title = 'Повернути стандартний текст'; b.style.marginTop = '8px'; b.onclick = () => { fn(); save(); renderSettings(); renderOut(); }; box.appendChild(b); };
   if (t.kind === 'pixel') {
     const key = 'px_' + t.tpl;
     addField('Базовий текст промпта (використовуй {STYLE} і {SEED})', st.custom[key] ?? TEMPLATES[t.tpl].text, v => (st.custom[key] = v), true);
@@ -441,6 +441,29 @@ $('neg').oninput = () => { st.settings.neg[st.type] = $('neg').value; save(); };
 $('unlockAll').onclick = () => {
   typeSlotIds().forEach(id => { const s = ss(id); s.locked = false; s.mode = 'random'; s.rolled = false; });
   render();
+};
+/* ---- збереження й обмін (верхня панель) ---- */
+function exportData() { return { tool: 'prompt-dice', version: 1, snapshot: snapshot(), presets: st.presets, prompt: $('out').value }; }
+function downloadFile(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$('btnCopyJson').onclick = async () => {
+  const text = JSON.stringify(exportData(), null, 2);
+  try { await navigator.clipboard.writeText(text); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); }
+};
+$('btnJson').onclick = () => { downloadFile(new Blob([JSON.stringify(exportData(), null, 2)], { type: 'application/json' }), 'prompt-dice.json'); toast('Файл збережено'); };
+$('btnTxt').onclick = () => { downloadFile(new Blob([$('out').value], { type: 'text/plain;charset=utf-8' }), 'prompt.txt'); toast('Промпт збережено'); };
+$('btnImport').onclick = () => $('fileImport').click();
+$('fileImport').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (d.tool !== 'prompt-dice') throw new Error('bad');
+    if (Array.isArray(d.presets)) { st.presets = d.presets.filter(p => p && p.name && p.snap); store.set('presets', st.presets); if (st.rtab === 'pre') renderPresets(); }
+    if (d.snapshot) restore(d.snapshot);
+    toast('Завантажено');
+  } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
 };
 document.addEventListener('keydown', e => {
   if ($('overlay').classList.contains('show')) return;
