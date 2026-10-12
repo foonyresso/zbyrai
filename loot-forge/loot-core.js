@@ -116,7 +116,7 @@ const LootCore = (() => {
       ],
     }),
     survival: () => ({
-      version: 1, name: 'Виживання', levelScale: 0.06,
+      version: 1, name: 'Виживання', levelScale: 0.06, uniqueChance: 0, uniques: [], sets: [],
       stats: {
         dmg: { name: 'Шкода', w: 1 }, dur: { name: 'Міцність', w: 0.2 }, work: { name: 'Швидкість добування', w: 3, pct: true },
         yield: { name: 'Додатковий видобуток', w: 5, pct: true }, carry: { name: 'Вантаж', w: 0.6 }, cold: { name: 'Захист від холоду', w: 1.5 },
