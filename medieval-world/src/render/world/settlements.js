@@ -1,5 +1,5 @@
 function drawVillages() {
-  drawBorders();
+  if (WBD) drawBorders();
   if (S < .04) return;
   const x0 = -ox / S,
     y0 = -oy / S,

@@ -382,6 +382,20 @@ $("#wrd").onclick = () => {
   $("#wrd").classList.toggle("on", WRD);
   redraw();
 };
+document.querySelectorAll("[data-road]").forEach((b) => {
+  b.onclick = () => {
+    WRT[b.dataset.road] = !WRT[b.dataset.road];
+    b.classList.toggle("on", WRT[b.dataset.road]);
+    bdirty = true;
+    redraw();
+  };
+});
+$("#wbd").onclick = () => {
+  WBD = !WBD;
+  $("#wbd").classList.toggle("on", WBD);
+  bdirty = true;
+  redraw();
+};
 $("#wall1").onclick = () => {
   S = .03;
   ox = W / 2;
@@ -439,7 +453,8 @@ gen(false);
 const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", "wseed"];
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
-  won: () => WON, wrd: () => WRD,
+  won: () => WON, wrd: () => WRD, wbd: () => WBD,
+  rmaj: () => WRT.major, rmed: () => WRT.medium, rmin: () => WRT.minor, rtrl: () => WRT.trail,
 };
 function toast(msg, ms = 1800) {
   const t = $("#toast");

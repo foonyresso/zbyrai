@@ -1,6 +1,8 @@
 // ===================== СВІТ =====================
 var WON = true,
   WRD = true,
+  WBD = true,
+  WRT = { major: true, medium: true, minor: true, trail: true },
   WLD = null,
   BIOK = "grass",
   WSK = new Set(["field", "forest", "farmstead", "windmill", "hut"]),
