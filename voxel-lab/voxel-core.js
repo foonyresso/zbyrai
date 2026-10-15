@@ -11,8 +11,9 @@ const VoxelCore = (() => {
     B('Повітря', [0, 0, 0], { solid: false }), B('Камінь', [128, 128, 134]), B('Земля', [121, 85, 58]), B('Трава', [96, 158, 72]), B('Пісок', [219, 203, 142]),
     B('Вода', [64, 118, 200], { solid: false, liquid: true }), B('Сніг', [240, 245, 250]), B('Деревина', [110, 80, 48]), B('Листя', [58, 118, 52]), B('Вугілля', [60, 60, 64]),
     B('Залізо', [200, 160, 130]), B('Золото', [235, 200, 70]), B('Гравій', [150, 145, 140]), B('Основа', [40, 40, 44]), B('Цегла', [170, 82, 68]), B('Дошки', [186, 148, 92]),
+    B('Мідь', [205, 118, 70], { glow: true }), B('Алмаз', [90, 235, 240], { glow: true }), B('Смарагд', [60, 220, 110], { glow: true }),
   ];
-  const ID = Object.fromEntries(['AIR', 'STONE', 'DIRT', 'GRASS', 'SAND', 'WATER', 'SNOW', 'WOOD', 'LEAVES', 'COAL', 'IRON', 'GOLD', 'GRAVEL', 'BEDROCK', 'BRICK', 'PLANKS'].map((k, i) => [k, i]));
+  const ID = Object.fromEntries(['AIR', 'STONE', 'DIRT', 'GRASS', 'SAND', 'WATER', 'SNOW', 'WOOD', 'LEAVES', 'COAL', 'IRON', 'GOLD', 'GRAVEL', 'BEDROCK', 'BRICK', 'PLANKS', 'COPPER', 'DIAMOND', 'EMERALD'].map((k, i) => [k, i]));
 
   /* ---------- шум Перліна 3D з перестановкою за seed ---------- */
   function makeNoise(seed) {
@@ -29,7 +30,7 @@ const VoxelCore = (() => {
     };
   }
 
-  const DEFAULTS = { seed: 'zbyrai', sx: 48, sz: 48, sy: 40, scale: 28, octaves: 4, rough: .5, water: .38, island: .0, caves: .35, trees: .5, ores: .5, snow: .8, flat: 0 };
+  const DEFAULTS = { seed: 'zbyrai', sx: 48, sz: 48, sy: 56, scale: 28, octaves: 4, rough: .5, water: .38, island: .0, caves: .35, trees: .5, ores: .5, snow: .8, flat: 0 };
   const idx = (w, x, y, z) => x + w.sx * (z + w.sz * y);
   const inb = (w, x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < w.sx && y < w.sy && z < w.sz;
   const get = (w, x, y, z) => (inb(w, x, y, z) ? w.blocks[idx(w, x, y, z)] : 0);
@@ -56,7 +57,7 @@ const VoxelCore = (() => {
         else if (y < h - 3) b = ID.STONE;
         else if (y < h) b = h <= sea + 1 ? (y >= h - 1 ? ID.SAND : ID.STONE) : ID.DIRT;
         else b = h > snowline ? ID.SNOW : h <= sea + 1 ? ID.SAND : (h > snowline - 4 && moist < .45 ? ID.STONE : moist < .3 && h < sea + 4 ? ID.SAND : ID.GRASS);
-        if (b === ID.STONE && y > 2 && y < h - 3 && o.ores > 0) { const r = n3(x * .45 + 50, y * .45, z * .45 + 50); if (r > 1 - .16 * o.ores) b = y < sea - 6 && r > .85 ? ID.GOLD : r > .75 ? ID.IRON : ID.COAL; }
+        if (b === ID.STONE && y > 2 && y < h - 3 && o.ores > 0) { const r = n3(x * .45 + 50, y * .45, z * .45 + 50); if (r > .62 - .3 * o.ores) { const u = n3(x * .31 + 200, y * .31 + 7, z * .31 - 90), deep = y < sea - 6, high = y > sea + 8; b = deep && u > .22 && r > .7 - .3 * o.ores ? ID.DIAMOND : high && u > .2 ? ID.EMERALD : deep && u > .02 ? ID.GOLD : u > .15 ? ID.IRON : u < -.15 ? ID.COPPER : ID.COAL; } }
         w.blocks[idx(w, x, y, z)] = b;
       }
       for (let y = h + 1; y <= sea; y++) w.blocks[idx(w, x, y, z)] = ID.WATER;
@@ -163,7 +164,7 @@ const VoxelCore = (() => {
           const F = FACES[f]; if (F[1] < 0 && y === 0) continue; // низ світу не видно
           const nb = at(x + F[0], y + F[1], z + F[2]);
           if (nb && (liquid || !(BLOCKS[nb].liquid || nb === ID.LEAVES && b !== ID.LEAVES))) continue; // закрита грань
-          const m = F[3] * tint * depth, r = Math.min(255, c[0] * m) | 0, g = Math.min(255, c[1] * m) | 0, bl = Math.min(255, c[2] * m) | 0, a = liquid ? 184 : 255, k = F[4], v = buf.v;
+          const m = B.glow ? 1.2 + tint * .15 : F[3] * tint * depth, r = Math.min(255, c[0] * m) | 0, g = Math.min(255, c[1] * m) | 0, bl = Math.min(255, c[2] * m) | 0, a = liquid ? 184 : 255, k = F[4], v = buf.v;
           let o = buf.n * 32;
           for (let q = 0; q < 4; q++, o += 8) { v[o] = x - x0 + k[q * 3]; v[o + 1] = y + k[q * 3 + 1]; v[o + 2] = z - z0 + k[q * 3 + 2]; v[o + 3] = 0; v[o + 4] = r; v[o + 5] = g; v[o + 6] = bl; v[o + 7] = a; }
           buf.n++;

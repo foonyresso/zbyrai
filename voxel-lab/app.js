@@ -8,7 +8,7 @@
     set(k, v) { try { localStorage.setItem('vx_' + k, JSON.stringify(v)); } catch {} },
   };
   const randSeed = () => Math.random().toString(36).slice(2, 8);
-  const st = Object.assign({ seed: randSeed(), sx: 48, sy: 40, scale: 28, octaves: 4, rough: .5, water: .38, island: 0, flat: 0, snow: .8, caves: .35, trees: .5, ores: .5, cut: 99, ortho: false, tool: 'look', block: V.ID.BRICK }, store.get('state', {}));
+  const st = Object.assign({ seed: randSeed(), sx: 48, sy: 56, scale: 28, octaves: 4, rough: .5, water: .38, island: 0, flat: 0, snow: .8, caves: .35, trees: .5, ores: .5, cut: 99, ortho: false, tool: 'look', block: V.ID.BRICK }, store.get('state', {}));
   const save = () => store.set('state', st);
   const toast = (m, ms = 1800) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
@@ -275,7 +275,7 @@
   $('rCut').oninput = e => { st.cut = +e.target.value; syncUi(); enqueueAll(); save(); };
   document.querySelectorAll('#tools button').forEach(b => { b.onclick = () => { st.tool = b.dataset.tool; syncUi(); save(); needDraw = true; }; });
   const pal = $('palette');
-  for (const id of [V.ID.BRICK, V.ID.PLANKS, V.ID.STONE, V.ID.WOOD, V.ID.GRASS, V.ID.DIRT, V.ID.SAND, V.ID.WATER, V.ID.SNOW, V.ID.LEAVES, V.ID.GRAVEL, V.ID.GOLD]) {
+  for (const id of [V.ID.BRICK, V.ID.PLANKS, V.ID.STONE, V.ID.WOOD, V.ID.GRASS, V.ID.DIRT, V.ID.SAND, V.ID.WATER, V.ID.SNOW, V.ID.LEAVES, V.ID.GRAVEL, V.ID.GOLD, V.ID.COPPER, V.ID.DIAMOND, V.ID.EMERALD]) {
     const B = V.BLOCKS[id], b = document.createElement('button'); b.className = 'sw'; b.dataset.id = id; b.type = 'button'; b.title = 'Блок: ' + B.name;
     const i = document.createElement('i'); i.style.background = `rgb(${B.color.join(',')})`; b.append(i, B.name); b.onclick = () => { st.block = id; syncUi(); save(); }; pal.append(b);
   }

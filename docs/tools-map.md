@@ -14,10 +14,12 @@
 | Planet Forge | `planet-forge/` | `planet-core.js`, `planet-kinds.js` | `app.js` | `test/planet.test.js` | `pf_` |
 | Voxel World Lab | `voxel-lab/` | `voxel-core.js` | `app.js` | `test/voxel.test.js` | `vx_` |
 | Tessera | `tessera/` | `tessera-core.js` | `app.js` | `test/tessera.test.js` | `ts_` |
-| Colonist Foundry | `colonist-foundry/` | `colonist-core.js` | `app.js` | `test/colonist.test.js` | `cf_` |
+| Симуляція колонії (Colonist Foundry) | `colonist-foundry/` | `colonist-core.js` | `app.js` | `test/colonist.test.js` | `cf_` |
 | Production Chain Planner | `production-planner/` | `planner-core.js` | `app.js` | `test/planner.test.js` | `pp_` |
 | Wave & Balance Curves | `balance-curves/` | `curves-core.js` | `app.js` | `test/curves.test.js` | `bc_` |
 | Sprite Sheet Cleaner | `sprite-cleaner/` | `sprite-core.js` | `app.js` | `test/sprite.test.js` | `sc_` |
+
+`tool-chrome.js` у кожній папці — копія `shared/tool-chrome.js` (не правити вручну).
 
 Додатково: `loot-forge/sync/extract-gdd.py` витягує дані шару GodsDontDie. `taste/` (`data.js`, `app.js`) не інструмент: довідка за прямим посиланням, `noindex`, нова гра = один запис у `taste/data.js`.
 

@@ -44,7 +44,8 @@ test('печери вирізають камінь, не чіпаючи осно
 
 test('руди трапляються лише всередині каменю; ores=0 їх прибирає', () => {
   const c = V.counts(V.generate({ seed: 'ore', ores: 1, caves: 0 }));
-  assert.ok(c[V.ID.COAL] + c[V.ID.IRON] + c[V.ID.GOLD] > 0);
+  assert.ok(c[V.ID.COAL] + c[V.ID.IRON] + c[V.ID.GOLD] + c[V.ID.COPPER] + c[V.ID.DIAMOND] + c[V.ID.EMERALD] > 0);
+  const big = V.counts(V.generate({ seed: 'rich', sx: 64, sz: 64, sy: 80, ores: 1, caves: 0 })); assert.ok(big[V.ID.COPPER] > 0 && big[V.ID.IRON] > 0, 'залізо й мідь');
   assert.equal(V.counts(V.generate({ seed: 'ore', ores: 0 }))[V.ID.COAL], 0);
 });
 
