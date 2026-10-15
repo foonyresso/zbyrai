@@ -13,7 +13,7 @@
     let title = '', sub = '', hook = '', cell = -1;
     if (sel.t === 's') {
       const s = sel.o; title = s.name; sub = R.Data.ranks[s.rank].name + ' · ' + R.Data.states[s.state].name; cell = s.cell;
-      kv('Регіон', reg(s.region)); kv('Населення', s.pop ? s.pop.toLocaleString('uk') : 'ніхто не живе'); kv('Порт', s.port ? 'так' : ''); kv('Товари', (s.goods || []).join(', ')); if (s.ore) kv('Видобуток', s.oreName);
+      kv('Регіон', reg(s.region)); kv('Населення', s.pop ? s.pop.toLocaleString('uk') : 'ніхто не живе'); if (s.people) kv('Народ', w.provinces[s.province].peopleName); if (s.races) kv('Раси', s.races.slice(0, 5).map(q => q.name + ' ' + Math.round(q.share * 100) + '%').join(', ') + (s.races.length > 5 ? ' та ще ' + (s.races.length - 5) : '')); kv('Порт', s.port ? 'так' : ''); kv('Товари', (s.goods || []).join(', ')); if (s.ore) kv('Видобуток', s.oreName);
       if (s.occupant) kv('Захопили', s.occupant.name); kv('Дороги', roadsOf(w, 's', s.id).join(', ') || (s.rank === 'capital' || s.rank === 'regional' ? 'вузол великих доріг' : 'немає')); kv('Координати', kmCoord(s)); hook = s.hook;
       if (s.rank === 'regional' || s.rank === 'capital') { const r = w.regions[s.region]; kv('Площа регіону', Math.round(r.cells * w.params.kmPerCell ** 2).toLocaleString('uk') + ' км²'); }
     } else if (sel.t === 'p') {
@@ -25,7 +25,7 @@
     } else if (sel.t === 'r') {
       const r = sel.o, c0 = w.settlements[r.center]; title = r.name; sub = 'Регіон · ' + w.provinces[r.province].name; cell = r.anchor;
       kv('Центр', c0.name + ' (' + R.Data.ranks[c0.rank].name.toLowerCase() + ')'); kv('Площа', Math.round(r.cells * w.params.kmPerCell ** 2).toLocaleString('uk') + ' км²');
-      const mine = w.settlements.filter(s => s.region === r.id); kv('Поселень', mine.length); kv('Культура', w.provinces[r.province].cultureName);
+      const mine = w.settlements.filter(s => s.region === r.id); kv('Поселень', mine.length); kv('Культура', w.provinces[r.province].cultureName); if (w.provinces[r.province].peopleName) kv('Народ', w.provinces[r.province].peopleName);
     }
     c.append(U.el('button', { class: 'x', text: '×', title: 'Закрити картку', onclick: () => { App.scene.sel = null; c.hidden = true; App.scene.dirty = true; } }), U.el('h3', { text: title }), U.el('div', { class: 'sub', text: sub }), dl);
     if (hook) c.append(U.el('div', { class: 'hook', text: hook }));

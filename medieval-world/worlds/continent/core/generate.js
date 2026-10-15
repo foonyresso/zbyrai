@@ -35,6 +35,7 @@
     world.roads = R.Roads.buildRoads(world, p, world.settlements, world.pois, world.lairs);
     world.seaRoutes = R.SeaRoutes.buildSeaRoutes(world, p, world.settlements, world.lairs);
     world.features = R.Features.buildFeatures(world, p, namer);
+    R.Peoples.assign(world, p);
     R.Details.describe(world, p);
     world.stats = R.Stats.compute(world);
     return world;
