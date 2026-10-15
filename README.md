@@ -77,6 +77,8 @@ node idea-mixer/test/mixer.test.js     # тести Змішувач ідей
 node character-roller/test/char.test.js      # тести Генератор персонажів
 node tessera/test/tessera.test.js      # тести Мозаїка
 node medieval-world/worlds/continent/test/run-all.js  # тести світу «Материк» (ієрархія, дороги, монстри, море, експорт)
+node tools/build-atlas-registry.mjs         # оновити реєстр світів і біомів Атласу після додавання файлу
+node tools/atlas-registry.test.js      # перевірка реєстру світів і біомів
 node tools/ui-rules.test.js            # перевірка єдиних правил інтерфейсу (довідка, верхня панель, підказки)
 ```
 

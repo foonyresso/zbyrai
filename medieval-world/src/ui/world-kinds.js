@@ -1,46 +1,51 @@
-/* ---- меню типів світів «Проекту Атлас»: «Нескінченний» (стандарт) і «Материк» (скінченна карта королівств у iframe) ---- */
+/* ---- меню типів світів «Проекту Атлас»: будується з реєстру (Atlas.worlds), кожен світ у власному файлі worlds/<id>/world.js ---- */
 (function () {
   const KEY = "atlas_world", $ = (s) => document.querySelector(s);
-  const sel = $("#worldKind"), app = $("#app"), box = $("#continent"), extra = document.querySelectorAll(".only-continent");
-  const actions = $(".top-actions"), file = $("#fileImportContinent");
-  let frame = null, mode = "infinite", linkWait = false;
+  const sel = $("#worldKind"), app = $("#app"), box = $("#continent");
+  const actions = $(".top-actions"), file = $("#fileImportContinent"), pngBtn = $("#btnPng");
+  const base = {};
+  for (const id of ["btnImport", "btnLink", "btnCopy", "btnJson", "btnPng"]) base[id] = $("#" + id).title;
+  let frame = null, world = null, extra = [], linkWait = false;
   const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
   const saved = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
   const toast = (m) => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2000); };
   const post = (m) => frame && frame.contentWindow && frame.contentWindow.postMessage(m, "*");
+  const byId = (id) => Atlas.worlds.find((w) => w.id === id);
+  const isFrame = () => world && world.runner === "iframe";
 
-  const TITLES = {
-    btnImport: ["Завантажити збережені налаштування з файлу .json", "Завантажити збережені параметри материка з файлу .json: карта відновиться з тим самим зерном"],
-    btnLink: ["Скопіювати посилання, що відновлює це саме місто з усіма налаштуваннями", "Скопіювати посилання, що відкриє цей материк з усіма параметрами"],
-    btnCopy: ["Скопіювати налаштування (зерно, планування, біом, шари) як JSON", "Скопіювати параметри материка як JSON (потім вставити через «Імпорт»)"],
-    btnJson: ["Завантажити налаштування як файл medieval-world.json", "Завантажити параметри материка як файл .json: за ними карта відновлюється точно"],
-    btnPng: ["Зберегти поточний вигляд карти як зображення PNG", "Зберегти всю карту материка як зображення PNG високої роздільності з урахуванням увімкнених шарів"],
-  };
-
-  function ensureFrame(hash) {
-    if (frame) return;
+  function ensureFrame(w, hash) {
+    if (frame && frame.dataset.world === w.id) return;
+    if (frame) frame.remove();
     frame = document.createElement("iframe");
-    frame.title = "Світ «Материк»";
+    frame.title = "Світ «" + w.name + "»";
+    frame.dataset.world = w.id;
     frame.setAttribute("allow", "clipboard-write");
-    frame.src = "worlds/continent/index.html?embed=1" + (hash ? "#p=" + hash : "");
+    if (!hash && w.preset) hash = encodeURIComponent(b64(JSON.stringify({ format: "zbyrai-realm-map", params: w.preset })));
+    frame.src = w.entry + (hash ? "#p=" + hash : "");
     box.append(frame);
   }
-  function setMode(m, hash) {
-    mode = m === "continent" ? "continent" : "infinite";
-    sel.value = mode;
-    app.hidden = mode === "continent";
-    box.hidden = mode !== "continent";
-    extra.forEach((b) => (b.hidden = mode !== "continent"));
-    for (const id in TITLES) $("#" + id).title = TITLES[id][mode === "continent" ? 1 : 0];
-    if (mode === "continent") ensureFrame(hash);
+  function setWorld(id, hash) {
+    world = byId(id) || Atlas.worlds.find((w) => w.default) || Atlas.worlds[0];
+    sel.value = world.id;
+    app.hidden = isFrame();
+    box.hidden = !isFrame();
+    extra.forEach((b) => b.remove());
+    const src = (world.inherit && byId(world.inherit)) || world;
+    extra = isFrame() ? (src.extraActions || []).map((a) => {
+      const b = document.createElement("button");
+      b.id = "btnX_" + a.id; b.dataset.c = a.id; b.textContent = a.label; b.title = a.title;
+      pngBtn.before(b);
+      return b;
+    }) : [];
+    for (const k in base) $("#" + k).title = (isFrame() && src.titles && src.titles[k]) || base[k];
+    if (isFrame()) ensureFrame(world, hash);
     else window.dispatchEvent(new Event("resize"));
-    try { localStorage.setItem(KEY, mode); } catch { /* сховище недоступне */ }
+    try { localStorage.setItem(KEY, world.id); } catch { /* сховище недоступне */ }
   }
-  sel.onchange = () => { history.replaceState(null, "", location.pathname + location.search); setMode(sel.value); };
 
-  /* у режимі «Материк» кнопки верхньої панелі працюють з картою материка, а не з нескінченним світом */
+  /* у світі-iframe кнопки верхньої панелі працюють із його картою, а не з нескінченним світом */
   actions.addEventListener("click", (e) => {
-    if (mode !== "continent") return;
+    if (!isFrame()) return;
     const b = e.target.closest("button");
     if (!b) return;
     e.stopImmediatePropagation();
@@ -49,8 +54,7 @@
     if (id === "btnImport") file.click();
     else if (id === "btnLink") { linkWait = true; post({ type: "atlas-link" }); }
     else if (id === "btnCopy") post({ type: "atlas-click", id: "btnCopyJson" });
-    else if (b.dataset.c) post({ type: "atlas-click", id: b.dataset.c });
-    else post({ type: "atlas-click", id });
+    else post({ type: "atlas-click", id: b.dataset.c || id });
   }, true);
   file.onchange = async () => {
     const f = file.files[0];
@@ -62,14 +66,19 @@
     const m = e.data || {};
     if (m.type === "atlas-link" && linkWait && typeof m.p === "string") {
       linkWait = false;
-      const url = location.href.split("#")[0] + "#w=continent&p=" + encodeURIComponent(b64(m.p));
+      const url = location.href.split("#")[0] + "#w=" + world.id + "&p=" + encodeURIComponent(b64(m.p));
       let ok = false;
-      try { await navigator.clipboard.writeText(url); ok = true; } catch { /* запасний шлях нижче */ }
+      try { await navigator.clipboard.writeText(url); ok = true; } catch { /* не скопійовано */ }
       toast(ok ? "Посилання скопійовано" : "Не вдалося скопіювати");
     }
   });
 
-  const h = /^#w=continent(?:&p=(.*))?$/.exec(location.hash);
-  if (h) setMode("continent", h[1] || "");
-  else setMode(saved() === "continent" && location.hash.length < 3 ? "continent" : "infinite");
+  Atlas.load().then(() => {
+    for (const w of Atlas.worlds) sel.append(new Option(w.name, w.id));
+    sel.title = "Тип світу. " + Atlas.worlds.map((w) => "«" + w.name + "»: " + (w.description || "")).join(" ");
+    sel.onchange = () => { history.replaceState(null, "", location.pathname + location.search); setWorld(sel.value); };
+    const h = /^#w=([\w-]+)(?:&p=(.*))?$/.exec(location.hash);
+    if (h) setWorld(h[1], h[2] || "");
+    else setWorld(location.hash.length < 3 ? saved() : null);
+  }).catch((err) => { console.error(err); toast("Не вдалося завантажити світи: " + err.message); });
 })();

@@ -9,6 +9,7 @@
 | [new-tool-guide.md](new-tool-guide.md) | Як додати новий інструмент за правилами сайту |
 | [file-rules.md](file-rules.md) | Правила розбиття файлів і документації, роботи з великими текстами |
 | [large-files.md](large-files.md) | Файли, що завеликі або близькі до межі (кандидати на розбиття) |
+| [atlas/world-files.md](atlas/world-files.md), [atlas/biome-files.md](atlas/biome-files.md) | Формат файлів світів і біомів (версія 1), шаблони, правила вибору біомів світом |
 | [atlas/continent/README.md](atlas/continent/README.md) | Атлас, світ «Материк» (колишня карта королівств): ієрархія, дороги, монстри гір/лісів/морів, алгоритм, перенесення в Godot C#, покращення |
 | [plans/README.md](plans/README.md) | Плани: принцип «полотно + іконки», перелік інструментів, злиття карти королівств у Атлас, рішення автора, пріоритети, питання про суперечності |
 | [edits/00-index.md](edits/00-index.md), [edits/16-status.md](edits/16-status.md) | Стиснуті правки автора («новий 3.txt») по інструментах: що просив, суперечності, що зроблено |
@@ -18,9 +19,9 @@
 ```
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
-tools/                   sync-theme.mjs, ui-rules.test.js
+tools/                   sync-theme.mjs, ui-rules.test.js, build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
 <інструмент>/            index.html, app.js, *-core.js, style.css, theme.css, README.md, test/
-medieval-world/          «Проект Атлас»: src/ (нескінченний світ, місто), worlds/continent/ (тип світу «Материк»: core/, data/, render/, ui/, test/)
+medieval-world/          «Проект Атлас»: src/ (нескінченний світ, місто, core/atlas.js реєстр), worlds/<id>/world.js (по світу на файл; continent/ має власний код), biomes/<id>.js (по біому на файл), registry.js (генерується)
 taste/                   закрита довідка про смаки автора (не інструмент)
 docs/                    ця документація; docs/edits/ — стиснуті правки автора по інструментах; docs/plans/ — плани розвитку; docs/atlas/ — документація Атласу
 README.md, ROADMAP.md    опис для людей; план і передача роботи між діалогами

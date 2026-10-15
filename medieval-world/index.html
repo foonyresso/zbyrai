@@ -23,7 +23,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9l3-2 3 2V5l3-2 3 2v4l3-2 3 2v14z"/><path d="M10 21v-5h4v5"/></svg>
         <div>Проект <span>Атлас</span></div>
       </div>
-      <label class="kind" title="Тип світу: «Нескінченний» — стандартний світ, що відкривається за замовчуванням; «Материк» — скінченна карта з провінціями, регіонами й містами. Інші типи світів з'являться тут."><span>Світ</span><select id="worldKind" title="Тип світу: «Нескінченний» — стандартний світ, що відкривається за замовчуванням; «Материк» — скінченна карта з провінціями, регіонами й містами."><option value="infinite">Нескінченний (стандарт)</option><option value="continent">Материк (скінченний)</option></select></label>
+      <label class="kind" title="Тип світу: перелік береться з папки worlds/. Кожен світ лежить у власному файлі."><span>Світ</span><select id="worldKind" title="Тип світу: перелік береться з папки worlds/."></select></label>
       <div class="spacer"></div>
       <div class="top-actions">
         <button id="btnImport" title="Завантажити збережені налаштування з файлу .json">Імпорт</button>
@@ -31,9 +31,6 @@
         <button id="btnLink" title="Скопіювати посилання, що відновлює це саме місто з усіма налаштуваннями">Посилання</button>
         <button id="btnCopy" title="Скопіювати налаштування (зерно, планування, біом, шари) як JSON">Копіювати JSON</button>
         <button id="btnJson" title="Завантажити налаштування як файл medieval-world.json">Зберегти .json</button>
-        <button class="only-continent" id="btnCWorld" data-c="btnWorld" hidden title="Завантажити повний експорт світу для гри: провінції, регіони, міста, дороги, лігва, шари біомів">Експорт світу (.json)</button>
-        <button class="only-continent" id="btnCCsv" data-c="btnCsv" hidden title="Завантажити таблицю всіх поселень у форматі CSV (відкривається в Excel)">Таблиця міст (.csv)</button>
-        <button class="only-continent" id="btnCPrint" data-c="btnPrint" hidden title="Надрукувати карту: меню й панелі приховуються, лишається лише карта">Друк</button>
         <input type="file" id="fileImportContinent" accept="application/json,.json" hidden>
         <button class="btn-primary" id="btnPng" title="Зберегти поточний вигляд карти як зображення PNG">Зберегти PNG</button>
       </div>
@@ -144,6 +141,8 @@
     <script src="src/render/layers/relief.js"></script>
     <script src="src/render/layers/effects.js"></script>
     <script src="src/main.js"></script>
+    <script src="src/core/atlas.js"></script>
+    <script src="registry.js"></script>
     <script src="src/ui/world-kinds.js"></script>
   <script src="./tool-chrome.js"></script>
 </body>
