@@ -29,6 +29,7 @@
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
     <button id="btnCopyJson" title="Скопіювати параметри й паспорт планети як JSON">Копіювати JSON</button>
     <button id="btnJson" title="Завантажити паспорт планети й її параметри як файл .json (можна імпортувати назад)">Зберегти .json</button>
+    <select id="selMap" title="Розмір карти й висот для кнопок «Карта PNG» і «Висоти PNG»"><option value="1024">1024×512</option><option value="2048" selected>2048×1024</option><option value="4096">4096×2048</option></select>
     <button id="btnMap" title="Зберегти текстурну карту планети в рівнопроміжній проєкції (розмір обирається нижче)">Карта PNG</button>
     <button id="btnHeight" title="Зберегти карту висот у відтінках сірого (розмір обирається нижче)">Висоти PNG</button>
     <button id="btnPng" class="btn-primary" title="Зберегти поточну картинку обертової планети з небом">Картинка PNG</button>
@@ -50,48 +51,37 @@
       <h3>Як користуватися</h3>
       <ol>
         <li><b>Починай із системи</b>: обери зорю в меню «Система», клікни планету на полотні, щоб відкрити її.</li>
-        <li><b>Меню «Планета»</b>: тип, поверхня, небо й життя. «← До системи» повертає назад.</li>
-        <li><b>Рандом</b> працює окремо: для всієї системи, лише зорі, лише планет або однієї планети. Замочок біля параметра лишає його як є.</li>
+        <li><b>Меню «Планета»</b>: тип, поверхня, небо й життя обраної планети. Кнопка «Система» повертає назад.</li>
+        <li><b>Рандом</b> є в кожному меню: у «Системі» для всієї системи, зорі чи планет, у «Планеті» для самої планети. Замочок біля параметра лишає його як є.</li>
         <li><b>Збережи чи поділись</b> кнопками угорі: картинка, карта, висоти, JSON, імпорт.</li>
       </ol>
     </div>
   </div>
 </details>
 
-<div class="toolbar">
-  <div class="tb tb-planet">
-    <button id="btnNew" class="btn-primary" title="Рандом налаштувань вибраної планети: нове зерно, назва й параметри того самого типу. Замкнене лишається (Пробіл)">Рандом планети</button>
-    <button id="btnSurprise" title="Повний рандом вибраної планети: змінюється все, включно з типом, назвою й параметрами, крім замкнених">Повний рандом планети</button>
-  </div>
-  <div class="tb tb-system">
-    <button id="btnRndSys" class="btn-primary" title="Нова система: нова зоря й нові планети (Пробіл)">Рандом системи</button>
-    <button id="btnRndStar" title="Лише нова зоря: планети лишаються, а їхня температура й зона життя перераховуються">Рандом зорі</button>
-    <button id="btnRndPlanets" title="Нові планети для тієї самої зорі, кількість орбіт лишається">Рандом планет</button>
-  </div>
-</div>
-
 <main class="wrap">
   <div class="viewport" id="view"><canvas id="cv" aria-label="Космічний об’єкт" title="Планета: тягни, щоб крутити. Система: клікни планету, щоб відкрити. Літаючий континент: тягни й крути колесо"></canvas>
-    <button type="button" id="btnBack" class="back" title="Повернутися до зоряної системи">← До системи</button>
     <div class="crumb" id="crumb"></div>
   </div>
 
   <nav class="rail" id="rail" aria-label="Меню інструмента">
-    <button type="button" data-panel="pSys" title="Система: зоря, кількість планет, список планет"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8.5"/><circle cx="19" cy="8" r="1.4"/></svg><span>Система</span></button>
-    <button type="button" data-panel="pPlanet" title="Планета: тип, назва, поверхня, небо й життя"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-20 12 12)"/></svg><span>Планета</span></button>
-    <button type="button" data-panel="pView" title="Вигляд: фон, обертання, світло"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
-    <button type="button" data-panel="pData" title="Паспорт вибраної планети й розмір карти для експорту"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Паспорт</span></button>
+    <button type="button" data-mode="system" data-panel="pSys" title="Система: зоря, планети, рандом. Повертає до вигляду всієї системи"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8.5"/><circle cx="19" cy="8" r="1.4"/></svg><span>Система</span></button>
+    <button type="button" data-mode="planet" data-panel="pPlanet" title="Планета: відкриває обрану планету (якщо не обрано, випадкову) і її налаштування"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-20 12 12)"/></svg><span>Планета</span></button>
+    <button type="button" data-panel="pBg" title="Фон за об’єктом: зорі, туманність, галактика; обертання й світло"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 17l.7 1.8 1.8.7-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></svg><span>Фон</span></button>
   </nav>
 
   <aside class="side" id="side">
-    <div class="card" id="pSys"><h2>Зоряна система</h2>
+    <div class="card" id="pSys"><h2>Система</h2>
       <h5 class="sub">Зоря</h5><div class="kinds" id="starTypes" title="Тип зорі визначає світність, зону життя й температуру планет"></div>
       <label class="ctl-inline" title="Скільки планет обертається навколо зорі">Планет <input type="range" id="rCount" min="3" max="9" step="1"><output id="oCount"></output></label>
+      <h5 class="sub">Рандом</h5>
+      <div class="btnrow"><button id="btnRndSys" class="btn-primary" title="Нова система: нова зоря й нові планети (Пробіл)">Системи</button><button id="btnRndStar" title="Лише нова зоря: планети лишаються, а їхня температура й зона життя перераховуються">Зорі</button><button id="btnRndPlanets" title="Нові планети для тієї самої зорі, кількість орбіт лишається">Планет</button></div>
+      <button id="btnRndSel" title="Рандом налаштувань обраної планети: нове зерно й параметри того самого типу. Вимкнено, поки планету не обрано">Рандом обраної планети</button>
       <h5 class="sub">Планети (клік відкриває планету)</h5><div class="syslist" id="sysList"></div>
-      <p class="hint">Клікни планету на полотні або в списку, щоб відкрити її налаштування. Зелене світіння: планета в зоні життя.</p>
     </div>
 
     <div class="card" id="pPlanet"><h2>Планета: <b id="planetTitle"></b></h2>
+      <div class="btnrow"><button id="btnNew" class="btn-primary" title="Рандом налаштувань: нове зерно, назва й параметри того самого типу. Замкнене лишається (Пробіл)">Рандом</button><button id="btnSurprise" title="Повний рандом: змінюється все, включно з типом, крім замкнених">Повний рандом</button></div>
       <div class="tabs" id="planetTabs"><button type="button" data-tab="tType" title="Тип планети, зерно й назва">Тип</button><button type="button" data-tab="tSurf" title="Поверхня: вода, гори, клімат та інші параметри типу">Поверхня</button><button type="button" data-tab="tSky" title="Небо й життя: атмосфера, супутники, кільця, населення">Небо й життя</button></div>
       <div class="pane" id="tType">
         <details class="fold" id="kindsFold" open><summary title="Натисни, щоб відкрити чи згорнути список типів"><h5 class="sub" style="margin:0">Тип: <b id="kindName"></b></h5></summary>
@@ -100,7 +90,6 @@
         <div class="lockrow"><button type="button" class="lock" title="Зафіксувати або відпустити тип" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: рандом його не змінюватиме</span></div>
         <label class="ctl txt" title="Зерно: число-код планети. Те саме зерно з тими самими параметрами дає ту саму планету"><span>Зерно</span><button type="button" class="lock" title="Зафіксувати або відпустити зерно" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
         <label class="ctl txt" title="Назва планети: можна написати свою"><span>Назва</span><button type="button" class="lock" title="Зафіксувати або відпустити назву" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
-        <p class="hint">Замочок біля параметра фіксує його: рандом залишить його як є, а решту перемішає.</p>
       </div>
       <div class="pane" id="tSurf"><div id="surfCtl" class="ctls"></div></div>
       <div class="pane" id="tSky"><div id="skyCtl" class="ctls"></div>
@@ -108,8 +97,7 @@
       </div>
     </div>
 
-    <div class="card" id="pView"><h2>Вигляд</h2>
-      <h5 class="sub">Фон за об’єктом</h5>
+    <div class="card" id="pBg"><h2>Фон</h2>
       <div class="kinds bgtypes" id="bgTypes" title="Тип фону"></div>
       <div id="bgCtl" class="ctls"></div>
       <div class="lockrow"><button type="button" class="lock" title="Зафіксувати або відпустити фон" id="lkBg" aria-pressed="false"></button><span>Зафіксувати фон: рандом його не змінюватиме</span></div>
@@ -119,13 +107,9 @@
         <label class="ctl-inline" title="Звідки світить зоря">Світло <input type="range" id="rSun" min="-90" max="90" step="1"></label>
       </div>
     </div>
-
-    <div class="card" id="pData"><h2>Паспорт і експорт</h2>
-      <div class="paper" id="card"></div>
-      <label class="ctl-inline" title="Розмір карти й висот, що зберігаються кнопками «Карта PNG» і «Висоти PNG» угорі">Розмір карти <select id="selMap"><option value="1024">1024×512</option><option value="2048" selected>2048×1024</option><option value="4096">4096×2048</option></select></label>
-      <p class="hint">Карта в рівнопроміжній проєкції для UV-розгортки в рушії; шов неперервний. Для літаючих континентів карта показує ґрунт плит.</p>
-    </div>
   </aside>
+
+  <div class="info" id="info"><div class="info-body" id="infoBody" hidden></div><button type="button" class="info-toggle" id="infoToggle" title="Коротка інформація про вибраний об’єкт">ⓘ Інформація</button></div>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

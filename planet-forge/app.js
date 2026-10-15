@@ -108,18 +108,24 @@
   /* ---------- паспорт ---------- */
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (v != null) e.setAttribute(k, v); } e.append(...kids.flat().filter(x => x != null)); return e; };
   const f1 = v => String(Math.round(v * 10) / 10), pct = v => Math.round(v * 100) + '%';
-  function renderCard() {
-    if (!info) return; const c = $('card'), i = info; c.replaceChildren();
-    const habCol = i.habitability >= 70 ? '#7bd88f' : i.habitability >= 40 ? '#e8c35a' : i.habitability >= 12 ? '#e8924a' : '#e86a6a';
-    const palette = ['#5cb8e6', '#8fd6a0', '#e8c35a', '#e079a8', '#b39ddb', '#e8924a', '#6fc3c0', '#c9a766'];
-    c.append(el('div', { class: 'p-head' }, el('h3', {}, i.name), el('span', { class: 'des' }, i.designation), el('span', { class: 'kind' }, i.kindName)), el('p', { class: 'p-blurb' }, i.blurb),
-      el('div', { class: 'p-grid' }, (i.slab ? [['Найбільша плита', PlanetSky.fmtKm(i.slab.widthKm)], ['Площа плит', i.slab.areaM.toLocaleString('uk') + ' млн км²'], ['У Землях', '≈ ' + i.slab.earths + '×'], ['Населення', i.slab.popText], ['Яруси міст', i.slab.tiers], ['Щільність', i.slab.density.toLocaleString('uk') + ' осіб/км²'], ['Плит', i.slab.plates], ['Гравітація', 'штучна, ≈1 g']] : [['Радіус', i.radiusKm.toLocaleString('uk') + ' км'], ['Гравітація', f1(i.gravity) + ' g'], ['Доба', f1(i.dayH) + ' год'], ['Рік', i.yearD + ' діб'], ['Температура', (i.tempC > 0 ? '+' : '') + i.tempC + ' °C'], ['Тиск', f1(i.pressure) + ' атм'], i.water > 0 ? [i.liquidName, pct(i.water)] : null, ['Супутники', i.moons.length]]).filter(Boolean).map(([l, v]) => el('div', { class: 'stat' }, el('b', {}, v), el('span', {}, l)))),
-      el('div', { class: 'p-cols' },
-        el('div', {}, el('h4', {}, 'Придатність для життя'), el('div', { class: 'hab' }, el('div', { class: 'meter' }, el('i', { style: `width:${i.habitability}%;background:${habCol}` })), el('div', {}, el('b', { style: `color:${habCol}` }, i.habitability + '%'), el('small', {}, i.habLabel))), el('p', { class: 'hint', style: 'margin:6px 0 0' }, i.life),
-          el('h4', { style: 'margin-top:16px' }, 'Ресурси'), el('div', { class: 'res' }, i.resources.map(r => el('div', {}, el('span', {}, r.name), el('span', { class: 'st' }, '★'.repeat(r.rich) + '☆'.repeat(5 - r.rich)))))),
-        el('div', { class: 'bars' }, el('h4', {}, 'Атмосфера'), i.atmosphere.map(([n, v], k) => el('div', { class: 'row' }, el('span', {}, n), el('div', { class: 'b' }, el('i', { style: `width:${Math.min(100, v)}%;background:${palette[k % palette.length]}` })), el('span', {}, v + '%')))),
-        el('div', { class: 'bars' }, el('h4', {}, 'Поверхня'), i.biomes.slice(0, 7).map(b => el('div', { class: 'row' }, el('span', {}, b.name), el('div', { class: 'b' }, el('i', { style: `width:${b.share * 100}%;background:rgb(${PC.BIOMES[b.id].c.join(',')})` })), el('span', {}, pct(b.share)))))));
+  /* Мінімалістична інформація про планету (відкривається знизу): головні цифри, придатність, ресурси; склад і поверхня в згортці */
+  function planetInfo() {
+    const i = info, habCol = i.habitability >= 70 ? '#7bd88f' : i.habitability >= 40 ? '#e8c35a' : i.habitability >= 12 ? '#e8924a' : '#e86a6a', palette = ['#5cb8e6', '#8fd6a0', '#e8c35a', '#e079a8', '#b39ddb', '#e8924a', '#6fc3c0', '#c9a766'];
+    const chips = (i.slab ? [['Найбільша плита', PlanetSky.fmtKm(i.slab.widthKm)], ['Населення', i.slab.popText], ['Яруси міст', i.slab.tiers], ['Площа', '≈ ' + i.slab.earths + ' Землі']] : [['Радіус', i.radiusKm.toLocaleString('uk') + ' км'], ['Гравітація', f1(i.gravity) + ' g'], ['Температура', (i.tempC > 0 ? '+' : '') + i.tempC + ' °C'], ['Доба', f1(i.dayH) + ' год'], i.water > 0 ? [i.liquidName, pct(i.water)] : null].filter(Boolean));
+    return el('div', { class: 'inf' },
+      el('div', { class: 'inf-head' }, el('b', {}, i.name), el('span', {}, i.kindName)),
+      el('p', { class: 'inf-blurb' }, i.blurb),
+      el('div', { class: 'inf-chips' }, chips.map(([l, v]) => el('div', {}, el('b', {}, v), el('span', {}, l)))),
+      el('div', { class: 'inf-hab' }, el('div', { class: 'meter' }, el('i', { style: `width:${i.habitability}%;background:${habCol}` })), el('span', { style: `color:${habCol}` }, i.habitability + '% · ' + i.habLabel)),
+      el('div', { class: 'inf-res' }, 'Ресурси: ' + i.resources.map(r => r.name).join(', ')),
+      el('details', { class: 'inf-more' }, el('summary', {}, 'Склад і поверхня'),
+        el('div', { class: 'bars' }, i.atmosphere.map(([n, v], k) => el('div', { class: 'row' }, el('span', {}, n), el('div', { class: 'b' }, el('i', { style: `width:${Math.min(100, v)}%;background:${palette[k % palette.length]}` })), el('span', {}, v + '%'))), i.biomes.slice(0, 5).map(b => el('div', { class: 'row' }, el('span', {}, b.name), el('div', { class: 'b' }, el('i', { style: `width:${b.share * 100}%;background:rgb(${PC.BIOMES[b.id].c.join(',')})` })), el('span', {}, pct(b.share)))))));
   }
+  function renderCard() {
+    const body = $('infoBody'), V = activeView(); $('infoToggle').textContent = 'ⓘ ' + (V && V.info ? 'Про систему' : 'Про планету');
+    if (body.hidden) return; if (V && V.info) body.replaceChildren(V.info()); else if (info) body.replaceChildren(planetInfo());
+  }
+  $('infoToggle').onclick = () => { $('infoBody').hidden = !$('infoBody').hidden; renderCard(); };
 
   /* ---------- керування: набір ручок залежить від типу ---------- */
   const FMT = { pct: v => Math.round(v * 100) + '%', num: v => (Math.round(v * 100) / 100).toFixed(2), int: v => String(Math.round(v)), deg: v => Math.round(v) + '°', sgn: v => (v > 0 ? '+' : '') + Math.round(v * 100), km: v => PlanetSky.fmtKm(PlanetSky.widthKm(v)), pop: v => PlanetSky.fmtPop(PlanetSky.popOf(v)), pal: v => PlanetSky.PALETTES[Math.round(v)] };
@@ -173,7 +179,8 @@
     kb.append(el('h5', {}, grp[1]));
     for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0] && !v.hidden) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
   }
-  const reroll = opts => { { const V = activeView(); if (V && V.reroll) return V.reroll(opts); } st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
+  const rerollPlanet = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
+  const reroll = opts => { const V = activeView(); if (V && V.reroll) return V.reroll(opts); rerollPlanet(opts); };
   $('btnNew').onclick = () => reroll({ keepKind: true });
   $('btnSurprise').onclick = () => reroll({});
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); const V = activeView(); if (V && V.reroll) V.reroll({}); else $('btnNew').click(); } });
@@ -182,17 +189,24 @@
   cv.addEventListener('pointermove', e => { if (drag) { spin = drag.spin - (e.clientX - drag.x) * .008; draw(); } });
   cv.addEventListener('pointerup', () => { drag = null; });
 
-  /* ---------- меню: іконки справа відкривають панелі (Система, Планета, Вигляд, Паспорт); у «Планеті» вкладки ---------- */
-  const SIDE = ['pSys', 'pPlanet', 'pView', 'pData'], TABS = ['tType', 'tSurf', 'tSky'];
-  function showPanel(id, on) { const e = $(id); e.classList.toggle('open', on); document.querySelector(`#rail [data-panel=${id}]`).classList.toggle('on', on); if (id === 'pData' && on) renderCard(); store.set('panel', SIDE.find(s => $(s).classList.contains('open')) || ''); }
+  /* ---------- меню: «Система» і «Планета» (кожне зі своїми налаштуваннями) та «Фон»; кнопки Система/Планета ще й перемикають вигляд ---------- */
+  const SIDE = ['pSys', 'pPlanet', 'pBg'], TABS = ['tType', 'tSurf', 'tSky'], sysCtl = () => VIEWS.find(v => v.isSystem);
+  function showPanel(id, on) { $(id).classList.toggle('open', on); document.querySelector(`#rail [data-panel=${id}]`).classList.toggle('on', on); store.set('panel', SIDE.find(s => $(s).classList.contains('open')) || ''); }
   function closePanels() { for (const s of SIDE) showPanel(s, false); }
+  function setPanel(id) { closePanels(); if (id) showPanel(id, true); markMode(); }
+  function markMode() { const sysOn = !!(sysCtl() && sysCtl().active()); document.querySelectorAll('#rail [data-mode]').forEach(b => b.classList.toggle('cur', (b.dataset.mode === 'system') === sysOn)); }
   function setTab(t) { for (const x of TABS) { $(x).hidden = x !== t; document.querySelector(`#planetTabs [data-tab=${x}]`).classList.toggle('on', x === t); } store.set('tab', t); }
   $('planetTabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); });
-  $('rail').addEventListener('click', e => { const b = e.target.closest('button[data-panel]'); if (!b) return; const id = b.dataset.panel, was = $(id).classList.contains('open'); closePanels(); showPanel(id, !was); });
-  addEventListener('keydown', e => { if (e.key === 'Escape') closePanels(); });
+  $('rail').addEventListener('click', e => {
+    const b = e.target.closest('button[data-panel]'); if (!b) return; const id = b.dataset.panel, mode = b.dataset.mode, S = sysCtl(), sysOn = !!(S && S.active());
+    if (mode === 'system' && !sysOn && S) { S.show(); return; }                 // з планети назад до системи
+    if (mode === 'planet' && sysOn && S) { S.openSelectedOrRandom(); return; }  // із системи на обрану (або випадкову) планету
+    const was = $(id).classList.contains('open'); setPanel(was ? '' : id);
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape') setPanel(''); });
   const lastPanel = store.get('panel', 'pSys'), lastTab = store.get('tab', 'tType');
   for (const s of SIDE) showPanel(s, false);
-  setTab(lastTab); if (lastPanel) showPanel(lastPanel, true);
+  setTab(lastTab);
 
   /* ---------- експорт ---------- */
   $('btnPng').onclick = () => cv.toBlob(b => { download(b, `planet-${st.seed}.png`); toast('Збережено картинку'); });
@@ -234,7 +248,7 @@
   window.PFApp = {
     state: () => st, strip: () => PC_STRIP(st), toast, el, FMT, draw, save,
     openPlanet(params) { st = Object.assign(PC.clampParams(params), keepUI()); save(); sync(); regenerate(); },
-    attach(s) { VIEWS.push(s); }, deactivateOthers(c) { VIEWS.forEach(v => v !== c && v.deactivate && v.deactivate()); }, refresh() { sync(); draw(); },
+    attach(s) { VIEWS.push(s); }, setPanel, markMode, rerollPlanet, refreshInfo: renderCard, deactivateOthers(c) { VIEWS.forEach(v => v !== c && v.deactivate && v.deactivate()); }, refresh() { sync(); draw(); },
   };
   const PC_STRIP = s => PlanetSystem.strip(s);
   sync(); regenerate(); requestAnimationFrame(frame);

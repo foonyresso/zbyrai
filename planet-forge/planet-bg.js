@@ -44,7 +44,7 @@ const PlanetBg = (() => {
       layer = document.createElement('canvas'); layer.width = Math.max(2, Math.round(w)); layer.height = Math.max(2, Math.round(h)); const g = layer.getContext('2d'), hue = bg.bgHue;
       if (t === 'nebula') {
         g.globalCompositeOperation = 'lighter'; const blobs = 5 + Math.round(bg.bgDens * 14);
-        for (let i = 0; i < blobs; i++) { const x = R() * w, y = R() * h, r = (.18 + R() * .35) * Math.max(w, h), c = hsl(hue + (R() - .5) * .22, .75, .5, (.05 + R() * .1) * (.4 + bg.bgGlow)), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, c); gr.addColorStop(1, hsl(hue, .7, .4, 0)); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+        for (let i = 0; i < blobs; i++) { const x0 = R() * w, y = R() * h, r = (.18 + R() * .35) * Math.max(w, h), c = hsl(hue + (R() - .5) * .22, .75, .5, (.05 + R() * .1) * (.4 + bg.bgGlow)); for (const off of [-w, 0, w]) { const x = x0 + off, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, c); gr.addColorStop(1, hsl(hue, .7, .4, 0)); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); } } // копії по краях: шар безшовно повторюється при русі
       } else {
         const cx = w / 2, cy = h / 2, S = Math.max(w, h) * .62, arms = bg.bgArms; g.translate(cx, cy); g.scale(1, .5); g.globalCompositeOperation = 'lighter';
         const core = g.createRadialGradient(0, 0, 0, 0, 0, S * .35); core.addColorStop(0, hsl(hue, .5, .85, .55 * bg.bgGlow + .2)); core.addColorStop(1, hsl(hue, .6, .4, 0)); g.fillStyle = core; g.fillRect(-S, -S, S * 2, S * 2);
