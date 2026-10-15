@@ -227,7 +227,7 @@ details.how > summary:hover { color: var(--text); }
 header.top .top-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 /* ---------- кнопка «Інфо» і спливаюче вікно довідки (shared/tool-chrome.js) ---------- */
-html.has-info details.how { display: none; }
+html.has-info details.how, html.has-info details.about { display: none; }
 .info-btn {
   display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 4px 11px 4px 8px;
   border: 1px solid var(--line); border-radius: 99px; background: rgba(255, 255, 255, .02);

@@ -14,10 +14,10 @@
   var back = document.getElementById('hubBack');
   if (back && folder) back.setAttribute('href', '../index.html#t-' + folder);
 
-  var how = document.querySelector('details.how');
+  var how = document.querySelector('details.how, details.about');
   var brand = document.querySelector('header.top .brand');
   if (!how || !brand) return;
-  var grid = how.querySelector('.how-grid');
+  var grid = how.querySelector('.how-grid, .about-grid, .about-body');
   if (!grid) return;
   document.documentElement.classList.add('has-info');
 
@@ -38,7 +38,8 @@
     '<h2></h2><div class="info-body"></div>' +
     '<button type="button" class="info-ok" title="Закрити довідку">OK</button></div>';
   overlay.querySelector('h2').textContent = title;
-  overlay.querySelector('.info-body').appendChild(grid.cloneNode(true));
+  var copy = grid.cloneNode(true); copy.className = 'how-grid'; copy.removeAttribute('id');
+  overlay.querySelector('.info-body').appendChild(copy);
   document.body.appendChild(overlay);
 
   function close() { overlay.hidden = true; btn.focus(); }

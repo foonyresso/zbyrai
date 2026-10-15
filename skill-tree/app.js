@@ -121,16 +121,61 @@
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let animOn = store.get('anim', !reduceMotion);
   const ripples = [], hoverAnim = new Map();
-  let looping = false, nowT = 0, lastBump = 0;
-  function addRipple(x, y, R, A, speed) {
+  let looping = false, nowT = 0, lastBump = 0, lastTs = 0;
+  /* Пружини вузлів: кожен вузол тримається за своє місце, але його можна відтягнути; після відпускання він пружно повертається.
+     Хвиля йде на кілька найближчих сусідів: найближчий реагує сильно, наступні дедалі слабше. */
+  const spr = { n: 0, x: null, y: null, vx: null, vy: null, tx: null, ty: null, active: false };
+  function sprEnsure() {
+    const n = tree.nodes.length;
+    if (spr.n === n) return;
+    spr.n = n; spr.x = new Float32Array(n); spr.y = new Float32Array(n); spr.vx = new Float32Array(n); spr.vy = new Float32Array(n); spr.tx = new Float32Array(n); spr.ty = new Float32Array(n);
+  }
+  // індекси count найближчих до точки вузлів (від найближчого), без самого вузла, що лежить у точці
+  function nearestIdx(x, y, count) {
+    const ns = tree.nodes, best = [];
+    for (let i = 0; i < ns.length; i++) {
+      const d = (ns[i].x - x) * (ns[i].x - x) + (ns[i].y - y) * (ns[i].y - y);
+      if (d < 1e-6) continue;
+      if (best.length < count || d < best[best.length - 1][1]) { best.push([i, d]); best.sort((u, v) => u[1] - v[1]); if (best.length > count) best.pop(); }
+    }
+    return best.map(u => u[0]);
+  }
+  function addRipple(x, y, R, A) {
     if (!animOn) return;
-    ripples.push({ x, y, R, A, speed, t0: performance.now() });
-    if (ripples.length > 8) ripples.shift();
-    kick();
+    sprEnsure();
+    const count = 7 + Math.floor(R / 150), ns = tree.nodes, list = nearestIdx(x, y, count);
+    list.forEach((i, r) => {
+      const dx = ns[i].x - x, dy = ns[i].y - y, d = Math.hypot(dx, dy) || 1, w = Math.pow(1 - r / (count + 1), 2);
+      spr.vx[i] += dx / d * A * 14 * w; spr.vy[i] += dy / d * A * 14 * w;
+    });
+    spr.active = true; kick();
+  }
+  // натягнути вузол (ідx кінця вказівника): сусіди слідують із ослабленням; чим далі тягнеш, тим більше сусідів
+  function setPull(n, px, py) {
+    sprEnsure(); spr.tx.fill(0); spr.ty.fill(0);
+    const ns = tree.nodes, mag = Math.hypot(px, py);
+    const self = ns.indexOf(n); if (self < 0) return;
+    spr.tx[self] = px; spr.ty[self] = py;
+    const count = 7 + Math.floor(mag / 40), list = nearestIdx(n.x, n.y, count);
+    list.forEach((i, r) => { const w = .7 * Math.pow(1 - r / (count + 1), 2); spr.tx[i] = px * w; spr.ty[i] = py * w; });
+    spr.active = true; kick();
+  }
+  const clearPull = () => { if (spr.tx) { spr.tx.fill(0); spr.ty.fill(0); } spr.active = true; kick(); };
+  function stepSprings(dtRaw) {
+    if (!spr.active) return;
+    const dt = Math.min(.033, dtRaw || .016), K = 90, C = 6;
+    let any = false;
+    for (let i = 0; i < spr.n; i++) {
+      spr.vx[i] += (-K * (spr.x[i] - spr.tx[i]) - C * spr.vx[i]) * dt; spr.vy[i] += (-K * (spr.y[i] - spr.ty[i]) - C * spr.vy[i]) * dt;
+      spr.x[i] += spr.vx[i] * dt; spr.y[i] += spr.vy[i] * dt;
+      if (Math.abs(spr.x[i] - spr.tx[i]) > .04 || Math.abs(spr.y[i] - spr.ty[i]) > .04 || Math.abs(spr.vx[i]) > .2 || Math.abs(spr.vy[i]) > .2) any = true;
+      else { spr.x[i] = spr.tx[i]; spr.y[i] = spr.ty[i]; spr.vx[i] = 0; spr.vy[i] = 0; }
+    }
+    spr.active = any;
   }
   function kick() { if (!looping) { looping = true; requestAnimationFrame(frame); } }
   function frame(ts) {
-    nowT = performance.now();
+    nowT = performance.now(); stepSprings(lastTs ? (nowT - lastTs) / 1000 : .016); lastTs = nowT;
     for (let i = ripples.length - 1; i >= 0; i--) { const r = ripples[i]; if ((nowT - r.t0) / 1000 > r.R / r.speed + .45) ripples.splice(i, 1); }
     for (const [id, v] of hoverAnim) {
       const nv = v + ((id === hover && animOn ? 1 : 0) - v) * .2;
@@ -139,12 +184,13 @@
     if (hover && animOn && !hoverAnim.has(hover)) hoverAnim.set(hover, 0);
     draw();
     const settling = [...hoverAnim].some(([id, v]) => id !== hover || v < .98);
-    if (ripples.length || settling) requestAnimationFrame(frame); else looping = false;
+    if (ripples.length || settling || spr.active) requestAnimationFrame(frame); else { looping = false; lastTs = 0; }
   }
   // зсув і «пульс» кожного вузла від усіх активних хвиль: м’який гаусів фронт, що йде від центру й згасає з відстанню та часом
   function computeOffsets(g) {
     const { ox, oy, os } = g, ns = tree.nodes;
     ox.fill(0); oy.fill(0); os.fill(0);
+    if (spr.n === ns.length) for (let i = 0; i < ns.length; i++) { ox[i] = spr.x[i]; oy[i] = spr.y[i]; }
     for (const r of ripples) {
       const e = (nowT - r.t0) / 1000, front = r.speed * e, life = Math.max(0, 1 - e / (r.R / r.speed + .4));
       if (life <= 0) continue;
@@ -164,7 +210,7 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     if (!view) return;
     const k = view.k, a = analysis(), g = geom(), ns = tree.nodes;
-    const moving = ripples.length > 0 && animOn;
+    const moving = (ripples.length > 0 || spr.active) && animOn;
     if (moving) computeOffsets(g);
     ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * view.x, dpr * view.y);
     const vx0 = -view.x / k - 60, vy0 = -view.y / k - 60, vx1 = (W - view.x) / k + 60, vy1 = (H - view.y) / k + 60;
@@ -194,7 +240,7 @@
     // хвилі: ледь помітні кільця
     if (moving) for (const r of ripples) {
       const e = (nowT - r.t0) / 1000, life = Math.max(0, 1 - e / (r.R / r.speed + .4));
-      ctx.strokeStyle = `rgba(160,190,235,${.22 * life})`; ctx.lineWidth = 2 / k; ctx.beginPath(); ctx.arc(r.x, r.y, Math.min(r.R, r.speed * e), 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = `rgba(160,190,235,${.06 * life})`; ctx.lineWidth = 2 / k; ctx.beginPath(); ctx.arc(r.x, r.y, Math.min(r.R, r.speed * e), 0, Math.PI * 2); ctx.stroke();
     }
 
     // вузли
@@ -254,7 +300,7 @@
     const p = pos(e); ptrs.set(e.pointerId, p);
     if (ptrs.size === 2) { drag = null; const ps = pinchState(); pinch = { d: ps.d, k: view.k, cx: ps.cx, cy: ps.cy, vx: view.x, vy: view.y }; hideTip(); return; }
     const n = nodeAt(p);
-    drag = { sx: p.x, sy: p.y, vx: view.x, vy: view.y, moved: false, n, mod: e.shiftKey || e.ctrlKey || e.metaKey, alt: e.altKey, type: n && mode === 'edit' ? 'node' : 'pan', nx: n ? n.x : 0, ny: n ? n.y : 0, group: null };
+    drag = { sx: p.x, sy: p.y, vx: view.x, vy: view.y, moved: false, n, mod: e.shiftKey || e.ctrlKey || e.metaKey, alt: e.altKey, type: n && mode === 'edit' ? 'node' : n && animOn ? 'pull' : 'pan', nx: n ? n.x : 0, ny: n ? n.y : 0, group: null };
   });
   cv.addEventListener('pointermove', e => {
     const p = pos(e);
@@ -266,7 +312,7 @@
     if (drag) {
       const dx = p.x - drag.sx, dy = p.y - drag.sy;
       if (!drag.moved && Math.hypot(dx, dy) > 4) {
-        drag.moved = true; if (drag.type === 'pan') cv.classList.add('grabbing'); hideTip();
+        drag.moved = true; if (drag.type === 'pan' || drag.type === 'pull') cv.classList.add('grabbing'); hideTip();
         if (drag.type === 'node') {
           pushUndo();
           const ids = multi.has(drag.n.id) || (sel === drag.n.id && multi.size) ? new Set([...multi, sel, drag.n.id]) : new Set([drag.n.id]);
@@ -275,6 +321,7 @@
       }
       if (drag.moved) {
         if (drag.type === 'pan') { view.x = drag.vx + dx; view.y = drag.vy + dy; }
+        else if (drag.type === 'pull') { const m = Math.hypot(dx, dy) / view.k, L = 180, f = m > 0 ? L * Math.tanh(m / L) / m : 0; setPull(drag.n, dx / view.k * f, dy / view.k * f); }
         else { const sx = Math.round(dx / view.k / 5) * 5, sy = Math.round(dy / view.k / 5) * 5; for (const g of drag.group) { g.m.x = g.x + sx; g.m.y = g.y + sy; } edited = true; }
         schedule();
       }
@@ -298,6 +345,7 @@
     if (wasPinch) { endPtr(e); return; }
     if (!drag) return;
     const d = drag; drag = null; cv.classList.remove('grabbing');
+    if (d.moved && d.type === 'pull') { clearPull(); return; }
     if (d.moved) { if (d.type === 'node') { refreshLight(); renderInspector(); } persist(); return; }
     clickNode(d.n, d.mod, d.alt);
   });
