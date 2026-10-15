@@ -150,3 +150,4 @@ a.card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-1); 
   .body { padding: 18px 18px 18px; }
   .card h2 { font-size: 21px; }
 }
+.card { scroll-margin-top: 84px; }

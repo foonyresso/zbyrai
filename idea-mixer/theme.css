@@ -225,3 +225,24 @@ details.how > summary:hover { color: var(--text); }
 
 /* верхня панель інструмента: кнопки збереження й обміну */
 header.top .top-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------- кнопка «Інфо» і спливаюче вікно довідки (shared/tool-chrome.js) ---------- */
+html.has-info details.how { display: none; }
+.info-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 4px 11px 4px 8px;
+  border: 1px solid var(--line); border-radius: 99px; background: rgba(255, 255, 255, .02);
+  color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+  transition: color .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+}
+.info-btn:hover { color: var(--gold-hi); border-color: var(--gold-lo); background: var(--gold-glow); }
+.info-btn svg { width: 14px; height: 14px; }
+.info-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5, 5, 8, .72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.info-overlay[hidden] { display: none; }
+.info-modal { position: relative; width: min(720px, 100%); max-height: 86vh; overflow: auto; padding: 24px 26px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.info-modal h2 { margin: 0 0 14px; font-size: 18px; color: var(--text); }
+.info-modal .how-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 0 0 6px; }
+.info-modal .how-grid p, .info-modal .how-grid li { font-size: 13.5px; }
+.info-close { position: absolute; top: 10px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.info-close:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
+.info-ok { margin-top: 12px; padding: 7px 22px; border: 1px solid var(--gold-lo); border-radius: 99px; background: var(--gold-glow); color: var(--gold-hi); font: inherit; cursor: pointer; }
+.info-ok:hover { background: var(--gold-lo); color: var(--text); }

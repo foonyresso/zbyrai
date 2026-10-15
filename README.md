@@ -13,7 +13,7 @@
 | [**Prompt Dice**](prompt-dice/) | Кубик для ШІ-промптів: випадкові, але продумані промпти для Stable Diffusion, Flux і Gemini (персонажі, спрайт-листи, піксель-арт для ігор). |
 | [**Medieval World**](medieval-world/) | Генератор міст і світів: середньовічні міста та світ навколо них, seed, планування, біоми, річки, дороги й редактор. |
 | [**Pattern Maker**](pattern-maker/) | Конструктор візерунків: безшовні візерунки з будь-якого зображення (дзеркальні симетрії, соти, калейдоскоп), експорт у PNG. |
-| [**Loot Forge**](loot-forge/) | Кузня предметів: рідкості, афікси, випадкові стати, симуляція дропу, калькулятор шансів, експорт у JSON; режим GodsDontDie (типи, слоти, картки й руни, зірки, точіння, комплекти). |
+| [**Loot Forge**](loot-forge/) | Кузня предметів: рідкості, афікси, випадкові стати, симуляція дропу, калькулятор шансів, експорт у JSON; розширений режим (типи, слоти, картки й руни, зірки, точіння, комплекти). |
 | [**Skill Tree Lab**](skill-tree/) | Редактор дерев скілів: вузли, зв’язки, вимоги, режим «грати», кольори вузлів за роллю, легка анімація, генератор дерев до 20 000 вузлів, експорт у JSON. |
 | [**Idea Mixer**](idea-mixer/) | Змішувач ігрових ідей: ядро, прогресія, світ, твіст, обмеження, тон; пітч у Markdown. |
 | [**Character Roller**](character-roller/) | Листок персонажа D&D 5e (SRD 5.1): раса, клас, рівень 1-20, характеристики, навички, HP, КБ, закляття, риси класу, спорядження, особистість; фіксація полів, експорт JSON, друк. |
@@ -65,7 +65,7 @@ node tools/sync-theme.mjs         # після змін у shared/theme.css он
 node pattern-maker/test/fold.test.js   # тести математики Pattern Maker (потрібен лише Node)
 node pattern-maker/test/fx.test.js     # тести ефектів Pattern Maker
 node loot-forge/test/loot.test.js      # тести Loot Forge
-node loot-forge/test/gdd.test.js       # тести шару GodsDontDie
+node loot-forge/test/gdd.test.js       # тести розширеного шару
 node planet-forge/test/planet.test.js      # тести Planet Forge
 node voxel-lab/test/voxel.test.js      # тести Voxel World Lab
 node colonist-foundry/test/colonist.test.js      # тести Colonist Foundry
