@@ -74,16 +74,16 @@
   <aside class="side">
     <details class="card fold" id="kindsFold"><summary title="Натисни, щоб відкрити чи згорнути список типів планет"><h2>Тип планети: <b id="kindName"></b></h2></summary>
       <div class="kinds" id="kinds" title="Тип планети визначає, які параметри доступні"></div>
-      <div class="lockrow"><button type="button" class="lock" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: «Рандом налаштувань» його не змінюватиме</span></div>
+      <div class="lockrow"><button type="button" class="lock" title="Зафіксувати або відпустити тип планети" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: «Рандом налаштувань» його не змінюватиме</span></div>
     </details>
     <div class="card"><h2>Зерно й назва</h2>
-      <label class="ctl txt" title="Зерно: число-код планети. Те саме зерно з тими самими параметрами дає ту саму планету"><span>Зерно</span><button type="button" class="lock" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
-      <label class="ctl txt" title="Назва планети: можна написати свою"><span>Назва</span><button type="button" class="lock" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
+      <label class="ctl txt" title="Зерно: число-код планети. Те саме зерно з тими самими параметрами дає ту саму планету"><span>Зерно</span><button type="button" class="lock" title="Зафіксувати або відпустити зерно" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
+      <label class="ctl txt" title="Назва планети: можна написати свою"><span>Назва</span><button type="button" class="lock" title="Зафіксувати або відпустити назву" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
       <p class="hint">Замочок біля параметра фіксує його: «Рандом налаштувань» і «Повний рандом» залишать його як є, а решту перемішають.</p>
     </div>
     <div class="card"><h2>Поверхня</h2><div id="surfCtl" class="ctls"></div></div>
     <div class="card"><h2>Небо й життя</h2><div id="skyCtl" class="ctls"></div>
-      <div class="ctl chkrow"><label class="chk" title="Додати планеті кільця"><input type="checkbox" id="cRing"><span>Кільця</span></label><button type="button" class="lock" id="lkRing" aria-pressed="false"></button></div>
+      <div class="ctl chkrow"><label class="chk" title="Додати планеті кільця"><input type="checkbox" id="cRing"><span>Кільця</span></label><button type="button" class="lock" title="Зафіксувати або відпустити кільце" id="lkRing" aria-pressed="false"></button></div>
     </div>
     <div class="card"><h2>Розмір карти для експорту</h2>
       <label class="ctl-inline" title="Розмір карти й висот, що зберігаються кнопками «Карта PNG» і «Висоти PNG» угорі">Розмір карти <select id="selMap"><option value="1024">1024×512</option><option value="2048" selected>2048×1024</option><option value="4096">4096×2048</option></select></label>

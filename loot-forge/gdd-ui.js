@@ -171,10 +171,10 @@ const GddUI = (() => {
     function setsSection() {
       const g = gm();
       const [box, list] = withFilter('sets', 'Пошук комплекту: назва, джерело, гра…', g.sets,
-        (s, t) => (s.name + ' ' + s.source + ' ' + s.ref).toLowerCase().includes(t),
+        (s, t) => (s.name + ' ' + s.source).toLowerCase().includes(t),
         s => h('div', { class: 'tr gs' },
           h('input', { type: 'checkbox', checked: s.on !== false, 'aria-label': 'Увімкнено', onchange: e => { if (e.target.checked) delete s.on; else s.on = false; edited(); } }),
-          h('span', null, s.name, h('small', { class: 'id' }, ' ' + s.source + (s.ref ? ' · ' + s.ref : ''))),
+          h('span', null, s.name, h('small', { class: 'id' }, ' ' + s.source)),
           h('span', { class: 'info' }, s.slots.length + ' ч.: ' + s.bonuses.map(b => b[0] + '→' + effName(b[1])).join(' · '))));
       return section('gs', 'Комплекти', g.sets.length, [box, list, h('p', { class: 'hint' },
         'Продумані комплекти: слоти частин і бонуси за 2/4/6/8 частин. Окрім них є випадкові (код rset.N): тема, слоти, бонуси з бібліотеки за тегами теми. Вони відтворюються з коду, тож зберігається лише він.')]);
@@ -256,7 +256,7 @@ const GddUI = (() => {
         sockets,
         insLines.length ? h('ul', { class: 'ins' }, insLines) : null,
         d.runeword ? h('p', { class: 'rw' }, '᛭ Рунне слово «' + d.runeword.name + '»: ' + d.runeword.text) : null,
-        set ? h('div', { class: 'setbox' }, h('b', null, set.name), ` (${have}/${set.parts}${set.ref ? ', ' + set.ref : ''})`,
+        set ? h('div', { class: 'setbox' }, h('b', null, set.name), ` (${have}/${set.parts})`,
           h('ul', null, set.bonuses.map(b => h('li', { class: have >= b.n ? 'on' : '' }, `${b.n}: ${b.text}`)))) : null,
         it.flavor ? h('p', { class: 'flavor' }, it.flavor) : null,
         h('div', { class: 'foot' }, h('span', null, 'Сила ', h('b', null, fmtNum(it.power)), it.powerParts.inserts ? ` (вставки ${fmtNum(it.powerParts.inserts)})` : ''),
@@ -482,17 +482,17 @@ const GddUI = (() => {
       block('Набори карток', csets.length, csets.length ? h('div', { class: 'tbl' }, csets.map(c => h('div', { class: 'cat-row' }, h('b', null, c.name),
         h('div', { class: 'hint' }, c.cards.map(id => (g.cards.find(x => x.id === id) || { name: id }).name).join(' + ') + ' → ' + c.effects.map(([e]) => effName(e)).join('; '))))) : null);
 
-      const sets = g.sets.filter(s => has(s.name + ' ' + s.source + ' ' + s.ref));
+      const sets = g.sets.filter(s => has(s.name + ' ' + s.source));
       block('Комплекти', sets.length, sets.length ? h('div', { class: 'tbl' }, sets.slice(0, 60).map(s => h('div', { class: 'cat-row' },
-        h('div', null, h('b', null, s.name), h('small', { class: 'id' }, ` ${s.source}${s.ref ? ' · ' + s.ref : ''}${s.named ? ' · героя' : ''}`)),
+        h('div', null, h('b', null, s.name), h('small', { class: 'id' }, ` ${s.source}${s.named ? ' · героя' : ''}`)),
         h('div', { class: 'hint' }, slotsText(s.slots)),
         h('ul', { class: 'bl' }, s.bonuses.map(b => h('li', null, `${b[0]}: ${effLine(b[1], 1, S.ilvl)}`))))),
         sets.length > 60 ? h('p', { class: 'hint' }, 'Показано 60: уточни пошук.') : null) : null);
 
-      const nm = g.named.filter(n => has(n.name + ' ' + n.source + ' ' + n.ref));
+      const nm = g.named.filter(n => has(n.name + ' ' + n.source));
       block('Іменовані предмети (вибірка)', nm.length, nm.length ? h('div', { class: 'tbl' }, nm.map(n => {
         const b = g.bases.find(x => x.id === n.base);
-        return h('div', { class: 'cat-row' }, h('div', null, h('b', { style: `color:${(g.qualities.find(x => x.id === n.quality) || {}).color}` }, n.name), h('small', { class: 'id' }, ` ${b ? b.name : n.base} · ${n.source}${n.ref ? ' · ' + n.ref : ''}`)),
+        return h('div', { class: 'cat-row' }, h('div', null, h('b', { style: `color:${(g.qualities.find(x => x.id === n.quality) || {}).color}` }, n.name), h('small', { class: 'id' }, ` ${b ? b.name : n.base} · ${n.source}`)),
           h('div', { class: 'hint' }, n.bonuses.map(([e]) => effName(e)).concat(n.uniques.map(effName)).join('; ')),
           h('button', { title: 'Згенерувати цей предмет на поточному рівні', onclick: () => ctx.makeNamed(n.id) }, 'Створити'));
       })) : null);
