@@ -11,6 +11,8 @@ const test = (n, f) => { try { f(); console.log('  ok  ', n); } catch (e) { fail
 const worldFiles = fs.readdirSync(path.join(base, 'worlds'), { withFileTypes: true }).filter((e) => e.isDirectory() && fs.existsSync(path.join(base, 'worlds', e.name, 'world.js'))).map((e) => e.name);
 const biomeFiles = fs.readdirSync(path.join(base, 'biomes')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
 for (const f of biomeFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'biomes', f + '.js'), 'utf8'));
+const monFiles = fs.readdirSync(path.join(base, 'monsters')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
+for (const f of monFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'monsters', f + '.js'), 'utf8'));
 for (const f of worldFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'worlds', f, 'world.js'), 'utf8'));
 
 test('кожен файл реєструє світ/біом з id, що збігається з назвою файлу', () => {
@@ -42,6 +44,33 @@ test('вибір біомів: allow/deny/теги/ваги', () => {
 test('дубль id і невідомий формат відхиляються', () => {
   assert.throws(() => Atlas.registerBiome({ format: 1, id: 'grass', name: 'x', color: '#000000', tags: ['a'] }), /вже/);
   assert.throws(() => Atlas.registerWorld({ format: 2, id: 'zz', name: 'x', runner: 'builtin' }), /формат/);
+});
+test('кожен файл монстра реєструє монстра з id = назві файлу, типом, природою й біомами', () => {
+  assert.deepEqual(Atlas.monsters.map((m) => m.id).sort(), monFiles.slice().sort());
+  for (const m of Atlas.monsters) {
+    assert.ok(Atlas.monsterKinds[m.kind], m.id + ': невідомий тип ' + m.kind);
+    assert.ok(Atlas.monsterNatures[m.nature], m.id + ': невідома природа');
+    assert.ok(m.spawn.biomes.length, m.id);
+    for (const b of m.spawn.biomes) assert.ok(Atlas.biomes.some((x) => x.id === b), m.id + ': невідомий біом ' + b);
+  }
+});
+test('у кожній групі монстрів щонайменше кілька', () => {
+  for (const k in Atlas.monsterKinds) assert.ok(Atlas.monsters.filter((m) => m.kind === k).length >= 3, k);
+});
+test('чим сильніший тип, тим далі від міст і сіл', () => {
+  const ks = Object.values(Atlas.monsterKinds).filter((k) => k.rank > 2);
+  for (const a of ks) for (const b of ks) if (b.rank > a.rank) assert.ok(b.city > a.city && b.village > a.village, b.name);
+  for (const k of Object.values(Atlas.monsterKinds)) if (k.rank > 2) assert.ok(k.city > Atlas.monsterKinds.monster.city, k.name);
+  const w = Atlas.monsterKinds.weak;
+  assert.ok(w.near > w.village && w.weakNear > 0, 'слабкі лише зрідка біля сіл');
+});
+test('monstersFor фільтрує за типом і біомом', () => {
+  const l = Atlas.monstersFor('boss', ['mountain'], 'infinite');
+  assert.ok(l.length && l.every((m) => m.kind === 'boss' && m.spawn.biomes.includes('mountain')));
+});
+test('registry.js містить усі файли монстрів', () => {
+  const m = JSON.parse(fs.readFileSync(path.join(base, 'registry.js'), 'utf8').replace(/^[\s\S]*?Atlas\.manifest = /, '').replace(/;\s*$/, ''));
+  assert.deepEqual(m.monsters, monFiles.slice().sort().map((f) => `monsters/${f}.js`));
 });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

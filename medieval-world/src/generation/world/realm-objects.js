@@ -1,9 +1,9 @@
 /* ---- нововведення карти королівств у нескінченному світі: лігва монстрів, боси, місця інтересу, стани поселень ----
    Усе рахується за хешем клітинки сітки (як села), тому світ лишається нескінченним і однаковим для того самого зерна.
    Дані (монстри, боси, типи місць) спільні з «Материком»: src/data/realm/. Малювання: src/render/world/realm-layers.js */
-const RX_LC = 1400, RX_PC = 1000, RX_BC = 6500;
+const RX_PC = 1000;
 function rx() {
-  return WLD.rx || (WLD.rx = { l: new Map(), b: new Map(), p: new Map() });
+  return WLD.rx || (WLD.rx = { m: new Map(), p: new Map() });
 }
 /* поблизу немає поселень: інакше значок ліг на село */
 function rxClear(x, y, r) {
@@ -27,41 +27,65 @@ const rxDomain = (g) => g == "sea" ? "sea" : (g == "peaks" || g == "mountain" ||
 const rxPick = (a, u) => a[Math.min(a.length - 1, Math.floor(u * a.length))];
 const rxSpot = (i, j, c, a, b) => [(i + .15 + H2(i, j, WLD.s + a) * .7) * c, (j + .15 + H2(i, j, WLD.s + b) * .7) * c];
 
-/* звичайні лігва й місця відпочинку (рівень 1) */
-function rxLair(i, j) {
-  const m = rx().l, key = i + "," + j;
-  if (m.has(key)) return m.get(key);
-  let o = null;
-  const s = WLD.s;
-  if (H2(i, j, s + 901) < .6) {
-    const [x, y] = rxSpot(i, j, RX_LC, 902, 903);
-    if (Math.hypot(x, y) > Rm * 1.7 + 300) {
-      const dom = rxDomain(rxGroup(x, y));
-      if (dom && rxClear(x, y, 150)) {
-        const mons = RealmMap.Data[dom].monsters, monster = rxPick(mons, H2(i, j, s + 904)),
-          kind = dom != "sea" && H2(i, j, s + 905) < .4 ? "rest" : "lair";
-        o = { id: "L" + key, x, y, domain: dom, tier: 1, kind, monster, name: RealmMap.Data.lairKinds[kind] + ": " + monster };
-      }
+/* ---- монстри: файли monsters/*.js через реєстр Atlas; тип визначає силу, сітку появи й відстань до поселень ---- */
+const RX_KIND_SEED = { weak: 951, monster: 961, other: 971, "mini-boss": 981, boss: 991, "super-boss": 1001, "world-boss": 1011 };
+/* біоми точки (id із biomes/*.js) за місцевістю: за ними вибираються монстри, яким дозволено тут з'являтись */
+function rxBiomesAt(x, y) {
+  const p = tsamp(x, y, 4), g = rxGroup(x, y);
+  let b;
+  if (g == "lake") b = ["lake"];
+  else if (g == "sea") b = ["deep"];
+  else if (g == "shore") b = ["sea"];
+  else if (g == "peaks") b = ["peaks"];
+  else if (g == "mountain") b = ["mountain"];
+  else if (g == "hills") b = ["hills"];
+  else if (g == "forest") b = [p.bk == "snow" ? "taiga" : "forest"];
+  else b = [p.bk == "snow" ? "tundra" : p.bk == "desert" ? "desert" : p.bk == "swamp" ? "swamp" : p.mo < .45 ? "steppe" : "grass"];
+  return { biomes: b, group: g };
+}
+/* чи достатньо далеко від поселень для цього типу: біля міст монстрів немає, сильніші ще далі; слабкі рідко (rare) бувають біля сіл і хуторів */
+function rxFar(kind, x, y, rare) {
+  const K = Atlas.monsterKinds[kind];
+  if (Math.hypot(x, y) - Rm * 1.5 < K.city) return false;
+  const Rc = K.city + 260;
+  for (let i = Math.floor((x - Rc) / BC); i <= Math.floor((x + Rc) / BC); i++) {
+    for (let j = Math.floor((y - Rc) / BC); j <= Math.floor((y + Rc) / BC); j++) {
+      const c = bigC(i, j);
+      if (c && Math.hypot(c.x - x, c.y - y) - c.rad < K.city) return false;
     }
   }
-  m.set(key, o);
-  return o;
+  const Rv = Math.max(K.village, K.near || 0) + 150;
+  for (let i = Math.floor((x - Rv) / VC); i <= Math.floor((x + Rv) / VC); i++) {
+    for (let j = Math.floor((y - Rv) / VC); j <= Math.floor((y + Rv) / VC); j++) {
+      const v = village(i, j);
+      if (!v) continue;
+      const e = Math.hypot(v.x - x, v.y - y) - v.rad;
+      if (e < K.village) return false;
+      if (K.near && e < K.near && !rare) return false;
+    }
+  }
+  return true;
 }
-/* боси й міні-боси (рівні 2–3): рідкісні, далеко від поселень, у горах, лісах і глибинах моря */
-function rxBoss(i, j) {
-  const m = rx().b, key = i + "," + j;
+function rxMon(kind, i, j) {
+  if (!Atlas.monsters.length) return null; /* реєстр ще вантажиться: не кешуємо */
+  const m = rx().m, key = kind + ":" + i + "," + j;
   if (m.has(key)) return m.get(key);
+  const K = Atlas.monsterKinds[kind], s = WLD.s, ks = RX_KIND_SEED[kind];
   let o = null;
-  const s = WLD.s;
-  if (H2(i, j, s + 911) < .7) {
-    const [x, y] = rxSpot(i, j, RX_BC, 912, 913);
-    if (Math.hypot(x, y) > Rm * 1.7 + 1500) {
-      const g = rxGroup(x, y), dom = rxDomain(g);
-      if (dom && (dom != "sea" || tsamp(x, y, 4).E < -.15) && rxClear(x, y, 900)) {
-        const b = rxPick(RealmMap.Data[dom].bosses, H2(i, j, s + 914)),
-          variant = b.variants ? rxPick(b.variants, H2(i, j, s + 915)) : null,
-          monster = b.n + (variant ? " (" + variant + ")" : "");
-        o = { id: "B" + key, x, y, domain: dom, tier: b.tier, kind: "boss", monster, alias: b.alias || null, name: "Лігво: " + monster };
+  if (H2(i, j, s + ks) < K.gate) {
+    const [x, y] = rxSpot(i, j, K.cell, ks + 1, ks + 2);
+    if (Math.hypot(x, y) > Rm * 1.7 + 300) {
+      const info = rxBiomesAt(x, y), list = Atlas.monstersFor(kind, info.biomes, "infinite");
+      if (list.length && (info.group != "sea" || kind == "weak" || kind == "monster" || kind == "other" || tsamp(x, y, 4).E < -.15) &&
+        rxFar(kind, x, y, H2(i, j, s + ks + 9) < (K.weakNear || 0))) {
+        const mon = rxPick(list, H2(i, j, s + ks + 3)), variant = mon.variants ? rxPick(mon.variants, H2(i, j, s + ks + 4)) : null,
+          monster = mon.name + (variant ? " (" + variant + ")" : ""), rest = kind == "monster" && H2(i, j, s + ks + 5) < .4;
+        o = {
+          id: kind + i + "," + j, x, y, mk: kind, tier: K.rank >= 5 ? 3 : K.rank >= 4 ? 3 : K.rank == 3 ? 2 : 1,
+          kind: K.rank >= 4 ? "boss" : rest ? "rest" : "lair", domain: info.group == "sea" || info.group == "shore" ? "sea" : "land",
+          monster, alias: mon.alias || null, nature: mon.nature, biome: info.biomes[0], scale: K.rank >= 6 ? 1.5 : K.rank == 5 ? 1.25 : 1,
+          name: (rest ? RealmMap.Data.lairKinds.rest : "Лігво") + ": " + monster,
+        };
       }
     }
   }
@@ -110,11 +134,12 @@ function rxState(v) {
 }
 /* усі об'єкти шару в прямокутнику світу */
 function rxEach(x0, y0, x1, y1, fn) {
-  for (let i = Math.floor(x0 / RX_LC); i <= Math.floor(x1 / RX_LC); i++) {
-    for (let j = Math.floor(y0 / RX_LC); j <= Math.floor(y1 / RX_LC); j++) { const o = rxLair(i, j); if (o) fn(o); }
-  }
-  for (let i = Math.floor(x0 / RX_BC); i <= Math.floor(x1 / RX_BC); i++) {
-    for (let j = Math.floor(y0 / RX_BC); j <= Math.floor(y1 / RX_BC); j++) { const o = rxBoss(i, j); if (o) fn(o); }
+  for (const kind in Atlas.monsterKinds) {
+    if (!rxKindShown(kind)) continue;
+    const c = Atlas.monsterKinds[kind].cell;
+    for (let i = Math.floor(x0 / c); i <= Math.floor(x1 / c); i++) {
+      for (let j = Math.floor(y0 / c); j <= Math.floor(y1 / c); j++) { const o = rxMon(kind, i, j); if (o) fn(o); }
+    }
   }
   for (let i = Math.floor(x0 / RX_PC); i <= Math.floor(x1 / RX_PC); i++) {
     for (let j = Math.floor(y0 / RX_PC); j <= Math.floor(y1 / RX_PC); j++) { const o = rxPoi(i, j); if (o) fn(o); }
@@ -132,6 +157,10 @@ function realmInfo(x, y) {
   });
   if (!best) return null;
   if (best.type) return { n: best.name, c: "Місце", d: (best.cls == "major" ? "Значне місце: до нього веде мала дорога." : "Дрібне місце: до нього веде стежка.") };
-  const T = RealmMap.Data.tierNames[best.tier], dom = { mountain: "гори", forest: "ліс", sea: "глибини моря" }[best.domain];
-  return { n: best.name, c: "Монстри", d: T + " · " + dom + (best.alias ? " · також: " + best.alias : "") + "." };
+  const K = Atlas.monsterKinds[best.mk], biome = Atlas.biomes.find((b) => b.id == best.biome);
+  return {
+    n: best.name, c: K.name,
+    d: Atlas.monsterNatures[best.nature] + " · живе: " + (biome ? biome.name.toLowerCase() : best.biome) + (best.alias ? " · також: " + best.alias : "") +
+      ". Чим сильніший тип, тим далі від поселень.",
+  };
 }

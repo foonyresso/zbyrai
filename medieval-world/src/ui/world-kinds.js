@@ -76,6 +76,7 @@
   });
 
   Atlas.load().then(() => {
+    if (typeof redraw == "function") { bdirty = true; redraw(); } /* монстри з реєстру вже є */
     for (const w of Atlas.worlds) sel.append(new Option(w.name, w.id));
     sel.title = "Тип світу. " + Atlas.worlds.map((w) => "«" + w.name + "»: " + (w.description || "")).join(" ");
     sel.onchange = () => { history.replaceState(null, "", location.pathname + location.search); setWorld(sel.value); };

@@ -2,11 +2,14 @@
    Кожен шар має власний перемикач (RLAY.*); значки спільні з «Материком» (src/render/realm/icons-places.js) */
 var RLAY = { mo: true, bs: true, po: true, sr: true, st: true };
 const rlIk = () => Math.max(.6, Math.min(1.5, Math.sqrt(S * 14)));
+/* масштаб, з якого видно тип монстрів: світові боси видно здалеку, слабких лише зблизька */
+const RL_KIND_S = { weak: .12, monster: .07, other: .07, "mini-boss": .035, boss: .02, "super-boss": .015, "world-boss": .008 };
+const rlKindShown = (k) => (Atlas.monsterKinds[k].rank >= 3 ? RLAY.bs : RLAY.mo) && S >= RL_KIND_S[k];
+function rxKindShown(k) { return rlKindShown(k); }
 /* чи показується об'єкт при поточному масштабі й перемикачах */
 function rxShown(o) {
   if (o.type) return RLAY.po && S >= (o.cls == "major" ? .045 : .1);
-  if (o.tier == 1) return RLAY.mo && S >= .07;
-  return RLAY.bs && S >= (o.tier == 3 ? .02 : .035);
+  return rlKindShown(o.mk);
 }
 function drawSeaRoutes() {
   if (!RLAY.sr || S < .025) return;
@@ -39,12 +42,12 @@ function drawRealmObjects() {
   const x0 = -ox / S, y0 = -oy / S, x1 = (W - ox) / S, y1 = (H - oy) / S, ik = rlIk(), P = RealmMap.IconsPlaces;
   if (RLAY.mo || RLAY.bs || RLAY.po) {
     const list = [];
-    rxEach(x0 - 100, y0 - 100, x1 + 100, y1 + 100, (o) => rxShown(o) && list.push(o));
+    rxEach(x0 - 100, y0 - 100, x1 + 100, y1 + 100, (o) => list.push(o));
     list.sort((a, b) => a.y - b.y);
     for (const o of list) {
       const sx = ox + o.x * S, sy = oy + o.y * S;
       if (o.type) P.drawPoi(ctx, o, sx, sy, ik);
-      else P.drawLair(ctx, o, sx, sy, ik, 0);
+      else P.drawLair(ctx, o, sx, sy, ik * (o.scale || 1), 0);
     }
   }
   if (RLAY.st && S >= .05) {

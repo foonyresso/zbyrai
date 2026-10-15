@@ -1,10 +1,11 @@
 // Монстри й боси: повні списки, лігва за біомами, море. Запуск: node medieval-world/worlds/continent/test/monsters.test.js
 const { R, assert, test, world, SAMPLES, finish } = require('./helpers.js');
 console.log('Карта королівств: монстри й боси');
-test('списки: гори 16 монстрів і 15 босів, ліси 15 і 15, моря 19 і 20', () => {
-  assert.equal(R.Data.mountain.monsters.length, 16); assert.equal(R.Data.mountain.bosses.length, 15);
-  assert.equal(R.Data.forest.monsters.length, 15); assert.equal(R.Data.forest.bosses.length, 15);
-  assert.equal(R.Data.sea.monsters.length, 19); assert.equal(R.Data.sea.bosses.length, 20);
+test('списки з файлів monsters/: початкові монстри й боси на місці, є нові', () => {
+  const D = R.Data, has = (d, n) => d.monsters.includes(n) || d.bosses.some(b => b.n === n);
+  for (const [d, names] of [[D.mountain, ['кобольди', 'буглери', 'орки', 'Гірський Титан', 'Дракон', 'Владика Печер']], [D.forest, ['гноли', 'буглери', 'Прадавній Ент', 'Дух Лісового Хаосу']], [D.sea, ['утопельці', 'лотофори', 'Кракен', 'Лорд Відпливу']]]) for (const n of names) assert.ok(has(d, n), 'немає ' + n);
+  assert.ok(D.mountain.monsters.length >= 16 && D.mountain.bosses.length >= 15 && D.forest.monsters.length >= 15 && D.forest.bosses.length >= 15 && D.sea.monsters.length >= 19 && D.sea.bosses.length >= 20);
+  assert.ok(D.mountain.bosses.some(b => b.n === 'Прадавній Дракон-Володар') && D.sea.bosses.some(b => b.n === 'Безодня, Що Дивиться'), 'світові боси мають бути у списках');
 });
 test('у списках немає дублів у межах однієї групи, окрім «буглерів» у горах і лісах', () => {
   for (const d of [R.Data.mountain, R.Data.forest, R.Data.sea]) { assert.equal(new Set(d.monsters).size, d.monsters.length); assert.equal(new Set(d.bosses.map(b => b.n)).size, d.bosses.length); }

@@ -120,6 +120,8 @@
       (function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
       if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
     </script>
+    <script src="src/core/atlas.js"></script>
+    <script src="registry.js"></script>
     <script src="src/data/buildings.js"></script>
     <script src="src/core/city-core.js"></script>
     <script src="src/generation/city/water.js"></script>
@@ -154,8 +156,6 @@
     <script src="src/render/layers/relief.js"></script>
     <script src="src/render/layers/effects.js"></script>
     <script src="src/main.js"></script>
-    <script src="src/core/atlas.js"></script>
-    <script src="registry.js"></script>
     <script src="src/ui/world-kinds.js"></script>
   <script src="./tool-chrome.js"></script>
 </body>

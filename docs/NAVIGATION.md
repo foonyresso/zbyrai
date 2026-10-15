@@ -9,7 +9,7 @@
 | [new-tool-guide.md](new-tool-guide.md) | Як додати новий інструмент за правилами сайту |
 | [file-rules.md](file-rules.md) | Правила розбиття файлів і документації, роботи з великими текстами |
 | [large-files.md](large-files.md) | Файли, що завеликі або близькі до межі (кандидати на розбиття) |
-| [atlas/world-files.md](atlas/world-files.md), [atlas/biome-files.md](atlas/biome-files.md) | Формат файлів світів і біомів (версія 1), шаблони, правила вибору біомів світом |
+| [atlas/world-files.md](atlas/world-files.md), [atlas/biome-files.md](atlas/biome-files.md), [atlas/monster-files.md](atlas/monster-files.md) | Формат файлів світів, біомів і монстрів (версія 1), шаблони, правила вибору біомів, відстані монстрів від поселень |
 | [atlas/continent/README.md](atlas/continent/README.md) | Атлас, світ «Материк» (колишня карта королівств): ієрархія, дороги, монстри гір/лісів/морів, алгоритм, перенесення в Godot C#, покращення |
 | [plans/README.md](plans/README.md) | Плани: принцип «полотно + іконки», перелік інструментів, злиття карти королівств у Атлас, рішення автора, пріоритети, питання про суперечності |
 | [edits/00-index.md](edits/00-index.md), [edits/16-status.md](edits/16-status.md) | Стиснуті правки автора («новий 3.txt») по інструментах: що просив, суперечності, що зроблено |
