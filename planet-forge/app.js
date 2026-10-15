@@ -168,7 +168,7 @@
   const kb = $('kinds');
   for (const grp of [['world', 'Типи світів'], ['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
     kb.append(el('h5', {}, grp[1]));
-    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
+    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); closePanels(); }; kb.append(b); }
   }
   const reroll = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
   $('btnNew').onclick = () => reroll({ keepKind: true });
@@ -178,6 +178,15 @@
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, spin }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointermove', e => { if (drag) { spin = drag.spin - (e.clientX - drag.x) * .008; draw(); } });
   cv.addEventListener('pointerup', () => { drag = null; });
+
+  /* ---------- панелі з іконок (полотно на весь екран) ---------- */
+  const SIDE = ['pKind', 'pSeed', 'pBg', 'pSurf', 'pSky', 'pExport'];
+  function showPanel(id, on) { const e = $(id); e.hidden = !on; e.classList.toggle('open', on); document.querySelector(`#rail [data-panel=${id}]`).classList.toggle('on', on); if (id === 'card' && on) renderCard(); $('side').classList.toggle('has-open', SIDE.some(s => $(s).classList.contains('open'))); store.set('panel', SIDE.find(s => $(s).classList.contains('open')) || ($('card').classList.contains('open') ? 'card' : '')); }
+  function closePanels() { for (const s of SIDE) showPanel(s, false); }
+  $('rail').addEventListener('click', e => { const b = e.target.closest('button[data-panel]'); if (!b) return; const id = b.dataset.panel, was = $(id).classList.contains('open'); if (id !== 'card') closePanels(); showPanel(id, !was); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); showPanel('card', false); } });
+  for (const s of [...SIDE, 'card']) showPanel(s, false);
+  { const last = store.get('panel', innerWidth > 980 ? 'pSurf' : ''); if (last) showPanel(last, true); }
 
   /* ---------- експорт ---------- */
   $('btnPng').onclick = () => cv.toBlob(b => { download(b, `planet-${st.seed}.png`); toast('Збережено картинку'); });
