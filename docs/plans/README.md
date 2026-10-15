@@ -9,4 +9,5 @@
 | [atlas-decisions.md](atlas-decisions.md) | Проект Атлас: рішення автора й стан робіт |
 | [medieval-world-merge.md](medieval-world-merge.md) | Злиття «Карти королівств» у генератор міст і світів, видалення окремої карти, перейменування |
 | [priorities.md](priorities.md) | Порядок робіт, біоми від автора, режим «питання про суперечності» |
+| [dungeon-sim-queue.md](dungeon-sim-queue.md) | Черга задач симулятора підземель: що зроблено, що відкладено, рішення за замовчуванням |
 | [questions-realm-vs-generator.md](questions-realm-vs-generator.md) | Питання автору про суперечності між оновленням карти та існуючим генератором |

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Симулятор підземель</title>
+<meta name="description" content="Випадкові підземелля: кімнати-тайли зі стикованими дверима, відгалуження, петлі, таємні кімнати, пастки, кілька поверхів зі сходами. Типи підземель з Атласу, прокрутка й зум, експорт PNG і JSON. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/dungeon-sim/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Симулятор підземель">
+<meta property="og:description" content="Генерує підземелля з кімнат, коридорів, таємних дверей, пасток і поверхів. До 300 кімнат, типи з Атласу, експорт PNG і JSON.">
+<meta property="og:url" content="https://zbyrai.pages.dev/dungeon-sim/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M6 26V9h7v6h6V9h7v17z%27 fill=%27none%27 stroke=%27%23d6a15b%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20V7h5v4h8V7h5v13z"/><path d="M10 20v-5h4v5"/></svg>
+    <div>Підземел<span>ля</span></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережене підземелля (налаштування) з файлу .json">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnLink" title="Скопіювати посилання, яке відкриє це саме підземелля">Копіювати посилання</button>
+    <button id="btnCopyJson" title="Скопіювати налаштування підземелля як JSON (можна вставити в Імпорт)">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити налаштування як файл .json: те саме зерно відтворить те саме підземелля">Зберегти .json</button>
+    <button id="btnPrint" title="Надрукувати карту всіх поверхів">Друк</button>
+    <button id="btnPng" class="btn-primary" title="Зберегти карту поточного поверху як картинку PNG">Зберегти PNG</button>
+  </div>
+</header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Генератор підземель із кімнат-тайлів. Кожна кімната лежить у своїй клітинці ґратки, двері двох сусідніх кімнат завжди стикуються коридором. Є відгалуження, петлі, глухі кути, таємні кімнати, пастки, істоти й здобич, а також кілька поверхів зі сходами. Усе від зерна: те саме зерно дає те саме підземелля.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Для настільних і відеоігор: швидка карта для сесії, заготовка рівня, ідея для лабіринту. Типи підземель (каналізація, катакомби, шахта, склеп…) беруться з Атласу, тож розміри, небезпека й мешканці збігаються з підземеллями на карті світу.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Обери тип</b> праворуч (або «Вільне»), кількість кімнат від 3 до 300 і поверхи.</li>
+        <li><b>Натисни «Зарандомити»</b> (Пробіл) або підкрути «Розгалуження», «Петлі», «Таємниці», «Пастки».</li>
+        <li><b>Коліщатко</b> мишки наближає, <b>перетягування</b> рухає карту, <b>клік по кімнаті</b> показує її вміст.</li>
+        <li><b>Збережи</b> кнопками угорі: PNG, JSON, посилання, друк.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<div class="toolbar">
+  <button id="btnRandom" class="btn-primary" title="Нове випадкове підземелля: тип, розмір, форма, зерно. Замкнене лишається (Пробіл)">Зарандомити</button>
+  <button id="btnSeed" title="Лише нове зерно: ті самі налаштування, інше розташування кімнат">Нове зерно</button>
+  <label class="chk" title="Не змінювати тип підземелля, коли тиснеш «Зарандомити»"><input type="checkbox" id="lkType"><span>Замкнути тип</span></label>
+  <button id="btnFit" title="Показати все підземелля поверху на весь екран">Вписати</button>
+  <button id="btnReset" title="Повернути стандартні налаштування">Скинути</button>
+</div>
+
+<main class="wrap">
+  <section class="stage">
+    <div class="floors" id="floors" role="tablist" aria-label="Поверхи"></div>
+    <div class="viewport" id="view"><canvas id="cv" aria-label="Карта підземелля" title="Коліщатко: зум. Перетягування: рух. Клік по кімнаті: подробиці"></canvas></div>
+    <p class="meta" id="meta"></p>
+  </section>
+
+  <aside class="side">
+    <div class="card"><h2>Тип підземелля</h2>
+      <label class="ctl" title="Тип з Атласу світів: задає розмір, число поверхів, небезпеку, стиль і мешканців. «Вільне» не прив’язане до типу"><span>Тип</span><span></span><select id="selType"></select></label>
+      <p class="hint" id="typeHint"></p>
+    </div>
+    <div class="card"><h2>Розмір і форма</h2><div id="ctls" class="ctls"></div></div>
+    <div class="card"><h2>Вигляд</h2>
+      <div id="viewCtl" class="ctls"></div>
+      <div class="layers" id="layers"></div>
+    </div>
+    <div class="card"><h2>Кімната</h2><div id="roomInfo" class="info"><p class="hint">Клікни по кімнаті на карті.</p></div></div>
+    <div class="card"><h2>Підсумок</h2><div id="stats" class="info"></div></div>
+  </aside>
+</main>
+
+<div id="printArea" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./dungeon-types.js"></script>
+<script src="./dungeon-core.js"></script>
+<script src="./dungeon-render.js"></script>
+<script src="./app.js"></script>
+<script src="./tool-chrome.js"></script>
+</body>
+</html>
