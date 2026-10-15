@@ -7,8 +7,8 @@
     mountain(ctx, x, y, s, snow) {
       const w = s * 0.95, h = s * 1.15;
       ctx.beginPath(); ctx.moveTo(x - w, y + h * 0.5); ctx.lineTo(x, y - h * 0.6); ctx.lineTo(x + w, y + h * 0.5); ctx.closePath();
-      ctx.fillStyle = snow ? '#f4f6f8' : '#b3aa9a'; ctx.fill();
-      ctx.beginPath(); ctx.moveTo(x, y - h * 0.6); ctx.lineTo(x + w, y + h * 0.5); ctx.lineTo(x + w * 0.1, y + h * 0.5); ctx.closePath(); ctx.fillStyle = snow ? '#c9d2da' : '#8a8274'; ctx.fill();
+      const rk = R.Palette.theme.rock; ctx.fillStyle = snow ? '#f4f6f8' : rk[0]; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x, y - h * 0.6); ctx.lineTo(x + w, y + h * 0.5); ctx.lineTo(x + w * 0.1, y + h * 0.5); ctx.closePath(); ctx.fillStyle = snow ? '#c9d2da' : rk[1]; ctx.fill();
       ctx.beginPath(); ctx.moveTo(x - w, y + h * 0.5); ctx.lineTo(x, y - h * 0.6); ctx.lineTo(x + w, y + h * 0.5); ctx.strokeStyle = '#4a3f33'; ctx.lineWidth = Math.max(0.6, s * 0.1); ctx.stroke();
       if (!snow) { ctx.beginPath(); ctx.moveTo(x - w * 0.28, y - h * 0.18); ctx.lineTo(x, y - h * 0.6); ctx.lineTo(x + w * 0.28, y - h * 0.18); ctx.closePath(); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fill(); }
     },
@@ -16,7 +16,7 @@
     tree(ctx, x, y, s, kind) {
       ctx.beginPath();
       if (kind === 'taiga') { ctx.moveTo(x, y - s * 0.95); ctx.lineTo(x + s * 0.5, y + s * 0.3); ctx.lineTo(x - s * 0.5, y + s * 0.3); ctx.closePath(); ctx.fillStyle = '#3f6b4d'; }
-      else { ctx.arc(x, y - s * 0.2, s * 0.5, 0, 6.3); ctx.fillStyle = kind === 'enchanted' ? '#3f9c93' : '#4d7e3a'; }
+      else { ctx.arc(x, y - s * 0.2, s * 0.5, 0, 6.3); ctx.fillStyle = kind === 'enchanted' ? '#3f9c93' : R.Palette.theme.tree; }
       ctx.fill(); ctx.strokeStyle = 'rgba(25,40,20,.85)'; ctx.lineWidth = Math.max(0.5, s * 0.08); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x, y + s * 0.3); ctx.lineTo(x, y + s * 0.65); ctx.strokeStyle = '#4b3722'; ctx.stroke();
       if (kind === 'enchanted') { ctx.fillStyle = 'rgba(210,255,248,.95)'; ctx.fillRect(x - s * 0.08, y - s * 0.55, s * 0.16, s * 0.16); }

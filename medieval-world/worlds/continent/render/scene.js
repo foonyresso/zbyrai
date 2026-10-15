@@ -14,8 +14,8 @@
   class Scene {
     constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.layers = Object.assign({}, DEFAULT_LAYERS); this.view = { k: 8, tx: 0, ty: 0 }; this.world = null; this.hits = []; this.sel = null; this.route = null; this.cache = null; this.dirty = true; this.dpr = 1; this.pins = {}; }
     setWorld(w) {
-      this.world = w; this.geom = R.Geometry.buildGeometry(w); this.cache = null; this.dangerCv = null; this.sel = null; this.route = null; this.pins = {};
-      const g = w.grid; this.maxS = Math.max(6, Math.min(22, Math.floor(Math.sqrt(14e6 / g.n)))); this.fit(); this.dirty = true;
+      clearTimeout(this.upT); R.Palette.setTheme(w.params.theme); this.world = w; this.geom = R.Geometry.buildGeometry(w); this.cache = null; this.dangerCv = null; this.sel = null; this.route = null; this.pins = {};
+      const g = w.grid; this.maxS = Math.max(6, Math.min(14, Math.floor(Math.sqrt(4.5e6 / g.n)))); this.fit(); this.dirty = true;
     }
     resize() { const r = this.cv.getBoundingClientRect(); this.dpr = Math.min(2, window.devicePixelRatio || 1); this.cv.width = Math.max(10, Math.round(r.width * this.dpr)); this.cv.height = Math.max(10, Math.round(r.height * this.dpr)); this.W = r.width; this.H = r.height; this.dirty = true; }
     fit() { if (!this.world) return; const g = this.world.grid, W = this.W || 800, H = this.H || 500, k = Math.min(W / g.w, H / g.h) * 0.98; this.view = { k, tx: (W - g.w * k) / 2, ty: (H - g.h * k) / 2 }; this.dirty = true; }
@@ -24,18 +24,25 @@
     focusCell(c, k) { const g = this.world.grid; this.view.k = k || Math.max(this.view.k, 14); this.view.tx = this.W / 2 - g.cx[c] * this.view.k; this.view.ty = this.H / 2 - g.cy[c] * this.view.k; this.dirty = true; }
     screenToCell(sx, sy) { const g = this.world.grid, x = (sx - this.view.tx) / this.view.k, y = (sy - this.view.ty) / this.view.k; const cx = Math.floor(x), cy = Math.floor(y); if (cx < 0 || cy < 0 || cx >= g.w || cy >= g.h) return -1; return cy * g.w + cx; }
 
+    // Перший кадр будується одразу; вищу роздільність (при наближенні) будуємо відкладено, щоб рух і масштаб не підвисали: поки готується, малюється наявна
     layersFor(S) {
-      const need = S; if (this.cache && this.cache.S >= need) return this.cache;
+      if (this.cache && this.cache.S >= S) return this.cache;
+      if (!this.cache) return this.buildLayers(S);
+      this.wantS = S; clearTimeout(this.upT);
+      this.upT = setTimeout(() => { if (this.world && (!this.cache || this.cache.S < this.wantS)) { this.buildLayers(this.wantS); this.dirty = true; } }, 220);
+      return this.cache;
+    }
+    buildLayers(S) {
       const w = this.world, g = this.geom, t0 = performance.now();
       this.cache = { S, base: R.BaseLayer.renderBase(w, g, S), political: R.BaseLayer.renderPolitical(w, g, S), decor: R.Decor.renderDecor(w, S), ms: performance.now() - t0 };
       return this.cache;
     }
-    pickS(k) { const want = k < 9 ? 8 : k < 16 ? 14 : 22; return Math.min(this.maxS, want); }
+    pickS(k) { return k < 9 ? Math.min(this.maxS, 8) : this.maxS; }
 
     // Малює кадр у ctx: W×H CSS-пікселів, view — камера
     render(ctx, W, H, view, opt) {
       const w = this.world, g = w.grid, L = this.layers, k = view.k, t = (opt && opt.time) || performance.now();
-      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#242833'; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = R.Palette.theme.bg; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       const sc = (opt && opt.scale) || this.dpr; ctx.setTransform(sc, 0, 0, sc, 0, 0);
       const C = this.layersFor(this.pickS(k * (opt && opt.hiRes ? 2 : 1)));
       ctx.save(); ctx.translate(view.tx, view.ty); ctx.scale(k, k); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';

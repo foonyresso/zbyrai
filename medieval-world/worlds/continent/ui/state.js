@@ -3,9 +3,11 @@
   'use strict';
   const R = (globalThis.RealmMap = globalThis.RealmMap || {});
   const $ = id => document.getElementById(id);
+  // у вбудованому світі (?world=<id>) кожен світ зберігає власні параметри й шари
+  const WID = (/[?&]world=([\w-]+)/.exec(location.search) || [])[1], PRE = 'rm_' + (WID ? WID + '_' : '');
   const store = {
-    get(k, d) { try { const v = localStorage.getItem('rm_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem('rm_' + k, JSON.stringify(v)); } catch (e) {} },
+    get(k, d) { try { const v = localStorage.getItem(PRE + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(PRE + k, JSON.stringify(v)); } catch (e) {} },
   };
   function toast(m, ms) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms || 2000); }
   function el(tag, attrs, kids) {

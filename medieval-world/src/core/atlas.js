@@ -44,14 +44,15 @@
 
   /* завантажує файли з registry.js по черзі (статичний сайт без сервера), повертає Promise */
   A.load = function () {
-    const list = A.manifest.biomes.concat(A.manifest.worlds);
-    return list.reduce((p, src) => p.then(() => new Promise((ok, no) => {
+    /* async=false: файли вантажаться паралельно, а виконуються по черзі */
+    return Promise.all(A.manifest.biomes.concat(A.manifest.worlds).map((src) => new Promise((ok, no) => {
       const s = document.createElement("script");
       s.src = src;
+      s.async = false;
       s.onload = ok;
       s.onerror = () => no(new Error("не завантажено " + src));
       document.head.append(s);
-    })), Promise.resolve());
+    })));
   };
   if (typeof module !== "undefined" && module.exports) module.exports = A;
   else root.Atlas = A;

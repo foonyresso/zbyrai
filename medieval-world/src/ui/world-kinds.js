@@ -20,8 +20,10 @@
     frame.title = "Світ «" + w.name + "»";
     frame.dataset.world = w.id;
     frame.setAttribute("allow", "clipboard-write");
-    if (!hash && w.preset) hash = encodeURIComponent(b64(JSON.stringify({ format: "zbyrai-realm-map", params: w.preset })));
-    frame.src = w.entry + (hash ? "#p=" + hash : "");
+    let stored = null;
+    try { stored = localStorage.getItem("rm_" + w.id + "_params"); } catch { /* сховище недоступне */ }
+    if (!hash && w.preset && !stored) hash = encodeURIComponent(b64(JSON.stringify({ format: "zbyrai-realm-map", params: w.preset })));
+    frame.src = w.entry + "&world=" + w.id + (hash ? "#p=" + hash : "");
     box.append(frame);
   }
   function setWorld(id, hash) {

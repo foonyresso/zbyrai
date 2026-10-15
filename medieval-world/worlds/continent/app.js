@@ -86,7 +86,7 @@
   (function loop(t) {
     const sc = App.scene;
     if (sc.world && sc.W) {
-      const pulse = sc.layers.lairs && sc.world.lairs.some(l => l.tier === 3) && t - last > 120;
+      const pulse = sc.layers.lairs && !document.hidden && t - last > 160 && sc.hits.some(h => h.t === 'l' && h.o.tier === 3);
       if (sc.dirty || pulse) { sc.draw(); last = t; }
     }
     requestAnimationFrame(loop);

@@ -17,7 +17,6 @@
       U.el('button', { class: 'btn-primary', text: 'Згенерувати', title: 'Перебудувати карту з поточними параметрами', onclick: () => App.regenNow() }),
     ]));
     s(U.select(pn, { label: 'Розмір карти', title: 'Розмір сітки: мала 120×76, середня 168×106, велика 240×150 комірок', opts: Object.entries(R.Params.SIZES).map(([k, v]) => [k, v.name + ' (' + v.w + '×' + v.h + ')']), get: () => P.size, set: v => { P.size = v; P.provinces = R.Params.SIZES[v].provinces; sync.forEach(f => f && f()); }, done }));
-    s(U.select(pn, { label: 'Тип суші', title: 'Співвідношення суші й води: материки, архіпелаг, один острів або суходіл із морями', opts: Object.entries(R.Terrain.WORLD_TYPES).map(([k, v]) => [k, v.name]), get: () => P.worldType, set: v => P.worldType = v, done }));
     s(U.slider(pn, { label: 'Масштаб: км на комірку', min: 1, max: 10, step: 1, title: 'Скільки кілометрів у одній комірці. Впливає на довжини доріг, дні подорожі й на ширину смуги кораблів біля берега (2–4 км)', get: () => P.kmPerCell, set: v => P.kmPerCell = v, fmt: v => v + ' км', done }));
     pn.append(U.el('h2', { text: 'Політика' }));
     s(U.slider(pn, { label: 'Провінції', min: 1, max: 10, step: 1, title: 'Кількість провінцій (як країн). Кожна має столицю з найбільшим регіоном', get: () => P.provinces, set: v => P.provinces = v, done }));

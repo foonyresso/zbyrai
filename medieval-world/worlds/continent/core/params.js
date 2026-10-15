@@ -6,7 +6,7 @@
   const clamp = (v, a, b, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
 
   function defaults() {
-    return { seed: 'zbyrai', size: 'm', worldType: 'continent', provinces: 5, regionsPerProvince: 5, density: 1, monsters: 1, kmPerCell: 2, ruggedness: 0.5, wet: 0, warm: 0, fantasy: 1, riverDensity: 1 };
+    return { seed: 'zbyrai', size: 'm', worldType: 'continent', provinces: 5, regionsPerProvince: 5, density: 1, monsters: 1, kmPerCell: 2, ruggedness: 0.5, wet: 0, warm: 0, fantasy: 1, riverDensity: 1, theme: 'continent' };
   }
   // Повна нормалізація: будь-який об’єкт (з посилання, JSON, форми) → коректні параметри
   function normalize(inp) {
@@ -20,6 +20,7 @@
     p.kmPerCell = clamp(p.kmPerCell, 0.5, 20, 2); p.ruggedness = clamp(p.ruggedness, 0, 1, 0.5);
     p.wet = clamp(p.wet, -0.3, 0.3, 0); p.warm = clamp(p.warm, -0.3, 0.3, 0); p.fantasy = clamp(p.fantasy, 0, 2, 1); p.riverDensity = clamp(p.riverDensity, 0.3, 2.5, 1);
     // морські шляхи: бажана смуга від берега 2–4 км → у комірках; глибина лігв далі за смугу
+    p.theme = /^[a-z0-9-]{1,24}$/.test(String(p.theme)) ? String(p.theme) : d.theme;
     p.seaPrefMax = Math.max(1, Math.round(4 / p.kmPerCell)); p.seaDeepMin = p.seaPrefMax + 2;
     return p;
   }
