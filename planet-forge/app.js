@@ -18,6 +18,8 @@
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v)), smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
+  const VIEWS = []; // додаткові вигляди (зоряна система, літаючий континент) підключаються через PFApp.attach
+  const activeView = () => VIEWS.find(v => v.active());
   let tex = null, info = null, spin = st.spin * Math.PI / 180, cloudDrift = 0, lastT = 0, bgT = 0, texVer = 0, sphereSig = '';
   const cv = $('cv'), ctx = cv.getContext('2d'), view = $('view'), sphere = document.createElement('canvas'), sctx = sphere.getContext('2d');
 
@@ -70,6 +72,7 @@
     const dpr = Math.min(devicePixelRatio || 1, 1.5), w = view.clientWidth, h = view.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); PB.draw(ctx, w, h, st, st.seed, bgT);
+    const V = activeView(); if (V) { V.draw(ctx, w, h, dpr, bgT); return; }
     const cx = w / 2, cy = h / 2 - 10, Rp = Math.min(w, h) * (st.ring ? .3 - .05 * (st.ringw ?? .5) : .33), tilt = st.tilt * Math.PI / 180, k = .24;
     const phi = st.sun * Math.PI / 180, lx = -Math.cos(phi), lz = Math.sin(phi);
     const moons = info.moons;
@@ -166,18 +169,27 @@
   $('tName').oninput = e => { st.name = e.target.value.trim(); if (st.name) st.locks.name = true; save(); syncLocks(); if (info) { info.name = st.name || PC.planetName(st.seed, st.kind); renderCard(); } };
   $('tName').onchange = () => { if (!st.name) { st.locks.name = false; st.name = PC.planetName(st.seed, st.kind); save(); sync(); if (info) { info.name = st.name; renderCard(); } } };
   const kb = $('kinds');
-  for (const grp of [['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
+  for (const grp of [['world', 'Типи світів'], ['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
     kb.append(el('h5', {}, grp[1]));
-    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
+    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); closePanels(); }; kb.append(b); }
   }
-  const reroll = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
+  const reroll = opts => { if (activeView()) return activeView().reroll(opts); st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
   $('btnNew').onclick = () => reroll({ keepKind: true });
   $('btnSurprise').onclick = () => reroll({});
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
   let drag = null;
-  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, spin }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointerdown', e => { if (activeView()) return; drag = { x: e.clientX, spin }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointermove', e => { if (drag) { spin = drag.spin - (e.clientX - drag.x) * .008; draw(); } });
   cv.addEventListener('pointerup', () => { drag = null; });
+
+  /* ---------- панелі з іконок (полотно на весь екран) ---------- */
+  const SIDE = ['pKind', 'pSeed', 'pBg', 'pSurf', 'pSky', 'pSys', 'pFly', 'pExport'];
+  function showPanel(id, on) { const e = $(id); e.hidden = !on; e.classList.toggle('open', on); document.querySelector(`#rail [data-panel=${id}]`).classList.toggle('on', on); if (id === 'card' && on) renderCard(); $('side').classList.toggle('has-open', SIDE.some(s => $(s).classList.contains('open'))); store.set('panel', SIDE.find(s => $(s).classList.contains('open')) || ($('card').classList.contains('open') ? 'card' : '')); }
+  function closePanels() { for (const s of SIDE) showPanel(s, false); }
+  $('rail').addEventListener('click', e => { const b = e.target.closest('button[data-panel]'); if (!b) return; const id = b.dataset.panel, was = $(id).classList.contains('open'); if (id !== 'card') closePanels(); showPanel(id, !was); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); showPanel('card', false); } });
+  for (const s of [...SIDE, 'card']) showPanel(s, false);
+  { const last = store.get('panel', innerWidth > 980 ? 'pSurf' : ''); if (last) showPanel(last, true); }
 
   /* ---------- експорт ---------- */
   $('btnPng').onclick = () => cv.toBlob(b => { download(b, `planet-${st.seed}.png`); toast('Збережено картинку'); });
@@ -191,14 +203,16 @@
     }, 30);
   }
   $('btnMap').onclick = () => exportTexture('map'); $('btnHeight').onclick = () => exportTexture('height');
-  $('btnJson').onclick = () => { if (!info) return; download(new Blob([JSON.stringify({ tool: 'planet-forge', params: genParams(), passport: info }, null, 2)], { type: 'application/json' }), `planet-${st.seed}.json`); toast('Збережено паспорт'); };
+  const payload = () => activeView() ? activeView().payload() : { tool: 'planet-forge', params: genParams(), passport: info };
+  $('btnJson').onclick = () => { if (!info) return; download(new Blob([JSON.stringify(payload(), null, 2)], { type: 'application/json' }), `planet-${st.seed}.json`); toast('Збережено паспорт'); };
 
-  $('btnCopyJson').onclick = async () => { if (!info) return; try { await navigator.clipboard.writeText(JSON.stringify({ tool: 'planet-forge', params: genParams(), passport: info }, null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
+  $('btnCopyJson').onclick = async () => { if (!info) return; try { await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
   $('btnImport').onclick = () => $('fileImport').click();
   $('fileImport').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try {
       const d = JSON.parse(await f.text()), p = d.params;
+      if (VIEWS.some(v => v.load(d))) { toast('Завантажено'); return; }
       if (!p || !PC.KINDS[p.kind] || !p.seed) throw new Error('bad');
       st = Object.assign(PC.fromKind(p.kind, String(p.seed)), p, { locks: st.locks });
       st = Object.assign(st, PC.clampParams(st), PB.clampBg(st)); save(); sync(); regenerate(); toast('Планету завантажено');
@@ -208,9 +222,16 @@
   /* ---------- цикл анімації ---------- */
   function frame(t) {
     const dt = Math.min(.1, (t - lastT) / 1000 || 0); lastT = t;
-    if (tex && !drag && !document.hidden) { bgT += dt; if (st.auto) { spin += dt * .35; cloudDrift = (cloudDrift + dt * .004) % 1; for (const m of info.moons) m.phase += dt * .35 * m.speed; } if (st.auto || PB.animated(st)) draw(); }
+    if (tex && !drag && !document.hidden) { bgT += dt; const V = activeView(); if (V) { V.tick(dt); draw(); requestAnimationFrame(frame); return; } if (st.auto) { spin += dt * .35; cloudDrift = (cloudDrift + dt * .004) % 1; for (const m of info.moons) m.phase += dt * .35 * m.speed; } if (st.auto || PB.animated(st)) draw(); }
     requestAnimationFrame(frame);
   }
   if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(view);
+  /* міст до system-ui.js: доступ до стану планети й перемикання між планетою та системою */
+  window.PFApp = {
+    state: () => st, strip: () => PC_STRIP(st), toast, el, FMT, draw, save,
+    openPlanet(params) { st = Object.assign(PC.clampParams(params), keepUI()); save(); sync(); regenerate(); },
+    attach(s) { VIEWS.push(s); }, deactivateOthers(c) { VIEWS.forEach(v => v !== c && v.deactivate && v.deactivate()); }, refresh() { sync(); draw(); },
+  };
+  const PC_STRIP = s => PlanetSystem.strip(s);
   sync(); regenerate(); requestAnimationFrame(frame);
 })();

@@ -94,5 +94,19 @@ test('експорт CSV має рядок на колоніста', () => {
   const col = C.generateColony('csv', 6), lines = C.toCsv(col).split('\n'); assert.equal(lines.length, 7);
 });
 
+test('професії: кожна робота має назву; професія колоніста визначена', () => {
+  for (const j of C.JOBS) assert.ok(C.PROF[j.id] && C.PROF[j.id].length === 2, j.id);
+  for (const c of C.generateColony('prof', 12).colonists) assert.ok(/\S/.test(C.profession(c)));
+});
+
+test('покоління даних: gen 2 має життєвий епізод і звичку, gen 1 — ні; gen 1 стабільне й детерміноване', () => {
+  const a = C.generateColony('g', 8, {}, 1), b = C.generateColony('g', 8, {}, 2);
+  assert.deepEqual(a, C.generateColony('g', 8, {}, 1));
+  assert.ok(a.colonists.every(c => c.life === null && c.quirk === '' && c.gen === 1));
+  assert.ok(b.colonists.every(c => c.life && c.quirk && c.gen === 2));
+  assert.ok(C.backstoryText(b.colonists[0]).length >= 2);
+  const r = C.reroll(a, 2, 'z'); assert.equal(r.colonists[2].gen, 1);
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

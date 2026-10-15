@@ -94,3 +94,22 @@ th.vert { writing-mode: vertical-rl; transform: rotate(180deg); white-space: now
 table th.vert, table td { border: 1px solid var(--line); }
 td.pr1, td.pr2, td.pr3, td.pr4 { text-align: center; }
 .log { max-height: 340px; overflow: auto; }
+
+/* поселення, час, історія колоніста */
+.form { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.form .ctl-inline input[type=text] { width: 180px; font-family: var(--ff-ui); }
+h3.mini { margin: 12px 0 4px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--accent); font-weight: 600; }
+ul.plist { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.simbar .clock { font-family: var(--ff-mono); font-size: 12px; color: var(--accent-hi); margin-left: auto; }
+.tl .who { cursor: pointer; } .tl .who:hover { color: var(--accent-hi); } .tl.sel .who { color: var(--accent-hi); font-weight: 600; }
+.tl i.act-none { background: var(--bg-elev); opacity: .5; }
+.tl i.hasev { outline: 1.5px solid #ffd479; outline-offset: -1px; }
+.act-хворіє { background: #8a5a8a; }
+.log li { cursor: default; } .log li.info { color: var(--faint); }
+.hist { list-style: none; margin: 0; padding: 0; max-height: 380px; overflow: auto; font-size: 13px; color: var(--muted); }
+.hist li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid var(--line-soft); }
+.hist li time { font-family: var(--ff-mono); color: var(--faint); min-width: 48px; }
+.hist li span { color: var(--text); }
+.hist li em { flex-basis: 100%; padding-left: 58px; font-style: normal; font-size: 12px; } .hist li em.good { color: #a6e3b4; } .hist li em.bad { color: #f2a0a0; }
+.nav { display: inline-flex; gap: 6px; align-items: center; font-family: var(--ff-mono); font-size: 12px; color: var(--muted); }
+.nav button { padding: 2px 8px; }

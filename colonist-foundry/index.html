@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Симуляція колонії: колоністи, стосунки, доба</title>
+<title>Симуляція колонії: колоністи, стосунки, час</title>
 <meta name="description" content="Генератор колоністів для ігор-поселень: риси, навички з пристрастями, передісторії, потреби, стосунки між людьми й симуляція доби поселення. Експорт у JSON і CSV. Безкоштовно, працює офлайн.">
 <link rel="canonical" href="https://zbyrai.pages.dev/colonist-foundry/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
-<meta property="og:title" content="Симуляція колонії: колоністи, стосунки, доба">
+<meta property="og:title" content="Симуляція колонії: колоністи, стосунки, час">
 <meta property="og:description" content="Колоністи з характерами, навичками й стосунками, а також симуляція їхньої доби: хто з ким посварився і хто зірвався.">
 <meta property="og:url" content="https://zbyrai.pages.dev/colonist-foundry/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%245%27 fill=%27none%27 stroke=%27%23c98fdc%27 stroke-width=%272%27/%3E%3Cpath d=%27M6 27c1-7 5-9 10-9s9 2 10 9%27 fill=%27none%27 stroke=%27%23c98fdc%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
@@ -38,7 +38,7 @@
   <div class="how-grid">
     <div>
       <h3>Що це</h3>
-      <p>Кузня колоністів: створює групу людей для поселення, кожен зі своїми рисами, навичками, пристрастями, передісторією, а також стосунками між собою. Потім можна прожити добу й побачити, що вони роблять.</p>
+      <p>Кузня колоністів: створює групу людей для поселення, кожен зі своїми рисами, навичками, пристрастями, передісторією, а також стосунками між собою. Потім обери місце поселення й запусти час: побачиш, як вони працюють, хворіють, сваряться, мирляться й кохаються.</p>
     </div>
     <div>
       <h3>Для чого</h3>
@@ -49,7 +49,7 @@
       <ol>
         <li><b>Створи колонію</b>: обери кількість людей і натисни «Нова колонія» (або Пробіл).</li>
         <li><b>Замкни 🔒</b> тих, хто сподобався, і створи нову: решта зміниться.</li>
-        <li><b>«Стосунки»</b> показують, хто кого любить чи не терпить. <b>«Доба»</b> моделює один день поселення.</li>
+        <li><b>«Стосунки»</b> показують, хто кого любить чи не терпить. <b>«Поселення»</b> задає планету й умови. <b>«Симуляція»</b> запускає час: годину за годиною, з погодою, хворобами, подіями й змінами у стосунках.</li>
         <li><b>Збережи або поділись</b> кнопками угорі: JSON, CSV, імпорт.</li>
       </ol>
     </div>
@@ -57,7 +57,7 @@
 </details>
 
 <div class="toolbar">
-  <nav class="tabs" role="tablist"><button role="tab" data-tab="roster" aria-selected="true" title="Картки колоністів: риси, навички, передісторія">Колоністи</button><button role="tab" data-tab="bonds" aria-selected="false" title="Схема й таблиця: хто кого як сприймає">Стосунки</button><button role="tab" data-tab="day" aria-selected="false" title="Симуляція однієї доби поселення">Доба</button></nav>
+  <nav class="tabs" role="tablist"><button role="tab" data-tab="roster" aria-selected="true" title="Картки колоністів: риси, навички, передісторія">Колоністи</button><button role="tab" data-tab="bonds" aria-selected="false" title="Схема й таблиця: хто кого як сприймає">Стосунки</button><button role="tab" data-tab="place" aria-selected="false" title="Планета, місцевість і тип поселення: умови й проблеми, що впливають на настрій і події">Поселення</button><button role="tab" data-tab="day" aria-selected="false" title="Час іде годину за годиною: розклад, події, погода, хвороби, стосунки, історія кожного">Симуляція</button></nav>
   <div class="spacer"></div>
   <label class="ctl-inline" title="Скільки людей у колонії">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
   <label class="ctl-inline" title="Зерно: число-код колонії. Те саме зерно дає ту саму колонію">Зерно <input type="text" id="tSeed" maxlength="20" spellcheck="false"></label>
@@ -75,8 +75,32 @@
     <div class="card"><h2>Хто що думає про кого <span class="sub">рядок думає про стовпчик</span></h2><div class="tablewrap"><table id="matrix"></table></div></div></div>
   </section>
 
+  <section id="tabPlace" hidden>
+    <div class="two">
+      <div class="card"><h2>Де стоїть поселення</h2>
+        <div class="form">
+          <label class="ctl-inline" title="Назва планети: лише для краси й експорту">Планета <input type="text" id="inPlanet" maxlength="24" spellcheck="false"><button id="btnPlanetName" title="Вигадати нову назву планети">🎲</button></label>
+          <label class="ctl-inline" title="Місцевість задає клімат, погоду, ризик хвороб і тип подій (пустеля: спека, джунглі: вологість і хвороби)">Місцевість <select id="selBiome"></select></label>
+          <label class="ctl-inline" title="Тип поселення: у місті більше розваг і загроз, у селі тихіше, форпост безпечніший, але суворий">Поселення <select id="selKind"></select></label>
+          <button id="btnPlaceRand" class="btn-primary" title="Випадково обрати планету, місцевість і тип поселення">🎲 Випадкове місце</button>
+          <span class="hint">Зміна місця починає час з початку: ті самі колоністи, інше середовище.</span>
+        </div>
+      </div>
+      <div class="card" id="placeInfo"></div>
+    </div>
+  </section>
+
   <section id="tabDay" hidden>
-    <div class="bar"><button id="btnDay" class="btn-primary" title="Змоделювати одну добу з номера, вказаного поруч">Прожити добу</button><label class="ctl-inline" title="Номер доби: від нього залежить випадковість подій">Доба № <input type="number" id="nDay" min="1" max="9999" step="1"></label><span class="hint">Вночі сплять, удень працюють за пріоритетами, ввечері розмовляють. Потреби спадають залежно від рис.</span></div>
+    <div class="bar simbar">
+      <button id="btnPlay" class="btn-primary" title="Запустити автоперемотку часу або поставити на паузу (клавіша P)">▶ Грати</button>
+      <button id="btnH1" title="Прокрутити час на одну годину">+1 год</button>
+      <button id="btnH6" title="Прокрутити час на шість годин">+6 год</button>
+      <button id="btnD1" title="Прокрутити час на добу">+1 доба</button>
+      <label class="ctl-inline" title="Скільки годин минає за секунду під час автоперемотки">Швидкість <select id="selSpeed"></select></label>
+      <label class="ctl-inline" title="Варіант випадковості: змініть, щоб побачити інший перебіг подій тієї самої колонії (час почнеться спочатку)">Варіант <input type="number" id="nDay" min="1" max="9999" step="1"></label>
+      <button id="btnResetTime" title="Повернути час на початок тієї самої колонії й місця">↺ З початку</button>
+      <span class="clock" id="simClock"></span>
+    </div>
     <div id="dayOut"></div>
   </section>
 </main>
@@ -87,7 +111,13 @@
 (function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
 if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
+<script src="./colony-data.js"></script>
 <script src="./colonist-core.js"></script>
+<script src="./colony-grammar.js"></script>
+<script src="./colony-world.js"></script>
+<script src="./colony-events.js"></script>
+<script src="./colony-sim.js"></script>
+<script src="./sim-ui.js"></script>
 <script src="./app.js"></script>
 <script src="./tool-chrome.js"></script>
 </body>
