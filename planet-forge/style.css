@@ -87,3 +87,9 @@ details.fold[open] { gap: 9px; }
 .vp-bar { left: 10px; right: 68px; }
 .paper .p-head h3 { font-size: 26px; }
 details.how { max-height: 45vh; overflow: auto; }
+.sub { margin: 6px 0 0; font-family: var(--ff-ui); font-size: 10px; text-transform: uppercase; letter-spacing: .18em; color: var(--faint); font-weight: 600; }
+.syslist { display: flex; flex-direction: column; gap: 4px; }
+.sysrow { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; padding: 6px 10px; }
+.sysrow b { font-size: 13px; } .sysrow span { font-size: 11px; color: var(--faint); font-weight: 400; }
+.sysrow.on { background: var(--accent-glow); border-color: var(--accent); }
+#cv { cursor: grab; }

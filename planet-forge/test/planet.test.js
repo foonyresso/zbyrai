@@ -150,5 +150,16 @@ test('типи світів: група «world» з п’яти..чотирьо
   const e = P.fromKind('earth', 'x'); assert.ok(e.sea <= .5, 'земного типу менше води');
 });
 
+test('зоряна система: детермінована, 3–9 планет з коректними типами, усі зорі (з чорною дірою) працюють, clampSystem відсіює зіпсоване', () => {
+  const S = require('../planet-system.js'); assert.ok(S.STAR_ORDER.includes('blackhole') && S.STAR_ORDER.length >= 10);
+  assert.deepEqual(S.generate('a'), S.generate('a')); assert.notDeepEqual(S.generate('a'), S.generate('b'));
+  for (const st of S.STAR_ORDER) for (const n of [3, 9]) { const y = S.generate('t' + st, { star: st, count: n }); assert.equal(y.planets.length, n); assert.equal(y.star, st);
+    let prev = 0; for (const p of y.planets) { assert.ok(P.KINDS[p.params.kind] && p.au > prev); prev = p.au; assert.ok(P.generateTexture(p.params, 32, 16)); } }
+  const y = S.generate('q'); assert.ok(S.clampSystem(JSON.parse(JSON.stringify(y)))); assert.equal(S.clampSystem({ star: 'x', planets: [] }), null); assert.equal(S.clampSystem(Object.assign({}, y, { planets: [{ au: 1, params: { kind: 'nope' } }] })), null);
+  for (const m of ['compact', 'real']) { const f = y.planets.map((_, i) => S.orbitFrac(y, i, m)); for (let i = 1; i < f.length; i++) assert.ok(f[i] > f[i - 1]); assert.ok(f[f.length - 1] <= 1); }
+  const hot = S.generate('h', { star: 'blue', count: 9 }), red = S.generate('h', { star: 'red', count: 9 }); assert.ok(S.hz(S.STARS.blue).in > S.hz(S.STARS.red).out);
+  assert.ok(hot.planets[0].au > red.planets[8].au * .1);
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
