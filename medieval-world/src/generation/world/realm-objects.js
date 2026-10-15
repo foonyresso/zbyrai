@@ -41,7 +41,9 @@ function rxBiomesAt(x, y) {
   else if (g == "hills") b = ["hills"];
   else if (g == "forest") b = [p.bk == "snow" ? "taiga" : "forest"];
   else b = [p.bk == "snow" ? "tundra" : p.bk == "desert" ? "desert" : p.bk == "swamp" ? "swamp" : p.mo < .45 ? "steppe" : "grass"];
-  return { biomes: b, group: g };
+  const sb = (g != "sea" && g != "lake" && g != "shore") ? sbAt(x, y) : null;
+  if (sb && sb.w > .5) b.push(sb.id);
+  return { biomes: b, group: g, sub: sb ? sb.id : null };
 }
 /* чи достатньо далеко від поселень для цього типу: біля міст монстрів немає, сильніші ще далі; слабкі рідко (rare) бувають біля сіл і хуторів */
 function rxFar(kind, x, y, rare) {

@@ -1,6 +1,6 @@
 /* ---- малювання шарів карти королівств у нескінченному світі: морські шляхи, лігва й боси, місця, стани поселень ----
    Кожен шар має власний перемикач (RLAY.*); значки спільні з «Материком» (src/render/realm/icons-places.js) */
-var RLAY = { mo: true, bs: true, po: true, sr: true, st: true, dg: true, pp: true };
+var RLAY = { mo: true, bs: true, po: true, sr: true, st: true, dg: true, pp: true, sb: true };
 /* підземелля видно від масштабу, коли видно міста й місця інтересу */
 const dgShown = () => RLAY.dg && S >= .07;
 const rlIk = () => Math.max(.6, Math.min(1.5, Math.sqrt(S * 14)));

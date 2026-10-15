@@ -34,7 +34,7 @@ function mkTile(b, tx, ty) {
     QB = Q + 2,
     sp = TW / GN2,
     GG = GN2 + 4,
-    NF = 5,
+    NF = 9,
     FD = new Float32Array(GG * GG * NF),
     ps = TW / Q * 1.6;
   for (let gy = -2; gy < GN2 + 2; gy++) {
@@ -46,11 +46,14 @@ function mkTile(b, tx, ty) {
       FD[o + 2] = p.mo;
       FD[o + 3] = p.tp;
       FD[o + 4] = p.fo;
+      const sb = p.E > 0 ? sbAt(X0 + (gx + .5) * sp, Y0 + (gy + .5) * sp) : null;
+      if (sb) { FD[o + 5] = sb.w; FD[o + 6] = sb.w * sb.rgb[0]; FD[o + 7] = sb.w * sb.rgb[1]; FD[o + 8] = sb.w * sb.rgb[2]; }
     }
   }
   const Ef = new Float32Array(QB * QB),
     Rf = new Float32Array(QB * QB),
     Ff = new Float32Array(QB * QB),
+    Sb = new Float32Array(QB * QB * 4),
     bi = new Uint8Array(QB * QB),
     Rr = new Float32Array(QB * QB).fill(1e3),
     V = new Float32Array(NF),
@@ -78,6 +81,10 @@ function mkTile(b, tx, ty) {
       Ef[i] = V[0];
       Rf[i] = V[1];
       Ff[i] = V[4];
+      Sb[i * 4] = V[5];
+      Sb[i * 4 + 1] = V[6];
+      Sb[i * 4 + 2] = V[7];
+      Sb[i * 4 + 3] = V[8];
       bi[i] = V[3] < .36
         ? 1
         : (V[2] < .38 && V[3] > .45)
@@ -127,6 +134,10 @@ function mkTile(b, tx, ty) {
           P[2],
           cl01((fo - .55) / gr(Ff, x, y, i) + .5) * cl01((.4 - E) / gE + .5),
         );
+      }
+      const sw0 = Sb[i * 4];
+      if (sw0 > .01 && E > .01) {
+        mxc([Sb[i * 4 + 1] / sw0, Sb[i * 4 + 2] / sw0, Sb[i * 4 + 3] / sw0], sw0 * .6 * cl01(E / gE));
       }
       mxc(P[4], cl01((E - .4) / gE + .5));
       mxc(P[5], cl01((E - .62) / gE + .5));
