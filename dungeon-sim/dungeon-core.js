@@ -4,7 +4,7 @@
   if (typeof module === 'object' && module.exports) module.exports = factory(require('./dungeon-types.js')); else root.DungeonCore = factory(root.DungeonTypes);
 })(typeof self !== 'undefined' ? self : this, function (TYPES) {
   'use strict';
-  const CELL = 12, MAX_ROOMS = 300, FORMAT = 1;
+  const CELL = 12, MAX_ROOMS = 300, FORMAT = 3;
   const T = { ROCK: 0, FLOOR: 1, CORR: 2, DOOR: 3, SECRET: 4, DOWN: 5, UP: 6 };
   const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // N E S W
   const STYLES = { brick: 'Зали (прямокутні)', cave: 'Печери (овальні)' };
@@ -46,6 +46,9 @@
     'cloud-monastery-crypt': { tombs: 35, altar: 35, library: 20 }, 'nest-grottoes': { nests: 60, crystals: 10, rubble: 15 },
   };
   const FREE_TAGS = { rubble: 15, webs: 15, cache: 20 };
+  /* Типова частка коридорів-тунелів серед з'єднань (%). Решта: прямі проходи, зали-проходи, печерні ходи. Тунелі лишаються частіше для каналізації й шахт */
+  const TYPE_CORR = { sewer: 35, mine: 30, 'village-cellar': 20, catacombs: 12, crypt: 12, 'palace-cellar-mine': 15, 'ruin-cellars': 10, 'thieves-lair': 10, barrow: 8, 'keep-cellars': 10, 'cloud-monastery-crypt': 8, 'great-hollow': 6, 'occupied-warren': 5, 'mountain-cave': 5, 'star-cavern': 5, 'root-knot-depths': 5, 'scorpion-burrows': 5, 'blue-hollow-caves': 5, 'nest-grottoes': 5 };
+  const corrDefault = id => TYPE_CORR[id] || 8;
   const tagDefaults = id => Object.assign({}, TYPE_TAGS[id] || FREE_TAGS);
 
   /* База монстрів: підключається ззовні (у браузері читається з medieval-world/monsters/*.js через реєстр) */
@@ -66,7 +69,7 @@
     return c[c.length - 1];
   }
 
-  function defaults() { return { v: FORMAT, seed: 'zbyrai', type: '', rooms: 24, levels: 1, style: 'brick', branch: 40, loops: 25, secrets: 30, traps: 40, danger: 2, link: 60, mon: 50, loot: 50, opts: tagDefaults('') }; }
+  function defaults() { return { v: FORMAT, seed: 'zbyrai', type: '', rooms: 24, levels: 1, style: 'brick', branch: 40, loops: 25, secrets: 30, traps: 40, danger: 2, corr: 8, corrLen: 20, mon: 50, loot: 50, opts: tagDefaults('') }; }
   function normalize(p) {
     const d = defaults(), o = Object.assign(defaults(), p || {});
     o.seed = String(o.seed || d.seed).slice(0, 24);
@@ -74,7 +77,9 @@
     o.rooms = clamp(Math.round(+o.rooms || d.rooms), 3, MAX_ROOMS);
     o.levels = clamp(Math.round(+o.levels || 1), 1, Math.min(6, Math.floor(o.rooms / 2)));
     o.style = STYLES[o.style] ? o.style : 'brick';
-    for (const k of ['branch', 'loops', 'secrets', 'traps', 'link', 'mon', 'loot']) o[k] = clamp(Math.round(+o[k]), 0, 100) || 0;
+    for (const k of ['branch', 'loops', 'secrets', 'traps', 'corr', 'corrLen', 'mon', 'loot']) o[k] = clamp(Math.round(+o[k]), 0, 100) || 0;
+    if (p && p.v !== undefined && p.v < 3) { o.corr = corrDefault(o.type); o.corrLen = 20; } // формати 1-2: коридорів було забагато, беремо нову типову частку
+    o.v = FORMAT;
     const td = tagDefaults(o.type), src = o.opts && typeof o.opts === 'object' ? o.opts : {};
     o.opts = {}; for (const k of Object.keys(td)) o.opts[k] = k in src ? clamp(Math.round(+src[k]), 0, 100) || 0 : td[k];
     o.danger = clamp(Math.round(+o.danger || 1), 1, 5);
@@ -97,8 +102,10 @@
   }
 
   /* ---------- один поверх ---------- */
+  const cellSize = P => 12 + Math.round(P.corrLen / 100 * 14);
   const LINKS = { tunnel: 'тунель', direct: 'прямий прохід', wide: 'зал-прохід', natural: 'печерний хід' };
   function genFloor(P, n, fi, last, start, W, H, rnd) {
+    const CELL = cellSize(P); // довші коридори = більші клітинки ґратки (кімнати ті самі, між ними більше місця)
     const cells = [], used = new Map(), open = [0], edges = [], key = (x, y) => y * W + x;
     const add = (x, y) => { used.set(key(x, y), cells.length); cells.push({ x, y, adj: [] }); return cells.length - 1; };
     const link = (a, b, loop) => { edges.push({ a, b, secret: false, loop: !!loop, kind: 'tunnel' }); cells[a].adj.push(b); cells[b].adj.push(a); };
@@ -121,8 +128,8 @@
     // вид зв'язку: тунель, прямий прохід (кімнати впритул), зал-прохід, печерний хід
     const need = cells.map(() => ({ E: 0, W: 0, N: 0, S: 0 })), cave = P.style === 'cave';
     for (const e of edges) {
-      if (rnd() >= P.link / 100) continue;
-      const r = rnd(); e.kind = r < (cave ? .3 : .45) ? 'direct' : r < (cave ? .4 : .7) ? 'wide' : 'natural';
+      if (rnd() < P.corr / 100) continue; // тунель
+      const r = rnd(); e.kind = r < (cave ? .3 : .55) ? 'direct' : r < (cave ? .4 : .85) ? 'wide' : 'natural';
       if (e.kind !== 'direct') continue;
       let A = e.a, B = e.b, hor = cells[A].y === cells[B].y; if (hor ? cells[A].x > cells[B].x : cells[A].y > cells[B].y) [A, B] = [B, A];
       const [fa, fb] = hor ? ['E', 'W'] : ['S', 'N'], [oa, ob] = hor ? ['W', 'E'] : ['N', 'S'];
@@ -156,7 +163,7 @@
       const lo = hor ? Math.max(A.y, B.y) : Math.max(A.x, B.x), hi = hor ? Math.min(A.y + A.h, B.y + B.h) : Math.min(A.x + A.w, B.x + B.w), ok = [];
       for (let k = lo; k < hi; k++) { const t1 = hor ? at(g - 1, k) : at(k, g - 1), t2 = hor ? at(g + 1, k) : at(k, g + 1); if (rid[t1] === A.id && rid[t2] === B.id) ok.push(k); }
       if (!ok.length) return false;
-      let a0 = ri(rnd, 0, ok.length - 1), len = 1; if (!e.secret) while (len < 3 && a0 + len < ok.length && ok[a0 + len] === ok[a0] + len && rnd() < .6) len++;
+      let a0 = ri(rnd, 0, ok.length - 1), len = 1; if (!e.secret) { const full = rnd() < .25; while (len < (full ? 9 : 3) && a0 + len < ok.length && ok[a0 + len] === ok[a0] + len && (full || rnd() < .6)) len++; }
       for (let i = 0; i < len; i++) { const k = ok[a0 + i], t = hor ? at(g, k) : at(k, g); tiles[t] = e.secret ? T.SECRET : len === 1 ? T.DOOR : T.FLOOR; }
       const m = ok[a0 + (len >> 1)], d = hor ? [g, m, e.secret ? 1 : 0] : [m, g, e.secret ? 1 : 0]; A.doors.push(d); B.doors.push(d);
       return true;
@@ -196,7 +203,7 @@
       let A = rooms[e.a], B = rooms[e.b]; const hor = A.cy === B.cy;
       if (hor ? A.cx > B.cx : A.cy > B.cy) [A, B] = [B, A];
       if (e.kind === 'direct' && carveDirect(A, B, hor, e)) continue;
-      if (e.kind === 'direct') e.kind = 'tunnel';
+      if (e.kind === 'direct') e.kind = cave ? 'natural' : 'wide';
       carvePath(A, B, hor, e);
     }
     // сходи
@@ -265,7 +272,7 @@
     if (!ty) { o.type = ''; return o; }
     rnd = rnd || Math.random;
     o.type = ty.id; o.rooms = ri(rnd, ty.rooms[0], ty.rooms[1]); o.levels = ri(rnd, ty.levels[0], ty.levels[1]);
-    o.danger = ty.danger; o.style = CAVE_IDS.includes(ty.id) ? 'cave' : 'brick'; o.opts = tagDefaults(ty.id);
+    o.danger = ty.danger; o.style = CAVE_IDS.includes(ty.id) ? 'cave' : 'brick'; o.opts = tagDefaults(ty.id); o.corr = corrDefault(ty.id);
     return normalize(o);
   }
   function randomize(params, locks, rnd) {
@@ -274,7 +281,7 @@
     if (!locks.type) { const ty = rnd() < 0.2 ? null : pick(rnd, TYPES); o = ty ? applyType(o, ty.id, rnd) : Object.assign(o, { type: '' }); }
     else if (o.type) o = applyType(o, o.type, rnd);
     if (!o.type) { o.rooms = ri(rnd, 8, 60); o.levels = ri(rnd, 1, 3); o.danger = ri(rnd, 1, 5); o.style = rnd() < .3 ? 'cave' : 'brick'; }
-    o.branch = ri(rnd, 0, 100); o.loops = ri(rnd, 0, 70); o.secrets = ri(rnd, 0, 70); o.traps = ri(rnd, 0, 80); o.link = ri(rnd, 20, 100); o.mon = ri(rnd, 25, 80); o.loot = ri(rnd, 25, 80);
+    o.branch = ri(rnd, 0, 100); o.loops = ri(rnd, 0, 70); o.secrets = ri(rnd, 0, 70); o.traps = ri(rnd, 0, 80); o.corr = ri(rnd, 2, 35); o.corrLen = ri(rnd, 0, 60); o.mon = ri(rnd, 25, 80); o.loot = ri(rnd, 25, 80);
     for (const k of Object.keys(o.opts)) o.opts[k] = clamp(o.opts[k] + ri(rnd, -25, 25), 0, 100);
     return normalize(o);
   }
@@ -285,5 +292,5 @@
     return `${d.type ? d.type.name : 'Підземелля'}: ${s.rooms} кімнат, ${s.floors} пов., небезпека ${p.danger}/5; ${s.doors} дверей (з них таємних ${s.secrets}), ${s.traps} пасток, ${s.monsters} істот, ${s.loot} схованок зі здобиччю.`;
   }
 
-  return { SHAPE_NAMES, LINKS, TAGS, tagDefaults, setMonsters, T, CELL, MAX_ROOMS, STYLES, TRAPS, defaults, normalize, generate, applyType, randomize, toJSON, fromJSON, describe, rng, randSeed, typeById, types: TYPES };
+  return { corrDefault, SHAPE_NAMES, LINKS, TAGS, tagDefaults, setMonsters, T, CELL, MAX_ROOMS, STYLES, TRAPS, defaults, normalize, generate, applyType, randomize, toJSON, fromJSON, describe, rng, randSeed, typeById, types: TYPES };
 });

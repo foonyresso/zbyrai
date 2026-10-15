@@ -36,12 +36,16 @@ test('двері стикуються: кожне ребро має по две�
   assert.strictEqual(total, f.edges.length * 2);
   for (const r of f.rooms) for (const [x, y, sec] of r.doors) { const t = f.tiles[y * f.w + x]; if (sec) assert.strictEqual(t, T.SECRET); else assert.ok(t === T.DOOR || t === T.FLOOR || t === T.CORR, 'порожній вихід'); }
 });
-test('зв’язки: усі види трапляються, «Зв’язки» 0 = лише тунелі, 100 = майже без тунелів', () => {
-  const cnt = l => { const m = {}; for (let i = 0; i < 8; i++) for (const k in C.generate({ seed: 'lk' + i, rooms: 60, link: l }).stats.links) m[k] = (m[k] || 0) + C.generate({ seed: 'lk' + i, rooms: 60, link: l }).stats.links[k]; return m; };
-  const z = cnt(0), f = cnt(100); assert.deepStrictEqual(Object.keys(z), ['tunnel']); for (const k of ['tunnel', 'direct', 'wide', 'natural']) assert.ok(f[k] > 0, 'немає ' + k); assert.ok(f.tunnel < f.direct + f.wide + f.natural);
+test('частка коридорів: 0 = без тунелів, 100 = лише тунелі, між ними всі види', () => {
+  const cnt = c => { const m = {}; for (let i = 0; i < 8; i++) { const L = C.generate({ seed: 'lk' + i, rooms: 60, corr: c }).stats.links; for (const k in L) m[k] = (m[k] || 0) + L[k]; } return m; };
+  const z = cnt(0), f = cnt(100), mid = cnt(30); assert.ok(!z.tunnel); for (const k of ['direct', 'wide', 'natural']) assert.ok(z[k] > 0, 'немає ' + k); assert.deepStrictEqual(Object.keys(f), ['tunnel']); assert.ok(mid.tunnel > 0 && mid.direct > 0);
+});
+test('довжина коридорів: більше значення дає довші проміжки', () => {
+  const len = l => { let s = 0; for (let i = 0; i < 6; i++) { const d = C.generate({ seed: 'ln' + i, rooms: 40, corr: 100, corrLen: l }); s += d.stats.corridors / d.stats.rooms; } return s; };
+  assert.ok(len(100) > len(0) * 1.5, len(0) + ' ' + len(100));
 });
 test('прямий прохід: кімнати стоять впритул через стіну з прорізом', () => {
-  const f = C.generate({ seed: 'dp', rooms: 80, link: 100, loops: 80 }).floors[0]; let n = 0;
+  const f = C.generate({ seed: 'dp', rooms: 80, corr: 0, loops: 80 }).floors[0]; let n = 0;
   for (const e of f.edges) if (e.kind === 'direct') { n++; const A = f.rooms[e.a], B = f.rooms[e.b]; assert.ok(A.doors.length && B.doors.length); assert.ok(Math.abs(A.mx - B.mx) + Math.abs(A.my - B.my) < 25); }
   assert.ok(n > 5);
 });
