@@ -47,62 +47,51 @@
     <div>
       <h3>Як користуватися</h3>
       <ol>
-        <li><b>Створи колонію</b>: обери кількість людей і натисни «Нова колонія» (або Пробіл).</li>
-        <li><b>Замкни 🔒</b> тих, хто сподобався, і створи нову: решта зміниться.</li>
-        <li><b>«Стосунки»</b> показують, хто кого любить чи не терпить. <b>«Поселення»</b> задає планету й умови. <b>«Симуляція»</b> запускає час: годину за годиною, з погодою, хворобами, подіями й змінами у стосунках.</li>
-        <li><b>Збережи або поділись</b> кнопками угорі: JSON, CSV, імпорт.</li>
+        <li><b>Колонія й місце</b> угорі: скільки людей, де стоїть поселення. «Нова колонія» (клавіша N) створює іншу; замкніть 🔒 тих, хто сподобався.</li>
+        <li><b>▶ Грати</b> (Пробіл): час іде годину за годиною. Клікніть колоніста в смузі портретів, щоб побачити його анкету, стан і історію.</li>
+        <li>Великі вкладки посередині: <b>Журнал</b> подій, <b>Стосунки</b>, <b>Розклад</b> доби, <b>Робота</b>.</li>
+        <li><b>Збережи або поділись</b> кнопками вгорі: JSON, CSV, імпорт.</li>
       </ol>
     </div>
   </div>
 </details>
 
-<div class="toolbar">
-  <nav class="tabs" role="tablist"><button role="tab" data-tab="roster" aria-selected="true" title="Картки колоністів: риси, навички, передісторія">Колоністи</button><button role="tab" data-tab="bonds" aria-selected="false" title="Схема й таблиця: хто кого як сприймає">Стосунки</button><button role="tab" data-tab="place" aria-selected="false" title="Планета, місцевість і тип поселення: умови й проблеми, що впливають на настрій і події">Поселення</button><button role="tab" data-tab="day" aria-selected="false" title="Час іде годину за годиною: розклад, події, погода, хвороби, стосунки, історія кожного">Симуляція</button></nav>
-  <div class="spacer"></div>
-  <label class="ctl-inline" title="Скільки людей у колонії">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
-  <label class="ctl-inline" title="Зерно: число-код колонії. Те саме зерно дає ту саму колонію">Зерно <input type="text" id="tSeed" maxlength="20" spellcheck="false"></label>
-  <button id="btnNew" class="btn-primary" title="Створити нову випадкову колонію (Пробіл). Замкнені колоністи лишаються">Нова колонія</button>
-</div>
-
-<main class="wrap">
-  <section id="tabRoster">
-    <div class="bar"><span class="hint">Замкніть 🔒 тих, кого хочете залишити, і створіть нову колонію: решта зміниться. 🎲 перегенеровує одного.</span></div>
-    <div class="grid" id="grid"></div>
-  </section>
-
-  <section id="tabBonds" hidden>
-    <div class="two"><div class="card"><h2>Схема стосунків</h2><div id="web"></div><div class="legend" id="relLegend"></div></div>
-    <div class="card"><h2>Хто що думає про кого <span class="sub">рядок думає про стовпчик</span></h2><div class="tablewrap"><table id="matrix"></table></div></div></div>
-  </section>
-
-  <section id="tabPlace" hidden>
-    <div class="two">
-      <div class="card"><h2>Де стоїть поселення</h2>
-        <div class="form">
-          <label class="ctl-inline" title="Назва планети: лише для краси й експорту">Планета <input type="text" id="inPlanet" maxlength="24" spellcheck="false"><button id="btnPlanetName" title="Вигадати нову назву планети">🎲</button></label>
-          <label class="ctl-inline" title="Місцевість задає клімат, погоду, ризик хвороб і тип подій (пустеля: спека, джунглі: вологість і хвороби)">Місцевість <select id="selBiome"></select></label>
-          <label class="ctl-inline" title="Тип поселення: у місті більше розваг і загроз, у селі тихіше, форпост безпечніший, але суворий">Поселення <select id="selKind"></select></label>
-          <button id="btnPlaceRand" class="btn-primary" title="Випадково обрати планету, місцевість і тип поселення">🎲 Випадкове місце</button>
-          <span class="hint">Зміна місця починає час з початку: ті самі колоністи, інше середовище.</span>
-        </div>
-      </div>
-      <div class="card" id="placeInfo"></div>
+<details class="setup" id="setup" open>
+  <summary title="Скільки людей, яке зерно, де стоїть поселення. Згортається, щоб не заважати"><span>⚙ Колонія й місце</span><em id="setupSummary"></em></summary>
+  <div class="setup-grid">
+    <div class="sg">
+      <h3>Колонія</h3>
+      <label class="ctl-inline" title="Скільки людей у колонії">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
+      <label class="ctl-inline" title="Зерно: число-код колонії. Те саме зерно дає ту саму колонію">Зерно <input type="text" id="tSeed" maxlength="20" spellcheck="false"></label>
+      <label class="ctl-inline" title="Варіант випадковості: змініть, щоб побачити інший перебіг подій тієї самої колонії (час почнеться спочатку)">Варіант подій <input type="number" id="nDay" min="1" max="9999" step="1"></label>
+      <button id="btnNew" class="btn-primary" title="Створити нову випадкову колонію (клавіша N). Замкнені 🔒 колоністи лишаються">Нова колонія</button>
+      <span class="hint">Замкніть 🔒 тих, хто сподобався, і створіть нову колонію: решта зміниться.</span>
     </div>
-  </section>
-
-  <section id="tabDay" hidden>
-    <div class="bar simbar">
-      <button id="btnPlay" class="btn-primary" title="Запустити автоперемотку часу або поставити на паузу (клавіша P)">▶ Грати</button>
-      <button id="btnH1" title="Прокрутити час на одну годину">+1 год</button>
-      <button id="btnH6" title="Прокрутити час на шість годин">+6 год</button>
-      <button id="btnD1" title="Прокрутити час на добу">+1 доба</button>
-      <label class="ctl-inline" title="Скільки годин минає за секунду під час автоперемотки">Швидкість <select id="selSpeed"></select></label>
-      <label class="ctl-inline" title="Варіант випадковості: змініть, щоб побачити інший перебіг подій тієї самої колонії (час почнеться спочатку)">Варіант <input type="number" id="nDay" min="1" max="9999" step="1"></label>
-      <button id="btnResetTime" title="Повернути час на початок тієї самої колонії й місця">↺ З початку</button>
-      <span class="clock" id="simClock"></span>
+    <div class="sg">
+      <h3>Місце</h3>
+      <label class="ctl-inline" title="Назва планети: лише для краси й експорту">Планета <input type="text" id="inPlanet" maxlength="24" spellcheck="false"><button id="btnPlanetName" title="Вигадати нову назву планети">🎲</button></label>
+      <label class="ctl-inline" title="Місцевість задає клімат, погоду, ризик хвороб і тип подій (пустеля: спека, джунглі: вологість і хвороби)">Місцевість <select id="selBiome"></select></label>
+      <label class="ctl-inline" title="У місті більше розваг і загроз, у селі тихіше, форпост безпечніший, але суворий">Поселення <select id="selKind"></select></label>
+      <button id="btnPlaceRand" title="Випадково обрати планету, місцевість і тип поселення">🎲 Випадкове місце</button>
+      <div id="placeInfo"></div>
+      <span class="hint">Зміна місця починає час з початку: ті самі люди, інше середовище.</span>
     </div>
-    <div id="dayOut"></div>
-  </section>
+  </div>
+</details>
+
+<section class="timebar" id="timebar" aria-label="Керування часом">
+  <button id="btnPlay" class="play" title="Пустити час або поставити на паузу (клавіша Пробіл)">▶ Грати</button>
+  <div class="grp"><button id="btnH1" title="Прокрутити час на одну годину">+1 год</button><button id="btnH6" title="Прокрутити час на шість годин">+6 год</button><button id="btnD1" title="Прокрутити час на добу">+1 доба</button></div>
+  <div class="grp" id="speeds" title="Скільки годин минає за секунду, коли час іде сам"></div>
+  <button id="btnResetTime" title="Повернути час на початок: та сама колонія й місце, доба 1">↺ З початку</button>
+  <div class="clock"><b id="clkTime"></b><span id="clkWx"></span><span id="clkStat"></span></div>
+</section>
+
+<div class="cbar" id="cbar" role="list" aria-label="Колоністи: натисніть, щоб відкрити"></div>
+
+<main class="wrap stage">
+  <section id="viewHost" class="viewhost"></section>
+  <aside id="detailHost" class="detail" aria-live="polite"></aside>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -117,7 +106,11 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./colony-world.js"></script>
 <script src="./colony-events.js"></script>
 <script src="./colony-sim.js"></script>
-<script src="./sim-ui.js"></script>
+<script src="./ui-common.js"></script>
+<script src="./ui-portrait.js"></script>
+<script src="./ui-setup.js"></script>
+<script src="./ui-detail.js"></script>
+<script src="./ui-views.js"></script>
 <script src="./app.js"></script>
 <script src="./tool-chrome.js"></script>
 </body>
