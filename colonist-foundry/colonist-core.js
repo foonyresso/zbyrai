@@ -151,7 +151,7 @@ const ColonistCore = (() => {
     v -= Math.min(6, Math.abs(a.age - b.age) / 8);
     return Math.round(v);
   }
-  const REL = { sibling: 'брат/сестра', spouse: 'пара', friend: 'друг', rival: 'суперник' };
+  const REL = { sibling: 'брат/сестра', spouse: 'подружжя', couple: 'закохані', friend: 'друг', rival: 'суперник' };
   function buildRelations(cs, R) {
     const rel = new Map(), key = (i, j) => (i < j ? `${i}-${j}` : `${j}-${i}`), set = (i, j, t) => { if (!rel.has(key(i, j))) rel.set(key(i, j), t); };
     // пари: двоє дорослих, що не пов'язані родинно, з невеликою ймовірністю
@@ -172,7 +172,7 @@ const ColonistCore = (() => {
     let r = 0; for (const p of pairs.slice().reverse()) { if (r >= nR) break; if (p.s < -2 && !rel.has(key(p.i, p.j))) { set(p.i, p.j, 'rival'); r++; } }
     return [...rel].map(([k, type]) => { const [i, j] = k.split('-').map(Number); return { a: i, b: j, type }; });
   }
-  const REL_BONUS = { sibling: 15, spouse: 35, friend: 22, rival: -28 };
+  const REL_BONUS = { sibling: 15, spouse: 35, couple: 28, friend: 22, rival: -28 };
   // думка a про b (не симетрична): вроджена + зв'язок
   function opinion(colony, i, j) {
     const cs = colony.colonists, r = colony.relations.find(x => (x.a === i && x.b === j) || (x.a === j && x.b === i));
@@ -275,7 +275,7 @@ const ColonistCore = (() => {
     return [head.map(h => JSON.stringify(h)).join(','), ...rows].join('\n');
   };
 
-  return { SKILLS, JOBS, NEEDS, TRAITS, TRAIT_BY, CHILD, ADULT, REL, rngFromSeed, makeColonist, generateColony, reroll, fullName, backstoryText, baseOpinion, opinion, relOf, priorities, profession, PROF, effSkill, simulateDay, toCsv };
+  return { SKILLS, JOBS, NEEDS, TRAITS, TRAIT_BY, CHILD, ADULT, REL, REL_BONUS, rngFromSeed, makeColonist, generateColony, reroll, fullName, backstoryText, baseOpinion, opinion, relOf, priorities, profession, PROF, effSkill, simulateDay, toCsv };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = ColonistCore;
