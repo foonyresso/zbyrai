@@ -53,6 +53,7 @@
   slider(shapeCtl, { label: () => def().line ? 'Товщина лінії' : 'Товщина контуру', min: .5, max: 20, step: .5, title: 'Товщина ліній і контурів. Для суцільної заливки без контуру не діє', get: () => st.stroke, set: v => st.stroke = v, fmt: v => v + ' px' });
   slider(shapeCtl, { label: 'Поворот', min: 0, max: 359, step: 1, title: 'Поворот усього візерунка навколо центру. Горизонтальні лінії стануть косими', get: () => st.rot, set: v => st.rot = v, fmt: v => v + '°' });
   slider(shapeCtl, { label: () => (def().k || {}).label || '', min: 0, max: 100, step: 1, title: 'Особлива ручка обраної фігури: пропорції, кількість сторін, гострота променів тощо', get: () => st.k, set: v => st.k = v, show: () => !!def().k, range: () => def().k || { min: 0, max: 100, step: 1 }, fmt: v => v });
+  slider(shapeCtl, { label: 'Поворот фігур', min: -180, max: 180, step: 1, title: 'Повертає кожну фігуру навколо власного центру, а не полотно: усі однаково вліво чи вправо. Разом із «Хаосом» дає нові форми', get: () => st.turn, set: v => st.turn = v, fmt: v => v + '°' });
   slider(shapeCtl, { label: 'Хаос', min: 0, max: 100, step: 1, title: 'Випадковий поворот і розмір кожної фігури: від рівного візерунка до розсипу', get: () => Math.round(st.chaos * 100), set: v => st.chaos = v / 100, fmt: v => v + '%' });
   select(shapeCtl, { label: 'Заливка', title: 'Заповнена фігура, лише контур чи заливка з окремим кольором контуру', opts: [['fill', 'Заливка'], ['outline', 'Контур'], ['both', 'Заливка й контур']], get: () => st.mode, set: v => st.mode = v });
   { const w = document.createElement('label'); w.className = 'ctl'; w.title = 'Зерно: код випадковості. Те саме зерно з тими самими налаштуваннями дає той самий візерунок';
@@ -98,7 +99,7 @@
     else if (def().preset) Object.assign(st, lastPal, { colors: lastPal.colors.slice() });
   }
   function pickPattern(id) {
-    const p = PAT[id]; applyPreset(p);
+    const p = PAT[id]; applyPreset(p); if (!$('pinPat').checked) $('patFold').open = false;
     st.pattern = id; st.size = p.size; st.k = p.k ? p.k.def : 50; st = T.clampParams(st);
     syncAll(); toast(p.name + (p.preset ? ': застосовано стиль зошита' : ''));
   }
@@ -121,6 +122,12 @@
   const fills = [0, 1, 2, 3, 4, 5].map(n => colorInput('Колір ' + (n + 1), 'Колір ' + (n + 1) + ' із палітри: використовується, якщо кількість кольорів не менша за ' + (n + 1), () => st.colors[n], v => { st.colors[n] = v; }));
   $('btnPalRand').addEventListener('click', () => { const p = T.randomPalette(Math.random); st.bg = p.bg; st.colors = p.colors; st.lineColor = p.bg; if (st.ncol < 2) st.ncol = 3; change(null, true); });
 
+  // вікно кольорів: поки не закріплено, згортається кліком поза ним
+  { const pin = store.get('pins', {}); $('pinPat').checked = !!pin.pat; $('pinCol').checked = !!pin.col;
+    const savePins = () => store.set('pins', { pat: $('pinPat').checked, col: $('pinCol').checked });
+    for (const id of ['pinPat', 'pinCol']) { $(id).addEventListener('change', savePins); $(id).addEventListener('click', e => e.stopPropagation()); }
+    document.addEventListener('pointerdown', e => { const f = $('colFold'); if (f.open && !$('pinCol').checked && !f.contains(e.target)) f.open = false; }); }
+
   /* ---------- відображення ---------- */
   const cv = $('cv'), view = $('view'), meta = $('meta'); let raf = 0;
   function render() {
@@ -136,6 +143,7 @@
     st = T.clampParams(st); for (const c of ctls) c.sync(); for (const c of colIn) c.sync();
     fills.forEach((f, n) => f.l.classList.toggle('off', n >= st.ncol)); lineIn.l.classList.toggle('off', st.mode !== 'both');
     for (const p of T.PATTERNS) thumbs[p.id].b.classList.toggle('on', p.id === st.pattern);
+    $('patName').textContent = def().name;
     store.set('state', T.toJSON(st)); schedule(); scheduleThumbs();
   }
   function change(c, full) {

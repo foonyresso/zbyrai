@@ -247,7 +247,7 @@
   const clampN = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
   function defaults(id) {
     const d = PAT[id || 'hex'], pal = PALETTES[1], k = d.k;
-    return { pattern: d.id, W: 1600, H: 1000, size: d.size, gap: 4, stroke: 2, rot: 0, k: k ? k.def : 50, mode: 'fill', cmode: 'checker', ncol: 3, colors: pal.colors.slice(), bg: pal.bg, lineColor: '#0c0d11', seed: 'zbyrai', chaos: 0 };
+    return { pattern: d.id, W: 1600, H: 1000, size: d.size, gap: 4, stroke: 2, rot: 0, k: k ? k.def : 50, mode: 'fill', cmode: 'checker', ncol: 3, colors: pal.colors.slice(), bg: pal.bg, lineColor: '#0c0d11', seed: 'zbyrai', chaos: 0, turn: 0 };
   }
   function clampParams(p) {
     p = p || {}; const id = PAT[p.pattern] ? p.pattern : 'hex', d = defaults(id), k = PAT[id].k, o = {};
@@ -257,7 +257,7 @@
     o.k = k ? clampN(p.k, k.min, k.max, k.def) : 50; if (k && k.step === 1) o.k = Math.round(o.k);
     o.mode = MODES.includes(p.mode) ? p.mode : d.mode; o.cmode = CMODES.includes(p.cmode) ? p.cmode : d.cmode; o.ncol = Math.round(clampN(p.ncol, 1, 6, d.ncol));
     const cols = Array.isArray(p.colors) ? p.colors.filter(hexOk).slice(0, 6) : []; while (cols.length < 6) cols.push(d.colors[cols.length]); o.colors = cols;
-    o.bg = hexOk(p.bg) ? p.bg : d.bg; o.lineColor = hexOk(p.lineColor) ? p.lineColor : d.lineColor; o.seed = String(p.seed === undefined ? d.seed : p.seed).slice(0, 24) || d.seed; o.chaos = clampN(p.chaos, 0, 1, 0);
+    o.bg = hexOk(p.bg) ? p.bg : d.bg; o.lineColor = hexOk(p.lineColor) ? p.lineColor : d.lineColor; o.seed = String(p.seed === undefined ? d.seed : p.seed).slice(0, 24) || d.seed; o.chaos = clampN(p.chaos, 0, 1, 0); o.turn = clampN(p.turn, -180, 180, 0);
     return o;
   }
 
@@ -284,13 +284,13 @@
       const s = shapes[i]; let base = 0;
       switch (p.cmode) {
         case 'rows': base = s.gj; break; case 'cols': base = s.gi; break; case 'diag': base = s.gi + s.gj; break;
-        case 'checker': base = (s.gi & 1) ^ (s.gj & 1); break; case 'random': base = Math.floor(rc() * n); break; case 'seq': base = i; break;
+        case 'checker': base = (s.gi & 1) ^ (s.gj & 1); break; case 'random': base = Math.floor(rc() * n); break; case 'seq': base = s.gi + s.gj * 2; break;
         case 'rings': { let cx, cy; if (s.t === 'o') { cx = s.x; cy = s.y; } else { cx = s.pts[0]; cy = s.pts[1]; } base = Math.floor(Math.hypot(cx, cy) / (S * 1.5)); break; }
         default: base = 0;
       }
       s.ci = mod(mod(base, n) + s.co, n);
-      if (p.chaos > 0 && s.t !== 'l') {
-        const a = (rj() - .5) * p.chaos * Math.PI, sc = 1 - rj() * p.chaos * .4;
+      if ((p.chaos > 0 || p.turn) && s.t !== 'l') {
+        const a = (p.chaos > 0 ? (rj() - .5) * p.chaos * Math.PI : 0) + p.turn * Math.PI / 180, sc = p.chaos > 0 ? 1 - rj() * p.chaos * .4 : 1;
         if (s.t === 'o') s.r *= sc; else { const c = areaCentroid(s.pts); s.pts = transformPoly(s.pts, c[0], c[1], a, sc); }
       }
     }

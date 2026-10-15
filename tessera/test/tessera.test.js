@@ -107,4 +107,12 @@ test('кожна група має візерунки, id унікальні, о
   for (const p of T.PATTERNS) assert.ok(p.name && p.desc && p.size, p.id);
 });
 
+test('поворот фігур не рухає сітку; «послідовно» не залежить від кількості в ряду', () => {
+  const a = T.buildScene(Object.assign(base('star5'), { turn: 0 })), b = T.buildScene(Object.assign(base('star5'), { turn: 30 }));
+  assert.equal(a.count, b.count); assert.notDeepEqual(a.shapes[3].pts, b.shapes[3].pts);
+  const cx = s => s.pts.filter((_, i) => i % 2 === 0).reduce((x, y) => x + y, 0) / (s.pts.length / 2);
+  assert.ok(Math.abs(cx(a.shapes[3]) - cx(b.shapes[3])) < 1, 'центр фігури лишається');
+  for (const size of [40, 47]) { const sc = T.buildScene(Object.assign(base('square'), { cmode: 'seq', ncol: 3, size })); for (const s of sc.shapes) assert.equal(s.ci, (((s.gi + s.gj * 2) % 3) + 3) % 3); }
+});
+
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);

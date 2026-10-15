@@ -74,14 +74,14 @@
   </section>
 
   <aside class="side">
-    <div class="card"><h2>Фігура</h2><div id="patterns" class="pats"></div></div>
+    <details class="card fold" id="patFold" open><summary title="Натисни, щоб згорнути чи розгорнути список фігур"><h2>Фігура: <b id="patName"></b></h2><label class="pin" title="Закріпити: список не згортатиметься після вибору фігури"><input type="checkbox" id="pinPat"><span>закріпити</span></label></summary><div id="patterns" class="pats"></div></details>
     <div class="card"><h2>Розмір і форма</h2><div id="shapeCtl" class="ctls"></div></div>
-    <div class="card"><h2>Кольори</h2>
+    <details class="card fold" id="colFold"><summary title="Натисни, щоб відкрити чи згорнути кольори й палітри"><h2>Кольори</h2><label class="pin" title="Закріпити: вікно кольорів лишається відкритим, поки не знімеш позначку"><input type="checkbox" id="pinCol"><span>закріпити</span></label></summary>
       <div class="chips" id="palettes"></div>
       <div class="ctls" id="colorCtl"></div>
       <div class="colors" id="colors"></div>
       <div class="row2"><button id="btnPalRand" title="Створити нову гармонійну палітру: сусідні, комплементарні, тріадні й подібні відтінки">Випадкова палітра</button></div>
-    </div>
+    </details>
     <div class="card"><h2>Полотно</h2><div id="canvasCtl" class="ctls"></div>
       <p class="hint">Поворот не лишає порожніх кутів: візерунок завжди заповнює все полотно. Для дуже малих фігур на великому полотні розмір автоматично збільшується, щоб не зависнути.</p>
     </div>
