@@ -11,7 +11,9 @@ function drawBase() {
   if (F.rel) drawRel();
   if (WON) {
     drawRoads();
+    drawSeaRoutes();
     drawVillages();
+    drawRealmObjects();
   }
   for (const b of L) if (b.o && !(WON && WSK.has(b.t))) drawB(b);
   wpath();
@@ -396,6 +398,14 @@ $("#wbd").onclick = () => {
   bdirty = true;
   redraw();
 };
+document.querySelectorAll("[data-rl]").forEach((b) => {
+  b.onclick = () => {
+    RLAY[b.dataset.rl] = !RLAY[b.dataset.rl];
+    b.classList.toggle("on", RLAY[b.dataset.rl]);
+    bdirty = true;
+    redraw();
+  };
+});
 $("#wall1").onclick = () => {
   S = .03;
   ox = W / 2;
@@ -454,6 +464,7 @@ const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", 
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
   won: () => WON, wrd: () => WRD, wbd: () => WBD,
+  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st,
   rmaj: () => WRT.major, rmed: () => WRT.medium, rmin: () => WRT.minor, rtrl: () => WRT.trail,
 };
 function toast(msg, ms = 1800) {

@@ -4,7 +4,7 @@
 const path = require('node:path');
 const FILES = [
   'core/rng.js', 'core/noise.js', 'core/heap.js', 'core/grid.js',
-  'data/biomes.js', 'data/poi-types.js', 'data/gdd-codes.js', 'data/name-banks.js', 'data/hooks.js', 'data/monsters-mountain.js', 'data/monsters-forest.js', 'data/monsters-sea.js',
+  'data/biomes.js', '../../src/data/realm/poi-types.js', 'data/gdd-codes.js', 'data/name-banks.js', 'data/hooks.js', '../../src/data/realm/monsters-mountain.js', '../../src/data/realm/monsters-forest.js', '../../src/data/realm/monsters-sea.js',
   'core/terrain.js', 'core/rivers.js', 'core/climate.js', 'core/suitability.js', 'core/politics.js', 'core/names.js', 'core/settlements.js', 'core/pois.js', 'core/lairs.js', 'core/router.js', 'core/roads.js', 'core/searoutes.js', 'core/features.js', 'core/contours.js', 'core/planner.js', 'core/params.js', 'core/details.js', 'core/generate.js', 'core/serialize.js',
 ];
 const extra = []; // нові файли ядра додаються нижче

@@ -1,6 +1,6 @@
 # Моря: монстри й боси
 
-Морські лігва в глибинах. Дані: [`medieval-world/worlds/continent/data/monsters-sea.js`](../../../medieval-world/worlds/continent/data/monsters-sea.js).
+Морські лігва в глибинах. Дані: [`medieval-world/src/data/realm/monsters-sea.js`](../../../medieval-world/src/data/realm/monsters-sea.js).
 
 ## Звичайні монстри (рівень 1: лігва й місця відпочинку на стежках)
 

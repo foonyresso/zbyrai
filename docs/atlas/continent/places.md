@@ -1,6 +1,6 @@
 # Точки інтересу, шахти й лігва
 
-Дані: [`medieval-world/worlds/continent/data/poi-types.js`](../../../medieval-world/worlds/continent/data/poi-types.js). Генерація: `core/pois.js`, `core/settlements.js` (шахти), `core/lairs.js`.
+Дані: [`medieval-world/src/data/realm/poi-types.js`](../../../medieval-world/src/data/realm/poi-types.js). Генерація: `core/pois.js`, `core/settlements.js` (шахти), `core/lairs.js`.
 
 ## Великі місця (до них веде мала дорога)
 

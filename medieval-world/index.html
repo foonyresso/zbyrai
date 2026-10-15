@@ -98,6 +98,11 @@
 <button class="chip on" id="rmed" data-road="medium" title="Середні дороги: до великих сіл від великих доріг. Вимкни, щоб не бачити цей тип доріг."><div>Середні дороги<small>до великих сіл</small></div></button>
 <button class="chip on" id="rmin" data-road="minor" title="Малі дороги: до сіл. Вимкни, щоб не бачити цей тип доріг."><div>Малі дороги<small>до сіл</small></div></button>
 <button class="chip on" id="rtrl" data-road="trail" title="Стежки: до хуторів і дрібних поселень, малюються пунктиром. Вимкни, щоб не бачити цей тип доріг."><div>Стежки<small>до хуторів, пунктиром</small></div></button>
+<button class="chip on" id="rlmo" data-rl="mo" title="Лігва монстрів і місця їхнього відпочинку в горах, лісах і глибинах моря (з наближенням). Вимкни, щоб не бачити цей шар."><div>Лігва монстрів<small>звичайні й місця відпочинку</small></div></button>
+<button class="chip on" id="rlbs" data-rl="bs" title="Боси й міні-боси: рідкісні лігва далеко від поселень у горах, лісах і глибинах моря. Вимкни, щоб не бачити цей шар."><div>Боси<small>міні-боси й боси</small></div></button>
+<button class="chip on" id="rlpo" data-rl="po" title="Місця інтересу: озера, гори, руїни, пам’ятники, храми, вежі, водоспади, галявини, табори бандитів. Вимкни, щоб не бачити цей шар."><div>Місця інтересу<small>озера, руїни, храми, табори</small></div></button>
+<button class="chip on" id="rlsr" data-rl="sr" title="Морські шляхи між портами: кораблі тримаються біля берега. Вимкни, щоб не бачити цей шар."><div>Морські шляхи<small>між портами</small></div></button>
+<button class="chip on" id="rlst" data-rl="st" title="Стани не головних поселень: занепале, зруйноване, покинуте, захоплене монстрами (значок біля поселення). Вимкни, щоб не бачити цей шар."><div>Стани поселень<small>руїни, покинуті, захоплені</small></div></button>
 <button class="chip on" id="wbd" title="Межі провінцій і регіонів та їхні назви при віддаленні. Вимкни, щоб бачити лише місцевість."><div>Провінції й регіони<small>межі та назви</small></div></button></div>
 <label title="Співвідношення суші й води">Суша і вода</label><select id="wtype" title="Співвідношення суші й води: материки, архіпелаги з багатьма островами або суходіл із невеликими морями."><option value="cont">Материки</option><option value="arch">Архіпелаги</option><option value="land">Суходіл</option></select>
 <label title="Окреме число для світу навколо міста">Зерно світу</label><input id="wseed" placeholder="як у міста" style="width:100%;box-sizing:border-box" title="Окреме зерно світу. Порожньо: світ залежить від зерна міста.">
@@ -133,6 +138,14 @@
     <script src="src/generation/world/settlements.js"></script>
     <script src="src/generation/world/roads.js"></script>
     <script src="src/generation/world/local-settlement-city.js"></script>
+    <script src="src/data/realm/poi-types.js"></script>
+    <script src="src/data/realm/monsters-mountain.js"></script>
+    <script src="src/data/realm/monsters-forest.js"></script>
+    <script src="src/data/realm/monsters-sea.js"></script>
+    <script src="src/render/realm/icons-places.js"></script>
+    <script src="src/generation/world/realm-objects.js"></script>
+    <script src="src/generation/world/sea-routes.js"></script>
+    <script src="src/render/world/realm-layers.js"></script>
     <script src="src/render/world/canvas.js"></script>
     <script src="src/generation/world/regions.js"></script>
     <script src="src/render/world/regions.js"></script>

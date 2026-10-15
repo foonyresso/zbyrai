@@ -1,5 +1,5 @@
 function wInfo(x, y) {
-  const o = wInfo0(x, y);
+  const o = realmInfo(x, y) || wInfo0(x, y);
   o.d = (o.d || "") + " · Координати: X " + Math.round(x) + ", Y " +
     Math.round(y) + " (від центру " + Math.round(Math.hypot(x, y)) + ").";
   if (
@@ -32,7 +32,7 @@ function wInfo0(x, y) {
     if (Math.hypot(v.x - x, v.y - y) < v.rad) {
       const st = mkSettle(v);
       return {
-        n: NAMES[v.tier] + " «" + v.name + "»",
+        n: NAMES[v.tier] + " «" + v.name + "»" + (rxState(v) != "normal" ? " — " + RX_STATE_NAMES[rxState(v)] : ""),
         c: "Поселення",
         d: st
           ? "Споруд: " + st.n + " · мешканців ≈ " + st.p +
