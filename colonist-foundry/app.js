@@ -8,9 +8,11 @@
     set(k, v) { try { localStorage.setItem('cf_' + k, JSON.stringify(v)); } catch {} },
   };
   const randSeed = () => Math.random().toString(36).slice(2, 7);
-  const st = Object.assign({ seed: randSeed(), n: 8, day: 1, tab: 'roster', locks: {}, gen: 2 }, store.get('state', {}));
+  const st = Object.assign({ seed: randSeed(), n: 8, day: 1, tab: 'roster', locks: {}, gen: 2, place: { planet: 'Орвелія', biome: 'temperate', kind: 'village' }, hours: 0, speed: 12 }, store.get('state', {}));
+  st.place = ColonyWorld.normPlace(st.place); st.hours = Math.max(0, +st.hours || 0);
   const save = () => store.set('state', st);
-  let colony = null, sim = null;
+  let colony = null;
+  const live = () => CFSim.getSim();
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } e.append(...kids.flat().filter(x => x != null)); return e; };
   const svg = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
   const toast = (m, ms = 1800) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
@@ -44,13 +46,13 @@
     const g = $('grid'); g.replaceChildren();
     colony.colonists.forEach((c, i) => {
       const locked = !!st.locks[i], pri = C.priorities(c);
-      const bonds = colony.relations.filter(r => r.a === i || r.b === i).map(r => { const o = colony.colonists[r.a === i ? r.b : r.a]; return el('span', { class: 'rel-' + r.type }, `${C.REL[r.type]}: ${o.name}`); });
+      const bonds = (live() ? live().rel : colony.relations).filter(r => r.a === i || r.b === i).map(r => { const o = colony.colonists[r.a === i ? r.b : r.a]; return el('span', { class: 'rel-' + r.type }, `${C.REL[r.type]}: ${o.name}`); });
       const story = C.backstoryText(c).map(b => el('span', {}, el('b', {}, b.name + '. '), b.text + ' '));
       const sorted = C.SKILLS.slice().sort((a, b) => c.skills[b.id] - c.skills[a.id]);
       g.append(el('article', { class: 'ccard' + (locked ? ' locked' : '') },
         el('div', { class: 'ctop' }, avatar(c), el('div', {}, el('h3', { class: 'cname' }, C.fullName(c)), el('div', { class: 'csub', title: 'Професія визначається найвищим пріоритетом роботи' }, `${C.profession(c)}, ${c.age} р.`)),
           el('div', { class: 'cbtns' }, el('button', { class: locked ? 'on' : '', title: locked ? 'Розімкнути' : 'Замкнути: лишиться після «Нової колонії»', onclick: () => { if (locked) delete st.locks[i]; else st.locks[i] = c; save(); renderRoster(); } }, locked ? '🔒' : '🔓'),
-            el('button', { title: 'Перегенерувати цього колоніста', onclick: () => { delete st.locks[i]; colony = C.reroll(colony, i, randSeed()); sim = null; st.locks = Object.fromEntries(Object.keys(st.locks).map(k => [k, colony.colonists[k]])); save(); renderAll(); } }, '🎲'))),
+            el('button', { title: 'Перегенерувати цього колоніста', onclick: () => { delete st.locks[i]; colony = C.reroll(colony, i, randSeed()); resetTime(); st.locks = Object.fromEntries(Object.keys(st.locks).map(k => [k, colony.colonists[k]])); save(); renderAll(); } }, '🎲'))),
         el('div', { class: 'tags' }, c.traits.map(t => el('span', { class: 'tag tr', title: C.TRAIT_BY[t].desc }, C.TRAIT_BY[t].name))),
         el('p', { class: 'story' }, story, c.quirk ? el('span', {}, el('b', {}, 'Звичка: '), c.quirk + '.') : null),
         el('div', { class: 'skills' }, sorted.map(s => el('div', { class: `sk p${c.passion[s.id]}` }, el('span', { class: 'nm' }, s.name), el('div', { class: 'bar2' }, el('i', { style: `width:${c.skills[s.id] / 20 * 100}%` })), el('b', {}, c.skills[s.id])))),
@@ -60,51 +62,31 @@
   }
 
   /* ---------- вкладка «Стосунки» ---------- */
-  const RELCOL = { spouse: '#f39ac0', friend: '#8fd6a0', sibling: '#8fb7ee', rival: '#f08a8a' };
+  const RELCOL = { couple: '#f7b6d2', spouse: '#f39ac0', friend: '#8fd6a0', sibling: '#8fb7ee', rival: '#f08a8a' };
   function renderBonds() {
     const cs = colony.colonists, n = cs.length, W = 560, H = 420, cx = W / 2, cy = H / 2, R = 160, host = $('web'); host.replaceChildren();
     const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Схема стосунків' }), pos = cs.map((_, i) => { const a = i / n * Math.PI * 2 - Math.PI / 2; return [cx + R * Math.cos(a), cy + R * Math.sin(a)]; });
-    for (const r of colony.relations) s.append(svg('line', { x1: pos[r.a][0], y1: pos[r.a][1], x2: pos[r.b][0], y2: pos[r.b][1], stroke: RELCOL[r.type], 'stroke-width': r.type === 'spouse' ? 3.5 : 2, 'stroke-opacity': .8, 'stroke-dasharray': r.type === 'rival' ? '5 4' : '' }));
+    for (const r of live().rel) s.append(svg('line', { x1: pos[r.a][0], y1: pos[r.a][1], x2: pos[r.b][0], y2: pos[r.b][1], stroke: RELCOL[r.type], 'stroke-width': r.type === 'spouse' ? 3.5 : 2, 'stroke-opacity': .8, 'stroke-dasharray': r.type === 'rival' ? '5 4' : '' }));
     cs.forEach((c, i) => { const g = svg('g'); g.append(svg('circle', { cx: pos[i][0], cy: pos[i][1], r: 14, fill: '#1c1a22', stroke: '#c98fdc', 'stroke-width': 1.4 })); const t = svg('text', { x: pos[i][0], y: pos[i][1] + 4, 'text-anchor': 'middle', fill: '#f0eee9', 'font-size': 11, 'font-weight': 600 }); t.textContent = i + 1; g.append(t);
       const a = i / n * Math.PI * 2 - Math.PI / 2, lt = svg('text', { x: cx + (R + 34) * Math.cos(a), y: cy + (R + 34) * Math.sin(a) + 4, 'text-anchor': Math.cos(a) > .3 ? 'start' : Math.cos(a) < -.3 ? 'end' : 'middle', fill: '#a09cab', 'font-size': 11 }); lt.textContent = c.name; g.append(lt); s.append(g); });
     host.append(s);
     $('relLegend').replaceChildren(...Object.entries(C.REL).map(([k, v]) => el('span', {}, el('i', { style: `background:${RELCOL[k]}` }), v)));
     const t = $('matrix'), col = v => { const a = Math.min(1, Math.abs(v) / 60); return v >= 0 ? `rgba(111,195,160,${a * .55})` : `rgba(240,138,138,${a * .55})`; };
     t.replaceChildren(el('thead', {}, el('tr', {}, el('th', {}, ''), cs.map((c, i) => el('th', { class: 'vert', title: c.name }, c.name)))),
-      el('tbody', {}, cs.map((c, i) => el('tr', {}, el('td', {}, c.name), cs.map((o, j) => { if (i === j) return el('td', {}, '·'); const v = C.opinion(colony, i, j), r = C.relOf(colony, i, j); return el('td', { style: `background:${col(v)}`, title: `${c.name} про ${o.name}${r ? ' (' + C.REL[r] + ')' : ''}` }, v > 0 ? '+' + v : v); }))))); }
-
-  /* ---------- вкладка «Доба» ---------- */
-  const ACT_NAMES = { сон: 'сон', їжа: 'їжа', відпочинок: 'відпочинок', розвага: 'розвага', розмова: 'розмова', зрив: 'зрив', робота: 'робота' };
-  function renderDay() {
-    const out = $('dayOut'); out.replaceChildren();
-    if (!sim) { out.append(el('p', { class: 'hint' }, 'Натисніть «Прожити добу»: колоністи сплять, працюють, їдять, розмовляють і іноді сваряться. Номер доби задає випадковість: змініть, щоб побачити іншу добу тієї самої колонії.')); return; }
-    const cs = colony.colonists, s = sim.stats, workSum = Object.values(s.work).reduce((a, b) => a + b, 0);
-    out.append(el('div', { class: 'stats' },
-      [['розмов', s.talks], ['щирих розмов', s.bonds], ['сварок', s.fights], ['зривів', s.breakdowns], ['середній настрій', Math.round(sim.final.reduce((a, f) => a + f.mood, 0) / cs.length)], ['роботи, од.', Math.round(workSum)]].map(([l, v]) => el('div', { class: 'kpi' }, el('b', {}, v), el('span', {}, l)))));
-    const tl = el('div', { class: 'card' }, el('h2', {}, 'Розклад доби ', el('span', { class: 'sub' }, 'кожна клітинка = година; праворуч кінцевий настрій')),
-      el('div', { class: 'tl head' }, el('span'), ...Array.from({ length: 24 }, (_, h) => el('i', {}, h % 3 === 0 ? h : '')), el('span')),
-      ...sim.final.map((f, i) => el('div', { class: 'tl' }, el('span', { class: 'who' }, cs[i].name), ...f.acts.map((a, h) => el('i', { class: 'act-' + a.split(':')[0], title: `${h}:00 ${a.startsWith('робота:') ? 'робота: ' + C.JOBS.find(j => j.id === a.slice(7)).name : a}` })), el('span', { class: 'm' }, f.mood))),
-      el('div', { class: 'legend2' }, Object.keys(ACT_NAMES).map(a => el('span', {}, el('i', { class: 'act-' + a }), a))));
-    const log = el('div', { class: 'card' }, el('h2', {}, 'Що сталося'), el('ul', { class: 'log' }, sim.log.length ? sim.log.map(e => el('li', { class: e.kind }, el('time', {}, String(e.h).padStart(2, '0') + ':00'), el('span', {}, e.text))) : [el('li', {}, el('time'), el('span', {}, 'Спокійна доба: нічого примітного.'))]));
-    const wmax = Math.max(1, ...Object.values(s.work));
-    const work = el('div', { class: 'card workbars' }, el('h2', {}, 'Зроблено роботи'), ...C.JOBS.map(j => el('div', { class: 'wb' }, el('span', {}, j.name), el('div', { class: 'b' }, el('i', { style: `width:${s.work[j.id] / wmax * 100}%` })), el('span', {}, Math.round(s.work[j.id])))));
-    const pr = el('div', { class: 'card' }, el('h2', {}, 'Пріоритети робіт ', el('span', { class: 'sub' }, '1 — головна, 4 — у крайньому разі, — не виконує')),
-      el('div', { class: 'tablewrap' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, ''), C.JOBS.map(j => el('th', { class: 'vert' }, j.name)))), el('tbody', {}, cs.map(c => { const p = C.priorities(c); return el('tr', {}, el('td', {}, c.name), C.JOBS.map(j => el('td', { class: 'pr' + p[j.id] }, p[j.id] || '—'))); })))));
-    out.append(tl, el('div', { class: 'daygrid' }, el('div', {}, log, work), pr));
-  }
+      el('tbody', {}, cs.map((c, i) => el('tr', {}, el('td', {}, c.name), cs.map((o, j) => { if (i === j) return el('td', {}, '·'); const v = Math.round(live().ops[i][j]), r = ColonySim.relOf(live(), i, j); return el('td', { style: `background:${col(v)}`, title: `${c.name} про ${o.name}${r ? ' (' + C.REL[r] + ')' : ''}` }, v > 0 ? '+' + v : v); }))))); }
 
   /* ---------- керування ---------- */
-  function build() { st.locks = Object.fromEntries(Object.entries(st.locks).filter(([i]) => i < st.n)); colony = C.generateColony(st.seed, st.n, st.locks, st.gen); sim = null; }
-  function renderAll() { renderRoster(); renderBonds(); renderDay(); }
-  function syncTop() { $('rCount').value = st.n; $('oCount').textContent = st.n; $('tSeed').value = st.seed; $('nDay').value = st.day; document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === st.tab)); for (const t of ['roster', 'bonds', 'day']) $('tab' + t[0].toUpperCase() + t.slice(1)).hidden = st.tab !== t; }
-  function tab(t) { st.tab = t; save(); syncTop(); }
+  function build(keepTime) { st.locks = Object.fromEntries(Object.entries(st.locks).filter(([i]) => i < st.n)); colony = C.generateColony(st.seed, st.n, st.locks, st.gen); if (!keepTime) { st.hours = 0; CFSim.pause(); } CFSim.rebuild(); }
+  function resetTime() { st.hours = 0; CFSim.pause(); CFSim.rebuild(); }
+  function renderAll() { renderRoster(); renderBonds(); CFSim.render(); CFSim.renderPlace(); }
+  function syncTop() { $('rCount').value = st.n; $('oCount').textContent = st.n; $('tSeed').value = st.seed; $('nDay').value = st.day; document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === st.tab)); for (const t of ['roster', 'bonds', 'place', 'day']) $('tab' + t[0].toUpperCase() + t.slice(1)).hidden = st.tab !== t; }
+  function tab(t) { st.tab = t; save(); syncTop(); if (t === 'bonds') renderBonds(); if (t === 'day') CFSim.render(); }
   document.querySelectorAll('.tabs button').forEach(b => { b.onclick = () => tab(b.dataset.tab); });
   $('rCount').oninput = e => { st.n = +e.target.value; build(); save(); syncTop(); renderAll(); };
   $('tSeed').onchange = e => { st.seed = e.target.value.trim() || randSeed(); build(); save(); syncTop(); renderAll(); };
   $('btnNew').onclick = () => { st.seed = randSeed(); build(); save(); syncTop(); renderAll(); };
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
-  $('btnDay').onclick = () => { st.day = Math.max(1, +$('nDay').value || 1); sim = C.simulateDay(colony, st.day); $('nDay').value = st.day = st.day + 1; save(); renderDay(); };
-  const exportObj = () => ({ tool: 'colonist-foundry', version: 2, state: { seed: st.seed, n: st.n, day: st.day, locks: st.locks, gen: st.gen }, seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), priorities: C.priorities(c) })), relations: colony.relations.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type })) });
+  const exportObj = () => ({ tool: 'colonist-foundry', version: 2, state: { seed: st.seed, n: st.n, day: st.day, locks: st.locks, gen: st.gen, place: st.place, hours: st.hours }, seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), priorities: C.priorities(c) })), relations: colony.relations.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type })) });
   $('btnJson').onclick = () => { download(JSON.stringify(exportObj(), null, 2), 'colonists.json', 'application/json'); toast('Файл збережено'); };
   $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(exportObj(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
   $('btnImport').onclick = () => $('fileImport').click();
@@ -115,9 +97,10 @@
       if (d.tool !== 'colonist-foundry' || !s || !s.seed) throw new Error('bad');
       st.seed = String(s.seed).slice(0, 20); st.n = Math.min(24, Math.max(2, +s.n || 8)); st.day = Math.max(1, +s.day || 1);
       st.locks = s.locks && typeof s.locks === 'object' ? s.locks : {}; st.gen = s.gen === 2 ? 2 : 1; // файли без gen створені до розширення даних
-      build(); save(); syncTop(); renderAll(); toast('Колонію завантажено');
+      st.place = ColonyWorld.normPlace(s.place); st.hours = Math.max(0, Math.min(24 * 400, +s.hours || 0)); CFSim.pause(); build(true); save(); syncTop(); renderAll(); toast('Колонію завантажено');
     } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
   };
   $('btnCsv').onclick = () => { download(C.toCsv(colony), 'colonists.csv', 'text/csv'); toast('Файл збережено'); };
-  build(); syncTop(); renderAll();
+  CFSim.init({ $, el, st, save, toast, randSeed, getColony: () => colony, onTick: () => { if (st.tab === 'bonds') renderBonds(); } });
+  build(true); syncTop(); renderAll();
 })();

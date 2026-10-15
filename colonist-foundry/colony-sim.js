@@ -80,7 +80,7 @@ const ColonySim = (() => {
       if (w !== sim.weather) { sim.weather = w; say('info', `Погода: ${W.WEATHER[w].name.toLowerCase()}`, [], 'weather', `Близько ${W.tempOf(pl.biome, w, h)}°. Настрій ${W.WEATHER[w].mood >= 0 ? '+' : ''}${W.WEATHER[w].mood}, робота просто неба ×${W.WEATHER[w].out}, ризик хвороб ×${W.WEATHER[w].ill}`); }
     }
     const wt = W.WEATHER[sim.weather], illMeta = i => (sim.ill[i] ? W.ILLNESS[sim.ill[i].id] : null), illCount = sim.ill.filter(Boolean).length;
-    if (h === 8 || h === 18) sim.load.fill(0);
+    sim.load.fill(0); // розподіл за роботами перераховується щогодини, тож люди тримаються своїх справ
 
     // 2) що робить кожен
     cs.forEach((c, i) => {
