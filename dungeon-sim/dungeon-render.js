@@ -43,6 +43,11 @@
       }
     }
     const sx = x => (x - view.x) * s, sy = y => (y - view.y) * s, R = Math.max(2, s * .32);
+    // вибрана кімната: плавне підсвічування лише клітинок приміщення (alpha 0..1 анімується інтерфейсом)
+    if (opt.sel >= 0 && opt.selAlpha > 0 && f.rooms[opt.sel]) {
+      const r = f.rooms[opt.sel]; ctx.fillStyle = `rgba(255,236,170,${0.2 * opt.selAlpha})`;
+      for (let yy = Math.max(r.y, Math.floor(view.y)); yy < Math.min(r.y + r.h, Math.ceil(view.y + H / s)); yy++) for (let xx = Math.max(r.x, Math.floor(view.x)); xx < Math.min(r.x + r.w, Math.ceil(view.x + W / s)); xx++) if (f.rid[yy * f.w + xx] === r.id) ctx.fillRect(sx(xx), sy(yy), s + .5, s + .5);
+    }
     // позначки кімнат (вхід, фінал, сходи, схованки)
     for (const r of f.rooms) {
       const col = ROLE_COL[r.role] || (r.loot ? ROLE_COL.dead : null), cx = sx(r.mx + .5), cy = sy(r.my + .5);
@@ -54,7 +59,6 @@
         if (s >= 6) r.tags.forEach((tg, ti) => { ctx.fillStyle = TAGCOL[tg]; for (let i = 0; i < 4; i++) { const h = hx(r.id * 31 + ti * 7 + i, r.x + i), gx = r.x + 1 + (h % Math.max(1, r.w - 2)), gy = r.y + 1 + ((h >>> 8) % Math.max(1, r.h - 2)); ctx.fillRect(sx(gx) + s * .2, sy(gy) + s * .2, s * .3, s * .3); } });
         ctx.globalAlpha = 1;
       }
-      if (opt.sel === r.id || opt.hover === r.id) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(sx(r.x), sy(r.y), r.w * s, r.h * s); }
       if (r.role === 'start' || r.role === 'boss' || r.role === 'down') { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(cx, cy, Math.max(3, s * .5), 0, 7); ctx.fill(); }
       if (L.loot && r.loot) { ctx.fillStyle = ROLE_COL.dead; ctx.fillRect(cx - R + (r.role === 'boss' ? s : 0), cy - R + s * .8, R * 2, R * 1.4); }
       if (L.monsters && r.monsters && r.role !== 'start') { ctx.fillStyle = r.monsters.boss ? '#ff3b30' : '#e86a5f'; for (let i = 0; i < Math.min(r.monsters.count, 5); i++) { ctx.beginPath(); ctx.arc(cx - s * .9 + i * s * .5, cy - s * .8, R * .8, 0, 7); ctx.fill(); } }
@@ -62,6 +66,12 @@
     }
     if (L.traps) { ctx.strokeStyle = '#ff5a4f'; ctx.lineWidth = Math.max(1.2, s * .12); for (const t of f.traps) { const x = sx(t.x), y = sy(t.y); if (x < -s || y < -s || x > W || y > H) continue; ctx.beginPath(); ctx.moveTo(x + s * .2, y + s * .2); ctx.lineTo(x + s * .8, y + s * .8); ctx.moveTo(x + s * .8, y + s * .2); ctx.lineTo(x + s * .2, y + s * .8); ctx.stroke(); } }
     if (L.labels && s >= 7) { ctx.font = `600 ${Math.min(14, Math.max(10, s * .9))}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,.88)'; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 3; for (const r of f.rooms) { const x = sx(r.mx + .5), y = sy(r.y) - 3; if (x < 0 || y < 0 || x > W || y > H) continue; const nm = r.secret && !L.secrets ? 'Кімната' : r.name; ctx.strokeText(nm, x, y); ctx.fillText(nm, x, y); } }
+      // підсвічування об'єкта під курсором (не кімнати): кільце навколо істоти, здобичі, пастки, дверей, сходів, позначок
+    const h = opt.hoverObj; if (h && h.shape) {
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.shadowColor = 'rgba(255,255,255,.7)'; ctx.shadowBlur = 8; ctx.beginPath();
+      if (h.shape.r) ctx.arc(h.shape.cx, h.shape.cy, h.shape.r, 0, 7); else ctx.rect(h.shape.x, h.shape.y, h.shape.w, h.shape.h);
+      ctx.stroke(); ctx.shadowBlur = 0;
+    }
   }
 
   function bbox(d, fi) { const f = d.floors[fi]; let x0 = f.w, y0 = f.h, x1 = 0, y1 = 0; for (const r of f.rooms) { x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y); x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h); } return { x0: x0 - 2, y0: y0 - 3, x1: x1 + 2, y1: y1 + 2 }; }
@@ -71,21 +81,22 @@
   // що під курсором: істота, здобич, вхід/фінал, пастка, двері, сходи, підлога кімнати, коридор. Геометрія збігається з draw()
   function hit(d, fi, view, L, px, py) {
     const f = d.floors[fi], s = view.s, R = Math.max(2, s * .32), sx = x => (x - view.x) * s, sy = y => (y - view.y) * s;
+    const tileShape = (x, y) => ({ x: sx(x) - 1, y: sy(y) - 1, w: s + 2, h: s + 2 });
     for (const r of f.rooms) {
       const cx = sx(r.mx + .5), cy = sy(r.my + .5);
-      if (L.monsters && r.monsters && r.role !== 'start') for (let i = 0; i < Math.min(r.monsters.count, 5); i++) if (Math.hypot(px - (cx - s * .9 + i * s * .5), py - (cy - s * .8)) <= R * 1.3) return { type: 'monster', room: r.id };
-      if (L.loot && r.loot && Math.abs(px - (cx + (r.role === 'boss' ? s : 0))) <= R * 1.1 && py >= cy - R + s * .8 - 2 && py <= cy + R * .4 + s * .8 + 2) return { type: 'loot', room: r.id };
-      if (['start', 'boss', 'down'].includes(r.role) && Math.hypot(px - cx, py - cy) <= Math.max(3, s * .5)) return { type: r.role, room: r.id };
+      if (L.monsters && r.monsters && r.role !== 'start') for (let i = 0; i < Math.min(r.monsters.count, 5); i++) if (Math.hypot(px - (cx - s * .9 + i * s * .5), py - (cy - s * .8)) <= R * 1.3) return { type: 'monster', room: r.id, shape: { cx: cx - s * .9 + i * s * .5, cy: cy - s * .8, r: R * 1.3 } };
+      if (L.loot && r.loot && Math.abs(px - (cx + (r.role === 'boss' ? s : 0))) <= R * 1.1 && py >= cy - R + s * .8 - 2 && py <= cy + R * .4 + s * .8 + 2) return { type: 'loot', room: r.id, shape: { x: cx + (r.role === 'boss' ? s : 0) - R - 2, y: cy - R + s * .8 - 2, w: R * 2 + 4, h: R * 1.4 + 4 } };
+      if (['start', 'boss', 'down'].includes(r.role) && Math.hypot(px - cx, py - cy) <= Math.max(3, s * .5)) return { type: r.role, room: r.id, shape: { cx, cy, r: Math.max(3, s * .5) + 3 } };
     }
     const x = Math.floor(view.x + px / s), y = Math.floor(view.y + py / s); if (x < 0 || y < 0 || x >= f.w || y >= f.h) return null;
-    if (L.traps) { const tr = f.traps.find(t => t.x === x && t.y === y); if (tr) return { type: 'trap', room: tr.room, trap: tr }; }
-    const t = f.tiles[y * f.w + x];
-    if (t === T.SECRET) return L.secrets ? { type: 'secret', room: -1 } : null;
-    if (t === T.DOOR) return { type: 'door', room: -1 };
-    if (t === T.DOWN || t === T.UP) return { type: t === T.DOWN ? 'stairs-down' : 'stairs-up', room: f.rid[y * f.w + x] };
-    if (t === T.CORR) return { type: 'corr', room: -1 };
-    const r = f.rid[y * f.w + x]; if (r >= 0) return { type: 'room', room: r };
-    return t === T.FLOOR ? { type: 'hall', room: -1 } : null;
+    if (L.traps) { const tr = f.traps.find(t => t.x === x && t.y === y); if (tr) return { type: 'trap', room: tr.room, trap: tr, shape: tileShape(x, y) }; }
+    const t = f.tiles[y * f.w + x], ts = tileShape(x, y);
+    if (t === T.SECRET) return L.secrets ? { type: 'secret', room: -1, shape: ts, tile: [x, y] } : null;
+    if (t === T.DOOR) return { type: 'door', room: -1, shape: ts, tile: [x, y] };
+    if (t === T.DOWN || t === T.UP) return { type: t === T.DOWN ? 'stairs-down' : 'stairs-up', room: f.rid[y * f.w + x], shape: ts, tile: [x, y] };
+    if (t === T.CORR) return { type: 'corr', room: -1, shape: ts, tile: [x, y] };
+    const r = f.rid[y * f.w + x]; if (r >= 0) return { type: 'room', room: r, tile: [x, y] };
+    return t === T.FLOOR ? { type: 'hall', room: -1, shape: ts, tile: [x, y] } : null;
   }
   function toPNG(d, fi, opt, scale, cb) { const f = d.floors[fi], b = bbox(d, fi), cv = document.createElement('canvas'); scale = Math.max(2, Math.min(scale, Math.floor(8000 / Math.max(b.x1 - b.x0, b.y1 - b.y0)))); cv.width = (b.x1 - b.x0) * scale; cv.height = (b.y1 - b.y0) * scale; draw(cv.getContext('2d'), d, fi, { x: b.x0, y: b.y0, s: scale }, Object.assign({ fill: true }, opt), cv.width, cv.height); cv.toBlob(cb, 'image/png'); }
   return { PAL, TAGCOL, draw, fit, bbox, pickRoom, hit, toPNG, ROLE_COL };

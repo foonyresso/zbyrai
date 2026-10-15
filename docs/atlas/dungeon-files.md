@@ -23,6 +23,8 @@ Atlas.registerDungeon({
 });
 ```
 
+Необов'язкове поле `sim` для Симулятора підземель (`dungeon-sim/`): `sim: { tags: { flooded: 60, nests: 25 }, corr: 10, cave: true }`. `tags` — особливості кімнат і їх типова частка (%): flooded, rubble, tombs, webs, ore, altar, cells, lab, library, nests, roots, cache, crystals, blood; `corr` — типова частка коридорів (%), `cave` — овальні печерні кімнати. Без `sim` симулятор бере типові значення зі свого коду або загальні. Після додавання файлу: `node tools/build-atlas-registry.mjs` і `node tools/build-dungeon-types.mjs`.
+
 ## Прив'язка (`anchor`): де саме бувають підземелля
 
 Підземелля не розкидані навмання: кожне стоїть там, куди й так ведуть дороги або стежки.

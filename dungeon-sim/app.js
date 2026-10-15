@@ -16,7 +16,7 @@
   const b64 = s => btoa(unescape(encodeURIComponent(s))), unb64 = s => decodeURIComponent(escape(atob(s)));
 
   /* ---------- стан ---------- */
-  let P = C.defaults(), d, fi = 0, view = { x: 0, y: 0, s: 10 }, sel = -1, selObj = null, hoverRoom = -1;
+  let P = C.defaults(), d, fi = 0, view = { x: 0, y: 0, s: 10 }, sel = -1, selObj = null, hoverObj = null, selAlpha = 0, clickAt = [0, 0];
   const ui = Object.assign({ layers: { traps: true, monsters: true, loot: true, labels: true, secrets: false } }, store.get('ui', {}));
   try { const m = /[#&]s=([^&]+)/.exec(location.hash); if (m) P = C.fromJSON(unb64(decodeURIComponent(m[1]))); else { const s = store.get('state', null); if (s) P = C.fromJSON(s); } } catch {}
   $('lkType').checked = !!store.get('lockType', false);
@@ -89,7 +89,7 @@
   const layoutKey = () => [P.seed, P.type, P.rooms, P.levels, P.style, P.branch, P.loops, P.secrets, P.corr, P.corrLen, P.corrVar].join('|');
   function commit(refit) {
     P = C.normalize(P); store.set('state', C.toJSON(P));
-    d = C.generate(P); fi = Math.min(fi, d.floors.length - 1); sel = -1; selObj = null;
+    d = C.generate(P); fi = Math.min(fi, d.floors.length - 1); sel = -1; selObj = null; selAlpha = 0;
     if (lastType !== P.type) { renderTypes(); renderTypeCtls(); lastType = P.type; }
     syncUI(); renderFloors(); renderRoom();
     const key = layoutKey(), changed = key !== lastLayout; lastLayout = key;
@@ -112,10 +112,10 @@
       view = { s: ls, x: cx - freeBox().w / 2 / ls, y: cy - freeBox().h / 2 / ls, init: true }; if (t === 1) view = Object.assign(to, { init: true }); redraw(); if (t < 1) anim = requestAnimationFrame(step); };
     anim = requestAnimationFrame(step);
   }
-  const drawOpt = () => ({ layers: ui.layers, sel, hover: hoverRoom });
+  const drawOpt = () => ({ layers: ui.layers, sel, selAlpha, hoverObj });
   function redraw() {
     if (!d || !cv.width) return; const k = dpr();
-    R.draw(ctx, d, fi, view, drawOpt(), cv.width, cv.height);
+    R.draw(ctx, d, fi, view, drawOpt(), cv.width, cv.height); placeCard();
     const s = d.stats, nm = window.DungeonMonsters ? DungeonMonsters.list.length : 0, L = s.links || {};
     $('meta').textContent = `${d.type ? d.type.name : 'Підземелля'} · поверх ${fi + 1} з ${d.floors.length} · кімнат ${d.floors[fi].rooms.length} із ${s.rooms} · дверей ${Math.round(s.doors)} (таємних ${s.secrets}) · пасток ${s.traps} · істот ${s.monsters} (${s.kinds} видів) · здобич у ${s.loot} · зв’язки: тунелів ${L.tunnel || 0}, прямих ${L.direct || 0}, залів ${L.wide || 0}, печерних ${L.natural || 0} · база монстрів: ${nm || 'не завантажена'} · зерно ${P.seed}`;
   }
@@ -128,10 +128,14 @@
   const KINDS = { weak: 'слабкий', monster: 'звичайний', other: 'дух чи мандрівник', 'mini-boss': 'міні-бос', boss: 'бос', 'super-boss': 'супербос', 'world-boss': 'світовий бос' };
   const tagChips = r => r.tags.map(k => `<span class="tag" title="${C.TAGS[k][1]}">${C.TAGS[k][0]}</span>`).join('');
   const monText = r => r.monsters ? `${r.monsters.count} × ${r.monsters.name}${r.monsters.id ? ` (${KINDS[r.monsters.kind] || r.monsters.kind})` : ''}${r.monsters.boss ? ', володар' : ''}` : 'порожньо';
+  const row = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
+  const chips = list => list.filter(Boolean).map(x => `<span class="tag">${x}</span>`).join('');
+  const head = (title, ch, lead) => `<h3>${title}</h3>${ch ? `<div class="chips">${ch}</div>` : ''}${lead ? `<p class="lead">${lead}</p>` : ''}`;
   const TRAPINFO = { 'плита-натискач': 'Прихована плита: при наступанні спрацьовує механізм.', 'яма з шипами': 'Замаскована яма з шипами на дні.', 'стріли зі стіни': 'Стрілки вилітають зі стіни, коли хтось проходить.', 'отруйний газ': 'Газ заповнює прохід, потрібно швидко вибігти.', 'обвал стелі': 'Стеля обвалюється на того, хто зачепить розтяжку.', 'сигнальний дзвін': 'Дзвін зриває тишу й кличе мешканців підземелля.' };
-  const roomHTML = r => `<p><b>${r.name}</b> <span class="tag">${ROLES[r.role]}</span><span class="tag">${C.SHAPE_NAMES[r.shape]}</span>${r.secret ? '<span class="tag">таємна</span>' : ''}</p>${r.tags.length ? `<p>${tagChips(r)}</p>` : ''}<p>Розмір: ${r.w}×${r.h} плиток · виходів: ${r.deg} · кроків від входу: ${r.dist}</p><p>Істоти: ${monText(r)}</p><p>Здобич: ${r.loot ? `${r.loot.what} (${r.loot.tier})` : 'немає'}</p><p>Пастки: ${r.traps.length ? r.traps.map(t => t.kind).join(', ') : 'немає'}</p>`;
   const flr = () => d.floors[fi];
   const roomOf = o => o && o.room >= 0 ? flr().rooms[o.room] : null;
+  const roomHTML = r => head(r.name, chips([ROLES[r.role], C.SHAPE_NAMES[r.shape], r.secret ? 'таємна' : '']), r.desc) +
+    `<dl class="facts">${row('Істоти', r.monsters ? monText(r) : 'немає')}${row('Здобич', r.loot ? `${r.loot.what} <small>(${r.loot.tier})</small>` : 'немає')}${row('Пастки', r.traps.length ? r.traps.map(t => t.kind).join(', ') : 'немає')}${row('Особливості', r.tags.length ? tagChips(r) : '')}${row('Розмір', `${r.w}×${r.h} плиток`)}${row('Виходів', r.deg)}${row('Від входу', `${r.dist} кроків`)}</dl>`;
   // короткий опис об'єкта під курсором і докладна картка по кліку
   function brief(o) {
     const r = roomOf(o), nm = r && r.secret && !ui.layers.secrets ? 'Кімната' : r && r.name;
@@ -140,7 +144,7 @@
       case 'loot': return `<b>${r.loot.what}</b><br>Здобич (${r.loot.tier}) у кімнаті «${r.name}»`;
       case 'trap': return `<b>Пастка: ${o.trap.kind}</b>`;
       case 'start': return `<b>${r.name}</b><br>Звідси починається підземелля`;
-      case 'boss': return `<b>Фінальна зала</b><br>Володар: ${r.monsters ? r.monsters.name : '—'}`;
+      case 'boss': return `<b>${r.name}</b><br>Володар: ${r.monsters ? r.monsters.name : '—'}`;
       case 'down': case 'stairs-down': return '<b>Сходи вниз</b><br>На наступний поверх';
       case 'stairs-up': return '<b>Сходи нагору</b><br>На попередній поверх';
       case 'door': return '<b>Двері</b>'; case 'secret': return '<b>Таємні двері</b><br>Приховані від гравців';
@@ -151,18 +155,40 @@
   function detail(o) {
     const r = roomOf(o);
     switch (o.type) {
-      case 'monster': { const m = r.monsters; return `<p><b>${m.name}</b> <span class="tag">${KINDS[m.kind] || m.kind}</span>${m.boss ? '<span class="tag">володар</span>' : ''}</p><p>Кількість: ${m.count}</p>${m.desc ? `<p>${m.desc}</p>` : ''}<p class="hint">Живе в кімнаті «${r.name}». ${m.id ? 'Запис із бази монстрів світів: ' + m.id : 'Загальний мешканець типу підземелля.'}</p>`; }
-      case 'loot': return `<p><b>${r.loot.what}</b> <span class="tag">${r.loot.tier}</span></p><p class="hint">Кімната «${r.name}»${r.secret ? ' (таємна)' : ''}.</p>`;
-      case 'trap': return `<p><b>${o.trap.kind}</b></p><p>${TRAPINFO[o.trap.kind] || ''}</p><p class="hint">${r ? 'У кімнаті «' + r.name + '».' : 'У коридорі.'}</p>`;
-      case 'door': case 'secret': case 'corr': case 'hall': case 'stairs-up': case 'stairs-down': return `<p>${brief(o)}</p>`;
+      case 'monster': { const m = r.monsters; return head(m.name, chips([KINDS[m.kind] || m.kind, m.boss ? 'володар' : '']), m.desc) + `<dl class="facts">${row('Кількість', m.count)}${row('Кімната', r.name)}${row('База монстрів', m.id || 'загальний мешканець типу')}</dl>`; }
+      case 'loot': return head(r.loot.what, chips([r.loot.tier])) + `<dl class="facts">${row('Кімната', r.name + (r.secret ? ' (таємна)' : ''))}</dl>`;
+      case 'trap': return head(o.trap.kind, '', TRAPINFO[o.trap.kind]) + `<dl class="facts">${row('Де', r ? 'у кімнаті «' + r.name + '»' : 'у коридорі')}</dl>`;
+      case 'door': case 'secret': case 'corr': case 'hall': case 'stairs-up': case 'stairs-down': return `<h3>${brief(o).replace('<br>', '</h3><p class="lead">') }${brief(o).includes('<br>') ? '</p>' : '</h3>'}`;
       default: return roomHTML(r);
     }
   }
+  // картка біля об'єкта: збоку від кімнати, з того боку, де більше вільного місця, щоб не закривати її вигляд
+  function placeCard() {
+    const card = $('roomCard'); if (card.hidden || !selObj) return;
+    const k = dpr(), W = cv.clientWidth, H = cv.clientHeight, cw = card.offsetWidth, chh = card.offsetHeight, r = roomOf(selObj), sx = x => (x - view.x) * view.s / k, sy = y => (y - view.y) * view.s / k;
+    let L, T2, Rr, B;
+    if (r) { L = sx(r.x); T2 = sy(r.y); Rr = sx(r.x + r.w); B = sy(r.y + r.h); }
+    else if (selObj.shape) { const sh = selObj.shape, x0 = sh.r ? sh.cx - sh.r : sh.x, y0 = sh.r ? sh.cy - sh.r : sh.y, w = sh.r ? sh.r * 2 : sh.w, h = sh.r ? sh.r * 2 : sh.h; L = x0 / k; T2 = y0 / k; Rr = (x0 + w) / k; B = (y0 + h) / k; }
+    else { L = Rr = clickAt[0] / k; T2 = B = clickAt[1] / k; }
+    const gap = 16, leftLimit = drawer.hidden ? 84 : drawer.getBoundingClientRect().right - cv.getBoundingClientRect().left + 8;
+    const spaceR = W - Rr - 10, spaceL = L - leftLimit;
+    let x, y = Math.max(8, Math.min(clickAt[1] / k - 24, H - chh - 8));
+    if (spaceR >= cw + gap || spaceR >= spaceL) x = Rr + gap; else x = L - gap - cw;
+    if (x + cw > W - 8 || x < leftLimit) { // збоку не вміщається: зверху чи знизу від кімнати
+      x = Math.max(leftLimit, Math.min(W - cw - 8, (L + Rr) / 2 - cw / 2)); y = H - B > T2 ? B + gap : T2 - gap - chh; y = Math.max(8, Math.min(y, H - chh - 8));
+    }
+    card.style.left = Math.round(x) + 'px'; card.style.top = Math.round(y) + 'px';
+  }
   function renderRoom() {
     const card = $('roomCard'); if (!selObj) { card.hidden = true; return; }
-    $('roomInfo').innerHTML = detail(selObj); card.hidden = false;
+    $('roomInfo').innerHTML = detail(selObj); card.hidden = false; placeCard();
   }
-  $('roomX').onclick = () => { sel = -1; selObj = null; renderRoom(); redraw(); };
+  let selAnim = 0;
+  function fadeSel() { cancelAnimationFrame(selAnim); selAlpha = 0; const t0 = performance.now(), step = now => { selAlpha = Math.min(1, (now - t0) / 260); redraw(); if (selAlpha < 1) selAnim = requestAnimationFrame(step); }; selAnim = requestAnimationFrame(step); }
+  function closeCard() { sel = -1; selObj = null; selAlpha = 0; renderRoom(); redraw(); }
+  $('roomX').onclick = closeCard;
+  document.addEventListener('pointerdown', e => { if (!$('roomCard').hidden && !$('roomCard').contains(e.target) && e.target !== cv && !e.target.closest('.rail, .drawer, .bar, .floors, .zoom')) closeCard(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('roomCard').hidden) closeCard(); });
   function tip(o, x, y) {
     const t = $('tip'); if (!o) { t.hidden = true; return; }
     t.innerHTML = brief(o); const k = dpr(); t.hidden = false; t.style.left = Math.min(x / k + 16, cv.clientWidth - 270) + 'px'; t.style.top = Math.min(y / k + 16, cv.clientHeight - 100) + 'px';
@@ -172,17 +198,17 @@
   let drag = null; const ptrs = new Map();
   const pos = e => { const r = cv.getBoundingClientRect(), k = cv.width / r.width; return [(e.clientX - r.left) * k, (e.clientY - r.top) * k]; };
   function zoomAt(px, py, f) { const ns = Math.max(0.6, Math.min(60, view.s * f)); view.x += px / view.s - px / ns; view.y += py / view.s - py / ns; view.s = ns; redraw(); }
-  cv.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = pos(e); zoomAt(x, y, e.deltaY < 0 ? 1.18 : 1 / 1.18); }, { passive: false });
+  cv.addEventListener('wheel', e => { e.preventDefault(); if (selObj) closeCard(); const [x, y] = pos(e); zoomAt(x, y, e.deltaY < 0 ? 1.18 : 1 / 1.18); }, { passive: false });
   cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); const [x, y] = pos(e); ptrs.set(e.pointerId, [x, y]); drag = { x, y, vx: view.x, vy: view.y, moved: false, dist: ptrs.size === 2 ? Math.hypot(...[...ptrs.values()].reduce((a, p, i, arr) => i ? [a[0] - p[0], a[1] - p[1]] : [p[0], p[1]], [])) : 0, s: view.s }; cv.classList.add('drag'); });
   cv.addEventListener('pointermove', e => {
     const [x, y] = pos(e);
     if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [x, y]);
     if (drag && ptrs.size === 2) { const [a, b] = [...ptrs.values()], dd = Math.hypot(a[0] - b[0], a[1] - b[1]); if (drag.dist) { const cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2, ns = Math.max(.6, Math.min(60, drag.s * dd / drag.dist)); view.x += cx / view.s - cx / ns; view.y += cy / view.s - cy / ns; view.s = ns; drag.moved = true; redraw(); } return; }
     if (drag) { const dx = x - drag.x, dy = y - drag.y; if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true; if (drag.moved) { view.x = drag.vx - dx / view.s; view.y = drag.vy - dy / view.s; redraw(); } return; }
-    const o = R.hit(d, fi, view, ui.layers, x, y), h = o ? o.room : -1; if (h !== hoverRoom) { hoverRoom = h; redraw(); } tip(o, x, y);
+    const o = R.hit(d, fi, view, ui.layers, x, y), key = o && o.shape ? o.type + JSON.stringify(o.shape) : ''; if (key !== (hoverObj ? hoverObj.key : '')) { hoverObj = o && o.shape ? Object.assign({ key }, o) : null; redraw(); } tip(o && !(selObj && o.type === selObj.type && o.room === selObj.room && !$('roomCard').hidden) ? o : null, x, y);
   });
-  const end = e => { ptrs.delete(e.pointerId); if (drag && !drag.moved && ptrs.size === 0) { const [x, y] = pos(e), o = R.hit(d, fi, view, ui.layers, x, y); selObj = o; sel = o ? o.room : -1; renderRoom(); redraw(); } if (!ptrs.size) { drag = null; cv.classList.remove('drag'); } };
-  cv.addEventListener('pointerleave', () => { hoverRoom = -1; tip(null); redraw(); });
+  const end = e => { ptrs.delete(e.pointerId); if (drag && !drag.moved && ptrs.size === 0) { const [x, y] = pos(e), o = R.hit(d, fi, view, ui.layers, x, y); clickAt = [x, y]; if (o) { selObj = o; sel = o.room; renderRoom(); fadeSel(); } else closeCard(); } if (!ptrs.size) { drag = null; cv.classList.remove('drag'); } };
+  cv.addEventListener('pointerleave', () => { hoverObj = null; tip(null); redraw(); });
   cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   cv.addEventListener('dblclick', e => { const [x, y] = pos(e); zoomAt(x, y, 2); });
 
@@ -211,5 +237,5 @@
   window.addEventListener('resize', resize);
 
   showPanel(panel); resize(); commit(true);
-  if (window.DungeonMonsters) DungeonMonsters.ready.then(() => { commit(false); });
+  if (window.DungeonMonsters) DungeonMonsters.ready.then(() => { lastType = null; if (!C.typeById(P.type)) P = Object.assign(P, { type: '' }); commit(false); });
 })();

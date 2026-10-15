@@ -16,7 +16,7 @@
 | Кузня планет | `planet-forge/` | `planet-core.js`, `planet-kinds.js`, `planet-kinds-worlds.js`, `planet-kinds-sky.js`, `planet-bg.js`, `planet-system.js`, `planet-sky.js` | `app.js`, `system-ui.js`, `planet-system-view.js`, `slab-ui.js`, `planet-sky-view.js` | `test/planet.test.js` | `pf_` |
 | Воксельна лабораторія | `voxel-lab/` | `voxel-core.js` | `app.js` | `test/voxel.test.js` | `vx_` |
 | Мозаїка | `tessera/` | `tessera-core.js` | `app.js` | `test/tessera.test.js` | `ts_` |
-| Симулятор підземель | `dungeon-sim/` | `dungeon-core.js`, `dungeon-monsters.js` (читає medieval-world/monsters/*.js), `dungeon-types.js` (генерується з `medieval-world/dungeons/` скриптом `tools/build-dungeon-types.mjs`) | `app.js`, `dungeon-render.js` | `test/dungeon.test.js` | `dg_` |
+| Симулятор підземель | `dungeon-sim/` | `dungeon-core.js`, `dungeon-monsters.js` (читає medieval-world/monsters/*.js і dungeons/*.js за реєстром та room-kinds/*.js), `room-kinds/` (види кімнат, по файлу на тему), `dungeon-types.js` (генерується з `medieval-world/dungeons/` скриптом `tools/build-dungeon-types.mjs`) | `app.js`, `dungeon-render.js` | `test/dungeon.test.js` | `dg_` |
 | Симуляція колонії | `colonist-foundry/` | `colonist-core.js` (генерація), `colony-data.js`, `colony-grammar.js`, `colony-world.js`, `colony-events.js`, `colony-sim.js` (покроковий рушій) | `app.js` (стан, час), `ui-common.js`, `ui-portrait.js`, `ui-setup.js`, `ui-detail.js`, `ui-views.js` | `test/colonist.test.js`, `test/sim.test.js` | `cf_` |
 | Планувальник виробничих ланцюжків | `production-planner/` | `planner-core.js` | `app.js` | `test/planner.test.js` | `pp_` |
 | Криві балансу й хвилі | `balance-curves/` | `curves-core.js` | `app.js` | `test/curves.test.js` | `bc_` |

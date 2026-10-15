@@ -1,4 +1,4 @@
-// Збирає dungeon-sim/dungeon-types.js з типів підземель Атласу (medieval-world/dungeons/*.js).
+// Збирає dungeon-sim/dungeon-types.js (резерв для тестів) і room-kinds/manifest.js з типів підземель Атласу (medieval-world/dungeons/*.js).
 // Запуск: node tools/build-dungeon-types.mjs   (після зміни типів підземель)
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -16,9 +16,14 @@ types.sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.id.localeCompare(b
 const rows = types.map(d => ({
   id: d.id, name: d.name, anchor: d.anchor && d.anchor.type, rooms: d.size.rooms, levels: d.size.levels,
   length: d.size.length, area: d.size.area, worlds: (d.spawn && d.spawn.worlds) || 'all', monsterIds: d.monsters || [], danger: d.danger, inhabitants: d.inhabitants || [],
-  desc: (d.lore && d.lore.description) || '',
+  desc: (d.lore && d.lore.description) || '', sim: d.sim || null,
 }));
 const out = `/* Автоматично: node tools/build-dungeon-types.mjs з medieval-world/dungeons/*.js. Не правити вручну. */\n` +
   `(function (g) { g.DungeonTypes = ${JSON.stringify(rows, null, 1)}; if (typeof module !== 'undefined') module.exports = g.DungeonTypes; })(typeof globalThis !== 'undefined' ? globalThis : this);\n`;
 writeFileSync(join(root, 'dungeon-sim', 'dungeon-types.js'), out);
 console.log(`Типів підземель: ${rows.length}`);
+// перелік файлів видів кімнат для браузера (dungeon-sim/room-kinds/*.js)
+import { readdirSync as ls } from 'node:fs';
+const kinds = ls(join(root, 'dungeon-sim', 'room-kinds')).filter(n => n.endsWith('.js') && n !== 'manifest.js').sort();
+writeFileSync(join(root, 'dungeon-sim', 'room-kinds', 'manifest.js'), `/* Автоматично: node tools/build-dungeon-types.mjs. Не правити вручну. */\nwindow.DungeonRoomFiles = ${JSON.stringify(kinds)};\n`);
+console.log(`Файлів видів кімнат: ${kinds.length}`);

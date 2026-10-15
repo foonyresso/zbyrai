@@ -36,7 +36,15 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .meta { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); width: min(1000px, calc(100% - 200px)); margin: 0; z-index: 2; font-size: 12px; line-height: 1.5; color: var(--muted); text-align: center; pointer-events: none; text-shadow: 0 1px 4px #000, 0 0 8px #000; }
 .work.shift .meta { left: calc(50% + 200px); width: min(1000px, calc(100% - 640px)); }
 .tip { position: absolute; z-index: 6; pointer-events: none; max-width: 260px; padding: 7px 10px; border-radius: 8px; background: var(--panel-3, #1b1b22); border: 1px solid var(--accent); font-size: 12px; line-height: 1.45; color: var(--text); box-shadow: var(--shadow-2); }
-.roomcard { position: absolute; right: 12px; top: 10px; width: min(330px, calc(100vw - 24px)); z-index: 5; padding: 12px 14px; max-height: calc(100% - 90px); overflow: auto; }
+/* картка об'єкта: позиціонується скриптом збоку від кімнати */
+.roomcard { position: absolute; left: 0; top: 0; width: 300px; z-index: 5; padding: 14px 16px 14px; max-height: calc(100% - 20px); overflow: auto; }
+.roomcard h3 { margin: 0 24px 6px 0; font-size: 17px; line-height: 1.25; color: var(--text); font-family: var(--ff-ui); }
+.roomcard .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.roomcard .lead { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.facts { display: grid; grid-template-columns: 92px 1fr; gap: 6px 10px; margin: 0; padding-top: 8px; border-top: 1px solid var(--line); font-size: 13px; }
+.facts dt { color: var(--faint); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding-top: 1px; }
+.facts dd { margin: 0; color: var(--text); line-height: 1.45; }
+.facts small { color: var(--faint); }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); }
 .hint { font-size: 12px; color: var(--faint); margin: 2px 0 0; line-height: 1.5; }
 .chk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; width: fit-content; }
@@ -52,5 +60,5 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
   font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%); }
 #printArea { display: none; }
-@media (max-width: 760px) { header.top { padding: 10px 12px; } .bar { max-width: calc(100% - 20px); bottom: 58px; } .floors { top: 10px; left: 90px; transform: none; } .meta { width: calc(100% - 100px); left: calc(50% + 40px); bottom: 100px; font-size: 11px; } .roomcard { top: auto; bottom: 100px; } }
+@media (max-width: 760px) { header.top { padding: 10px 12px; } .bar { max-width: calc(100% - 20px); bottom: 58px; } .floors { top: 10px; left: 90px; transform: none; } .meta { width: calc(100% - 100px); left: calc(50% + 40px); bottom: 100px; font-size: 11px; }  }
 @media print { body > *:not(#printArea) { display: none !important; } #printArea { display: block; } #printArea img { width: 100%; page-break-after: always; } #printArea h3 { color: #000; font: 600 14px sans-serif; } }

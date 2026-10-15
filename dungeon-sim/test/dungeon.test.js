@@ -130,5 +130,30 @@ test('щільність істот і здобич керують кількі�
   const n = (k, v) => C.generate({ seed: 'dn', rooms: 80, [k]: v }).stats[k === 'mon' ? 'monsters' : 'loot'];
   assert.ok(n('mon', 100) > n('mon', 0)); assert.ok(n('loot', 100) > n('loot', 0));
 });
+// види кімнат читаються з файлів dungeon-sim/room-kinds/*.js (так само, як у браузері)
+const KDIR = path.join(__dirname, '..', 'room-kinds');
+const loadKinds = () => fs.readdirSync(KDIR).filter(n => n.endsWith('.js') && n !== 'manifest.js').flatMap(f => { let out = []; vm.runInNewContext(fs.readFileSync(path.join(KDIR, f), 'utf8'), { DungeonRooms: { register: a => { out = a; } } }); return out; });
+test('види кімнат: файли коректні, посилаються на існуючі типи й особливості', () => {
+  const kinds = loadKinds(), ids = new Set(C.types.map(t => t.id)), roles = ['start', 'boss', 'hub', 'room', 'dead', 'secret'], seen = new Set();
+  assert.ok(kinds.length >= 150, 'мало видів кімнат: ' + kinds.length);
+  for (const k of kinds) { assert.ok(!seen.has(k.id), 'дубль ' + k.id); seen.add(k.id); assert.ok(k.name && k.desc, k.id); for (const r of k.roles) assert.ok(roles.includes(r), k.id + ' роль ' + r); for (const t of k.types) assert.ok(t === '*' || ids.has(t), k.id + ' тип ' + t); for (const t of k.tags || []) assert.ok(C.TAGS[t], k.id + ' особливість ' + t); }
+  for (const t of C.types) for (const role of ['room', 'hub', 'dead']) assert.ok(kinds.some(k => k.roles.includes(role) && (k.types.includes(t.id) || k.types.includes('*'))), t.id + ' без ' + role);
+});
+test('види кімнат: імена залежать від типу підземелля й різноманітні', () => {
+  C.setRoomKinds(loadKinds());
+  const names = id => { const s = new Set(); for (let i = 0; i < 4; i++) for (const r of C.generate(C.applyType({ seed: 'rk' + i, rooms: 40 }, id, C.rng('r' + i))).floors[0].rooms) s.add(r.name); return s; };
+  const crypt = names('crypt'), mine = names('mine'), sewer = names('sewer');
+  assert.ok(crypt.size >= 12 && mine.size >= 12, crypt.size + ' ' + mine.size);
+  assert.ok([...crypt].some(n => /склеп|сарк|кост|могил|усипальн/i.test(n)), 'у склепі немає склепових кімнат');
+  assert.ok([...mine].some(n => /штольн|шахт|руд|забій|штрек/i.test(n)), 'у шахті немає шахтних');
+  assert.ok([...sewer].some(n => /тунел|шлюз|цистерн|стоків|басейн|причал/i.test(n)), 'у каналізації немає водних');
+  const d = C.generate({ seed: 'rk', rooms: 30 }); assert.ok(d.floors[0].rooms.every(r => r.name));
+  C.setRoomKinds([]);
+});
+test('нові типи підземель із файлів Атласу: поле sim задає особливості, коридори й стиль', () => {
+  assert.ok(C.types.length >= 40);
+  for (const id of ['prison', 'dragon-lair', 'frost-cave', 'sunken-library', 'sand-tomb']) { const t = C.typeById(id); assert.ok(t && t.sim, id); assert.deepStrictEqual(C.tagDefaults(id), t.sim.tags); assert.strictEqual(C.corrDefault(id), t.sim.corr); }
+  assert.strictEqual(C.applyType({}, 'dragon-lair', C.rng('x')).style, 'cave'); assert.strictEqual(C.applyType({}, 'prison', C.rng('x')).style, 'brick');
+});
 test('швидкість: 300 кімнат менше ніж за 400 мс', () => { const t = Date.now(); C.generate({ seed: 'perf', rooms: 300, levels: 2 }); assert.ok(Date.now() - t < 400); });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);

@@ -21,7 +21,24 @@
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const ri = (rnd, a, b) => a + Math.floor(rnd() * (b - a + 1));
   const pick = (rnd, arr) => arr[Math.floor(rnd() * arr.length)];
+  TYPES = TYPES || [];
+  const setTypes = list => { TYPES.length = 0; for (const t of list) TYPES.push(t); };
   const typeById = id => TYPES.find(t => t.id === id) || null;
+  /* Види кімнат: kinds підключаються ззовні з папки room-kinds/ (у кожного: id, name, roles, types, tags, weight, desc) */
+  let KINDS = [];
+  const setRoomKinds = list => { KINDS = list.filter(k => k && k.id && k.name).slice().sort((a, b) => a.id < b.id ? -1 : 1); };
+  function pickKind(rnd, typeId, role, tags, used) {
+    const c = [];
+    for (const k of KINDS) {
+      if (!k.roles.includes(role)) continue;
+      const own = k.types.includes(typeId), any = k.types.includes('*'); if (!own && !any) continue;
+      let w = (k.weight || 1) * (own ? 3 : 1) * (k.tags && k.tags.some(t => tags.includes(t)) ? 4 : 1) * Math.pow(.35, used[k.id] || 0);
+      c.push([k, w]);
+    }
+    if (!c.length) return null;
+    let t = c.reduce((a, b) => a + b[1], 0) * rnd(); for (const [k, w] of c) if ((t -= w) <= 0) { used[k.id] = (used[k.id] || 0) + 1; return k; }
+    const k = c[c.length - 1][0]; used[k.id] = (used[k.id] || 0) + 1; return k;
+  }
 
   /* Особливості кімнат: у кожного типу підземелля свій набір (частка кімнат, що їх мають) */
   const TAGS = {
@@ -48,8 +65,9 @@
   const FREE_TAGS = { rubble: 15, webs: 15, cache: 20 };
   /* Типова частка коридорів-тунелів серед з'єднань (%). Решта: прямі проходи, зали-проходи, печерні ходи. Тунелі лишаються частіше для каналізації й шахт */
   const TYPE_CORR = { sewer: 35, mine: 30, 'village-cellar': 20, catacombs: 12, crypt: 12, 'palace-cellar-mine': 15, 'ruin-cellars': 10, 'thieves-lair': 10, barrow: 8, 'keep-cellars': 10, 'cloud-monastery-crypt': 8, 'great-hollow': 6, 'occupied-warren': 5, 'mountain-cave': 5, 'star-cavern': 5, 'root-knot-depths': 5, 'scorpion-burrows': 5, 'blue-hollow-caves': 5, 'nest-grottoes': 5 };
-  const corrDefault = id => TYPE_CORR[id] || 8;
-  const tagDefaults = id => Object.assign({}, TYPE_TAGS[id] || FREE_TAGS);
+  const corrDefault = id => { const t = typeById(id); return t && t.sim && t.sim.corr !== undefined ? t.sim.corr : TYPE_CORR[id] || 8; };
+  const tagDefaults = id => { const t = typeById(id); return Object.assign({}, (t && t.sim && t.sim.tags) || TYPE_TAGS[id] || FREE_TAGS); };
+  const isCave = id => { const t = typeById(id); return t && t.sim && t.sim.cave !== undefined ? !!t.sim.cave : CAVE_IDS.includes(id); };
 
   /* База монстрів: підключається ззовні (у браузері читається з medieval-world/monsters/*.js через реєстр) */
   const RANK = { weak: 1, monster: 2, other: 2, 'mini-boss': 3, boss: 4, 'super-boss': 5, 'world-boss': 6 };
@@ -228,14 +246,15 @@
       return { id: null, name: pick(rnd, inhab), kind: 'monster', rank: 2, desc: '', count: role === 'boss' ? 1 : ri(rnd, 1, 2 + danger), boss: role === 'boss' };
     };
     const monP = 0.12 + P.mon / 100 * 0.6 + danger * 0.04, lootDead = Math.min(0.95, P.loot / 100 * 1.6), lootRoom = P.loot / 100 * 0.24;
-    let ni = 0;
+    let ni = 0; const used = {}, setKind = (r, role) => { const k = pickKind(rnd, P.type, role, r.tags, used); if (k) { r.kind = k.id; r.desc = k.desc || ''; r.name = k.name; } return !!k; };
     for (const r of rooms) {
-      r.tags = [];
-      if (r.role === 'start') { r.name = f.index === 0 ? 'Вхід' : 'Сходи нагору'; continue; }
-      if (r.role === 'boss') { r.name = 'Фінальна зала'; r.monsters = mon('boss'); r.loot = { tier: TIER[Math.min(4, danger)], what: pick(rnd, LOOT) }; continue; }
+      r.tags = []; r.kind = ''; r.desc = '';
+      if (r.role === 'start') { if (!setKind(r, 'start')) r.name = 'Вхід'; if (f.index > 0) r.name = 'Сходи нагору'; continue; }
+      if (r.role === 'boss') { if (!setKind(r, 'boss')) r.name = 'Фінальна зала'; r.monsters = mon('boss'); r.loot = { tier: TIER[Math.min(4, danger)], what: pick(rnd, LOOT) }; continue; }
       if (r.role === 'down') { r.name = 'Сходи вниз'; r.monsters = rnd() < .7 ? mon('room') : null; continue; }
       for (const k of Object.keys(P.opts)) if (rnd() < P.opts[k] / 100) r.tags.push(k);
-      r.name = r.secret ? 'Таємна кімната' : r.role === 'dead' ? (rnd() < .5 ? 'Сховок' : 'Скарбниця') : r.role === 'hub' ? 'Перехрестя залів' : ROOM_NAMES[ni++ % ROOM_NAMES.length] + (ni > ROOM_NAMES.length ? ' ' + Math.ceil(ni / ROOM_NAMES.length) : '');
+      const role = r.secret ? 'secret' : r.role;
+      if (!setKind(r, role)) r.name = r.secret ? 'Таємна кімната' : r.role === 'dead' ? (rnd() < .5 ? 'Сховок' : 'Скарбниця') : r.role === 'hub' ? 'Перехрестя залів' : ROOM_NAMES[ni++ % ROOM_NAMES.length] + (ni > ROOM_NAMES.length ? ' ' + Math.ceil(ni / ROOM_NAMES.length) : '');
       if (rnd() < monP) r.monsters = mon(r.role, r.role === 'hub');
       if (r.role === 'dead' ? rnd() < lootDead : rnd() < lootRoom) r.loot = { tier: TIER[clamp(ri(rnd, danger - 2, danger - 1), 0, 4)], what: pick(rnd, LOOT) };
     }
@@ -279,7 +298,7 @@
     if (!ty) { o.type = ''; return o; }
     rnd = rnd || Math.random;
     o.type = ty.id; o.rooms = ri(rnd, ty.rooms[0], ty.rooms[1]); o.levels = ri(rnd, ty.levels[0], ty.levels[1]);
-    o.danger = ty.danger; o.style = CAVE_IDS.includes(ty.id) ? 'cave' : 'brick'; o.opts = tagDefaults(ty.id); o.corr = corrDefault(ty.id);
+    o.danger = ty.danger; o.style = isCave(ty.id) ? 'cave' : 'brick'; o.opts = tagDefaults(ty.id); o.corr = corrDefault(ty.id);
     return normalize(o);
   }
   function randomize(params, locks, rnd) {
@@ -299,5 +318,5 @@
     return `${d.type ? d.type.name : 'Підземелля'}: ${s.rooms} кімнат, ${s.floors} пов., небезпека ${p.danger}/5; ${s.doors} дверей (з них таємних ${s.secrets}), ${s.traps} пасток, ${s.monsters} істот, ${s.loot} схованок зі здобиччю.`;
   }
 
-  return { corrDefault, SHAPE_NAMES, LINKS, TAGS, tagDefaults, setMonsters, T, CELL, MAX_ROOMS, STYLES, TRAPS, defaults, normalize, generate, applyType, randomize, toJSON, fromJSON, describe, rng, randSeed, typeById, types: TYPES };
+  return { setTypes, setRoomKinds, corrDefault, SHAPE_NAMES, LINKS, TAGS, tagDefaults, setMonsters, T, CELL, MAX_ROOMS, STYLES, TRAPS, defaults, normalize, generate, applyType, randomize, toJSON, fromJSON, describe, rng, randSeed, typeById, types: TYPES, get kindCount() { return KINDS.length; } };
 });
