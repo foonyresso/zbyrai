@@ -14,6 +14,7 @@
 | Кузня планет | `planet-forge/` | `planet-core.js`, `planet-kinds.js` | `app.js` | `test/planet.test.js` | `pf_` |
 | Воксельна лабораторія | `voxel-lab/` | `voxel-core.js` | `app.js` | `test/voxel.test.js` | `vx_` |
 | Мозаїка | `tessera/` | `tessera-core.js` | `app.js` | `test/tessera.test.js` | `ts_` |
+| Карта королівств | `realm-map/` | `core/*.js` (генерація без DOM), `data/*.js` (біоми, монстри, місця, назви) | `app.js`, `ui/`, `render/` | `test/{hierarchy,roads,monsters,sea,general}.test.js`, запуск `test/run-all.js` | `rm_` |
 | Симуляція колонії (Симуляція колонії) | `colonist-foundry/` | `colonist-core.js` | `app.js` | `test/colonist.test.js` | `cf_` |
 | Планувальник виробничих ланцюжків | `production-planner/` | `planner-core.js` | `app.js` | `test/planner.test.js` | `pp_` |
 | Криві балансу й хвилі | `balance-curves/` | `curves-core.js` | `app.js` | `test/curves.test.js` | `bc_` |

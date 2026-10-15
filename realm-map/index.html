@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карта королівств</title>
+<meta name="description" content="Генератор фентезійної карти: провінції, регіони й міста, чотири типи доріг, морські шляхи, лігва монстрів і боси гір, лісів та морів. Зразок механіки для гри. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/realm-map/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Карта королівств">
+<meta property="og:description" content="Провінції, регіони, міста, дороги чотирьох типів, морські шляхи та лігва монстрів: фентезійна карта з одного зерна.">
+<meta property="og:url" content="https://zbyrai.pages.dev/realm-map/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M5 9l7-3 8 3 7-3v17l-7 3-8-3-7 3z%27 fill=%27none%27 stroke=%27%23d7a85c%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M12 6v17M20 9v17%27 stroke=%27%23d7a85c%27 stroke-width=%271.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>
+    <div>Карта <span>королівств</span></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережену карту з файлу .json (параметри або повний експорт світу): карта відновиться з тим самим зерном">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnLink" title="Скопіювати посилання, яке відкриє цю саму карту з усіма параметрами">Копіювати посилання</button>
+    <button id="btnCopyJson" title="Скопіювати параметри карти як JSON (потім вставити через «Імпорт»)">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити параметри карти як файл realm-map.json: за ними карта відновлюється точно">Зберегти .json</button>
+    <button id="btnWorld" title="Завантажити повний експорт світу для гри: провінції, регіони, міста, дороги, лігва, шари біомів">Експорт світу (.json)</button>
+    <button id="btnCsv" title="Завантажити таблицю всіх поселень у форматі CSV (відкривається в Excel)">Таблиця міст (.csv)</button>
+    <button id="btnPng" class="btn-primary" title="Зберегти всю карту як зображення PNG високої роздільності з урахуванням увімкнених шарів">Зберегти PNG</button>
+    <button id="btnPrint" title="Надрукувати карту: меню й панелі приховуються, лишається лише карта">Друк</button>
+  </div>
+</header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Генератор фентезійної карти світу з одного зерна. Світ ділиться на <b>провінції</b> (як країни), провінції на <b>регіони</b> (як області), а кожен регіон належить до свого міста; столиця має найбільший регіон. Міста, села, дороги й лігва монстрів видно одразу на карті.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Це зразок механіки для гри на Godot C#: логіка генерації відокремлена від малювання й легко переноситься в код. Також годиться для настільних кампаній і натхнення. Однакове зерно з однаковими параметрами завжди дає ту саму карту.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>«Світ»</b>: зерно, розмір, тип суші, кількість провінцій і щільність; карта перебудовується сама.</li>
+        <li><b>«Шари»</b>: вмикай політику, дороги чотирьох типів, морські шляхи, лігва, небезпеку, підписи.</li>
+        <li>Клік по місту, місцю чи лігву показує картку; колесо миші — масштаб, перетягування — рух.</li>
+        <li><b>«Подорож»</b>: познач точки A і B, отримай шлях, дні дороги та небезпеку. <b>«Довідник»</b>: дерево провінцій і бестіарій.</li>
+        <li><b>Збережи чи поділись</b> кнопками угорі: посилання, JSON, експорт світу, CSV, PNG, друк.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<div id="app">
+  <aside id="side">
+    <div class="tabs" role="tablist">
+      <button data-tab="world" class="on" title="Параметри генерації світу: зерно, розмір, провінції, щільність">Світ</button>
+      <button data-tab="layers" title="Які шари показувати на карті">Шари</button>
+      <button data-tab="travel" title="Планувальник подорожі між двома точками">Подорож</button>
+      <button data-tab="guide" title="Дерево провінцій і регіонів, бестіарій, умовні позначки">Довідник</button>
+    </div>
+    <section class="pn on" data-pn="world" id="pnWorld"></section>
+    <section class="pn" data-pn="layers" id="pnLayers"></section>
+    <section class="pn" data-pn="travel" id="pnTravel"></section>
+    <section class="pn" data-pn="guide" id="pnGuide"></section>
+  </aside>
+  <main>
+    <canvas id="cv" title="Карта: колесо — масштаб, перетягування — рух, клік — картка об’єкта"></canvas>
+    <div id="hud"></div>
+    <div id="busy" hidden>Будую світ…</div>
+    <div id="tip" hidden></div>
+    <aside id="card" hidden></aside>
+    <div class="mapbtns">
+      <button id="btnFit" title="Показати всю карту цілком">Вся карта</button>
+      <button id="btnZoomIn" title="Наблизити карту">+</button>
+      <button id="btnZoomOut" title="Віддалити карту">−</button>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+  (function () { var a = document.getElementById('hubBack'); if (!a) return; var s = false; try { s = !!sessionStorage.getItem('hub'); } catch (e) {}
+    if (/^https?:$/.test(location.protocol) || s) a.hidden = false; })();
+</script>
+<script src="data/biomes.js"></script>
+<script src="data/poi-types.js"></script>
+<script src="data/name-banks.js"></script>
+<script src="data/hooks.js"></script>
+<script src="data/monsters-mountain.js"></script>
+<script src="data/monsters-forest.js"></script>
+<script src="data/monsters-sea.js"></script>
+<script src="core/rng.js"></script>
+<script src="core/noise.js"></script>
+<script src="core/heap.js"></script>
+<script src="core/grid.js"></script>
+<script src="core/terrain.js"></script>
+<script src="core/rivers.js"></script>
+<script src="core/climate.js"></script>
+<script src="core/suitability.js"></script>
+<script src="core/politics.js"></script>
+<script src="core/names.js"></script>
+<script src="core/settlements.js"></script>
+<script src="core/pois.js"></script>
+<script src="core/lairs.js"></script>
+<script src="core/router.js"></script>
+<script src="core/roads.js"></script>
+<script src="core/searoutes.js"></script>
+<script src="core/features.js"></script>
+<script src="core/contours.js"></script>
+<script src="core/planner.js"></script>
+<script src="core/params.js"></script>
+<script src="core/details.js"></script>
+<script src="core/generate.js"></script>
+<script src="core/serialize.js"></script>
+<script src="render/palette.js"></script>
+<script src="render/geometry.js"></script>
+<script src="render/base-layer.js"></script>
+<script src="render/decor.js"></script>
+<script src="render/vectors.js"></script>
+<script src="render/icons-settlements.js"></script>
+<script src="render/icons-places.js"></script>
+<script src="render/labels.js"></script>
+<script src="render/scene.js"></script>
+<script src="ui/state.js"></script>
+<script src="ui/panel-world.js"></script>
+<script src="ui/panel-layers.js"></script>
+<script src="ui/panel-travel.js"></script>
+<script src="ui/panel-guide.js"></script>
+<script src="ui/card.js"></script>
+<script src="ui/io.js"></script>
+<script src="app.js"></script>
+<script src="./tool-chrome.js"></script>
+</body>
+</html>
