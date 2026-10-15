@@ -12,7 +12,9 @@
 | [atlas/world-files.md](atlas/world-files.md), [atlas/biome-files.md](atlas/biome-files.md), [atlas/monster-files.md](atlas/monster-files.md), [atlas/dungeon-files.md](atlas/dungeon-files.md) | Формат файлів світів, біомів, монстрів (версії 1 і 2, поле lore) і підземель (версія 2), шаблони, вибір біомів, відстані монстрів від поселень, прив'язка підземель |
 | [atlas/continent/README.md](atlas/continent/README.md) | Атлас, світ «Материк» (колишня карта королівств): ієрархія, дороги, монстри гір/лісів/морів, алгоритм, перенесення в Godot C#, покращення |
 | [plans/dungeon-sim-queue.md](plans/dungeon-sim-queue.md) | Черга задач симулятора підземель |
+| [plans/skill-forge-queue.md](plans/skill-forge-queue.md) | Черга задач Конструктора скілів |
 | [plans/README.md](plans/README.md) | Плани: принцип «полотно + іконки», перелік інструментів, злиття карти королівств у Атлас, рішення автора, пріоритети, питання про суперечності |
+| [skill-forge-format.md](skill-forge-format.md) | Конструктор скілів: формат `zbyrai.skill` (версія 1), види цеглинок, як додати цеглинку, зв'язок з деревом скілів, перенесення в Godot C# |
 | [edits/00-index.md](edits/00-index.md), [edits/16-status.md](edits/16-status.md) | Стиснуті правки автора («новий 3.txt») по інструментах: що просив, суперечності, що зроблено |
 
 ## Карта верхнього рівня

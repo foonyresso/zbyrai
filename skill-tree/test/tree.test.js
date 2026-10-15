@@ -254,5 +254,12 @@ test('генерований великий білд можна пройти ж�
   }
 });
 
+test('імпорт зберігає скіл з Конструктора скілів у вузлі, чужі об\'єкти відкидає', () => {
+  const raw = { nodes: [{ id: 's', kind: 'start' }, { id: 'a', skill: { format: 'zbyrai.skill', version: 1, skill: { name: 'x' } } }, { id: 'b', skill: { format: 'інше' } }], links: [['s', 'a'], ['s', 'b']] };
+  const t = T.sanitize(raw);
+  assert.equal(t.nodes[1].skill.skill.name, 'x');
+  assert.equal(t.nodes[2].skill, undefined);
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

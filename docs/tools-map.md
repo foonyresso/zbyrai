@@ -10,6 +10,7 @@
 | Конструктор візерунків | `pattern-maker/` | `pattern-core.js`, `pattern-fx.js` | `app.js` | `test/fold.test.js`, `test/fx.test.js` | `pm_` |
 | Кузня луту | `loot-forge/` | `loot-core.js`, `gdd-core.js`, `gdd-data.js` | `app.js`, `loot-ui.js`, `gdd-ui.js` | `test/loot.test.js`, `test/gdd.test.js` | `lf_` |
 | Лабораторія дерев скілів | `skill-tree/` | `tree-core.js` | `app.js` | `test/tree.test.js` | `st_` |
+| Конструктор скілів | `skill-forge/` | `forge-core.js` (реєстр, дерево, формат), `bricks/{delivery,modifiers,effects,triggers}.js` (цеглинки даними), `forge-eval.js` (оцінка, опис), `presets.js` (приклади, випадковий скіл) | `app.js`, `forge-preview.js` (прев'ю на полотні) | `test/forge.test.js` | `sf_` |
 | Змішувач ідей | `idea-mixer/` | `mixer-core.js` | `app.js` | `test/mixer.test.js` | `im_` |
 | Генератор персонажів | `character-roller/` | `char-core.js`, `srd-{data,classes,spells,names}.js` | `app.js` | `test/char.test.js` | `cr_` |
 | Кузня планет | `planet-forge/` | `planet-core.js`, `planet-kinds.js`, `planet-kinds-worlds.js`, `planet-kinds-sky.js`, `planet-bg.js`, `planet-system.js`, `planet-sky.js` | `app.js`, `system-ui.js`, `planet-system-view.js`, `slab-ui.js`, `planet-sky-view.js` | `test/planet.test.js` | `pf_` |

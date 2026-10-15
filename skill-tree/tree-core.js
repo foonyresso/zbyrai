@@ -198,6 +198,8 @@ const TreeCore = (() => {
         kind: KINDS[n.kind] ? n.kind : 'small', max: Math.round(num(n.max, 1, 1, 99)), cost: Math.round(num(n.cost, 1, 0, 999)), need: Math.round(num(n.need, 0, 0, 99999)), stats,
       };
       node.role = node.kind === 'start' ? 'start' : ROLES[n.role] ? n.role : defaultRole(node); // старі файли без ролі отримують її з типу й статів
+      // вузол може нести скіл з Конструктора скілів (формат zbyrai.skill): зберігаємо як є, якщо він не завеликий
+      if (n.skill && typeof n.skill === 'object' && n.skill.format === 'zbyrai.skill' && JSON.stringify(n.skill).length < 40000) node.skill = n.skill;
       tree.nodes.push(node);
     }
     for (const l of (src.links || []).slice(0, 90000)) if (Array.isArray(l) && l.length === 2) tree.links.push([String(l[0]), String(l[1])]);
