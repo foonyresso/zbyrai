@@ -26,5 +26,32 @@ test('обрізання заповнює комірку без розтягув
   const r = C.coverCrop(1000, 500, 200, 200);
   assert.ok(Math.abs(r.sw / r.sh - 1) < 1e-9 && r.sw <= 1000 && r.sh <= 500 && r.sx >= 0 && r.sy >= 0);
 });
+
+const MODES = Object.keys(C.MODES);
+test('усі режими: n комірок у межах полотна без перекриттів', () => {
+  for (const m of MODES) for (let n = 1; n <= 14; n++) for (const [W, H] of [[2400, 1800], [1440, 2560], [2000, 2000]]) {
+    const asp = Array.from({ length: n }, (_, i) => [1.5, 0.75, 1, 1.78][i % 4]);
+    const cells = C.layout(n, W, H, 12, n * 3 + 1, m, asp);
+    assert.strictEqual(cells.length, n, m + ' n=' + n);
+    for (const c of cells) assert.ok(c && c.w > 0 && c.h > 0 && c.x >= 0 && c.y >= 0 && c.x + c.w <= W && c.y + c.h <= H, `${m} n=${n} ${JSON.stringify(c)}`);
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) assert.ok(!overlap(cells[i], cells[j]), `перекриття ${m} n=${n}`);
+  }
+});
+test('режим без зерна однаковий; режими дають різні розкладки', () => {
+  const a = C.layout(6, 2000, 1500, 8, 5, 'rows', [1, 1.5, 0.7, 1, 1.2, 0.9]);
+  assert.deepStrictEqual(a, C.layout(6, 2000, 1500, 8, 5, 'rows', [1, 1.5, 0.7, 1, 1.2, 0.9]));
+  assert.notDeepStrictEqual(a, C.layout(6, 2000, 1500, 8, 5, 'grid'));
+});
+test('rows підлаштовує ширину комірки під пропорцію фото', () => {
+  const cells = C.layout(2, 2000, 1000, 0, 1, 'rows', [2, 1]);
+  const wide = cells[0].w / cells[0].h, sq = cells[1].w / cells[1].h;
+  assert.ok(wide > sq * 1.5, wide + ' vs ' + sq);
+});
+test('зум і зсув кадру: у межах картинки, зум зменшує ділянку', () => {
+  const a = C.coverCrop(1000, 500, 200, 200), b = C.coverCrop(1000, 500, 200, 200, 2, 0, 1);
+  assert.ok(Math.abs(b.sw - a.sw / 2) < 1e-6 && b.sx === 0 && Math.abs(b.sy + b.sh - 500) < 1e-6);
+  const c = C.coverCrop(1000, 500, 200, 200, 1, 1, 0.5);
+  assert.ok(Math.abs(c.sx + c.sw - 1000) < 1e-6);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

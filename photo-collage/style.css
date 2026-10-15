@@ -1,5 +1,5 @@
-/* Колаж фото — розмітка поверх спільної теми (theme.css). */
-:root { --accent: #7fc8a9; }
+/* Колаж фото: розмітка поверх спільної теми (theme.css). Полотно на весь екран, меню іконками (як у симуляторі підземель). */
+:root { --accent: #7fc8a9; --accent-hi: #b2e2cc; --accent-glow: rgba(127, 200, 169, .14); }
 html, body { height: 100%; }
 body { display: flex; flex-direction: column; line-height: 1.45;
   background: radial-gradient(1200px 420px at 50% -120px, rgba(127, 200, 169, .09), transparent 70%), var(--bg); }
@@ -13,26 +13,35 @@ header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; pad
 .btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); color: var(--gold-ink); border-color: #d6bb82; font-weight: 700; }
 .btn-copy { background: transparent; border-color: var(--gold-lo); color: var(--gold-hi); font-weight: 600; }
 .btn-copy:hover { background: var(--gold-glow); border-color: var(--gold); }
-
 details.how { margin: 12px 18px 0; }
 .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding: 10px 4px; }
 
-.panes { display: grid; grid-template-columns: 300px 1fr; gap: 14px; padding: 14px 18px; flex: 1; min-height: 0; }
-.pane { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-.pane-h { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-.pane-h h2 { margin: 0; }
-.pane-b { padding: 14px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
-.side label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted, #9a9aa5); }
-.side .row { display: flex; gap: 8px; flex-wrap: wrap; }
-.side .row > * { flex: 1; }
-.hint { color: var(--faint); font-size: 12.5px; margin: 0; }
-
-.stage .pane-b { position: relative; align-items: center; justify-content: center; background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
-#cv { max-width: 100%; max-height: 100%; box-shadow: 0 8px 30px rgba(0, 0, 0, .5); touch-action: none; cursor: grab; }
-#cv.drag { cursor: grabbing; }
+.work { flex: 1; position: relative; min-height: 520px; height: calc(100vh - 118px); overflow: hidden; margin-top: 12px; background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
+.stagebox { position: absolute; inset: 0; padding: 14px 14px 112px 84px; transition: padding-left .15s; }
+.work.shift .stagebox { padding-left: 440px; }
+.stagebox.over { outline: 2px dashed var(--accent); outline-offset: -8px; }
+#cv { width: 100%; height: 100%; object-fit: contain; display: block; touch-action: none; cursor: default; filter: drop-shadow(0 8px 30px rgba(0, 0, 0, .5)); }
+#cv.drag { cursor: grabbing; } #cv.hot { cursor: grab; } #cv.size { cursor: nwse-resize; }
 .empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--faint); pointer-events: none; }
-.stage .pane-b.over { outline: 2px dashed var(--accent); outline-offset: -8px; }
-.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--gold-lo); padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; }
-.toast.on { opacity: 1; }
+.empty[hidden] { display: none; }
 
-@media (max-width: 760px) { .panes { grid-template-columns: 1fr; } .stage .pane-b { min-height: 320px; } }
+.rail { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+.rail button { width: 62px; padding: 8px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; background: color-mix(in srgb, var(--panel) 92%, transparent); }
+.rail button svg { width: 22px; height: 22px; }
+.rail button.on, .seg button.on, .modes button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.drawer { position: absolute; left: 82px; top: 10px; bottom: 10px; width: min(340px, calc(100vw - 100px)); z-index: 4; overflow: auto; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); padding: 12px 14px 16px; display: flex; flex-direction: column; gap: 9px; }
+.drawer[hidden] { display: none; }
+.drawer section { display: none; flex-direction: column; gap: 10px; } .drawer section.on { display: flex; }
+.drawer h2 { margin: 6px 0 2px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
+.x { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 18px; z-index: 2; }
+.drawer label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); }
+.drawer .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ctls { display: flex; flex-direction: column; gap: 10px; } .ctls[hidden], .hint[hidden] { display: none; }
+.modes { display: flex; flex-direction: column; gap: 6px; } .modes button { text-align: left; }
+.hint { color: var(--faint); font-size: 12.5px; margin: 0; }
+.bar { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 6px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); max-width: calc(100% - 24px); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: none; padding: 6px 12px; }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--gold-lo); padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
+.toast.on { opacity: 1; }
+@media (max-width: 760px) { .stagebox { padding: 70px 8px 120px 8px; } .work.shift .stagebox { padding-left: 8px; } .bar { bottom: 8px; } }

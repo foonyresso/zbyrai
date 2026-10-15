@@ -11,6 +11,8 @@
 | [large-files.md](large-files.md) | Файли, що завеликі або близькі до межі (кандидати на розбиття) |
 | [atlas/world-files.md](atlas/world-files.md), [atlas/biome-files.md](atlas/biome-files.md), [atlas/monster-files.md](atlas/monster-files.md), [atlas/dungeon-files.md](atlas/dungeon-files.md), [atlas/monster-batch-2.md](atlas/monster-batch-2.md), [atlas/biomes-import.md](atlas/biomes-import.md), [atlas/people-files.md](atlas/people-files.md), [atlas/race-files.md](atlas/race-files.md), [atlas/infinite-world-features.md](atlas/infinite-world-features.md), [plans/world-generator-queue.md](plans/world-generator-queue.md) | Формат файлів світів, біомів, монстрів (версії 1 і 2, поле lore) і підземель (версія 2), народів і рас (версія 2), шаблони, вибір біомів, відстані монстрів від поселень, прив'язка підземель |
 | [atlas/continent/README.md](atlas/continent/README.md) | Атлас, світ «Материк» (колишня карта королівств): ієрархія, дороги, монстри гір/лісів/морів, алгоритм, перенесення в Godot C#, покращення |
+| [data-versions.md](data-versions.md) | Версії форматів збережень і що в них змінилось |
+| [plans/ui-rollout-queue.md](plans/ui-rollout-queue.md) | Черга: єдиний стиль інструментів (полотно + іконки) і доробки, статуси |
 | [plans/dungeon-sim-queue.md](plans/dungeon-sim-queue.md) | Черга задач симулятора підземель |
 | [plans/skill-forge-queue.md](plans/skill-forge-queue.md) | Черга задач Конструктора скілів |
 | [plans/README.md](plans/README.md) | Плани: принцип «полотно + іконки», перелік інструментів, злиття карти королівств у Атлас, рішення автора, пріоритети, питання про суперечності |

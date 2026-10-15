@@ -33,54 +33,85 @@
 <details class="how" id="how">
   <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
   <div class="how-grid">
-    <div><h3>Що це</h3><p>Простий складальник колажів: кілька фото розкладаються по полотну заданого розміру, із легким обрізанням під пропорції комірок.</p></div>
+    <div><h3>Що це</h3><p>Складальник колажів: фото розкладаються по полотну заданого розміру в одному з режимів (мозаїка, рядки, стовпці, сітка, одне велике). У кожного фото можна змінити розмір рамки, наблизити кадр і зсунути обрізання.</p></div>
     <div><h3>Для чого</h3><p>Швидко зібрати афішу, обкладинку чи добірку фото в одну картинку без редактора.</p></div>
     <div><h3>Як користуватися</h3>
       <ol>
-        <li><b>Додай фото</b> кнопкою або перетягни їх на полотно.</li>
-        <li><b>Задай розмір</b> полотна й проміжок між фото.</li>
-        <li><b>«Розкласти інакше»</b> дає нову випадкову розкладку.</li>
-        <li><b>Перетягуй фото мишкою</b>, якщо хочеш посунути; подвійний клік повертає його на місце.</li>
-        <li><b>Збережи PNG</b> кнопкою угорі.</li>
+        <li><b>Додай фото</b> кнопкою внизу або перетягни їх на полотно.</li>
+        <li><b>Іконки зліва:</b> «Полотно» (розмір, проміжок, фон), «Розкладка» (режим), «Фото» (розмір рамки, наближення й зсув кадру вибраного фото).</li>
+        <li><b>Клік по фото</b> вибирає його. Перетягни, щоб посунути рамку; з Alt (або в режимі «Кадр») перетягування зсуває обрізання всередині рамки; колесо мишки наближає кадр; за кутик рамки змінюється розмір. Подвійний клік повертає фото на місце.</li>
+        <li><b>«Розкласти інакше»</b> дає нову випадкову розкладку. <b>Збережи PNG</b> кнопкою угорі.</li>
       </ol>
     </div>
   </div>
 </details>
 
-<main class="panes">
-  <section class="pane side">
-    <div class="pane-h"><h2>Параметри</h2></div>
-    <div class="pane-b">
-      <div class="row">
-        <button class="btn-main" id="btnAdd" title="Вибрати одне чи кілька фото з комп'ютера">＋ Додати фото</button>
-        <input type="file" id="fileImg" accept="image/*" multiple hidden>
-        <button id="btnShuffle" title="Згенерувати нову випадкову розкладку з тими самими фото">🎲 Розкласти інакше</button>
-      </div>
+<div class="work" id="work">
+  <div class="stagebox" id="drop">
+    <canvas id="cv" title="Клік вибирає фото. Перетягування: посунути рамку (з Alt: зсунути кадр). Колесо: наблизити кадр. Подвійний клік: повернути на місце"></canvas>
+    <div class="empty" id="empty">Перетягни сюди фото або натисни «Додати фото»</div>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="canvas" title="Розмір полотна, проміжок між фото, колір фону"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M7 20V4M3 9h4"/></svg><span>Полотно</span></button>
+    <button data-panel="layout" title="Режим розкладки фото: мозаїка, рядки, стовпці, сітка, одне велике"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5h10v10h-10zM15.5 3.5h5v6h-5zM15.5 11.5h5v9h-5zM3.5 15.5h10v5h-10z"/></svg><span>Розкладка</span></button>
+    <button data-panel="photo" title="Вибране фото: розмір рамки, наближення кадру, зсув обрізання"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg><span>Фото</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="canvas">
+      <h2>Полотно</h2>
       <label title="Готові пропорції полотна">Пропорції
-        <select id="preset" title="Готові пропорції полотна; «Свій» дозволяє задати ширину й висоту числами"></select></label>
-      <div class="row">
+        <select id="preset" title="Готові пропорції полотна; «Свій розмір» дозволяє задати ширину й висоту числами"></select></label>
+      <div class="two">
         <label title="Ширина готової картинки в пікселях">Ширина, px <input type="number" id="cw" min="200" max="6000" step="10" title="Ширина полотна в пікселях (200–6000)"></label>
         <label title="Висота готової картинки в пікселях">Висота, px <input type="number" id="ch" min="200" max="6000" step="10" title="Висота полотна в пікселях (200–6000)"></label>
       </div>
       <label title="Відстань між фото і до краю полотна">Проміжок, px <span id="gapV"></span>
         <input type="range" id="gap" min="0" max="80" step="2" title="Проміжок між фото та від краю полотна, пікселів"></label>
       <label title="Колір полотна, що видно в проміжках">Колір фону <input type="color" id="bg" title="Колір полотна в проміжках між фото"></label>
-      <div class="row">
-        <button id="btnReset" title="Повернути всі фото на місця поточної розкладки">Скинути пересування</button>
-        <button id="btnClear" title="Прибрати всі фото з полотна">Очистити</button>
+      <p class="hint" id="info"></p>
+    </section>
+    <section data-panel="layout">
+      <h2>Режим розкладки</h2>
+      <div class="modes" id="modes"></div>
+      <p class="hint">Режим застосовується одразу. «Розкласти інакше» (унизу) змінює випадковий розкид у межах режиму.</p>
+    </section>
+    <section data-panel="photo">
+      <h2>Вибране фото</h2>
+      <p class="hint" id="noSel">Клікни по фото на полотні, щоб вибрати його.</p>
+      <div class="ctls" id="selCtls">
+        <label title="Наближення кадру всередині рамки (1 = фото заповнює рамку, більше = ближче)">Наближення кадру <span id="zV"></span>
+          <input type="range" id="selZ" min="1" max="5" step="0.05" title="Наближення кадру всередині рамки"></label>
+        <label title="Зсув обрізання по горизонталі: яку частину фото видно (працює, коли фото ширше за рамку або наближене)">Зсув кадру ←→
+          <input type="range" id="selFx" min="0" max="100" step="1" title="Зсув обрізання по горизонталі"></label>
+        <label title="Зсув обрізання по вертикалі">Зсув кадру ↑↓
+          <input type="range" id="selFy" min="0" max="100" step="1" title="Зсув обрізання по вертикалі"></label>
+        <div class="two">
+          <label title="Ширина рамки вибраного фото в пікселях">Ширина рамки <input type="number" id="selW" min="40" max="6000" step="10" title="Ширина рамки фото, px"></label>
+          <label title="Висота рамки вибраного фото в пікселях">Висота рамки <input type="number" id="selH" min="40" max="6000" step="10" title="Висота рамки фото, px"></label>
+        </div>
+        <div class="two">
+          <button id="selHome" title="Повернути рамку на місце й у початковий розмір (подвійний клік по фото)">На місце</button>
+          <button id="selCrop" title="Скинути наближення й зсув кадру: фото знову заповнює рамку по центру">Скинути кадр</button>
+        </div>
+        <button id="selDel" title="Прибрати це фото з колажу (Delete)">Видалити фото</button>
       </div>
-      <p class="hint" id="count">Фото: 0</p>
-    </div>
-  </section>
+    </section>
+  </aside>
 
-  <section class="pane stage">
-    <div class="pane-h"><h2>Полотно</h2><span class="hint" id="info"></span></div>
-    <div class="pane-b" id="drop">
-      <canvas id="cv" title="Перетягуй фото, щоб посунути; подвійний клік повертає фото на місце"></canvas>
-      <div class="empty" id="empty">Перетягни сюди фото або натисни «Додати фото»</div>
+  <div class="bar">
+    <button class="btn-main" id="btnAdd" title="Вибрати одне чи кілька фото з комп'ютера">＋ Додати фото</button>
+    <input type="file" id="fileImg" accept="image/*" multiple hidden>
+    <button id="btnShuffle" title="Згенерувати нову випадкову розкладку з тими самими фото">🎲 Розкласти інакше</button>
+    <div class="seg" id="dragMode" role="group" aria-label="Що робить перетягування" title="Що робить перетягування фото на полотні">
+      <button data-dm="move" class="on" title="Перетягування рухає рамку фото (Alt перемикає на кадр)">Рамка</button><button data-dm="crop" title="Перетягування зсуває кадр (обрізання) всередині рамки">Кадр</button>
     </div>
-  </section>
-</main>
+    <button id="btnReset" title="Повернути всі рамки на місця поточної розкладки">Скинути пересування</button>
+    <button id="btnClear" title="Прибрати всі фото з полотна">Очистити</button>
+    <span class="hint" id="count">Фото: 0</span>
+  </div>
+</div>
 
 <div class="toast" id="toast">Скопійовано!</div>
 
