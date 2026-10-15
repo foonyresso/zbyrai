@@ -15,6 +15,7 @@ const monFiles = fs.readdirSync(path.join(base, 'monsters')).filter((f) => f.end
 for (const f of monFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'monsters', f + '.js'), 'utf8'));
 const dgFiles = fs.readdirSync(path.join(base, 'dungeons')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
 for (const f of dgFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'dungeons', f + '.js'), 'utf8'));
+for (const d of ['peoples', 'races']) for (const f of fs.readdirSync(path.join(base, d)).filter((x) => x.endsWith('.js'))) vm.runInThisContext(fs.readFileSync(path.join(base, d, f), 'utf8'));
 for (const f of worldFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'worlds', f, 'world.js'), 'utf8'));
 
 test('кожен файл реєструє світ/біом з id, що збігається з назвою файлу', () => {
@@ -38,9 +39,13 @@ test('вибір біомів: allow/deny/теги/ваги', () => {
   const ids = (w) => Atlas.resolveBiomes(w).map((x) => x.biome.id);
   assert.equal(ids({ biomes: { allow: 'all' } }).length, Atlas.biomes.length);
   assert.ok(!ids({ biomes: { allow: 'all', deny: 'tag:water' } }).includes('sea'));
-  assert.deepEqual(ids({ biomes: { allow: 'tag:cold+forest' } }), ['taiga']);
+  const cf = Atlas.resolveBiomes({ biomes: { allow: 'tag:cold+forest' } });
+  assert.ok(cf.some((x) => x.biome.id === 'taiga') && cf.every((x) => x.biome.tags.includes('cold') && x.biome.tags.includes('forest')), 'tag:a+b: усі теги разом');
   const r = Atlas.resolveBiomes({ biomes: { allow: ['grass', 'tag:mountain'], deny: 'tag:exclusive', weights: { grass: 3, 'tag:cold': 0 } } });
-  assert.deepEqual(r.map((x) => x.biome.id).sort(), ['grass', 'mountain']);
+  const rid = r.map((x) => x.biome.id);
+  assert.ok(rid.includes('grass') && rid.includes('mountain'), 'allow: id і тег разом');
+  assert.ok(!rid.includes('peaks') && r.every((x) => !x.biome.tags.includes('exclusive') && !x.biome.tags.includes('cold')), 'deny і вага 0 вимикають біом');
+  assert.ok(r.every((x) => x.biome.id === 'grass' || x.biome.tags.includes('mountain')), 'лише збіги з allow');
   assert.equal(r.find((x) => x.biome.id === 'grass').weight, 3);
 });
 test('дубль id і невідомий формат відхиляються', () => {
@@ -143,6 +148,30 @@ test('тема кожного світу на рушії «Материк» іс
   const sb = { RealmMap: {} };
   vm.runInNewContext(fs.readFileSync(path.join(base, 'worlds/continent/render/themes.js'), 'utf8'), Object.assign(sb, { globalThis: sb }));
   for (const w of Atlas.worlds) if (w.preset && w.preset.theme) assert.ok(sb.RealmMap.Themes[w.preset.theme], w.id + ': немає теми ' + w.preset.theme);
+});
+test('народи: 25 файлів, id = назві файлу, формат ≥2, коректні кольори, унікальні назви, без чужих брендів', () => {
+  const files = fs.readdirSync(path.join(base, 'peoples')).filter((f) => f.endsWith('.js'));
+  assert.strictEqual(Atlas.peoples.length, files.length);
+  assert.ok(files.length >= 25);
+  const hex = /^#[0-9a-f]{6}$/i;
+  for (const p of Atlas.peoples) {
+    assert.ok(files.includes(p.id + '.js'), p.id);
+    assert.ok(p.format >= 2, p.id);
+    assert.ok(p.look.walls.length && p.look.walls.every((c) => hex.test(c)) && p.look.roofs.every((c) => hex.test(c)) && hex.test(p.look.trim), p.id + ': палітра');
+  }
+  assert.strictEqual(new Set(Atlas.peoples.map((p) => p.name)).size, Atlas.peoples.length);
+  const bad = /\b(dune|avatar|warhammer|lotr|game of thrones|дюна|аватар|толкін)\b/i;
+  for (const f of files) assert.ok(!bad.test(fs.readFileSync(path.join(base, 'peoples', f), 'utf8')), f + ': чужий бренд');
+});
+test('раси: ≥30 файлів, id = назві файлу, вага >0, унікальні назви', () => {
+  const files = fs.readdirSync(path.join(base, 'races')).filter((f) => f.endsWith('.js'));
+  assert.strictEqual(Atlas.races.length, files.length);
+  assert.ok(files.length >= 30);
+  for (const r of Atlas.races) { assert.ok(files.includes(r.id + '.js'), r.id); assert.ok(r.format >= 2 && r.weight > 0, r.id); }
+  assert.strictEqual(new Set(Atlas.races.map((r) => r.name)).size, Atlas.races.length);
+});
+test('склейки atlas-data/* і списки монстрів материка актуальні (node tools/build-atlas-registry.mjs --check)', () => {
+  require('node:child_process').execFileSync(process.execPath, [path.join(__dirname, 'build-atlas-registry.mjs'), '--check'], { stdio: 'pipe' });
 });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

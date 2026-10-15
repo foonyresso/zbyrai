@@ -44,8 +44,7 @@ function drawVillages() {
             const a = H2(v.i, v.j, q + 300) * PI2,
               d = Math.sqrt(H2(v.i, v.j, q + 400)) * .65 * RB[v.tier],
               z = Math.max(1.6, 5 * S);
-            ctx.fillStyle =
-              ROOF[Math.floor(H2(v.i, v.j, q + 500) * ROOF.length)];
+            ctx.fillStyle = pplRoof(v, q);
             ctx.fillRect(
               ox + (v.x + Math.cos(a) * d) * S - z / 2,
               oy + (v.y + Math.sin(a) * d) * S - z / 2,

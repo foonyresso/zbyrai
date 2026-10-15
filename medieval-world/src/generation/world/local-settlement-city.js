@@ -212,7 +212,7 @@ function drawSettle(v) {
   if (!st) return false;
   const x = ox + v.x * S, y = oy + v.y * S, rr = (Math.max(...st.R) + 20) * S;
   if (x + rr < 0 || y + rr < 0 || x - rr > W || y - rr > H) return true;
-  const bo = BIO, sx = ox, sy = oy, old = getG();
+  const bo = BIO, sx = ox, sy = oy, old = getG(), pp0 = pplEnter(v);
   try {
     setG(st);
     BIO = BIOS[v.bk] || bo;
@@ -239,6 +239,7 @@ function drawSettle(v) {
     for (const b of L) if (!b.o) drawB(b);
     drawWall();
   } finally {
+    pplLeave(pp0);
     setG(old);
     BIO = bo;
     ox = sx;

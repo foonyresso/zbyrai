@@ -1,5 +1,6 @@
 function drawBase() {
   RT0 = performance.now();
+  pplEnter(null, true);
   OPS = 0;
   WPEND = false;
   if (WON) drawWorld();
@@ -464,7 +465,7 @@ const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", 
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
   won: () => WON, wrd: () => WRD, wbd: () => WBD,
-  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st, rldg: () => RLAY.dg,
+  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st, rldg: () => RLAY.dg, rlpp: () => RLAY.pp,
   rmaj: () => WRT.major, rmed: () => WRT.medium, rmin: () => WRT.minor, rtrl: () => WRT.trail,
 };
 function toast(msg, ms = 1800) {

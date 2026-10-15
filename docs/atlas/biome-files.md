@@ -24,6 +24,8 @@ Atlas.registerBiome({
     resources: ["що тут добувають"],
     hazards: ["небезпеки"],
     structures: ["споруди й локації"],
+    // необов'язкові додаткові поля (ядро їх не читає): geology, fauna[], atmosphere, sounds, special,
+    // gameplay, palette: [{ hex, name? }], variants: [{ name, description }] (біоми, об'єднані з цим)
   },
 });
 ```
@@ -32,7 +34,7 @@ Atlas.registerBiome({
 
 ## Теги
 
-Теги вільні, але краще вживати наявні: `land`, `water`, `sea`, `deep`, `fresh` (вода); `cold`, `temperate`, `hot` (клімат); `wet`, `dry` (вологість); `plain`, `highland`, `mountain`, `forest`, `swamp`, `farmland` (рельєф і рослинність); `fantasy`, а також `exclusive` (лише для одного світу), `underground`, `cloud`, `canopy`, `crystal`, `ruins`, `blood`.
+Теги вільні, але краще вживати наявні: `land`, `water`, `sea`, `deep`, `fresh` (вода); `cold`, `temperate`, `hot` (клімат); `wet`, `dry` (вологість); `plain`, `highland`, `mountain`, `forest`, `swamp`, `farmland` (рельєф і рослинність); `hills`, `canyon`, `shore` (рельєф); `stone`, `clay`, `glass`, `amber`, `mine` (матеріал); `mushroom`, `glow`, `dead`, `toxic`, `volcanic`, `bones` (особливість); `surreal` (абстрактні «виміри», не звичайна місцевість); `fantasy`, а також `exclusive` (лише для одного світу), `underground`, `cloud`, `canopy`, `crystal`, `ruins`, `blood`.
 
 ## Як світ обирає біоми
 
@@ -55,3 +57,9 @@ biomes: {
 ## Наявні біоми
 
 Зі старого списку материка: `deep`, `sea`, `lake`, `grass`, `steppe`, `forest`, `taiga`, `enchanted`, `swamp`, `desert`, `tundra`, `wasteland`, `hills`, `mountain`, `peaks`; для нескінченного світу: `snow`; зразки: `savanna`, `jungle`, `volcanic`, `crystal`, `ashlands`.
+
+## Біоми зі списку автора (264 файли)
+
+Додані зі списку автора з файлу «біоми.txt» (записи 19–340). Схожі біоми об'єднано в один (їхні назви й описи лежать у `lore.variants`, а кольори додані до `lore.palette`), біоми, що вже є в репозиторії, не дублюються. Звіт: [biomes-import.md](biomes-import.md). Це біоми без тегу `exclusive`, тому `continent` (`allow: all`) їх бачить, коли рушій перейде на `Atlas.resolveBiomes`; для світів на `allow` із конкретним списком вони не заважають.
+
+Відображення на наявні: Золота прерія → `steppe`; Савана на плато → `savanna`; Засніжені гори → `peaks`; Зачарований ліс → `enchanted`; Мертві землі → `wasteland`; Попелясті землі → `ashlands`; Вулканічна пустка → `volcanic`; Сосновий і бореальний ліс → `taiga`.
