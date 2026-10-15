@@ -54,7 +54,6 @@ a.card:hover::before { opacity: 1; }
 .c-dice { --c: #b39ddb; }
 .c-pattern { --c: #6fc3c0; }
 .c-world { --c: #9ac58a; }
-.c-realm { --c: #d7a85c; }
 .c-loot { --c: #e8924a; }
 .c-tree { --c: #7aa7e6; }
 .c-mix { --c: #e079a8; }
@@ -77,7 +76,6 @@ a.card:hover::before { opacity: 1; }
 .c-dice .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), radial-gradient(circle, color-mix(in srgb, var(--c) 28%, transparent) 1px, transparent 1.5px) 0 0 / 18px 18px; }
 .c-pattern .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), repeating-linear-gradient(60deg, transparent 0 17px, var(--line-soft) 17px 18px), repeating-linear-gradient(-60deg, transparent 0 17px, var(--line-soft) 17px 18px); }
 .c-world .art { background: radial-gradient(260px 140px at 50% 46%, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%), repeating-radial-gradient(circle at 20% 120%, transparent 0 22px, color-mix(in srgb, var(--c) 14%, transparent) 22px 23px); }
-.c-realm .art { background: radial-gradient(260px 140px at 50% 46%, color-mix(in srgb, var(--c) 15%, transparent), transparent 70%), repeating-linear-gradient(115deg, transparent 0 20px, color-mix(in srgb, var(--c) 10%, transparent) 20px 21px); }
 .c-loot .art { background: radial-gradient(220px 150px at 50% 70%, color-mix(in srgb, var(--c) 26%, transparent), transparent 72%), repeating-linear-gradient(135deg, transparent 0 14px, var(--line-soft) 14px 15px); }
 .c-tree .art { background: radial-gradient(240px 130px at 50% 30%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), radial-gradient(circle, var(--line) 1.2px, transparent 1.6px) 0 0 / 22px 22px; }
 .c-char .art { background: radial-gradient(240px 130px at 38% 50%, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), repeating-linear-gradient(0deg, transparent 0 17px, var(--line-soft) 17px 18px); }

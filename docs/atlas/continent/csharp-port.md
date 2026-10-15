@@ -4,7 +4,7 @@
 
 ## Відповідність файлів
 
-| JS (`realm-map/`) | C#-аналог |
+| JS (`medieval-world/worlds/continent/`) | C#-аналог |
 |---|---|
 | `core/rng.js` | `Rng` (mulberry32 на `uint`, `unchecked`), `Stream(seed, name)` |
 | `core/noise.js` | `PerlinNoise` (таблиця з перемішаного масиву за зерном), працюйте з `double` |

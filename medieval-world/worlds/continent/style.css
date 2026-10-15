@@ -65,3 +65,10 @@ main { position: relative; min-width: 0; border: 1px solid var(--line); border-r
   header.top, details.how, #side, .mapbtns, #hud, #card, #tip, #busy, .toast { display: none !important; }
   body, #app { display: block; padding: 0; background: #fff; } main { border: 0; box-shadow: none; height: 100vh; }
 }
+
+/* вбудова в «Проект Атлас»: верхню панель і довідку показує оболонка */
+.embed header.top, .embed details.how { display: none; }
+.embed body { min-height: 0; }
+.embed #app { padding: 10px 12px 12px; height: 100vh; box-sizing: border-box; }
+.embed #side { max-height: calc(100vh - 22px); }
+@media (max-width: 900px) { .embed #app { height: auto; } }

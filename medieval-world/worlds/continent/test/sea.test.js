@@ -1,4 +1,4 @@
-// Морські шляхи: між портами, поблизу берега, повз лігва. Запуск: node realm-map/test/sea.test.js
+// Морські шляхи: між портами, поблизу берега, повз лігва. Запуск: node medieval-world/worlds/continent/test/sea.test.js
 const { R, assert, test, world, SAMPLES, finish } = require('./helpers.js');
 console.log('Карта королівств: морські шляхи');
 for (const params of SAMPLES) {

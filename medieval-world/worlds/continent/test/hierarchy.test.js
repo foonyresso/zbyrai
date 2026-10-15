@@ -1,4 +1,4 @@
-// Ієрархія: провінції → регіони → міста-центри; столиця має найбільший регіон. Запуск: node realm-map/test/hierarchy.test.js
+// Ієрархія: провінції → регіони → міста-центри; столиця має найбільший регіон. Запуск: node medieval-world/worlds/continent/test/hierarchy.test.js
 const { R, assert, test, world, SAMPLES, finish } = require('./helpers.js');
 console.log('Карта королівств: ієрархія');
 for (const params of SAMPLES) {

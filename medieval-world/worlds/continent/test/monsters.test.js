@@ -1,4 +1,4 @@
-// Монстри й боси: повні списки, лігва за біомами, море. Запуск: node realm-map/test/monsters.test.js
+// Монстри й боси: повні списки, лігва за біомами, море. Запуск: node medieval-world/worlds/continent/test/monsters.test.js
 const { R, assert, test, world, SAMPLES, finish } = require('./helpers.js');
 console.log('Карта королівств: монстри й боси');
 test('списки: гори 16 монстрів і 15 босів, ліси 15 і 15, моря 19 і 20', () => {

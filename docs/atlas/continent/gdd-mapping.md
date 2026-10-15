@@ -1,6 +1,6 @@
 # Відповідність грі GodsDontDie
 
-Репозиторій гри лише прочитано (нічого не змінено). Гра вже має картки зі стабільними кодами (`World/Catalog/Cards/*.cs`, `Card { Code, Title, Weight, Fallback }`). Дані карти зведено до них у `realm-map/data/gdd-codes.js` (лише довідка, генерація не залежить).
+Репозиторій гри лише прочитано (нічого не змінено). Гра вже має картки зі стабільними кодами (`World/Catalog/Cards/*.cs`, `Card { Code, Title, Weight, Fallback }`). Дані карти зведено до них у `medieval-world/worlds/continent/data/gdd-codes.js` (лише довідка, генерація не залежить).
 
 | Карта | Картка гри |
 |---|---|

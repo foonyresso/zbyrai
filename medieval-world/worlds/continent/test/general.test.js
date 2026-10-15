@@ -1,4 +1,4 @@
-// Загальне: детермінізм, експорт/імпорт, планувальник подорожі. Запуск: node realm-map/test/general.test.js
+// Загальне: детермінізм, експорт/імпорт, планувальник подорожі. Запуск: node medieval-world/worlds/continent/test/general.test.js
 const { R, assert, test, world, SAMPLES, finish } = require('./helpers.js');
 console.log('Карта королівств: загальне');
 test('те саме зерно дає той самий світ, інше — інший', () => {

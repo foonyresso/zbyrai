@@ -17,6 +17,11 @@
   };
   App.updateHash = function () { try { history.replaceState(null, '', '#p=' + encodeURIComponent(b64(R.Serialize.paramsToJSON(App.params)))); } catch (e) {} };
 
+  // Імпорт параметрів із тексту JSON (кнопка «Імпорт» і міст з оболонки Атласу)
+  App.importText = function (text, name) {
+    try { const p = R.Serialize.paramsFromJSON(text); Object.assign(App.params, p); App.buildWorldPanel(); App.regenNow(); U.toast('Імпортовано: ' + (name || 'JSON')); } catch (e) { U.toast('Не вдалося імпортувати: ' + e.message, 3200); }
+  };
+
   App.bindIO = function () {
     U.$('btnLink').addEventListener('click', async () => { App.updateHash(); U.toast(await copyText(location.href) ? 'Посилання скопійовано' : 'Не вдалося скопіювати'); });
     U.$('btnCopyJson').addEventListener('click', async () => U.toast(await copyText(R.Serialize.paramsToJSON(App.params)) ? 'JSON скопійовано' : 'Не вдалося скопіювати'));
@@ -27,9 +32,6 @@
     U.$('btnPrint').addEventListener('click', () => { App.scene.resize(); App.scene.draw(); window.print(); });
     const file = U.$('fileImport');
     U.$('btnImport').addEventListener('click', () => file.click());
-    file.addEventListener('change', async () => {
-      const f = file.files[0]; file.value = ''; if (!f) return;
-      try { const p = R.Serialize.paramsFromJSON(await f.text()); Object.assign(App.params, p); App.buildWorldPanel(); App.regenNow(); U.toast('Імпортовано: ' + f.name); } catch (e) { U.toast('Не вдалося імпортувати: ' + e.message, 3200); }
-    });
+    file.addEventListener('change', async () => { const f = file.files[0]; file.value = ''; if (f) App.importText(await f.text(), f.name); });
   };
 })();

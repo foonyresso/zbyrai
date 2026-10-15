@@ -1,4 +1,4 @@
-// Дороги: 4 типи й правила підключення. Запуск: node realm-map/test/roads.test.js
+// Дороги: 4 типи й правила підключення. Запуск: node medieval-world/worlds/continent/test/roads.test.js
 const { R, assert, test, world, SAMPLES, finish } = require('./helpers.js');
 console.log('Карта королівств: дороги');
 const REG = ['capital', 'regional'];

@@ -5,7 +5,7 @@
 | Інструмент | Папка | Логіка / дані | UI | Тести | Ключ LS |
 |---|---|---|---|---|---|
 | Кубик промптів | `prompt-dice/` | `pools.js`, `styles.js`, `types.js` | `app.js` | немає | `pd2_` |
-| Генератор середньовічних міст | `medieval-world/` | `src/core/city-core.js`, `src/data/buildings.js`, `src/generation/{city,world}/` (вода: `city/coast-kinds.js` типи берега, `city/water.js` річка/море, `city/waterfront.js` причали, рибальські місця, маяк, млин) | `src/main.js`, `src/ui/`, `src/render/` | немає | |
+| Проект Атлас (генератор світів) | `medieval-world/` | `worlds/continent/` (тип світу «Материк»: `core/` генерація без DOM, `data/`, `render/`, `ui/`; відкривається в iframe з `?embed=1`), `src/core/city-core.js`, `src/data/buildings.js`, `src/generation/{city,world}/` (вода: `city/coast-kinds.js` типи берега, `city/water.js` річка/море, `city/waterfront.js` причали, рибальські місця, маяк, млин) | `src/main.js`, `src/ui/` (`world-kinds.js`: меню типів світів), `src/render/` | немає (тести материка: `worlds/continent/test/run-all.js`) | `atlas_world` |
 | Конструктор візерунків | `pattern-maker/` | `pattern-core.js`, `pattern-fx.js` | `app.js` | `test/fold.test.js`, `test/fx.test.js` | `pm_` |
 | Кузня луту | `loot-forge/` | `loot-core.js`, `gdd-core.js`, `gdd-data.js` | `app.js`, `loot-ui.js`, `gdd-ui.js` | `test/loot.test.js`, `test/gdd.test.js` | `lf_` |
 | Лабораторія дерев скілів | `skill-tree/` | `tree-core.js` | `app.js` | `test/tree.test.js` | `st_` |
@@ -14,7 +14,6 @@
 | Кузня планет | `planet-forge/` | `planet-core.js`, `planet-kinds.js` | `app.js` | `test/planet.test.js` | `pf_` |
 | Воксельна лабораторія | `voxel-lab/` | `voxel-core.js` | `app.js` | `test/voxel.test.js` | `vx_` |
 | Мозаїка | `tessera/` | `tessera-core.js` | `app.js` | `test/tessera.test.js` | `ts_` |
-| Карта королівств | `realm-map/` | `core/*.js` (генерація без DOM), `data/*.js` (біоми, монстри, місця, назви) | `app.js`, `ui/`, `render/` | `test/{hierarchy,roads,monsters,sea,general}.test.js`, запуск `test/run-all.js` | `rm_` |
 | Симуляція колонії (Симуляція колонії) | `colonist-foundry/` | `colonist-core.js` | `app.js` | `test/colonist.test.js` | `cf_` |
 | Планувальник виробничих ланцюжків | `production-planner/` | `planner-core.js` | `app.js` | `test/planner.test.js` | `pp_` |
 | Криві балансу й хвилі | `balance-curves/` | `curves-core.js` | `app.js` | `test/curves.test.js` | `bc_` |
