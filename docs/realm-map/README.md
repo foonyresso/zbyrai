@@ -13,3 +13,4 @@
 | [algorithm.md](algorithm.md) | Конвеєр генерації, стадії, формат даних |
 | [csharp-port.md](csharp-port.md) | Як переносити в Godot C#: відповідність файлів, структури, пастки |
 | [improvements.md](improvements.md) | Що додано понад запит і що можна додати далі |
+| [gdd-mapping.md](gdd-mapping.md) | Відповідність кодам карток гри GodsDontDie |
