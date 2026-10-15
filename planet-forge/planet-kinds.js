@@ -322,13 +322,21 @@ const PlanetKinds = (() => {
     knobs: { sea: { l: 'Резервуари', min: 0, max: .35, def: .1 }, scale: { min: .8, max: 3, def: 1.4 }, mount: { l: 'Хмарочоси', min: 0, max: .6, def: .2 }, built: { l: 'Забудова', min: .2, max: 1, def: .75, g: 'surf' }, grid: { l: 'Щільність магістралей', min: 12, max: 60, def: 28, f: 'int', g: 'surf' }, cores: { l: 'Енергополя', min: 0, max: 1, def: .3, g: 'surf' }, atmo: { min: .3, max: 1, def: .6 }, cloud: { l: 'Смог', min: 0, max: .8, def: .3 }, lights: { l: 'Нічні вогні', min: .3, max: 1, def: .9 }, tilt: {}, moons: {}, hue: { min: -.3, max: .3 } },
     px: (c, o, p, k) => {
       if (c.water) { k.liquid(c, o, 'water'); return; }
-      const built = k.n(c, 2.2, 7, 'm') > .45 - p.built * .95;
+      // райони: великі плями забудови різного вигляду; між ними зелені пояси й пустирі
+      const zone = k.n(c, 1.5, 7, 'm') * .5 + .5, built = k.n(c, 2.2, 7, 'm') > .45 - p.built * .95;
       if (!built) { o.b = TE.open; o.tint = true; return; }
-      const ph = Math.atan2(c.z, c.x), gx = Math.abs(fract(ph * p.grid / (2 * Math.PI)) - .5), gy = Math.abs(fract(c.lat * p.grid / Math.PI) - .5), ix = Math.floor(ph * p.grid / (2 * Math.PI)), iy = Math.floor(c.lat * p.grid / Math.PI);
-      const hash = fract(Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453);
-      if (gx > .46 || gy > .46) { o.b = TE.road; o.col = BIOMES[TE.road].c.slice(); return; }
-      if (hash < p.cores * .18) { o.b = TE.core; o.col = mulc(BIOMES[TE.core].c, .8 + hash); o.glow = 200; return; }
-      o.b = hash > .6 ? TE.ind : TE.city; o.col = mulc(BIOMES[o.b].c, (.7 + hash * .6) * (1 + (c.alt - .5) * p.mount * .8));
+      const g1 = p.grid, ph = Math.atan2(c.z, c.x), u = ph * g1 / (2 * Math.PI), v = c.lat * g1 / Math.PI, gx = Math.abs(fract(u) - .5), gy = Math.abs(fract(v) - .5);
+      const ix = Math.floor(u), iy = Math.floor(v), hash = fract(Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453);
+      // магістралі: тонкі лінії сітки, кожна п'ята ширша й світліша; поверх кільцева траса й промені
+      const wide = (ix % 5 === 0 || iy % 5 === 0), rw = wide ? .485 : .5 - .035;
+      if (gx > rw || gy > rw) { o.b = TE.road; o.col = mulc(BIOMES[TE.road].c, wide ? 1.25 : .9); return; }
+      // енергополя: рідкісні великі диски (комірки Вороного), а не випадкові плями
+      const cl = k.cell(c, 1.1 + p.cores * .6, 17);
+      if (p.cores > 0 && cl.r > 1 - p.cores * .12 && cl.d1 < .14) { const f = 1 - cl.d1 / .14; o.b = TE.core; o.col = mixc(mulc(BIOMES[TE.city].c, .6), BIOMES[TE.core].c, smooth(0, .6, f)); o.glow = 230 * smooth(.1, .7, f); return; }
+      // квартали: колір залежить від району, відмінність між кварталами невелика
+      const ind = zone > .62, glass = zone < .34, base = ind ? TE.ind : TE.city;
+      o.b = base; let col = BIOMES[base].c; if (glass) col = mixc(col, [74, 108, 150], .55);
+      o.col = mulc(col, (.88 + hash * .24) * (1 + (c.alt - .5) * p.mount * .5));
     } });
 
   const SH = { plate: B('Уламок кори', [74, 66, 64]), crack: B('Розлом', [255, 140, 40]), ash: B('Попіл', [42, 38, 38]) };
