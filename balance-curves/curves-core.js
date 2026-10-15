@@ -7,6 +7,9 @@ const BalanceCore = (() => {
     exp: { name: 'Експоненційна', f: '= a·g^(x−1)', fn: (c, x) => c.a * Math.pow(c.b, x - 1), params: { a: 'старт (a)', b: 'ріст за крок (g)' } },
     logistic: { name: 'S-крива', f: '= a/(1+e^(−k(x−x0)))', fn: (c, x) => c.a / (1 + Math.exp(-c.b * (x - c.p))), params: { a: 'стеля (a)', b: 'крутизна (k)', p: 'середина (x0)' } },
     log: { name: 'Логарифмічна', f: '= a·ln(1+b·x)', fn: (c, x) => c.a * Math.log(1 + c.b * x), params: { a: 'множник (a)', b: 'швидкість (b)' } },
+    steps: { name: 'Сходинки', f: '= a + b·⌊(x−1)/p⌋', fn: (c, x) => c.a + c.b * Math.floor((x - 1) / (c.p > 0 ? c.p : 1)), params: { a: 'старт (a)', b: 'приріст за сходинку (b)', p: 'довжина сходинки в рівнях (p)' } },
+    quad: { name: 'Квадратична', f: '= a + b·x + p·x²', fn: (c, x) => c.a + c.b * x + c.p * x * x, params: { a: 'старт (a)', b: 'лінійна частина (b)', p: 'квадратична частина (p)' } },
+    sqrt: { name: 'Корінь', f: '= a·√x + b', fn: (c, x) => c.a * Math.sqrt(x) + c.b, params: { a: 'множник (a)', b: 'зсув (b)' } },
   };
   const evalCurve = (c, x) => { const t = TYPES[c.type]; const v = t ? t.fn(c, x) : NaN; return Number.isFinite(v) ? v : NaN; };
   const series = (c, from, to) => { const out = []; for (let x = from; x <= to; x++) out.push({ x, y: evalCurve(c, x) }); return out; };
@@ -82,10 +85,11 @@ const BalanceCore = (() => {
   function toCode(c, lang = 'js') {
     const n = v => Number((+v || 0).toPrecision(6));
     const f = { linear: `${n(c.a)} + ${n(c.b)} * (x - 1)`, power: `${n(c.a)} * Math.pow(x, ${n(c.p)})`, exp: `${n(c.a)} * Math.pow(${n(c.b)}, x - 1)`,
-      logistic: `${n(c.a)} / (1 + Math.exp(-${n(c.b)} * (x - ${n(c.p)})))`, log: `${n(c.a)} * Math.log(1 + ${n(c.b)} * x)` }[c.type];
+      logistic: `${n(c.a)} / (1 + Math.exp(-${n(c.b)} * (x - ${n(c.p)})))`, log: `${n(c.a)} * Math.log(1 + ${n(c.b)} * x)`,
+      steps: `${n(c.a)} + ${n(c.b)} * Math.floor((x - 1) / ${n(c.p > 0 ? c.p : 1)})`, quad: `${n(c.a)} + ${n(c.b)} * x + ${n(c.p)} * x * x`, sqrt: `${n(c.a)} * Math.sqrt(x) + ${n(c.b)}` }[c.type];
     const name = (c.name || 'curve').replace(/[^\w]/g, '_').replace(/^(\d)/, '_$1') || 'curve';
-    if (lang === 'py') return `def ${name}(x):\n    return ${f.replace(/Math\.pow\(([^,]+), ([^)]+)\)/g, '($1) ** ($2)').replace(/Math\.exp/g, 'math.exp').replace(/Math\.log/g, 'math.log')}`;
-    if (lang === 'cs') return `static double ${name}(double x) => ${f.replace(/Math\.pow/g, 'Math.Pow').replace(/Math\.exp/g, 'Math.Exp').replace(/Math\.log/g, 'Math.Log')};`;
+    if (lang === 'py') return `def ${name}(x):\n    return ${f.replace(/Math\.pow\(([^,]+), ([^)]+)\)/g, '($1) ** ($2)').replace(/Math\.exp/g, 'math.exp').replace(/Math\.log/g, 'math.log').replace(/Math\.sqrt/g, 'math.sqrt').replace(/Math\.floor/g, 'math.floor')}`;
+    if (lang === 'cs') return `static double ${name}(double x) => ${f.replace(/Math\.pow/g, 'Math.Pow').replace(/Math\.exp/g, 'Math.Exp').replace(/Math\.log/g, 'Math.Log').replace(/Math\.sqrt/g, 'Math.Sqrt').replace(/Math\.floor/g, 'Math.Floor')};`;
     return `const ${name} = x => ${f};`;
   }
 

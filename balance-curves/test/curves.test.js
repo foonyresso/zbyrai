@@ -71,3 +71,11 @@ test('сторінка: довідка, підказки й збереження
 
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
+
+test('сходинки, квадратична й корінь: значення та код', () => {
+  const st = { type: 'steps', a: 10, b: 5, p: 10 };
+  near(B.evalCurve(st, 1), 10, 1e-9); near(B.evalCurve(st, 10), 10, 1e-9); near(B.evalCurve(st, 11), 15, 1e-9); near(B.evalCurve(st, 31), 25, 1e-9);
+  near(B.evalCurve({ type: 'quad', a: 1, b: 2, p: 3 }, 2), 17, 1e-9); near(B.evalCurve({ type: 'sqrt', a: 2, b: 1 }, 9), 7, 1e-9);
+  for (const c of [st, { type: 'quad', a: 1, b: 2, p: 3 }, { type: 'sqrt', a: 2, b: 1 }]) { const f = new Function('return ' + B.toCode(c).replace(/^const [^=]+= /, '').replace(/;$/, ''))(); near(f(7), B.evalCurve(c, 7), 1e-5); }
+  assert.match(B.toCode(st, 'py'), /math\.floor/);
+});
