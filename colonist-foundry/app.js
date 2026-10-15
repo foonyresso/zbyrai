@@ -1,4 +1,4 @@
-// Colonist Foundry: інтерфейс. Логіка лежить у colonist-core.js (ColonistCore).
+// Симуляція колонії (Colonist Foundry): інтерфейс. Логіка лежить у colonist-core.js (ColonistCore).
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -62,7 +62,7 @@
   /* ---------- вкладка «Стосунки» ---------- */
   const RELCOL = { spouse: '#f39ac0', friend: '#8fd6a0', sibling: '#8fb7ee', rival: '#f08a8a' };
   function renderBonds() {
-    const cs = colony.colonists, n = cs.length, W = 420, H = 420, cx = W / 2, cy = H / 2, R = 160, host = $('web'); host.replaceChildren();
+    const cs = colony.colonists, n = cs.length, W = 560, H = 420, cx = W / 2, cy = H / 2, R = 160, host = $('web'); host.replaceChildren();
     const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Схема стосунків' }), pos = cs.map((_, i) => { const a = i / n * Math.PI * 2 - Math.PI / 2; return [cx + R * Math.cos(a), cy + R * Math.sin(a)]; });
     for (const r of colony.relations) s.append(svg('line', { x1: pos[r.a][0], y1: pos[r.a][1], x2: pos[r.b][0], y2: pos[r.b][1], stroke: RELCOL[r.type], 'stroke-width': r.type === 'spouse' ? 3.5 : 2, 'stroke-opacity': .8, 'stroke-dasharray': r.type === 'rival' ? '5 4' : '' }));
     cs.forEach((c, i) => { const g = svg('g'); g.append(svg('circle', { cx: pos[i][0], cy: pos[i][1], r: 14, fill: '#1c1a22', stroke: '#c98fdc', 'stroke-width': 1.4 })); const t = svg('text', { x: pos[i][0], y: pos[i][1] + 4, 'text-anchor': 'middle', fill: '#f0eee9', 'font-size': 11, 'font-weight': 600 }); t.textContent = i + 1; g.append(t);
@@ -70,8 +70,8 @@
     host.append(s);
     $('relLegend').replaceChildren(...Object.entries(C.REL).map(([k, v]) => el('span', {}, el('i', { style: `background:${RELCOL[k]}` }), v)));
     const t = $('matrix'), col = v => { const a = Math.min(1, Math.abs(v) / 60); return v >= 0 ? `rgba(111,195,160,${a * .55})` : `rgba(240,138,138,${a * .55})`; };
-    t.replaceChildren(el('thead', {}, el('tr', {}, el('th', {}, ''), cs.map((c, i) => el('th', { title: c.name }, i + 1)))),
-      el('tbody', {}, cs.map((c, i) => el('tr', {}, el('td', {}, `${i + 1} ${c.name}`), cs.map((o, j) => { if (i === j) return el('td', {}, '·'); const v = C.opinion(colony, i, j), r = C.relOf(colony, i, j); return el('td', { style: `background:${col(v)}`, title: `${c.name} про ${o.name}${r ? ' (' + C.REL[r] + ')' : ''}` }, v > 0 ? '+' + v : v); }))))); }
+    t.replaceChildren(el('thead', {}, el('tr', {}, el('th', {}, ''), cs.map((c, i) => el('th', { class: 'vert', title: c.name }, c.name)))),
+      el('tbody', {}, cs.map((c, i) => el('tr', {}, el('td', {}, c.name), cs.map((o, j) => { if (i === j) return el('td', {}, '·'); const v = C.opinion(colony, i, j), r = C.relOf(colony, i, j); return el('td', { style: `background:${col(v)}`, title: `${c.name} про ${o.name}${r ? ' (' + C.REL[r] + ')' : ''}` }, v > 0 ? '+' + v : v); }))))); }
 
   /* ---------- вкладка «Доба» ---------- */
   const ACT_NAMES = { сон: 'сон', їжа: 'їжа', відпочинок: 'відпочинок', розвага: 'розвага', розмова: 'розмова', зрив: 'зрив', робота: 'робота' };
@@ -89,7 +89,7 @@
     const wmax = Math.max(1, ...Object.values(s.work));
     const work = el('div', { class: 'card workbars' }, el('h2', {}, 'Зроблено роботи'), ...C.JOBS.map(j => el('div', { class: 'wb' }, el('span', {}, j.name), el('div', { class: 'b' }, el('i', { style: `width:${s.work[j.id] / wmax * 100}%` })), el('span', {}, Math.round(s.work[j.id])))));
     const pr = el('div', { class: 'card' }, el('h2', {}, 'Пріоритети робіт ', el('span', { class: 'sub' }, '1 — головна, 4 — у крайньому разі, — не виконує')),
-      el('div', { class: 'tablewrap' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, ''), C.JOBS.map(j => el('th', {}, j.name)))), el('tbody', {}, cs.map(c => { const p = C.priorities(c); return el('tr', {}, el('td', {}, c.name), C.JOBS.map(j => el('td', { class: 'pr' + p[j.id] }, p[j.id] || '—'))); })))));
+      el('div', { class: 'tablewrap' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, ''), C.JOBS.map(j => el('th', { class: 'vert' }, j.name)))), el('tbody', {}, cs.map(c => { const p = C.priorities(c); return el('tr', {}, el('td', {}, c.name), C.JOBS.map(j => el('td', { class: 'pr' + p[j.id] }, p[j.id] || '—'))); })))));
     out.append(tl, el('div', { class: 'daygrid' }, el('div', {}, log, work), pr));
   }
 
