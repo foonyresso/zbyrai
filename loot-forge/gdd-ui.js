@@ -1,4 +1,4 @@
-// Loot Forge: інтерфейс шару GodsDontDie. Логіка живе в gdd-core.js, тут лише розмітка.
+// Loot Forge: інтерфейс шару розширеного режиму. Логіка живе в gdd-core.js, тут лише розмітка.
 // app.js передає сюди свої помічники (ctx) і підключає цей модуль до панелей.
 const GddUI = (() => {
   'use strict';
@@ -42,12 +42,12 @@ const GddUI = (() => {
     function modeSection() {
       const C = cfg();
       const on = G.isOn(C);
-      const cb = h('input', { type: 'checkbox', checked: on, 'aria-label': 'Правила GodsDontDie', onchange: e => { G.ensureGame(cfg(), e.target.checked); ctx.afterStructure(); } });
-      const meta = C.game && C.game.meta && C.game.meta.commit ? `Дані з GodsDontDie, коміт ${C.game.meta.commit.slice(0, 7)}.` : '';
-      return section('gdd', 'Режим GodsDontDie', on ? 'увімкнено' : 'вимкнено', [
+      const cb = h('input', { type: 'checkbox', checked: on, 'aria-label': 'Правила розширеного режиму', onchange: e => { G.ensureGame(cfg(), e.target.checked); ctx.afterStructure(); } });
+      const meta = C.game && C.game.meta && C.game.meta.commit ? `Дані розширеного режиму, коміт ${C.game.meta.commit.slice(0, 7)}.` : '';
+      return section('gdd', 'Розширений режим', on ? 'увімкнено' : 'вимкнено', [
         h('div', { class: 'row' }, h('label', null, h('span', null, cb, ' Предмети за правилами гри')),
           h('span', { class: 'hint' }, 'Типи, слоти, якості, ефекти, вставки й комплекти як у грі. Універсальні правила нижче зберігаються і вмикаються знову, якщо вимкнути режим.')),
-        meta ? h('p', { class: 'hint' }, meta + ' Оновлення: python3 loot-forge/sync/extract-gdd.py <шлях до GodsDontDie>.') : null,
+        meta ? h('p', { class: 'hint' }, meta + ' Оновлення: python3 loot-forge/sync/extract-gdd.py <шлях до гри>.') : null,
       ]);
     }
 

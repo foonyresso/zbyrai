@@ -50,7 +50,7 @@
       <h3>Як користуватися</h3>
       <ol>
         <li><b>Обери тип планети</b> праворуч і крути повзунки: вода, гори, клімат, атмосфера.</li>
-        <li><b>«Нова планета»</b> змінює зерно й параметри того самого типу, <b>«Сюрприз»</b> міняє ще й тип.</li>
+        <li><b>«Рандом налаштувань»</b> змінює зерно й параметри того самого типу, <b>«Повний рандом»</b> міняє ще й тип.</li>
         <li><b>Замочок</b> біля параметра залишає його як є, поки рандомиш решту.</li>
         <li><b>Збережи чи поділись</b> кнопками угорі: картинка, карта, висоти, паспорт, імпорт.</li>
       </ol>
@@ -59,8 +59,8 @@
 </details>
 
 <div class="toolbar">
-  <button id="btnNew" class="btn-primary" title="Нове зерно, назва й параметри того ж типу. Замкнене лишається (Пробіл)">Нова планета</button>
-  <button id="btnSurprise" title="Усе випадково: тип, назва й усі параметри, крім замкнених">Сюрприз</button>
+  <button id="btnNew" class="btn-primary" title="Рандом налаштувань поточної планети: нове зерно, назва й параметри того самого типу. Замкнене лишається (Пробіл)">Рандом налаштувань</button>
+  <button id="btnSurprise" title="Повний рандом: нова планета, змінюється все, включно з типом, назвою й усіма параметрами, крім замкнених">Повний рандом</button>
 </div>
 
 <main class="wrap">
@@ -72,12 +72,14 @@
   </section>
 
   <aside class="side">
-    <div class="card"><h2>Тип планети</h2>
+    <details class="card fold" id="kindsFold"><summary title="Натисни, щоб відкрити чи згорнути список типів планет"><h2>Тип планети: <b id="kindName"></b></h2></summary>
       <div class="kinds" id="kinds" title="Тип планети визначає, які параметри доступні"></div>
-      <div class="lockrow"><button type="button" class="lock" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: «Сюрприз» його не змінюватиме</span></div>
+      <div class="lockrow"><button type="button" class="lock" id="lkKind" aria-pressed="false"></button><span>Зафіксувати тип: «Рандом налаштувань» його не змінюватиме</span></div>
+    </details>
+    <div class="card"><h2>Зерно й назва</h2>
       <label class="ctl txt" title="Зерно: число-код планети. Те саме зерно з тими самими параметрами дає ту саму планету"><span>Зерно</span><button type="button" class="lock" id="lkSeed" aria-pressed="false"></button><input type="text" id="tSeed" maxlength="24" spellcheck="false"></label>
       <label class="ctl txt" title="Назва планети: можна написати свою"><span>Назва</span><button type="button" class="lock" id="lkName" aria-pressed="false"></button><input type="text" id="tName" maxlength="28" placeholder="Назва планети"></label>
-      <p class="hint">Замочок біля параметра фіксує його: «Сюрприз» і «Нова планета» залишать його як є, а решту перемішають.</p>
+      <p class="hint">Замочок біля параметра фіксує його: «Рандом налаштувань» і «Повний рандом» залишать його як є, а решту перемішають.</p>
     </div>
     <div class="card"><h2>Поверхня</h2><div id="surfCtl" class="ctls"></div></div>
     <div class="card"><h2>Небо й життя</h2><div id="skyCtl" class="ctls"></div>

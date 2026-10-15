@@ -138,7 +138,7 @@ dialog.modal textarea { width: 100%; margin-top: 10px; font-family: var(--ff-mon
   header.top .btn-primary { margin-left: auto; }
 }
 
-/* ---------- шар GodsDontDie ---------- */
+/* ---------- шар розширений режим ---------- */
 [hidden] { display: none !important; }
 .tr.gq { grid-template-columns: 22px 28px minmax(84px, 1.4fr) 64px 56px 46px 46px 62px 58px 28px 58px; }
 .tbl > .tr.gq { min-width: 680px; }

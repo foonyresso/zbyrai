@@ -78,7 +78,7 @@
   const numIn = (value, on, o = {}) => h('input', { type: 'number', class: 'num', value, min: o.min, max: o.max, step: o.step || 'any', 'aria-label': o.label, onchange: e => on(parseFloat(e.target.value)) });
   const txtIn = (value, on, o = {}) => h('input', { type: 'text', class: 'txt', value, 'aria-label': o.label, onchange: e => on(e.target.value) });
 
-  /* ---------- шар GodsDontDie (gdd-ui.js) ---------- */
+  /* ---------- шар розширеного режиму (gdd-ui.js) ---------- */
   const GAME = typeof GddCore !== 'undefined' && typeof GddUI !== 'undefined';
   const isGame = () => GAME && GddCore.isOn(cfg());
   const GUI = GAME ? GddUI.create({

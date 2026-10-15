@@ -210,8 +210,6 @@ const MixerCore = (() => {
   function pitch(idea) {
     const lines = ['# ' + idea.title, ''];
     for (const s of SLOTS) if (idea.picks[s.id]) lines.push(`- **${s.name}:** ${idea.picks[s.id].t}`);
-    const src = sources(idea);
-    if (src.length) lines.push('', '*Основа: ' + src.join(', ') + '*');
     return lines.join('\n');
   }
 

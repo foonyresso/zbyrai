@@ -7,7 +7,7 @@
      slots:     [{ id, name, tags, base: { stat: [lo, hi] }, on }]
      affixes:   [{ id, stat, min, max, tags, lvl, on }]          tags: 'any' або теги слотів; lvl = мін. рівень предмета
      levelScale: приріст значень за кожен рівень предмета понад 1 (0.08 = +8%)
-     game:      (необов'язково) шар GodsDontDie, див. gdd-core.js; коли game.enabled, предмети генеруються за правилами гри */
+     game:      (необов'язково) шар розширеного режиму, див. gdd-core.js; коли game.enabled, предмети генеруються за правилами гри */
 const LootCore = (() => {
   /* ---------- детермінований генератор ---------- */
   function xmur3(str) {
@@ -151,12 +151,12 @@ const LootCore = (() => {
   };
   const PRESET_NAMES = { fantasy: 'Фентезі-RPG', survival: 'Виживання' };
 
-  /* ---------- шар GodsDontDie (gdd-core.js реєструє себе сам) ---------- */
+  /* ---------- шар розширеного режиму (gdd-core.js реєструє себе сам) ---------- */
   const hooks = { game: null };
   function registerGame(game) {
     hooks.game = game;
     PRESETS.gdd = () => game.preset();
-    PRESET_NAMES.gdd = 'GodsDontDie';
+    PRESET_NAMES.gdd = 'Розширений';
   }
   const isGame = cfg => !!(hooks.game && cfg && cfg.game && cfg.game.enabled);
 
@@ -369,7 +369,7 @@ const LootCore = (() => {
     (src.uniques || []).forEach((u, i) => cfg.uniques.push({ id: str(u.id, 'u' + i), name: str(u.name, 'Унікальний ' + (i + 1)), slot: String(u.slot || ''),
       ...(u.rarity ? { rarity: String(u.rarity) } : {}), ...(u.set ? { set: String(u.set) } : {}), lvl: Math.round(num(u.lvl, 1, 1, 999)), weight: num(u.weight, 1, 0, 1000),
       fixed: statsOnly(u.fixed), flavor: typeof u.flavor === 'string' ? u.flavor.slice(0, 140) : '' }));
-    // Шар GodsDontDie необов'язковий: старі конфіги без `game` працюють як раніше.
+    // Шар розширений режим необов'язковий: старі конфіги без `game` працюють як раніше.
     if (src.game && typeof src.game === 'object') cfg.game = hooks.game ? hooks.game.sanitize(src.game) : JSON.parse(JSON.stringify(src.game));
     const problems = validate(cfg);
     if (problems.length) throw new Error(problems[0]);
@@ -403,5 +403,5 @@ const LootCore = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = LootCore;
-  require('./gdd-core.js'); // реєструє шар GodsDontDie (у браузері його підключає index.html)
+  require('./gdd-core.js'); // реєструє шар розширеного режиму (у браузері його підключає index.html)
 }

@@ -83,14 +83,14 @@ test('власні механіки додаються до пулу й можу
   assert.equal(M.mergePools().twist.length, M.POOLS.twist.length, 'вбудовані пули не мутують');
 });
 
-test('пітч у Markdown містить усі пункти й унікальні джерела', () => {
+test('пітч у Markdown містить усі пункти й не називає ігор', () => {
   const pools = M.mergePools(), idea = M.rollAll(M.rngFromSeed('pitch'), pools, null);
   const md = M.pitch(idea);
   assert.ok(md.startsWith('# ' + idea.title));
   for (const s of M.SLOTS) assert.ok(md.includes(`**${s.name}:** ${idea.picks[s.id].t}`));
   const src = M.sources(idea);
   assert.equal(new Set(src).size, src.length);
-  if (src.length) assert.ok(md.includes('*Основа: ' + src.join(', ') + '*'));
+  assert.ok(!md.includes('Основа:'), 'назви ігор не виводяться');
 });
 
 test('відновлення ідеї: правильну приймає, биту відхиляє', () => {

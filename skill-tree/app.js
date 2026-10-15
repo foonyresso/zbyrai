@@ -464,7 +464,7 @@
       h('label', { title: 'Назва дерева; потрапляє у файл експорту' }, 'Назва дерева', h('input', { type: 'text', value: tree.name, onchange: on(el => { tree.name = el.value.trim() || tree.name; }) })),
       h('div', { class: 'two', style: 'grid-template-columns:1fr 1fr' },
         h('label', { title: 'Скільки очок гравець може вкласти в усе дерево' }, 'Очок', h('input', { type: 'number', min: 0, value: tree.points, onchange: on(el => { tree.points = Math.round(clamp(+el.value || 0, 0, 99999)); }) })),
-        h('label', { title: 'Шлях: вузол відкривається, коли вкладено в будь-якого сусіда (як у Path of Exile). Вимоги: потрібно вкласти в усі вузли, з яких ведуть стрілки (як у класичних талантах).' }, 'Відкриття вузла', h('select', { onchange: on(el => { tree.mode = el.value; }) },
+        h('label', { title: 'Шлях: вузол відкривається, коли вкладено в будь-якого сусіда. Вимоги: потрібно вкласти в усі вузли, з яких ведуть стрілки (як у класичних талантах).' }, 'Відкриття вузла', h('select', { onchange: on(el => { tree.mode = el.value; }) },
           h('option', { value: 'path', selected: tree.mode === 'path', title: 'Достатньо вкласти в будь-якого сусіда' }, 'Шлях (сусід)'), h('option', { value: 'prereq', selected: tree.mode === 'prereq', title: 'Потрібно вкласти в усі вузли, з яких веде стрілка' }, 'Вимоги (стрілки)'))))));
     const problems = T.validate(tree);
     box.append(problems.length ? h('div', { class: 'warns' }, problems.slice(0, 4).map(p => h('div', { class: 'warn' }, p))) : h('div', { class: 'okmsg' }, 'Дерево без проблем: усі вузли досяжні, цикли відсутні.'));

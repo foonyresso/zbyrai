@@ -53,7 +53,7 @@
     const box = $('slots'); box.textContent = '';
     M.SLOTS.forEach((s, i) => {
       const p = idea.picks[s.id];
-      const src = h('div', { class: 'src' }, p.from.length ? p.from.map(g => h('span', { class: 'tag' }, g)) : p.custom ? h('span', { class: 'tag mine' }, 'власна механіка') : null);
+      const src = h('div', { class: 'src' }, p.custom ? h('span', { class: 'tag mine' }, 'власна механіка') : null);
       box.append(h('article', { class: 'slot' + (locks[s.id] ? ' locked' : ''), 'data-n': String(i + 1).padStart(2, '0') },
         h('div', { class: 'slot-h' }, h('h3', null, s.name), h('small', null, s.hint)),
         h('p', { class: 'slot-t' + (flipping.has(s.id) ? ' flip' : '') }, p.t),

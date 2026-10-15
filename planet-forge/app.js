@@ -123,7 +123,7 @@
   /* ---------- керування: набір ручок залежить від типу ---------- */
   const FMT = { pct: v => Math.round(v * 100) + '%', num: v => (Math.round(v * 100) / 100).toFixed(2), int: v => String(Math.round(v)), deg: v => Math.round(v) + '°', sgn: v => (v > 0 ? '+' : '') + Math.round(v * 100) };
   function syncLocks() { document.querySelectorAll('.lock').forEach(b => { const on = !!st.locks[b.dataset.lock]; b.setAttribute('aria-pressed', on); b.textContent = on ? '🔒' : '🔓'; }); }
-  const lockBtn = key => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lock'; b.dataset.lock = key; b.title = 'Зафіксувати: «Сюрприз» і «Нова планета» цього не змінять'; b.onclick = e => { e.preventDefault(); st.locks[key] = !st.locks[key]; save(); syncLocks(); }; return b; };
+  const lockBtn = key => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lock'; b.dataset.lock = key; b.title = 'Зафіксувати: «Повний рандом» і «Рандом налаштувань» цього не змінять'; b.onclick = e => { e.preventDefault(); st.locks[key] = !st.locks[key]; save(); syncLocks(); }; return b; };
   const KTIPS = { sea: 'Скільки поверхні вкрито рідиною', scale: 'Розмір деталей ландшафту: більше число дає дрібніші материки й острови', mount: 'Скільки гір і хребтів', temp: 'Загальний клімат: від холодного до спекотного', humid: 'Вологість: сухі пустелі проти густих лісів', caps: 'Розмір полярних шапок', atmo: 'Товщина й густота атмосфери: впливає на сяйво по краю планети', cloud: 'Скільки хмар у небі', lights: 'Вогні міст на нічному боці', tilt: 'Нахил осі планети: впливає на вигляд кілець і пір року', moons: 'Кількість супутників', hue: 'Зсув кольору всієї планети' };
   let built = '';
   function buildControls() {
@@ -137,12 +137,13 @@
       }
     }
   }
-  for (const [id, key] of [['lkKind', 'kind'], ['lkSeed', 'seed'], ['lkName', 'name'], ['lkRing', 'ring']]) { const b = $(id); b.dataset.lock = key; b.title = 'Зафіксувати: «Сюрприз» і «Нова планета» цього не змінять'; b.onclick = () => { st.locks[key] = !st.locks[key]; save(); syncLocks(); }; }
+  for (const [id, key] of [['lkKind', 'kind'], ['lkSeed', 'seed'], ['lkName', 'name'], ['lkRing', 'ring']]) { const b = $(id); b.dataset.lock = key; b.title = 'Зафіксувати: «Повний рандом» і «Рандом налаштувань» цього не змінять'; b.onclick = () => { st.locks[key] = !st.locks[key]; save(); syncLocks(); }; }
   function sync() {
     buildControls();
     for (const kb of KD().knobs) { const r = $('r_' + kb.k); if (r) { r.value = st[kb.k]; $('o_' + kb.k).textContent = FMT[kb.f](st[kb.k]); } }
     $('tSeed').value = st.seed; $('tName').value = st.name || ''; $('cRing').checked = !!st.ring; $('cSpin').checked = st.auto; $('rSpin').value = Math.round(((spin * 180 / Math.PI) % 360 + 360) % 360); $('rSun').value = st.sun;
     document.querySelectorAll('.kinds button').forEach(b => b.classList.toggle('on', b.dataset.kind === st.kind));
+    $('kindName').textContent = KD().name;
     syncLocks();
   }
   $('cRing').onchange = e => { st.ring = e.target.checked; save(); draw(); };
@@ -155,7 +156,7 @@
   const kb = $('kinds');
   for (const grp of [['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
     kb.append(el('h5', {}, grp[1]));
-    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); }; kb.append(b); }
+    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
   }
   const reroll = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); save(); sync(); regenerate(); };
   $('btnNew').onclick = () => reroll({ keepKind: true });
