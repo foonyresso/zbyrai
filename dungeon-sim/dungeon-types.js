@@ -20,6 +20,8 @@
    800,
    4000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 1,
   "inhabitants": [
    "щури-мутанти",
@@ -48,6 +50,8 @@
    2500,
    9000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "скелети",
@@ -76,6 +80,8 @@
    900,
    3000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "злодії",
@@ -104,6 +110,8 @@
    1800,
    6000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "вартові",
@@ -132,6 +140,8 @@
    150,
    600
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 1,
   "inhabitants": [
    "щури",
@@ -160,6 +170,8 @@
    200,
    800
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "скелети",
@@ -187,6 +199,8 @@
    300,
    1000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "монстри-загарбники",
@@ -214,6 +228,8 @@
    80,
    300
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 1,
   "inhabitants": [
    "щури",
@@ -241,6 +257,8 @@
    2000,
    8000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "давні вартові",
@@ -269,6 +287,8 @@
    1500,
    5000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "привиди гарнізону",
@@ -297,6 +317,8 @@
    1200,
    4000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "ченці-привиди",
@@ -325,6 +347,8 @@
    900,
    3000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "створені магом істоти",
@@ -353,6 +377,8 @@
    1000,
    6000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "гномі привиди",
@@ -381,6 +407,8 @@
    800,
    5000
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "ведмеді",
@@ -408,6 +436,8 @@
    150,
    700
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "нежить",
@@ -435,6 +465,8 @@
    200,
    700
   ],
+  "worlds": "all",
+  "monsterIds": [],
   "danger": 1,
   "inhabitants": [
    "бандити",
@@ -462,6 +494,10 @@
    2000,
    8000
   ],
+  "worlds": [
+   "astrakor"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "панцирні коренегризи",
@@ -489,6 +525,10 @@
    1500,
    6000
   ],
+  "worlds": [
+   "astrakor"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "кореневі велети",
@@ -516,6 +556,10 @@
    6000,
    20000
   ],
+  "worlds": [
+   "astrakor"
+  ],
+  "monsterIds": [],
   "danger": 5,
   "inhabitants": [
    "Матір Коренів",
@@ -543,6 +587,10 @@
    2000,
    7000
   ],
+  "worlds": [
+   "ostanky"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "уламкові големи",
@@ -570,6 +618,10 @@
    1500,
    6000
   ],
+  "worlds": [
+   "ostanky"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "безликі лицарі",
@@ -597,6 +649,10 @@
    1200,
    5000
   ],
+  "worlds": [
+   "krovostep"
+  ],
+  "monsterIds": [],
   "danger": 4,
   "inhabitants": [
    "кров'яні лицарі",
@@ -624,6 +680,10 @@
    800,
    3500
   ],
+  "worlds": [
+   "krovostep"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "червоні скорпіони",
@@ -651,6 +711,10 @@
    3000,
    12000
   ],
+  "worlds": [
+   "krovostep"
+  ],
+  "monsterIds": [],
   "danger": 5,
   "inhabitants": [
    "Безсердечний Король",
@@ -678,6 +742,10 @@
    1200,
    5000
   ],
+  "worlds": [
+   "vershynnytsia"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "деревні павуки",
@@ -705,6 +773,10 @@
    2500,
    9000
   ],
+  "worlds": [
+   "vershynnytsia"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "павуки",
@@ -732,6 +804,10 @@
    1500,
    5000
   ],
+  "worlds": [
+   "neborid"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "туманні хижаки",
@@ -759,6 +835,10 @@
    1000,
    4000
   ],
+  "worlds": [
+   "neborid"
+  ],
+  "monsterIds": [],
   "danger": 3,
   "inhabitants": [
    "ченці-привиди",
@@ -786,6 +866,10 @@
    800,
    3000
   ],
+  "worlds": [
+   "midnokryl"
+  ],
+  "monsterIds": [],
   "danger": 2,
   "inhabitants": [
    "скельні хижаки",

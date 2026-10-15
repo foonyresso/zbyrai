@@ -8,6 +8,7 @@
     ember: { name: 'Жар', bg: '#120806', rock: '#1b0e0a', floor: ['#5a3320', '#633a25', '#522f1d'], corr: '#432618', wall: '#0c0504', door: '#d6a15b', secret: '#ffd27a', grid: 'rgba(0,0,0,.3)' },
   };
   const ROLE_COL = { start: '#6fe29a', boss: '#ff6b61', down: '#8fb7ff', dead: '#f0c84f' };
+  const TAGCOL = { flooded: '#3b8be0', rubble: '#9a9a9a', tombs: '#d8d0b4', webs: '#f0f0f0', ore: '#e0a64a', altar: '#c58bff', cells: '#8794a2', lab: '#5fe0b0', library: '#c9915a', nests: '#b98a4e', roots: '#5da34a', cache: '#f0d060', crystals: '#6fe3ff', blood: '#b3202a' };
   const hx = (x, y) => { let h = (x * 374761393 + y * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0); };
   const cache = new WeakMap();
 
@@ -48,6 +49,13 @@
     for (const r of f.rooms) {
       const col = ROLE_COL[r.role] || (r.loot ? ROLE_COL.dead : null), cx = sx(r.mx + .5), cy = sy(r.my + .5);
       if (cx < -40 || cy < -40 || cx > W + 40 || cy > H + 40) continue;
+      if (L.tags && r.tags && r.tags.length) {
+        ctx.globalAlpha = .2; ctx.fillStyle = TAGCOL[r.tags[0]]; ctx.beginPath();
+        if (d.params.style === 'cave') ctx.ellipse(sx(r.x + r.w / 2), sy(r.y + r.h / 2), r.w * s / 2, r.h * s / 2, 0, 0, 7); else ctx.rect(sx(r.x), sy(r.y), r.w * s, r.h * s);
+        ctx.fill(); ctx.globalAlpha = .85;
+        if (s >= 6) r.tags.forEach((tg, ti) => { ctx.fillStyle = TAGCOL[tg]; for (let i = 0; i < 4; i++) { const h = hx(r.id * 31 + ti * 7 + i, r.x + i), gx = r.x + 1 + (h % Math.max(1, r.w - 2)), gy = r.y + 1 + ((h >>> 8) % Math.max(1, r.h - 2)); ctx.fillRect(sx(gx) + s * .2, sy(gy) + s * .2, s * .3, s * .3); } });
+        ctx.globalAlpha = 1;
+      }
       if (opt.sel === r.id || opt.hover === r.id) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(sx(r.x), sy(r.y), r.w * s, r.h * s); }
       if (r.role === 'start' || r.role === 'boss' || r.role === 'down') { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(cx, cy, Math.max(3, s * .5), 0, 7); ctx.fill(); }
       if (L.loot && r.loot) { ctx.fillStyle = ROLE_COL.dead; ctx.fillRect(cx - R + (r.role === 'boss' ? s : 0), cy - R + s * .8, R * 2, R * 1.4); }
@@ -61,5 +69,5 @@
   function fit(d, fi, W, H) { const f = d.floors[fi]; let minx = f.w, miny = f.h, maxx = 0, maxy = 0; for (const r of f.rooms) { minx = Math.min(minx, r.x); miny = Math.min(miny, r.y); maxx = Math.max(maxx, r.x + r.w); maxy = Math.max(maxy, r.y + r.h); } const bw = maxx - minx + 4, bh = maxy - miny + 4, s = Math.max(1, Math.min(40, Math.min(W / bw, H / bh))); return { s, x: minx - 2 - (W / s - bw) / 2, y: miny - 2 - (H / s - bh) / 2 }; }
   function pickRoom(d, fi, view, px, py) { const f = d.floors[fi], x = Math.floor(view.x + px / view.s), y = Math.floor(view.y + py / view.s); if (x < 0 || y < 0 || x >= f.w || y >= f.h) return -1; return f.rid[y * f.w + x]; }
   function toPNG(d, fi, opt, scale, cb) { const f = d.floors[fi], cv = document.createElement('canvas'); scale = Math.max(2, Math.min(scale, Math.floor(8000 / Math.max(f.w, f.h)))); cv.width = f.w * scale; cv.height = f.h * scale; draw(cv.getContext('2d'), d, fi, { x: 0, y: 0, s: scale }, opt, cv.width, cv.height); cv.toBlob(cb, 'image/png'); }
-  return { THEMES, draw, fit, pickRoom, toPNG, ROLE_COL };
+  return { THEMES, TAGCOL, draw, fit, pickRoom, toPNG, ROLE_COL };
 });

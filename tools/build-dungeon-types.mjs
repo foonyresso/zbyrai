@@ -15,7 +15,7 @@ for (const f of readdirSync(dir).filter(n => n.endsWith('.js')).sort()) {
 types.sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.id.localeCompare(b.id));
 const rows = types.map(d => ({
   id: d.id, name: d.name, anchor: d.anchor && d.anchor.type, rooms: d.size.rooms, levels: d.size.levels,
-  length: d.size.length, area: d.size.area, danger: d.danger, inhabitants: d.inhabitants || [],
+  length: d.size.length, area: d.size.area, worlds: (d.spawn && d.spawn.worlds) || 'all', monsterIds: d.monsters || [], danger: d.danger, inhabitants: d.inhabitants || [],
   desc: (d.lore && d.lore.description) || '',
 }));
 const out = `/* Автоматично: node tools/build-dungeon-types.mjs з medieval-world/dungeons/*.js. Не правити вручну. */\n` +

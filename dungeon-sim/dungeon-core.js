@@ -23,7 +23,50 @@
   const pick = (rnd, arr) => arr[Math.floor(rnd() * arr.length)];
   const typeById = id => TYPES.find(t => t.id === id) || null;
 
-  function defaults() { return { v: FORMAT, seed: 'zbyrai', type: '', rooms: 24, levels: 1, style: 'brick', branch: 40, loops: 25, secrets: 30, traps: 40, danger: 2 }; }
+  /* Особливості кімнат: у кожного типу підземелля свій набір (частка кімнат, що їх мають) */
+  const TAGS = {
+    flooded: ['Затоплені зали', 'Частка кімнат із водою: повільний рух, плавучі речі'], rubble: ['Завали', 'Частка кімнат із уламками й обваленою стелею'],
+    tombs: ['Саркофаги', 'Частка кімнат із саркофагами й нішами для поховань'], webs: ['Павутиння', 'Частка кімнат, затягнутих павутинням'],
+    ore: ['Жили руди', 'Частка кімнат зі жилами руди й гірничим знаряддям'], altar: ['Вівтарі', 'Частка кімнат із вівтарем чи святинею'],
+    cells: ['Камери', 'Частка кімнат із камерами й гратами'], lab: ['Лабораторії', 'Частка кімнат зі столами, колбами й приладами'],
+    library: ['Архіви', 'Частка кімнат зі стелажами, сувоями й книжками'], nests: ['Гнізда й лігва', 'Частка кімнат, де мешканці влаштували гнізда'],
+    roots: ['Коріння', 'Частка кімнат, пророслих корінням'], cache: ['Схованки', 'Частка кімнат із прихованими схованками'],
+    crystals: ['Кристали', 'Частка кімнат зі світними кристалами'], blood: ['Сліди крові', 'Частка кімнат із калюжами крові й жертовними слідами'],
+  };
+  const TYPE_TAGS = {
+    sewer: { flooded: 60, nests: 25, rubble: 15 }, catacombs: { tombs: 55, webs: 20, altar: 15 }, 'thieves-lair': { cells: 30, cache: 40, library: 10 },
+    'royal-vault': { cache: 60, altar: 10, rubble: 5 }, 'ruin-cellars': { rubble: 50, webs: 25, flooded: 10 }, crypt: { tombs: 70, altar: 20, webs: 15 },
+    'occupied-warren': { nests: 55, blood: 25, rubble: 15 }, 'village-cellar': { cache: 30, webs: 25, flooded: 15 }, 'ancient-vault': { altar: 25, rubble: 30, library: 20 },
+    'keep-cellars': { cells: 35, rubble: 30, cache: 20 }, 'temple-undercroft': { altar: 40, library: 25, tombs: 20 }, 'mage-cellar': { lab: 50, library: 30, crystals: 20 },
+    mine: { ore: 55, rubble: 35, flooded: 15 }, 'mountain-cave': { nests: 25, crystals: 20, flooded: 20 }, barrow: { tombs: 60, webs: 15, altar: 15 },
+    'bandit-hideout': { cache: 35, cells: 25, blood: 10 }, 'star-cavern': { crystals: 60, nests: 20 }, 'trunk-fortress': { roots: 50, cells: 25, cache: 20 },
+    'root-knot-depths': { roots: 70, nests: 25, webs: 15 }, 'palace-cellar-mine': { ore: 40, cache: 30, rubble: 25 }, 'torn-castle-vaults': { rubble: 40, blood: 25, cells: 20 },
+    'blood-well-shrine': { blood: 55, altar: 40, tombs: 15 }, 'scorpion-burrows': { nests: 50, webs: 20, rubble: 15 }, 'skull-fortress-depths': { blood: 40, tombs: 35, altar: 25 },
+    'trunk-temple': { roots: 45, altar: 35, webs: 25 }, 'great-hollow': { webs: 40, roots: 30, nests: 30 }, 'blue-hollow-caves': { crystals: 35, flooded: 25, nests: 25 },
+    'cloud-monastery-crypt': { tombs: 35, altar: 35, library: 20 }, 'nest-grottoes': { nests: 60, crystals: 10, rubble: 15 },
+  };
+  const FREE_TAGS = { rubble: 15, webs: 15, cache: 20 };
+  const tagDefaults = id => Object.assign({}, TYPE_TAGS[id] || FREE_TAGS);
+
+  /* База монстрів: підключається ззовні (у браузері читається з medieval-world/monsters/*.js через реєстр) */
+  const RANK = { weak: 1, monster: 2, other: 2, 'mini-boss': 3, boss: 4, 'super-boss': 5, 'world-boss': 6 };
+  let MONS = [];
+  const setMonsters = list => { MONS = list.filter(m => m && m.id && RANK[m.kind]).slice().sort((a, b) => a.id < b.id ? -1 : 1); };
+  const stems = s => String(s).toLowerCase().split(/[^\p{L}]+/u).filter(w => w.length >= 5).map(w => w.slice(0, 5));
+  function monsterPool(ty) {
+    const dw = ty && Array.isArray(ty.worlds) ? ty.worlds : null, ids = ty ? ty.monsterIds || [] : [], inh = ty ? ty.inhabitants.flatMap(stems) : [];
+    const sea = m => Array.isArray(m.spawn.biomes) && m.spawn.biomes.length && m.spawn.biomes.every(b => b === 'deep' || b === 'crown-lakes'); // морські істоти під землею не живуть
+    return MONS.filter(m => { const w = m.spawn && m.spawn.worlds; return !sea(m) && (ids.includes(m.id) || w === 'all' || (dw && Array.isArray(w) && w.some(x => dw.includes(x)))); })
+      .map(m => ({ m, rank: RANK[m.kind], w: ids.includes(m.id) ? 10 : stems(m.name).some(x => inh.includes(x)) ? 8 : 1 }));
+  }
+  function pickMonster(rnd, pool, lo, hi) {
+    let c = pool.filter(p => p.rank >= lo && p.rank <= hi); if (!c.length) c = pool.filter(p => p.rank <= hi);
+    if (!c.length) return null;
+    let t = c.reduce((s, p) => s + p.w, 0) * rnd(); for (const p of c) if ((t -= p.w) <= 0) return p;
+    return c[c.length - 1];
+  }
+
+  function defaults() { return { v: FORMAT, seed: 'zbyrai', type: '', rooms: 24, levels: 1, style: 'brick', branch: 40, loops: 25, secrets: 30, traps: 40, danger: 2, mon: 50, loot: 50, opts: tagDefaults('') }; }
   function normalize(p) {
     const d = defaults(), o = Object.assign(defaults(), p || {});
     o.seed = String(o.seed || d.seed).slice(0, 24);
@@ -31,7 +74,9 @@
     o.rooms = clamp(Math.round(+o.rooms || d.rooms), 3, MAX_ROOMS);
     o.levels = clamp(Math.round(+o.levels || 1), 1, Math.min(6, Math.floor(o.rooms / 2)));
     o.style = STYLES[o.style] ? o.style : 'brick';
-    for (const k of ['branch', 'loops', 'secrets', 'traps']) o[k] = clamp(Math.round(+o[k]), 0, 100) || 0;
+    for (const k of ['branch', 'loops', 'secrets', 'traps', 'mon', 'loot']) o[k] = clamp(Math.round(+o[k]), 0, 100) || 0;
+    const td = tagDefaults(o.type), src = o.opts && typeof o.opts === 'object' ? o.opts : {};
+    o.opts = {}; for (const k of Object.keys(td)) o.opts[k] = k in src ? clamp(Math.round(+src[k]), 0, 100) || 0 : td[k];
     o.danger = clamp(Math.round(+o.danger || 1), 1, 5);
     return o;
   }
@@ -93,16 +138,26 @@
     return { index: fi, w, h, W, H, tiles, rid, rooms, edges, exit, start: { x: start.x, y: start.y }, traps: [] };
   }
 
-  function populate(P, f, rnd, inhab, typeName) {
-    const danger = P.danger, rooms = f.rooms;
+  function populate(P, f, rnd, inhab, pool) {
+    const danger = P.danger, rooms = f.rooms, last = f.index === P.levels - 1;
+    const mon = (role, big) => {
+      const regHi = Math.min(3, 1 + Math.ceil(danger / 2));
+      const lo = role === 'boss' ? (danger <= 2 ? 3 : 4) : big && danger >= 2 ? 2 : 1, hi = role === 'boss' ? (danger >= 5 && rnd() < .5 ? 5 : danger <= 2 ? 3 : 4) : regHi;
+      const p = pickMonster(rnd, pool, lo, hi);
+      if (p) return { id: p.m.id, name: p.m.name, kind: p.m.kind, rank: p.rank, desc: (p.m.lore && p.m.lore.description) || '', count: role === 'boss' || p.rank >= 3 ? 1 : ri(rnd, 1, 2 + danger), boss: role === 'boss' };
+      return { id: null, name: pick(rnd, inhab), kind: 'monster', rank: 2, desc: '', count: role === 'boss' ? 1 : ri(rnd, 1, 2 + danger), boss: role === 'boss' };
+    };
+    const monP = 0.12 + P.mon / 100 * 0.6 + danger * 0.04, lootDead = Math.min(0.95, P.loot / 100 * 1.6), lootRoom = P.loot / 100 * 0.24;
     let ni = 0;
     for (const r of rooms) {
+      r.tags = [];
       if (r.role === 'start') { r.name = f.index === 0 ? 'Вхід' : 'Сходи нагору'; continue; }
-      if (r.role === 'boss') { r.name = 'Фінальна зала'; r.monsters = { kind: pick(rnd, inhab), count: 1, boss: true }; r.loot = { tier: TIER[Math.min(4, danger)], what: pick(rnd, LOOT) }; continue; }
-      if (r.role === 'down') { r.name = 'Сходи вниз'; r.monsters = { kind: pick(rnd, inhab), count: ri(rnd, 1, danger + 1), boss: false }; continue; }
+      if (r.role === 'boss') { r.name = 'Фінальна зала'; r.monsters = mon('boss'); r.loot = { tier: TIER[Math.min(4, danger)], what: pick(rnd, LOOT) }; continue; }
+      if (r.role === 'down') { r.name = 'Сходи вниз'; r.monsters = rnd() < .7 ? mon('room') : null; continue; }
+      for (const k of Object.keys(P.opts)) if (rnd() < P.opts[k] / 100) r.tags.push(k);
       r.name = r.secret ? 'Таємна кімната' : r.role === 'dead' ? (rnd() < .5 ? 'Сховок' : 'Скарбниця') : r.role === 'hub' ? 'Перехрестя залів' : ROOM_NAMES[ni++ % ROOM_NAMES.length] + (ni > ROOM_NAMES.length ? ' ' + Math.ceil(ni / ROOM_NAMES.length) : '');
-      if (rnd() < 0.3 + danger * 0.1) r.monsters = { kind: pick(rnd, inhab), count: ri(rnd, 1, 2 + danger), boss: false };
-      if (r.role === 'dead' ? rnd() < 0.8 : rnd() < 0.12) r.loot = { tier: TIER[clamp(ri(rnd, danger - 2, danger - 1), 0, 4)], what: pick(rnd, LOOT) };
+      if (rnd() < monP) r.monsters = mon(r.role, r.role === 'hub');
+      if (r.role === 'dead' ? rnd() < lootDead : rnd() < lootRoom) r.loot = { tier: TIER[clamp(ri(rnd, danger - 2, danger - 1), 0, 4)], what: pick(rnd, LOOT) };
     }
     // пастки на коридорах і в кімнатах
     const spots = [];
@@ -112,14 +167,14 @@
   }
 
   function generate(params) {
-    const P = normalize(params), rnd = rng(P.seed + '|' + P.type + '|' + P.rooms + '|' + P.levels), ty = typeById(P.type);
+    const P = normalize(params), rnd = rng(P.seed + '|' + P.type + '|' + P.rooms + '|' + P.levels), ty = typeById(P.type), pool = monsterPool(ty);
     const inhab = ty && ty.inhabitants.length ? ty.inhabitants : GENERIC;
     const per = Array.from({ length: P.levels }, (_, i) => Math.floor(P.rooms / P.levels) + (i < P.rooms % P.levels ? 1 : 0));
     const W = Math.max(3, Math.ceil(Math.sqrt(Math.max(...per) * 2.5)) + 1), floors = [];
     let start = { x: ri(rnd, 0, W - 1), y: ri(rnd, 0, W - 1) };
     for (let i = 0; i < P.levels; i++) {
       const f = genFloor(P, per[i], i, i === P.levels - 1, start, W, W, rnd, inhab);
-      populate(P, f, rnd, inhab, ty && ty.name);
+      populate(P, f, rng(P.seed + '|pop|' + i), inhab, pool);
       floors.push(f);
       const ex = f.rooms[f.exit]; start = { x: ex.cx, y: ex.cy };
     }
@@ -130,7 +185,7 @@
       doors: floors.reduce((s, f) => s + f.rooms.reduce((c, r) => c + r.doors.length, 0), 0) / 2,
       secrets: floors.reduce((s, f) => s + f.edges.filter(e => e.secret).length, 0),
       traps: floors.reduce((s, f) => s + f.traps.length, 0),
-      monsters: all.reduce((s, r) => s + (r.monsters ? r.monsters.count : 0), 0),
+      monsters: all.reduce((s, r) => s + (r.monsters ? r.monsters.count : 0), 0), kinds: new Set(all.filter(r => r.monsters).map(r => r.monsters.name)).size,
       loot: all.filter(r => r.loot).length,
     };
     return { params: P, type: ty, inhabitants: inhab, floors, stats };
@@ -142,7 +197,7 @@
     if (!ty) { o.type = ''; return o; }
     rnd = rnd || Math.random;
     o.type = ty.id; o.rooms = ri(rnd, ty.rooms[0], ty.rooms[1]); o.levels = ri(rnd, ty.levels[0], ty.levels[1]);
-    o.danger = ty.danger; o.style = CAVE_IDS.includes(ty.id) ? 'cave' : 'brick';
+    o.danger = ty.danger; o.style = CAVE_IDS.includes(ty.id) ? 'cave' : 'brick'; o.opts = tagDefaults(ty.id);
     return normalize(o);
   }
   function randomize(params, locks, rnd) {
@@ -151,7 +206,8 @@
     if (!locks.type) { const ty = rnd() < 0.2 ? null : pick(rnd, TYPES); o = ty ? applyType(o, ty.id, rnd) : Object.assign(o, { type: '' }); }
     else if (o.type) o = applyType(o, o.type, rnd);
     if (!o.type) { o.rooms = ri(rnd, 8, 60); o.levels = ri(rnd, 1, 3); o.danger = ri(rnd, 1, 5); o.style = rnd() < .3 ? 'cave' : 'brick'; }
-    o.branch = ri(rnd, 0, 100); o.loops = ri(rnd, 0, 70); o.secrets = ri(rnd, 0, 70); o.traps = ri(rnd, 0, 80);
+    o.branch = ri(rnd, 0, 100); o.loops = ri(rnd, 0, 70); o.secrets = ri(rnd, 0, 70); o.traps = ri(rnd, 0, 80); o.mon = ri(rnd, 25, 80); o.loot = ri(rnd, 25, 80);
+    for (const k of Object.keys(o.opts)) o.opts[k] = clamp(o.opts[k] + ri(rnd, -25, 25), 0, 100);
     return normalize(o);
   }
   const toJSON = p => JSON.stringify(normalize(p), null, 1);
@@ -161,5 +217,5 @@
     return `${d.type ? d.type.name : 'Підземелля'}: ${s.rooms} кімнат, ${s.floors} пов., небезпека ${p.danger}/5; ${s.doors} дверей (з них таємних ${s.secrets}), ${s.traps} пасток, ${s.monsters} істот, ${s.loot} схованок зі здобиччю.`;
   }
 
-  return { T, CELL, MAX_ROOMS, STYLES, TRAPS, defaults, normalize, generate, applyType, randomize, toJSON, fromJSON, describe, rng, randSeed, typeById, types: TYPES };
+  return { TAGS, tagDefaults, setMonsters, T, CELL, MAX_ROOMS, STYLES, TRAPS, defaults, normalize, generate, applyType, randomize, toJSON, fromJSON, describe, rng, randSeed, typeById, types: TYPES };
 });

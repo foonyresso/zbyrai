@@ -65,7 +65,7 @@ test('типи підземель з Атласу: усі генеруються
     const p = C.applyType({ seed: 'ty' + i }, ty.id, C.rng('t' + i)), d = C.generate(p);
     assert.ok(p.rooms >= ty.rooms[0] && p.rooms <= ty.rooms[1], ty.id + ' кімнат'); assert.ok(p.levels >= Math.min(ty.levels[0], Math.floor(p.rooms / 2)) && p.levels <= ty.levels[1], ty.id + ' рівнів');
     assert.strictEqual(p.danger, ty.danger); assert.strictEqual(d.type.id, ty.id);
-    const kinds = new Set(d.floors.flatMap(f => f.rooms).filter(r => r.monsters).map(r => r.monsters.kind)); for (const k of kinds) assert.ok(ty.inhabitants.includes(k), ty.id + ' чужий мешканець ' + k);
+    const kinds = new Set(d.floors.flatMap(f => f.rooms).filter(r => r.monsters).map(r => r.monsters.name)); for (const k of kinds) assert.ok(ty.inhabitants.includes(k), ty.id + ' чужий мешканець ' + k);
   }
 });
 test('JSON: збереження й відновлення дають те саме; сміття нормалізується', () => {
@@ -75,6 +75,38 @@ test('JSON: збереження й відновлення дають те са�
 });
 test('замочок типу: рандом лишає тип', () => {
   const p = C.applyType({}, 'sewer', C.rng('a')); for (let i = 0; i < 20; i++) assert.strictEqual(C.randomize(p, { type: true }, C.rng('r' + i)).type, 'sewer');
+});
+
+// монстри читаються з файлів medieval-world/monsters/*.js без вставки в код (так само, як у браузері)
+const vm = require('node:vm'), MDIR = path.join(__dirname, '..', '..', 'medieval-world', 'monsters');
+const loadMonsters = () => fs.readdirSync(MDIR).filter(n => n.endsWith('.js')).map(f => { let m; vm.runInNewContext(fs.readFileSync(path.join(MDIR, f), 'utf8'), { Atlas: { registerMonster: x => { m = x; } } }); return m; });
+test('монстри з бази світів: усі в підземеллі існують у папці, лише дозволені біоми й рівні', () => {
+  const list = loadMonsters(); assert.ok(list.length > 100); C.setMonsters(list);
+  const ids = new Set(list.map(m => m.id));
+  for (const ty of C.types) { const d = C.generate(C.applyType({ seed: 'mm' }, ty.id, C.rng('m'))); let n = 0;
+    for (const r of d.floors.flatMap(f => f.rooms)) if (r.monsters) { n++; if (r.monsters.id) { assert.ok(ids.has(r.monsters.id)); const m = list.find(x => x.id === r.monsters.id); assert.ok(!(m.spawn.biomes || []).every(b => b === 'deep')); } }
+    assert.ok(n > 0, ty.id + ' без істот'); const boss = d.floors.at(-1).rooms.find(r => r.role === 'boss'); assert.ok(boss.monsters && boss.monsters.boss); }
+});
+test('нові монстри підхоплюються без правок коду; структура від них не залежить', () => {
+  const base = loadMonsters(), a = C.generate({ seed: 'z', rooms: 30 }); C.setMonsters(base);
+  const fake = { format: 2, id: 'zz-test-monster', name: 'Тестовий звір', kind: 'monster', nature: 'threat', spawn: { biomes: ['deep2'], worlds: 'all' }, lore: { description: 'x' } };
+  C.setMonsters(base.filter(m => m.kind !== 'monster' && m.kind !== 'weak').concat(fake));
+  const b = C.generate({ seed: 'z', rooms: 30 });
+  assert.ok(b.floors[0].rooms.some(r => r.monsters && r.monsters.id === 'zz-test-monster'));
+  assert.ok(Buffer.from(a.floors[0].tiles).equals(Buffer.from(b.floors[0].tiles)), 'розкладка залежить від бази монстрів');
+  C.setMonsters(base);
+});
+test('особливості кімнат: у кожного типу свій набір, значення 0 і 100 працюють', () => {
+  const sets = new Set(C.types.map(t => Object.keys(C.tagDefaults(t.id)).sort().join())); assert.ok(sets.size >= 15, 'мало різних наборів');
+  for (const t of C.types) for (const k of Object.keys(C.tagDefaults(t.id))) assert.ok(C.TAGS[k], t.id + ' невідома особливість ' + k);
+  const p = C.applyType({ seed: 'tg' }, 'sewer', C.rng('x')); p.opts.flooded = 100;
+  const all = C.generate(p).floors.flatMap(f => f.rooms).filter(r => r.role !== 'start' && r.role !== 'boss' && r.role !== 'down'); assert.ok(all.every(r => r.tags.includes('flooded')));
+  p.opts.flooded = 0; assert.ok(C.generate(p).floors.flatMap(f => f.rooms).every(r => !r.tags.includes('flooded')));
+  assert.deepStrictEqual(Object.keys(C.normalize({ type: 'crypt', opts: { zzz: 5, tombs: 500 } }).opts).sort(), ['altar', 'tombs', 'webs']); assert.strictEqual(C.normalize({ type: 'crypt', opts: { tombs: 500 } }).opts.tombs, 100);
+});
+test('щільність істот і здобич керують кількістю', () => {
+  const n = (k, v) => C.generate({ seed: 'dn', rooms: 80, [k]: v }).stats[k === 'mon' ? 'monsters' : 'loot'];
+  assert.ok(n('mon', 100) > n('mon', 0)); assert.ok(n('loot', 100) > n('loot', 0));
 });
 test('швидкість: 300 кімнат менше ніж за 400 мс', () => { const t = Date.now(); C.generate({ seed: 'perf', rooms: 300, levels: 2 }); assert.ok(Date.now() - t < 400); });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);

@@ -10,7 +10,7 @@
 - **Збереження й обмін** у верхній панелі: PNG поточного поверху, JSON (файл і буфер), посилання (`#s=…`), імпорт, друк усіх поверхів.
 - **«Зарандомити»** (Пробіл): усе нове; замочок «Замкнути тип» лишає тип.
 
-Формат JSON: `{v:1, seed, type, rooms, levels, style, branch, loops, secrets, traps, danger}` (версія 1). Невідомі поля ігноруються, значення обмежуються.
+Формат JSON: `{v:1, seed, type, rooms, levels, style, branch, loops, secrets, traps, danger, mon, loot, opts}` (версія 1). Невідомі поля ігноруються, значення обмежуються.
 
 Не робиться (відкладено автором як складне): воксельне підземелля, повноцінне планування замків із кресленнями.
 
@@ -26,4 +26,6 @@
 node dungeon-sim/test/dungeon.test.js
 ```
 
-Файли: `dungeon-core.js` (генерація, без DOM), `dungeon-types.js` (типи, генерується), `dungeon-render.js` (canvas), `app.js` (інтерфейс), `style.css`, `theme.css`/`tool-chrome.js` (копії зі `shared/`).
+Монстрів симулятор не містить у коді: `dungeon-monsters.js` у браузері читає кожен файл `medieval-world/monsters/*.js` за реєстром `medieval-world/registry.js` (нові монстри з’являються самі; морські без підземних біомів виключаються). Тип підземелля задає власні «особливості кімнат» (`TYPE_TAGS` у ядрі: вода, саркофаги, руда, коріння…).
+
+Файли: `dungeon-core.js` (генерація, без DOM), `dungeon-types.js` (типи, генерується), `dungeon-monsters.js` (завантаження бази монстрів), `dungeon-render.js` (canvas), `app.js` (інтерфейс), `style.css`, `theme.css`/`tool-chrome.js` (копії зі `shared/`).

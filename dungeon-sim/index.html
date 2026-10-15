@@ -44,49 +44,58 @@
     </div>
     <div>
       <h3>Для чого</h3>
-      <p>Для настільних і відеоігор: швидка карта для сесії, заготовка рівня, ідея для лабіринту. Типи підземель (каналізація, катакомби, шахта, склеп…) беруться з Атласу, тож розміри, небезпека й мешканці збігаються з підземеллями на карті світу.</p>
+      <p>Для настільних і відеоігор: швидка карта для сесії, заготовка рівня, ідея для лабіринту. Типи підземель (каналізація, катакомби, шахта, склеп…) беруться з Атласу, тож розміри й небезпека збігаються з підземеллями на карті світу, а в кожного типу свої особливості кімнат. Істот підтягує з бази монстрів світів: нові монстри з'являються тут самі.</p>
     </div>
     <div>
       <h3>Як користуватися</h3>
       <ol>
-        <li><b>Обери тип</b> праворуч (або «Вільне»), кількість кімнат від 3 до 300 і поверхи.</li>
+        <li><b>Меню зліва</b>: «Тип» (тип підземелля і його власні налаштування), «Форма» (кімнат від 3 до 300, поверхи, небезпека, ходи), «Вигляд», «Підсумок».</li>
         <li><b>Натисни «Зарандомити»</b> (Пробіл) або підкрути «Розгалуження», «Петлі», «Таємниці», «Пастки».</li>
-        <li><b>Коліщатко</b> мишки наближає, <b>перетягування</b> рухає карту, <b>клік по кімнаті</b> показує її вміст.</li>
+        <li><b>Коліщатко</b> мишки наближає, <b>перетягування</b> рухає карту, <b>наведення чи клік по кімнаті</b> показує її вміст: істот (з бази монстрів світів), здобич, пастки.</li>
         <li><b>Збережи</b> кнопками угорі: PNG, JSON, посилання, друк.</li>
       </ol>
     </div>
   </div>
 </details>
 
-<div class="toolbar">
-  <button id="btnRandom" class="btn-primary" title="Нове випадкове підземелля: тип, розмір, форма, зерно. Замкнене лишається (Пробіл)">Зарандомити</button>
-  <button id="btnSeed" title="Лише нове зерно: ті самі налаштування, інше розташування кімнат">Нове зерно</button>
-  <label class="chk" title="Не змінювати тип підземелля, коли тиснеш «Зарандомити»"><input type="checkbox" id="lkType"><span>Замкнути тип</span></label>
-  <button id="btnFit" title="Показати все підземелля поверху на весь екран">Вписати</button>
-  <button id="btnReset" title="Повернути стандартні налаштування">Скинути</button>
-</div>
+<div class="work" id="work">
+  <canvas id="cv" aria-label="Карта підземелля" title="Коліщатко: зум. Перетягування: рух. Наведи на кімнату: короткий опис. Клік: подробиці"></canvas>
 
-<main class="wrap">
-  <section class="stage">
-    <div class="floors" id="floors" role="tablist" aria-label="Поверхи"></div>
-    <div class="viewport" id="view"><canvas id="cv" aria-label="Карта підземелля" title="Коліщатко: зум. Перетягування: рух. Клік по кімнаті: подробиці"></canvas></div>
-    <p class="meta" id="meta"></p>
-  </section>
-
-  <aside class="side">
-    <div class="card"><h2>Тип підземелля</h2>
-      <label class="ctl" title="Тип з Атласу світів: задає розмір, число поверхів, небезпеку, стиль і мешканців. «Вільне» не прив’язане до типу"><span>Тип</span><span></span><select id="selType"></select></label>
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="type" title="Тип підземелля з Атласу і його власні налаштування"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20V7h5v4h8V7h5v13z"/><path d="M10 20v-5h4v5"/></svg><span>Тип</span></button>
+    <button data-panel="shape" title="Розмір, поверхи, небезпека, форма ходів, пастки, істоти, зерно"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M10 6.5h4M17.5 10v4M10 17.5h11"/></svg><span>Форма</span></button>
+    <button data-panel="look" title="Тема карти й шари: пастки, істоти, здобич, назви, таємні двері"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
+    <button data-panel="sum" title="Підсумок підземелля та умовні позначки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg><span>Підсумок</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="type">
+      <h2>Тип підземелля</h2>
+      <input type="search" id="typeFind" placeholder="Пошук типу…" title="Почни вводити назву типу, щоб відфільтрувати список" autocomplete="off">
+      <div class="types" id="types"></div>
+      <h2 id="typeSetH">Налаштування типу</h2>
       <p class="hint" id="typeHint"></p>
-    </div>
-    <div class="card"><h2>Розмір і форма</h2><div id="ctls" class="ctls"></div></div>
-    <div class="card"><h2>Вигляд</h2>
-      <div id="viewCtl" class="ctls"></div>
-      <div class="layers" id="layers"></div>
-    </div>
-    <div class="card"><h2>Кімната</h2><div id="roomInfo" class="info"><p class="hint">Клікни по кімнаті на карті.</p></div></div>
-    <div class="card"><h2>Підсумок</h2><div id="stats" class="info"></div></div>
+      <div class="ctls" id="typeCtls"></div>
+    </section>
+    <section data-panel="shape"><h2>Розмір і форма</h2><div id="ctls" class="ctls"></div></section>
+    <section data-panel="look"><h2>Вигляд</h2><div id="viewCtl" class="ctls"></div><div class="layers" id="layers"></div></section>
+    <section data-panel="sum"><h2>Підсумок</h2><div id="stats" class="info"></div><h2>Позначки</h2><div id="legend" class="legend"></div></section>
   </aside>
-</main>
+
+  <div class="bar">
+    <button id="btnRandom" class="btn-primary" title="Нове випадкове підземелля: тип, розмір, форма, зерно, особливості. Замкнене лишається (Пробіл)">Зарандомити</button>
+    <button id="btnSeed" title="Лише нове зерно: ті самі налаштування, інше розташування кімнат">Нове зерно</button>
+    <label class="chk" title="Не змінювати тип підземелля, коли тиснеш «Зарандомити»"><input type="checkbox" id="lkType"><span>Замкнути тип</span></label>
+    <button id="btnReset" title="Повернути стандартні налаштування">Скинути</button>
+  </div>
+  <div class="floors" id="floors" role="tablist" aria-label="Поверхи"></div>
+  <div class="zoom">
+    <button id="zIn" title="Наблизити">+</button><button id="zOut" title="Віддалити">−</button><button id="btnFit" title="Показати все підземелля поверху на весь екран">Вписати</button>
+  </div>
+  <p class="meta" id="meta"></p>
+  <div class="tip" id="tip" hidden></div>
+  <div class="card roomcard" id="roomCard" hidden><button class="x" id="roomX" title="Закрити">×</button><div id="roomInfo" class="info"></div></div>
+</div>
 
 <div id="printArea" aria-hidden="true"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -97,6 +106,7 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
 <script src="./dungeon-types.js"></script>
 <script src="./dungeon-core.js"></script>
+<script src="./dungeon-monsters.js"></script>
 <script src="./dungeon-render.js"></script>
 <script src="./app.js"></script>
 <script src="./tool-chrome.js"></script>
