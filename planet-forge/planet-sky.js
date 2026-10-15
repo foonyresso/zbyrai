@@ -30,6 +30,7 @@ const PlanetSky = (() => {
       o.depth = o.r * (.5 + p.elev * 1.5) * (.75 + R() * .5); o.tip = (R() - .5) * .5; o.rock = Array.from({ length: 6 }, () => R());
       o.lakes = Array.from({ length: Math.floor(R() * 2.4) }, () => ({ x: (R() - .5) * .8, y: (R() - .5) * .8, r: .1 + R() * .16 }));
       o.peaks = Array.from({ length: 1 + Math.floor(R() * 3 * (o.r / .3)) }, () => ({ x: (R() - .5) * 1.0, y: (R() - .5) * .7 - .08, h: .25 + R() * .45 }));
+      o.cities = Array.from({ length: Math.round(3 + R() * 8 * (o.r / .3)) }, () => { const a = R() * 6.28, d = Math.sqrt(R()) * .6; return { x: Math.cos(a) * d, y: Math.sin(a) * d, s: .6 + R() * .8 }; });
       o.trees = Array.from({ length: Math.round(14 + R() * 30 * (o.r / .3)) }, () => { const a = R() * 6.28, d = Math.sqrt(R()) * .86; return { x: Math.cos(a) * d, y: Math.sin(a) * d, s: .6 + R() * .8, t: R() }; });
       const nr = R() < p.rivers ? 1 + Math.floor(R() * p.rivers * 2.5) : 0;
       o.rivers = Array.from({ length: nr }, () => { const a = R() * Math.PI, src = o.lakes.length ? o.lakes[Math.floor(R() * o.lakes.length)] : { x: 0, y: 0 }, edge = [Math.cos(a) * .96, Math.sin(a) * .96], mid = [(src.x + edge[0]) / 2 + (R() - .5) * .3, (src.y + edge[1]) / 2 + (R() - .5) * .3]; return { a, pts: [[src.x, src.y], mid, edge], len: .6 + R() * .9 }; });
@@ -38,7 +39,18 @@ const PlanetSky = (() => {
     const clouds = Array.from({ length: Math.round(8 + p.mist * 34) }, () => ({ x: (R() * 2 - 1) * 2.2, y: (R() * 2 - 1) * 1.1, w: .2 + R() * .5, a: .18 + R() * .4, v: .01 + R() * .03, z: R() }));
     return { params: p, islands: isl, bridges, clouds };
   }
-  return { PALETTES, KNOBS, defaults, clampSky, randomSky, generate };
+  /* Розміри літаючого континенту: span 0..1 → ширина 2 500…90 000 км (Земля 12 742 км), pop 0..1 → населення 1 млрд…50 трлн */
+  const widthKm = span => Math.round(2500 * Math.pow(36, clamp(+span || 0, 0, 1)) / 100) * 100;
+  const popOf = v => Math.pow(10, 9 + clamp(+v || 0, 0, 1) * 4.7);
+  const fmtPop = n => n >= 1e12 ? (Math.round(n / 1e11) / 10).toLocaleString('uk') + ' трлн' : Math.round(n / 1e8) / 10 + ' млрд';
+  const fmtKm = km => km.toLocaleString('uk') + ' км';
+  const fromPlanet = st => ({ seed: st.seed, isl: st.isl, size: st.size, elev: st.elev, rivers: st.rivers, bridges: st.bridges, pal: st.pal, mist: 0 });
+  /* Паспорт: ширина, площа (плити + яруси), населення, щільність */
+  function slabInfo(p) {
+    const w = widthKm(p.span), area = w * w * .4 / 1e6, pop = popOf(p.pop), tiers = Math.round(p.tiers || 1), floor = area * 1e6 * tiers;
+    return { widthKm: w, areaM: Math.round(area), earths: Math.round(area / 510 * 10) / 10, pop, popText: fmtPop(pop), tiers, density: Math.round(pop / floor), plates: Math.round(p.isl) };
+  }
+  return { PALETTES, KNOBS, defaults, clampSky, randomSky, generate, widthKm, popOf, fmtPop, fmtKm, fromPlanet, slabInfo };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PlanetSky;

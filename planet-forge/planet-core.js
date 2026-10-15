@@ -39,7 +39,7 @@ const PlanetCore = (() => {
   }
   /* Випадкова планета: тип, зерно, назва, усі ручки й кільця; замкнені (locks) параметри лишаються як були. rnd — генератор [0,1) */
   function randomPlanet(prev, locks = {}, rnd = Math.random, opts = {}) {
-    const ids = Object.keys(KINDS), pick = a => a[Math.floor(rnd() * a.length)];
+    const ids = Object.keys(KINDS).filter(k => !KINDS[k].hidden), pick = a => a[Math.floor(rnd() * a.length)];
     const kind = locks.kind && KINDS[prev.kind] || opts.keepKind && KINDS[prev.kind] ? prev.kind : pick(ids), K = KINDS[kind];
     const seed = locks.seed && prev.seed ? prev.seed : Math.floor(rnd() * 2176782336).toString(36).padStart(6, '0');
     const p = fromKind(kind, seed);
@@ -167,7 +167,7 @@ const PlanetCore = (() => {
     for (let i = 0; i < Math.round(p.moons); i++) m.push({ size: lerp(.07, .2, mr()), dist: 1.55 + i * .55 + mr() * .25, phase: mr() * Math.PI * 2, speed: lerp(.6, 1.6, mr()) / (1 + i * .5), shade: Math.round(lerp(120, 210, mr())) });
     const label = hab >= 70 ? 'Придатна для життя' : hab >= 40 ? 'Умовно придатна' : hab >= 12 ? 'Важка для життя' : 'Непридатна';
     return { name: p.name || planetName(p.seed, p.kind), designation: designation(p.seed), kindName: K.name, group: K.group, blurb: K.blurb, life: K.life, liquidName: K.liqName || (K.knobs.find(k => k.k === 'sea') || {}).l || 'Рідина',
-      radiusKm, gravity, dayH, yearD, tempC, pressure, atmosphere: K.gases, water, biomes, habitability: hab, habLabel: label, resources, moons: m };
+      radiusKm, gravity, dayH, yearD, tempC, pressure, atmosphere: K.gases, water, biomes, habitability: hab, habLabel: label, resources, moons: m, slab: K.slabInfo ? K.slabInfo(p) : null, shape: K.shape || 'sphere' };
   }
 
   /* ---------- кольори атмосфери, хмар, блиск рідини ---------- */

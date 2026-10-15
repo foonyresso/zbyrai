@@ -425,6 +425,9 @@ const PlanetKinds = (() => {
   // типи світів: окремий файл, отримує внутрішні засоби цього
   const WORLDS = typeof module !== 'undefined' && module.exports ? require('./planet-kinds-worlds.js') : (typeof PlanetWorlds === 'function' ? PlanetWorlds : null);
   if (WORLDS) WORLDS({ def, terran, B, BIOMES, KINDS, landBiome, mulc, mixc, lerp, clamp, smooth });
+  const SKYK = typeof module !== 'undefined' && module.exports ? require('./planet-kinds-sky.js') : (typeof PlanetSkyKinds === 'function' ? PlanetSkyKinds : null);
+  if (SKYK) SKYK({ def, terran, landBiome });
+  if (KINDS.floating) KINDS.floating.hidden = true; // старий тип лишено лише для збережених планет: тепер це «Небесний архіпелаг»
   return { BIOMES, LIQ, KINDS, landBiome, hsv, G, ABSENT };
 })();
 

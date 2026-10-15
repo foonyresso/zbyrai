@@ -95,6 +95,7 @@ test('кожна ручка кожного типу змінює вигляд п
   const sig = p => { const t = P.generateTexture(p, 96, 48); let s = 0; for (let i = 0; i < t.rgb.length; i++) s += t.rgb[i] * (1 + i % 7); for (let i = 0; i < t.glow.length; i++) s += t.glow[i] * (3 + i % 5) + t.cloud[i] * (2 + i % 3) + t.light[i] * (1 + i % 11); return s + P.describe(p).pressure * 1e5 + P.describe(p).tempC * 1e3; };
   const dead = [];
   for (const k of ids) for (const kb of P.KINDS[k].knobs) {
+    if (P.KINDS[k].shape === 'slab') continue; // плити малює planet-sky-view: окремий тест нижче
     if (['tilt', 'moons', 'ringw', 'ringd', 'shine'].includes(kb.k)) continue; // ці лише в рендері сфери
     const base = P.fromKind(k, 'knob'), v = [kb.min, (kb.min + kb.max) / 2, kb.max].map(x => sig(Object.assign({}, base, { [kb.k]: x })));
     if (v[0] === v[1] && v[1] === v[2]) dead.push(k + '.' + kb.k);
@@ -156,8 +157,9 @@ test('зоряна система: детермінована, 3–9 плане�
   for (const st of S.STAR_ORDER) for (const n of [3, 9]) { const y = S.generate('t' + st, { star: st, count: n }); assert.equal(y.planets.length, n); assert.equal(y.star, st);
     let prev = 0; for (const p of y.planets) { assert.ok(P.KINDS[p.params.kind] && p.au > prev); prev = p.au; assert.ok(P.generateTexture(p.params, 32, 16)); } }
   const y = S.generate('q'); assert.ok(S.clampSystem(JSON.parse(JSON.stringify(y)))); assert.equal(S.clampSystem({ star: 'x', planets: [] }), null); assert.equal(S.clampSystem(Object.assign({}, y, { planets: [{ au: 1, params: { kind: 'nope' } }] })), null);
-  for (const m of ['compact', 'real']) { const f = y.planets.map((_, i) => S.orbitFrac(y, i, m)); for (let i = 1; i < f.length; i++) assert.ok(f[i] > f[i - 1]); assert.ok(f[f.length - 1] <= 1); }
+  { const f = y.planets.map((_, i) => S.orbitFrac(y, i)); for (let i = 1; i < f.length; i++) assert.ok(f[i] > f[i - 1]); assert.ok(f[f.length - 1] <= 1); }
   const hot = S.generate('h', { star: 'blue', count: 9 }), red = S.generate('h', { star: 'red', count: 9 }); assert.ok(S.hz(S.STARS.blue).in > S.hz(S.STARS.red).out);
+  { const r = S.randomStar(y, () => .3); assert.notEqual(r.star, y.star); assert.deepEqual(r.planets, y.planets); }
   assert.ok(hot.planets[0].au > red.planets[8].au * .1);
 });
 
@@ -168,6 +170,14 @@ test('літаючий континент: детермінований, пли�
   assert.ok(K.generate({ seed: 'a', bridges: 1 }).bridges.length >= K.generate({ seed: 'a', bridges: 0 }).bridges.length); assert.ok(K.generate({ seed: 'a', mist: 1 }).clouds.length > K.generate({ seed: 'a', mist: 0 }).clouds.length);
   const c = K.clampSky({ isl: 99, size: -1, pal: 9, seed: 5 }); assert.equal(c.isl, 14); assert.equal(c.size, .5); assert.equal(c.pal, 3); assert.equal(c.seed, '5');
   for (let i = 0; i < 40; i++) { const r = K.randomSky(); assert.deepEqual(r, K.clampSky(r)); }
+});
+
+test('літаючі континенти як типи планет: у космосі (shape slab), у списку, не в кожному «Рандомі» floating; паспорт з розміром і населенням', () => {
+  for (const id of ['skyland', 'skyarch']) { const K = P.KINDS[id]; assert.equal(K.group, 'sky'); assert.equal(K.shape, 'slab'); const d = P.describe(P.fromKind(id, 'q'), P.generateTexture(P.fromKind(id, 'q'), 64, 32)); assert.ok(d.slab && d.slab.widthKm > 2000 && d.slab.pop >= 1e9 && d.slab.tiers >= 1 && d.shape === 'slab'); }
+  const K = require('../planet-sky.js'), big = P.describe(Object.assign(P.fromKind('skyland', 'q'), { span: 1, pop: 1 })).slab, small = P.describe(Object.assign(P.fromKind('skyland', 'q'), { span: 0, pop: 0 })).slab;
+  assert.ok(big.earths > 5 && big.pop > 1e13 && big.widthKm > 12742 * 5 && small.pop <= 1.1e9 && small.widthKm < big.widthKm);
+  assert.ok(P.KINDS.floating.hidden); const R = seq(3); let prev = P.fromKind('earth', 'a'); for (let i = 0; i < 300; i++) { prev = P.randomPlanet(prev, {}, R); assert.notEqual(prev.kind, 'floating'); }
+  const w1 = K.generate(K.fromPlanet(P.fromKind('skyarch', 'z'))), w2 = K.generate(K.fromPlanet(Object.assign(P.fromKind('skyarch', 'z'), { isl: 3 }))); assert.ok(w1.islands.length > w2.islands.length);
 });
 
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);

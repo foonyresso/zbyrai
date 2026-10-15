@@ -109,11 +109,11 @@
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (v != null) e.setAttribute(k, v); } e.append(...kids.flat().filter(x => x != null)); return e; };
   const f1 = v => String(Math.round(v * 10) / 10), pct = v => Math.round(v * 100) + '%';
   function renderCard() {
-    const c = $('card'), i = info; c.replaceChildren();
+    if (!info) return; const c = $('card'), i = info; c.replaceChildren();
     const habCol = i.habitability >= 70 ? '#7bd88f' : i.habitability >= 40 ? '#e8c35a' : i.habitability >= 12 ? '#e8924a' : '#e86a6a';
     const palette = ['#5cb8e6', '#8fd6a0', '#e8c35a', '#e079a8', '#b39ddb', '#e8924a', '#6fc3c0', '#c9a766'];
     c.append(el('div', { class: 'p-head' }, el('h3', {}, i.name), el('span', { class: 'des' }, i.designation), el('span', { class: 'kind' }, i.kindName)), el('p', { class: 'p-blurb' }, i.blurb),
-      el('div', { class: 'p-grid' }, [['Радіус', i.radiusKm.toLocaleString('uk') + ' км'], ['Гравітація', f1(i.gravity) + ' g'], ['Доба', f1(i.dayH) + ' год'], ['Рік', i.yearD + ' діб'], ['Температура', (i.tempC > 0 ? '+' : '') + i.tempC + ' °C'], ['Тиск', f1(i.pressure) + ' атм'], i.water > 0 ? [i.liquidName, pct(i.water)] : null, ['Супутники', i.moons.length]].filter(Boolean).map(([l, v]) => el('div', { class: 'stat' }, el('b', {}, v), el('span', {}, l)))),
+      el('div', { class: 'p-grid' }, (i.slab ? [['Найбільша плита', PlanetSky.fmtKm(i.slab.widthKm)], ['Площа плит', i.slab.areaM.toLocaleString('uk') + ' млн км²'], ['У Землях', '≈ ' + i.slab.earths + '×'], ['Населення', i.slab.popText], ['Яруси міст', i.slab.tiers], ['Щільність', i.slab.density.toLocaleString('uk') + ' осіб/км²'], ['Плит', i.slab.plates], ['Гравітація', 'штучна, ≈1 g']] : [['Радіус', i.radiusKm.toLocaleString('uk') + ' км'], ['Гравітація', f1(i.gravity) + ' g'], ['Доба', f1(i.dayH) + ' год'], ['Рік', i.yearD + ' діб'], ['Температура', (i.tempC > 0 ? '+' : '') + i.tempC + ' °C'], ['Тиск', f1(i.pressure) + ' атм'], i.water > 0 ? [i.liquidName, pct(i.water)] : null, ['Супутники', i.moons.length]]).filter(Boolean).map(([l, v]) => el('div', { class: 'stat' }, el('b', {}, v), el('span', {}, l)))),
       el('div', { class: 'p-cols' },
         el('div', {}, el('h4', {}, 'Придатність для життя'), el('div', { class: 'hab' }, el('div', { class: 'meter' }, el('i', { style: `width:${i.habitability}%;background:${habCol}` })), el('div', {}, el('b', { style: `color:${habCol}` }, i.habitability + '%'), el('small', {}, i.habLabel))), el('p', { class: 'hint', style: 'margin:6px 0 0' }, i.life),
           el('h4', { style: 'margin-top:16px' }, 'Ресурси'), el('div', { class: 'res' }, i.resources.map(r => el('div', {}, el('span', {}, r.name), el('span', { class: 'st' }, '★'.repeat(r.rich) + '☆'.repeat(5 - r.rich)))))),
@@ -122,7 +122,7 @@
   }
 
   /* ---------- керування: набір ручок залежить від типу ---------- */
-  const FMT = { pct: v => Math.round(v * 100) + '%', num: v => (Math.round(v * 100) / 100).toFixed(2), int: v => String(Math.round(v)), deg: v => Math.round(v) + '°', sgn: v => (v > 0 ? '+' : '') + Math.round(v * 100) };
+  const FMT = { pct: v => Math.round(v * 100) + '%', num: v => (Math.round(v * 100) / 100).toFixed(2), int: v => String(Math.round(v)), deg: v => Math.round(v) + '°', sgn: v => (v > 0 ? '+' : '') + Math.round(v * 100), km: v => PlanetSky.fmtKm(PlanetSky.widthKm(v)), pop: v => PlanetSky.fmtPop(PlanetSky.popOf(v)), pal: v => PlanetSky.PALETTES[Math.round(v)] };
   function syncLocks() { document.querySelectorAll('.lock').forEach(b => { const on = !!st.locks[b.dataset.lock]; b.setAttribute('aria-pressed', on); b.textContent = on ? '🔒' : '🔓'; }); }
   const lockBtn = key => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lock'; b.dataset.lock = key; b.title = 'Зафіксувати: «Повний рандом» і «Рандом налаштувань» цього не змінять'; b.onclick = e => { e.preventDefault(); st.locks[key] = !st.locks[key]; save(); syncLocks(); }; return b; };
   const KTIPS = { sea: 'Скільки поверхні вкрито рідиною', scale: 'Розмір деталей ландшафту: більше число дає дрібніші материки й острови', mount: 'Скільки гір і хребтів', temp: 'Загальний клімат: від холодного до спекотного', humid: 'Вологість: сухі пустелі проти густих лісів', caps: 'Розмір полярних шапок', atmo: 'Товщина й густота атмосфери: впливає на сяйво по краю планети', cloud: 'Скільки хмар у небі', lights: 'Вогні міст на нічному боці', tilt: 'Нахил осі планети: впливає на вигляд кілець і пір року', moons: 'Кількість супутників', hue: 'Зсув кольору всієї планети' };
@@ -158,7 +158,7 @@
     for (const kb of KD().knobs) { const r = $('r_' + kb.k); if (r) { r.value = st[kb.k]; $('o_' + kb.k).textContent = FMT[kb.f](st[kb.k]); } }
     $('tSeed').value = st.seed; $('tName').value = st.name || ''; $('cRing').checked = !!st.ring; $('cSpin').checked = st.auto; $('rSpin').value = Math.round(((spin * 180 / Math.PI) % 360 + 360) % 360); $('rSun').value = st.sun;
     document.querySelectorAll('.kinds button').forEach(b => b.classList.toggle('on', b.dataset.kind === st.kind));
-    $('kindName').textContent = KD().name;
+    $('kindName').textContent = KD().name; $('planetTitle').textContent = st.name || ''; document.body.classList.toggle('kind-slab', KD().shape === 'slab');
     syncLocks();
   }
   $('cRing').onchange = e => { st.ring = e.target.checked; save(); draw(); };
@@ -169,27 +169,30 @@
   $('tName').oninput = e => { st.name = e.target.value.trim(); if (st.name) st.locks.name = true; save(); syncLocks(); if (info) { info.name = st.name || PC.planetName(st.seed, st.kind); renderCard(); } };
   $('tName').onchange = () => { if (!st.name) { st.locks.name = false; st.name = PC.planetName(st.seed, st.kind); save(); sync(); if (info) { info.name = st.name; renderCard(); } } };
   const kb = $('kinds');
-  for (const grp of [['world', 'Типи світів'], ['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
+  for (const grp of [['world', 'Типи світів'], ['sky', 'Літаючі континенти'], ['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
     kb.append(el('h5', {}, grp[1]));
-    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); closePanels(); }; kb.append(b); }
+    for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0] && !v.hidden) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
   }
-  const reroll = opts => { if (activeView()) return activeView().reroll(opts); st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
+  const reroll = opts => { { const V = activeView(); if (V && V.reroll) return V.reroll(opts); } st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
   $('btnNew').onclick = () => reroll({ keepKind: true });
   $('btnSurprise').onclick = () => reroll({});
-  addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
+  addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); const V = activeView(); if (V && V.reroll) V.reroll({}); else $('btnNew').click(); } });
   let drag = null;
   cv.addEventListener('pointerdown', e => { if (activeView()) return; drag = { x: e.clientX, spin }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointermove', e => { if (drag) { spin = drag.spin - (e.clientX - drag.x) * .008; draw(); } });
   cv.addEventListener('pointerup', () => { drag = null; });
 
-  /* ---------- панелі з іконок (полотно на весь екран) ---------- */
-  const SIDE = ['pKind', 'pSeed', 'pBg', 'pSurf', 'pSky', 'pSys', 'pFly', 'pExport'];
-  function showPanel(id, on) { const e = $(id); e.hidden = !on; e.classList.toggle('open', on); document.querySelector(`#rail [data-panel=${id}]`).classList.toggle('on', on); if (id === 'card' && on) renderCard(); $('side').classList.toggle('has-open', SIDE.some(s => $(s).classList.contains('open'))); store.set('panel', SIDE.find(s => $(s).classList.contains('open')) || ($('card').classList.contains('open') ? 'card' : '')); }
+  /* ---------- меню: іконки справа відкривають панелі (Система, Планета, Вигляд, Паспорт); у «Планеті» вкладки ---------- */
+  const SIDE = ['pSys', 'pPlanet', 'pView', 'pData'], TABS = ['tType', 'tSurf', 'tSky'];
+  function showPanel(id, on) { const e = $(id); e.classList.toggle('open', on); document.querySelector(`#rail [data-panel=${id}]`).classList.toggle('on', on); if (id === 'pData' && on) renderCard(); store.set('panel', SIDE.find(s => $(s).classList.contains('open')) || ''); }
   function closePanels() { for (const s of SIDE) showPanel(s, false); }
-  $('rail').addEventListener('click', e => { const b = e.target.closest('button[data-panel]'); if (!b) return; const id = b.dataset.panel, was = $(id).classList.contains('open'); if (id !== 'card') closePanels(); showPanel(id, !was); });
-  addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); showPanel('card', false); } });
-  for (const s of [...SIDE, 'card']) showPanel(s, false);
-  { const last = store.get('panel', innerWidth > 980 ? 'pSurf' : ''); if (last) showPanel(last, true); }
+  function setTab(t) { for (const x of TABS) { $(x).hidden = x !== t; document.querySelector(`#planetTabs [data-tab=${x}]`).classList.toggle('on', x === t); } store.set('tab', t); }
+  $('planetTabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); });
+  $('rail').addEventListener('click', e => { const b = e.target.closest('button[data-panel]'); if (!b) return; const id = b.dataset.panel, was = $(id).classList.contains('open'); closePanels(); showPanel(id, !was); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') closePanels(); });
+  const lastPanel = store.get('panel', 'pSys'), lastTab = store.get('tab', 'tType');
+  for (const s of SIDE) showPanel(s, false);
+  setTab(lastTab); if (lastPanel) showPanel(lastPanel, true);
 
   /* ---------- експорт ---------- */
   $('btnPng').onclick = () => cv.toBlob(b => { download(b, `planet-${st.seed}.png`); toast('Збережено картинку'); });
@@ -203,7 +206,7 @@
     }, 30);
   }
   $('btnMap').onclick = () => exportTexture('map'); $('btnHeight').onclick = () => exportTexture('height');
-  const payload = () => activeView() ? activeView().payload() : { tool: 'planet-forge', params: genParams(), passport: info };
+  const payload = () => (activeView() && activeView().payload) ? activeView().payload() : { tool: 'planet-forge', params: genParams(), passport: info };
   $('btnJson').onclick = () => { if (!info) return; download(new Blob([JSON.stringify(payload(), null, 2)], { type: 'application/json' }), `planet-${st.seed}.json`); toast('Збережено паспорт'); };
 
   $('btnCopyJson').onclick = async () => { if (!info) return; try { await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
@@ -212,7 +215,8 @@
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try {
       const d = JSON.parse(await f.text()), p = d.params;
-      if (VIEWS.some(v => v.load(d))) { toast('Завантажено'); return; }
+      if (VIEWS.some(v => v.load && v.load(d))) { toast('Завантажено'); return; }
+      if (d.sky && !d.params) { st = Object.assign(PC.fromKind('skyarch', String(d.sky.seed || 'sky')), d.sky, { locks: st.locks }); st = Object.assign(st, PC.clampParams(st)); save(); sync(); regenerate(); toast('Небесний архіпелаг завантажено'); return; }
       if (!p || !PC.KINDS[p.kind] || !p.seed) throw new Error('bad');
       st = Object.assign(PC.fromKind(p.kind, String(p.seed)), p, { locks: st.locks });
       st = Object.assign(st, PC.clampParams(st), PB.clampBg(st)); save(); sync(); regenerate(); toast('Планету завантажено');

@@ -22,7 +22,7 @@ const PlanetSystem = (() => {
   const teq = (star, au) => 278 * Math.pow(star.lum, .25) / Math.sqrt(au);
   const POOL = {
     hot: ['lava', 'venus', 'metal', 'volcanic', 'moon', 'shattered', 'desert'],
-    warm: ['earth', 'continental', 'pangaea', 'archipelago', 'ocean', 'jungle', 'swamp', 'desert', 'tech', 'candy', 'living', 'floating'],
+    warm: ['earth', 'continental', 'pangaea', 'archipelago', 'ocean', 'jungle', 'swamp', 'desert', 'tech', 'candy', 'living', 'skyland', 'skyarch'],
     cool: ['mars', 'earth', 'continental', 'ice', 'ocean', 'mushroom', 'turtle', 'moon', 'amber', 'ringed'],
     cold: ['ice', 'titan', 'moon', 'mirror', 'void', 'crystal', 'storm'],
     giant: ['gas', 'icegiant', 'ringed', 'storm'],
@@ -49,12 +49,13 @@ const PlanetSystem = (() => {
     if (!s || !Array.isArray(s.planets) || !s.planets.length || !STARS[s.star] || s.planets.some(p => !p || !PC.KINDS[p.params && p.params.kind] || !(p.au > 0))) return null;
     return Object.assign({}, s, { count: s.planets.length, planets: s.planets.map(p => ({ au: p.au, phase: +p.phase || 0, params: Object.assign(PC.clampParams(p.params), { seed: String(p.params.seed), name: p.params.name || PC.planetName(String(p.params.seed), p.params.kind) }) })) });
   }
-  /* Орбіта в піксельних одиницях 0..1 від краю: compact — рівномірно за номером, real — пропорційно до відстані в а.о. */
-  function orbitFrac(sys, i, mode) { const n = sys.planets.length; if (mode === 'real') return sys.planets[i].au / (sys.planets[n - 1].au * 1.08); return .16 + (i + .5) / n * .78; }
-  /* Швидкість: за Кеплером від відстані (real) або від номера (compact) */
-  const speedOf = (sys, i, mode) => mode === 'real' ? .6 * Math.pow(sys.planets[i].au, -1.5) : .5 / Math.pow(i + 1, .85);
+  /* Орбіта як частка радіуса полотна: рівномірно за номером планети (скорочений вигляд) */
+  const orbitFrac = (sys, i) => .16 + (i + .5) / sys.planets.length * .78;
+  const speedOf = (sys, i) => .5 / Math.pow(i + 1, .85);
   const info = (sys, i) => { const star = STARS[sys.star], p = sys.planets[i], z = hz(star), t = teq(star, p.au); return { au: p.au, temp: Math.round(t - 273), inZone: p.au >= z.in && p.au <= z.out, yearD: Math.round(365 * Math.pow(p.au, 1.5) / Math.sqrt(Math.pow(star.lum, .28))) }; };
-  return { STARS, STAR_ORDER, generate, clampSystem, orbitFrac, speedOf, hz, teq, info, strip };
+  /* Рандом лише зорі: інша зоря, планети лишаються на своїх орбітах */
+  function randomStar(sys, rnd = Math.random) { const ids = STAR_ORDER.filter(k => k !== sys.star); return Object.assign({}, sys, { star: ids[Math.floor(rnd() * ids.length)] }); }
+  return { STARS, STAR_ORDER, generate, randomStar, clampSystem, orbitFrac, speedOf, hz, teq, info, strip };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PlanetSystem;

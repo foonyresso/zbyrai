@@ -60,8 +60,7 @@ body { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
   font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%); }
-@media (max-width: 980px) { header.top { padding: 12px 16px; } .bars .row { grid-template-columns: 90px 1fr 40px; } .side { right: 64px; left: 8px; width: auto; top: auto; max-height: 55%; } .panel-l { left: 8px !important; right: 64px; width: auto !important; max-height: 55% !important; } details.how { max-height: 40vh; overflow: auto; } }
-
+@media (max-width: 980px) { header.top { padding: 12px 16px; } .bars .row { grid-template-columns: 90px 1fr 40px; } details.how { max-height: 40vh; overflow: auto; } }
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 18px 0; width: 100%; max-width: 1360px; margin: 0 auto; }
 
 /* згортний вибір типу планети */
@@ -82,8 +81,6 @@ details.fold[open] { gap: 9px; }
 .side { position: absolute; z-index: 5; right: 68px; top: 10px; bottom: 56px; width: 330px; overflow: hidden; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .side > .card { display: none; pointer-events: auto; background: rgba(14, 16, 27, .9); backdrop-filter: blur(10px); }
 .side > .card.open { display: flex; max-height: 100%; overflow: auto; flex: 0 1 auto; }
-.panel-l { position: absolute; z-index: 5; left: 10px; top: 10px; bottom: 56px; width: min(520px, calc(100% - 100px)); overflow: auto; background: rgba(14, 16, 27, .9); backdrop-filter: blur(10px); }
-.panel-l[hidden] { display: none; }
 .vp-bar { left: 10px; right: 68px; }
 .paper .p-head h3 { font-size: 26px; }
 details.how { max-height: 45vh; overflow: auto; }
@@ -96,3 +93,23 @@ details.how { max-height: 45vh; overflow: auto; }
 body[class*="view-"] .vp-bar > label, body[class*="view-"] #btnToSys { display: none; }
 body[class*="view-"] #cv { cursor: default; }
 body[class*="view-"] .vp-bar { display: none; }
+
+/* переробка меню: Система → Планета → Вигляд → Паспорт */
+.tb { display: flex; flex-wrap: wrap; gap: 10px; }
+body.view-system .tb-planet, body:not(.view-system) .tb-system { display: none; }
+.rail button { width: 58px; height: 54px; flex-direction: column; gap: 3px; }
+.rail button span { font-size: 10px; line-height: 1; letter-spacing: .02em; }
+.rail { padding: 6px; }
+.side { right: 80px; width: 350px; bottom: 12px; }
+.paper { display: flex; flex-direction: column; gap: 14px; }
+.back { position: absolute; z-index: 6; left: 12px; top: 12px; display: block; background: rgba(12, 14, 24, .78); backdrop-filter: blur(8px); }
+body.view-system .back { display: none; }
+.crumb { position: absolute; z-index: 4; left: 14px; bottom: 12px; font-size: 12px; color: rgba(210, 222, 240, .8); text-shadow: 0 1px 4px #000; pointer-events: none; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { flex: 1; padding: 6px 4px; font-size: 12.5px; }
+.tabs button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.pane { display: flex; flex-direction: column; gap: 9px; }
+.pane[hidden] { display: none; }
+body.kind-slab .sphere-only, body.view-system .spin-only { display: none !important; }
+body.view-system #cv { cursor: default; }
+@media (max-width: 980px) { .side { left: 8px; right: 76px; width: auto; max-height: 60%; top: auto; } }
