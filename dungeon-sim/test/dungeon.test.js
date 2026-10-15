@@ -44,6 +44,11 @@ test('довжина коридорів: більше значення дає д
   const len = l => { let s = 0; for (let i = 0; i < 6; i++) { const d = C.generate({ seed: 'ln' + i, rooms: 40, corr: 100, corrLen: l }); s += d.stats.corridors / d.stats.rooms; } return s; };
   assert.ok(len(100) > len(0) * 1.5, len(0) + ' ' + len(100));
 });
+test('розкид довжини: 0 дає однакові проміжки, 100 дуже різні', () => {
+  const widths = v => { const d = C.generate({ seed: 'vr', rooms: 80, corrVar: v, corrLen: 30 }), f = d.floors[0]; const xs = new Set(); for (const r of f.rooms) xs.add(r.cx); const set = new Set(); let prev = null; for (let x = 0; x < f.W; x++) { const rs = f.rooms.filter(r => r.cx === x); if (rs.length) { const m = Math.min(...rs.map(r => r.x)); if (prev !== null) set.add(m - prev); prev = m; } } return set.size; };
+  assert.ok(widths(100) > widths(0), widths(0) + ' ' + widths(100));
+  for (const v of [0, 50, 100]) for (const l of [0, 100]) { const d = C.generate({ seed: 'vv' + v, rooms: 120, levels: 2, corrVar: v, corrLen: l, corr: 30 }); for (const f of d.floors) { const seen = reach(f); for (const r of f.rooms) assert.ok(seen[r.my * f.w + r.mx], 'недосяжна'); } }
+});
 test('прямий прохід: кімнати стоять впритул через стіну з прорізом', () => {
   const f = C.generate({ seed: 'dp', rooms: 80, corr: 0, loops: 80 }).floors[0]; let n = 0;
   for (const e of f.edges) if (e.kind === 'direct') { n++; const A = f.rooms[e.a], B = f.rooms[e.b]; assert.ok(A.doors.length && B.doors.length); assert.ok(Math.abs(A.mx - B.mx) + Math.abs(A.my - B.my) < 25); }

@@ -69,7 +69,7 @@
     return c[c.length - 1];
   }
 
-  function defaults() { return { v: FORMAT, seed: 'zbyrai', type: '', rooms: 24, levels: 1, style: 'brick', branch: 40, loops: 25, secrets: 30, traps: 40, danger: 2, corr: 8, corrLen: 20, mon: 50, loot: 50, opts: tagDefaults('') }; }
+  function defaults() { return { v: FORMAT, seed: 'zbyrai', type: '', rooms: 24, levels: 1, style: 'brick', branch: 40, loops: 25, secrets: 30, traps: 40, danger: 2, corr: 8, corrLen: 20, corrVar: 35, mon: 50, loot: 50, opts: tagDefaults('') }; }
   function normalize(p) {
     const d = defaults(), o = Object.assign(defaults(), p || {});
     o.seed = String(o.seed || d.seed).slice(0, 24);
@@ -77,8 +77,8 @@
     o.rooms = clamp(Math.round(+o.rooms || d.rooms), 3, MAX_ROOMS);
     o.levels = clamp(Math.round(+o.levels || 1), 1, Math.min(6, Math.floor(o.rooms / 2)));
     o.style = STYLES[o.style] ? o.style : 'brick';
-    for (const k of ['branch', 'loops', 'secrets', 'traps', 'corr', 'corrLen', 'mon', 'loot']) o[k] = clamp(Math.round(+o[k]), 0, 100) || 0;
-    if (p && p.v !== undefined && p.v < 3) { o.corr = corrDefault(o.type); o.corrLen = 20; } // формати 1-2: коридорів було забагато, беремо нову типову частку
+    for (const k of ['branch', 'loops', 'secrets', 'traps', 'corr', 'corrLen', 'corrVar', 'mon', 'loot']) o[k] = clamp(Math.round(+o[k]), 0, 100) || 0;
+    if (p && p.v !== undefined && p.v < 3) { o.corr = corrDefault(o.type); o.corrLen = 20; o.corrVar = 35; } // формати 1-2: коридорів було забагато, беремо нову типову частку
     o.v = FORMAT;
     const td = tagDefaults(o.type), src = o.opts && typeof o.opts === 'object' ? o.opts : {};
     o.opts = {}; for (const k of Object.keys(td)) o.opts[k] = k in src ? clamp(Math.round(+src[k]), 0, 100) || 0 : td[k];
@@ -102,10 +102,15 @@
   }
 
   /* ---------- один поверх ---------- */
-  const cellSize = P => 12 + Math.round(P.corrLen / 100 * 14);
+  // розміри клітинок ґратки: база від «довжини», розкид від «розкиду довжини» (від 1 до ~10 клітинок між кімнатами)
+  function cellSizes(P, W, rnd) {
+    const e0 = P.corrLen / 100 * 14, lo = e0 * (1 - P.corrVar / 100), hi = e0 + (24 - e0) * P.corrVar / 100, one = () => 12 + Math.round(lo + rnd() * (hi - lo));
+    const cw = Array.from({ length: W }, one), ch = Array.from({ length: W }, one), acc = a => { const o = [0]; for (const v of a) o.push(o[o.length - 1] + v); return o; };
+    return { cw, ch, x0: acc(cw), y0: acc(ch) };
+  }
   const LINKS = { tunnel: 'тунель', direct: 'прямий прохід', wide: 'зал-прохід', natural: 'печерний хід' };
-  function genFloor(P, n, fi, last, start, W, H, rnd) {
-    const CELL = cellSize(P); // довші коридори = більші клітинки ґратки (кімнати ті самі, між ними більше місця)
+  function genFloor(P, n, fi, last, start, W, H, rnd, sz) {
+    const { cw, ch, x0, y0 } = sz; // ширини колонок і висоти рядків ґратки: чим більші, тим довші проміжки між кімнатами
     const cells = [], used = new Map(), open = [0], edges = [], key = (x, y) => y * W + x;
     const add = (x, y) => { used.set(key(x, y), cells.length); cells.push({ x, y, adj: [] }); return cells.length - 1; };
     const link = (a, b, loop) => { edges.push({ a, b, secret: false, loop: !!loop, kind: 'tunnel' }); cells[a].adj.push(b); cells[b].adj.push(a); };
@@ -137,12 +142,13 @@
       need[A][fa] = 1; need[B][fb] = 1;
     }
     // кімнати: форма, розмір, розташування в клітинці (впритул до межі, якщо є прямий прохід)
-    const w = W * CELL, h = H * CELL, tiles = new Uint8Array(w * h), rid = new Int16Array(w * h).fill(-1);
+    const w = x0[W], h = y0[H], tiles = new Uint8Array(w * h), rid = new Int16Array(w * h).fill(-1);
     const rooms = cells.map((c, i) => {
       const deg = c.adj.length, big = i === 0 || i === exit || deg >= 3, nd = need[i];
       const shape = pickShape(rnd, P.style), rw = ri(rnd, big ? 6 : 4, 9), rh = ri(rnd, big ? 6 : 4, 9);
-      const ox = nd.W ? 0 : nd.E ? CELL - 1 - rw : ri(rnd, 1, CELL - 1 - rw), oy = nd.N ? 0 : nd.S ? CELL - 1 - rh : ri(rnd, 1, CELL - 1 - rh);
-      const x = c.x * CELL + ox, y = c.y * CELL + oy;
+      const CW = cw[c.x], CH = ch[c.y];
+      const ox = nd.W ? 0 : nd.E ? CW - 1 - rw : ri(rnd, 1, CW - 1 - rw), oy = nd.N ? 0 : nd.S ? CH - 1 - rh : ri(rnd, 1, CH - 1 - rh);
+      const x = x0[c.x] + ox, y = y0[c.y] + oy;
       const role = i === 0 ? 'start' : i === exit ? (last ? 'boss' : 'down') : deg === 1 ? 'dead' : deg >= 3 ? 'hub' : 'room';
       return { id: i, cx: c.x, cy: c.y, x, y, w: rw, h: rh, mx: x + (rw >> 1), my: y + (rh >> 1), shape, cor: ri(rnd, 0, 3), role, deg, dist: dist[i], doors: [], traps: [], monsters: null, loot: null, secret: false, name: '' };
     });
@@ -176,8 +182,8 @@
     };
     function carvePath(A, B, hor, e) {
       let pts;
-      if (hor) { const c = band(B.cx * CELL, A.my, B.my, true, e.kind === 'wide' ? 2 : 1); pts = [[A.mx, A.my], [c, A.my], [c, B.my], [B.mx, B.my]]; }
-      else { const c = band(B.cy * CELL, A.mx, B.mx, false, e.kind === 'wide' ? 2 : 1); pts = [[A.mx, A.my], [A.mx, c], [B.mx, c], [B.mx, B.my]]; }
+      if (hor) { const c = band(x0[B.cx], A.my, B.my, true, e.kind === 'wide' ? 2 : 1); pts = [[A.mx, A.my], [c, A.my], [c, B.my], [B.mx, B.my]]; }
+      else { const c = band(y0[B.cy], A.mx, B.mx, false, e.kind === 'wide' ? 2 : 1); pts = [[A.mx, A.my], [A.mx, c], [B.mx, c], [B.mx, B.my]]; }
       let path;
       if (e.kind === 'natural') { // блукання від центру до центру з нахилом до цілі, без заходу в чужі кімнати
         path = []; let [x, y] = [A.mx, A.my]; const [tx, ty] = [B.mx, B.my]; let guard = 0;
@@ -246,8 +252,9 @@
     const per = Array.from({ length: P.levels }, (_, i) => Math.floor(P.rooms / P.levels) + (i < P.rooms % P.levels ? 1 : 0));
     const W = Math.max(3, Math.ceil(Math.sqrt(Math.max(...per) * 2.5)) + 1), floors = [];
     let start = { x: ri(rnd, 0, W - 1), y: ri(rnd, 0, W - 1) };
+    const sz = cellSizes(P, W, rng(P.seed + '|sizes'));
     for (let i = 0; i < P.levels; i++) {
-      const f = genFloor(P, per[i], i, i === P.levels - 1, start, W, W, rnd);
+      const f = genFloor(P, per[i], i, i === P.levels - 1, start, W, W, rnd, sz);
       populate(P, f, rng(P.seed + '|pop|' + i), inhab, pool);
       floors.push(f);
       const ex = f.rooms[f.exit]; start = { x: ex.cx, y: ex.cy };
@@ -281,7 +288,7 @@
     if (!locks.type) { const ty = rnd() < 0.2 ? null : pick(rnd, TYPES); o = ty ? applyType(o, ty.id, rnd) : Object.assign(o, { type: '' }); }
     else if (o.type) o = applyType(o, o.type, rnd);
     if (!o.type) { o.rooms = ri(rnd, 8, 60); o.levels = ri(rnd, 1, 3); o.danger = ri(rnd, 1, 5); o.style = rnd() < .3 ? 'cave' : 'brick'; }
-    o.branch = ri(rnd, 0, 100); o.loops = ri(rnd, 0, 70); o.secrets = ri(rnd, 0, 70); o.traps = ri(rnd, 0, 80); o.corr = ri(rnd, 2, 35); o.corrLen = ri(rnd, 0, 60); o.mon = ri(rnd, 25, 80); o.loot = ri(rnd, 25, 80);
+    o.branch = ri(rnd, 0, 100); o.loops = ri(rnd, 0, 70); o.secrets = ri(rnd, 0, 70); o.traps = ri(rnd, 0, 80); o.corr = ri(rnd, 2, 35); o.corrLen = ri(rnd, 0, 60); o.corrVar = ri(rnd, 0, 100); o.mon = ri(rnd, 25, 80); o.loot = ri(rnd, 25, 80);
     for (const k of Object.keys(o.opts)) o.opts[k] = clamp(o.opts[k] + ri(rnd, -25, 25), 0, 100);
     return normalize(o);
   }
