@@ -2,6 +2,14 @@
 // посилання «назад» повертає на картку цього інструмента на головній.
 // Джерело — shared/tool-chrome.js; у папки інструментів копіюється через node tools/sync-theme.mjs.
 (function () {
+  // Гарячі клавіші, незалежні від розкладки: літери беруться з фізичної клавіші (e.code), тож Ctrl+Z працює і в українській, і в російській та інших розкладках.
+  window.zbKey = function (e) {
+    var c = e.code || '';
+    if (/^Key[A-Z]$/.test(c)) return c.charAt(3).toLowerCase();
+    if (c === 'BracketLeft') return '[';
+    if (c === 'BracketRight') return ']';
+    return (e.key || '').toLowerCase();
+  };
   var folder = (location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '').split('/').pop()) || '';
   var back = document.getElementById('hubBack');
   if (back && folder) back.setAttribute('href', '../index.html#t-' + folder);

@@ -311,8 +311,8 @@
   });
   document.addEventListener('keydown', e => {
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || $('dlgImport').open) return;
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
-    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && (window.zbKey ? window.zbKey(e) : e.key.toLowerCase()) === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+    else if ((e.ctrlKey || e.metaKey) && (window.zbKey ? window.zbKey(e) : e.key.toLowerCase()) === 'y') { e.preventDefault(); redo(); }
     else if (e.key === 'Escape') { sel = null; multi.clear(); refreshAll(); }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && mode === 'edit' && sel) { e.preventDefault(); deleteNode(sel); }
   });

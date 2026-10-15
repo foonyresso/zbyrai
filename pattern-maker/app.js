@@ -621,7 +621,7 @@
   $('btnUndo').onclick = undo;
   addEventListener('keydown', e => {
     const t = document.activeElement, typing = t && (t.tagName === 'SELECT' || (t.tagName === 'INPUT' && t.type === 'number'));
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); undo(); }
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (window.zbKey ? window.zbKey(e) : e.key.toLowerCase()) === 'z' && !typing) { e.preventDefault(); undo(); }
   });
 
   // рецепти: іменовані набори ефектів у localStorage

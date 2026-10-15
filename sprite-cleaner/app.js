@@ -325,7 +325,7 @@
 
   addEventListener('keydown', e => {
     if (/^(input|textarea|select)$/i.test(e.target.tagName) && e.key !== 'Escape') return;
-    const k = e.key.toLowerCase();
+    const k = (window.zbKey || (x => x.key.toLowerCase()))(e);
     if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
     if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); redo(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -337,7 +337,7 @@
     else if (k === '[') { st.brush = Math.max(1, st.brush - 4); sync(); save(); draw(); } else if (k === ']') { st.brush = Math.min(200, st.brush + 4); sync(); save(); draw(); }
   });
   addEventListener('keyup', e => {
-    const k = e.key.toLowerCase();
+    const k = (window.zbKey || (x => x.key.toLowerCase()))(e);
     if (k === ' ') { spaceDown = false; if (!drag) vp.classList.remove('panning'); }
     if (k === 'o') { compare = false; $('cCompare').checked = false; draw(); }
   });
