@@ -8,7 +8,7 @@
     set(k, v) { try { localStorage.setItem('cf_' + k, JSON.stringify(v)); } catch {} },
   };
   const randSeed = () => Math.random().toString(36).slice(2, 7);
-  const st = Object.assign({ seed: randSeed(), n: 8, day: 1, tab: 'roster', locks: {} }, store.get('state', {}));
+  const st = Object.assign({ seed: randSeed(), n: 8, day: 1, tab: 'roster', locks: {}, gen: 2 }, store.get('state', {}));
   const save = () => store.set('state', st);
   let colony = null, sim = null;
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } e.append(...kids.flat().filter(x => x != null)); return e; };
@@ -48,11 +48,11 @@
       const story = C.backstoryText(c).map(b => el('span', {}, el('b', {}, b.name + '. '), b.text + ' '));
       const sorted = C.SKILLS.slice().sort((a, b) => c.skills[b.id] - c.skills[a.id]);
       g.append(el('article', { class: 'ccard' + (locked ? ' locked' : '') },
-        el('div', { class: 'ctop' }, avatar(c), el('div', {}, el('h3', { class: 'cname' }, C.fullName(c)), el('div', { class: 'csub' }, `${c.female ? 'Жінка' : 'Чоловік'}, ${c.age} р.`)),
+        el('div', { class: 'ctop' }, avatar(c), el('div', {}, el('h3', { class: 'cname' }, C.fullName(c)), el('div', { class: 'csub', title: 'Професія визначається найвищим пріоритетом роботи' }, `${C.profession(c)}, ${c.age} р.`)),
           el('div', { class: 'cbtns' }, el('button', { class: locked ? 'on' : '', title: locked ? 'Розімкнути' : 'Замкнути: лишиться після «Нової колонії»', onclick: () => { if (locked) delete st.locks[i]; else st.locks[i] = c; save(); renderRoster(); } }, locked ? '🔒' : '🔓'),
             el('button', { title: 'Перегенерувати цього колоніста', onclick: () => { delete st.locks[i]; colony = C.reroll(colony, i, randSeed()); sim = null; st.locks = Object.fromEntries(Object.keys(st.locks).map(k => [k, colony.colonists[k]])); save(); renderAll(); } }, '🎲'))),
         el('div', { class: 'tags' }, c.traits.map(t => el('span', { class: 'tag tr', title: C.TRAIT_BY[t].desc }, C.TRAIT_BY[t].name))),
-        el('p', { class: 'story' }, story),
+        el('p', { class: 'story' }, story, c.quirk ? el('span', {}, el('b', {}, 'Звичка: '), c.quirk + '.') : null),
         el('div', { class: 'skills' }, sorted.map(s => el('div', { class: `sk p${c.passion[s.id]}` }, el('span', { class: 'nm' }, s.name), el('div', { class: 'bar2' }, el('i', { style: `width:${c.skills[s.id] / 20 * 100}%` })), el('b', {}, c.skills[s.id])))),
         el('div', { class: 'tags' }, C.JOBS.filter(j => pri[j.id] === 1).map(j => el('span', { class: 'tag', title: 'Головна робота' }, '★ ' + j.name)), c.noJobs.map(j => el('span', { class: 'tag', style: 'opacity:.6', title: 'Не виконує через передісторію' }, '✕ ' + C.JOBS.find(x => x.id === j).name))),
         bonds.length ? el('div', { class: 'bonds' }, bonds) : null));
@@ -94,7 +94,7 @@
   }
 
   /* ---------- керування ---------- */
-  function build() { st.locks = Object.fromEntries(Object.entries(st.locks).filter(([i]) => i < st.n)); colony = C.generateColony(st.seed, st.n, st.locks); sim = null; }
+  function build() { st.locks = Object.fromEntries(Object.entries(st.locks).filter(([i]) => i < st.n)); colony = C.generateColony(st.seed, st.n, st.locks, st.gen); sim = null; }
   function renderAll() { renderRoster(); renderBonds(); renderDay(); }
   function syncTop() { $('rCount').value = st.n; $('oCount').textContent = st.n; $('tSeed').value = st.seed; $('nDay').value = st.day; document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === st.tab)); for (const t of ['roster', 'bonds', 'day']) $('tab' + t[0].toUpperCase() + t.slice(1)).hidden = st.tab !== t; }
   function tab(t) { st.tab = t; save(); syncTop(); }
@@ -104,7 +104,7 @@
   $('btnNew').onclick = () => { st.seed = randSeed(); build(); save(); syncTop(); renderAll(); };
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
   $('btnDay').onclick = () => { st.day = Math.max(1, +$('nDay').value || 1); sim = C.simulateDay(colony, st.day); $('nDay').value = st.day = st.day + 1; save(); renderDay(); };
-  const exportObj = () => ({ tool: 'colonist-foundry', state: { seed: st.seed, n: st.n, day: st.day, locks: st.locks }, seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), priorities: C.priorities(c) })), relations: colony.relations.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type })) });
+  const exportObj = () => ({ tool: 'colonist-foundry', version: 2, state: { seed: st.seed, n: st.n, day: st.day, locks: st.locks, gen: st.gen }, seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), priorities: C.priorities(c) })), relations: colony.relations.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type })) });
   $('btnJson').onclick = () => { download(JSON.stringify(exportObj(), null, 2), 'colonists.json', 'application/json'); toast('Файл збережено'); };
   $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(exportObj(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
   $('btnImport').onclick = () => $('fileImport').click();
@@ -114,7 +114,7 @@
       const d = JSON.parse(await f.text()), s = d.state;
       if (d.tool !== 'colonist-foundry' || !s || !s.seed) throw new Error('bad');
       st.seed = String(s.seed).slice(0, 20); st.n = Math.min(24, Math.max(2, +s.n || 8)); st.day = Math.max(1, +s.day || 1);
-      st.locks = s.locks && typeof s.locks === 'object' ? s.locks : {};
+      st.locks = s.locks && typeof s.locks === 'object' ? s.locks : {}; st.gen = s.gen === 2 ? 2 : 1; // файли без gen створені до розширення даних
       build(); save(); syncTop(); renderAll(); toast('Колонію завантажено');
     } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
   };

@@ -1,6 +1,8 @@
 /* Colonist Foundry: ядро. Генерація колоністів із навичками, рисами, передісторією, потребами й стосунками,
    та симуляція доби поселення. Без DOM: браузер (глобал ColonistCore) і Node (module.exports). Усе детерміноване за seed. */
+const ColonyData_ = typeof ColonyData !== 'undefined' ? ColonyData : require('./colony-data.js');
 const ColonistCore = (() => {
+  const D2 = ColonyData_;
   function xmur3(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^= h >>> 16) >>> 0; }; }
   function mulberry32(a) { return () => { a |= 0; a = a + 0x6d2b79f5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   const rngFromSeed = seed => mulberry32(xmur3(String(seed))());
@@ -16,7 +18,13 @@ const ColonistCore = (() => {
   const JOBS = [
     { id: 'build', name: 'Будівництво', skill: 'build' }, { id: 'farm', name: 'Поле', skill: 'farm' }, { id: 'mine', name: 'Копальня', skill: 'mine' }, { id: 'craft', name: 'Майстерня', skill: 'craft' },
     { id: 'cook', name: 'Кухня', skill: 'cook' }, { id: 'heal', name: 'Лікарня', skill: 'heal' }, { id: 'guard', name: 'Варта', skill: 'fight' }, { id: 'research', name: 'Дослідження', skill: 'think' },
+    { id: 'hunt', name: 'Полювання', skill: 'shoot' }, { id: 'lumber', name: 'Лісоруб', skill: 'build' }, { id: 'tailor', name: 'Швейня', skill: 'craft' }, { id: 'brew', name: 'Броварня', skill: 'cook' },
+    { id: 'trade', name: 'Торгівля', skill: 'talk' }, { id: 'teach', name: 'Навчання', skill: 'think' }, { id: 'scout', name: 'Розвідка', skill: 'shoot' }, { id: 'herb', name: 'Збір трав', skill: 'heal' },
   ];
+  // професія за роботою: чоловіча й жіноча форми
+  const PROF = { build: ['Будівельник', 'Будівельниця'], farm: ['Хлібороб', 'Хліборобка'], mine: ['Шахтар', 'Шахтарка'], craft: ['Майстер', 'Майстриня'], cook: ['Кухар', 'Кухарка'], heal: ['Лікар', 'Лікарка'],
+    guard: ['Вартовий', 'Вартова'], research: ['Дослідник', 'Дослідниця'], hunt: ['Мисливець', 'Мисливиця'], lumber: ['Лісоруб', 'Лісорубка'], tailor: ['Кравець', 'Кравчиня'], brew: ['Броварник', 'Броварниця'],
+    trade: ['Торговець', 'Торговка'], teach: ['Вчитель', 'Вчителька'], scout: ['Розвідник', 'Розвідниця'], herb: ['Травник', 'Травниця'] };
   const NEEDS = [{ id: 'food', name: 'Ситість', decay: .045 }, { id: 'rest', name: 'Відпочинок', decay: .05 }, { id: 'fun', name: 'Розвага', decay: .03 }, { id: 'social', name: 'Спілкування', decay: .035 }];
 
   // риси: skill = бонус до рівня навички, mood = базовий настрій, need = множник спаду потреби, conflicts — несумісні риси
@@ -76,7 +84,12 @@ const ColonistCore = (() => {
   const NICK = ['Тихий', 'Рудий', 'Сивий', 'Швидкий', 'Лисий', 'Дзвінкий', 'Кривий', 'Мудрий', 'Гострий', 'Веселий'];
 
   /* ---------- генерація ---------- */
+  // покоління даних: 1 — початкові списки, 2 — розширені (більше імен, передісторій, епізод життя, звичка). Те саме зерно в різних поколіннях дає різні колонії.
+  const dataFor = gen => gen === 1 ? { MALE, FEMALE, SURN, NICK, CHILD, ADULT } : { MALE: [...MALE, ...D2.MALE], FEMALE: [...FEMALE, ...D2.FEMALE], SURN: [...SURN, ...D2.SURN], NICK: [...NICK, ...D2.NICK], CHILD: [...CHILD, ...D2.CHILD], ADULT: [...ADULT, ...D2.ADULT] };
+  const DATA_CACHE = { 1: dataFor(1), 2: dataFor(2) };
+  const GEN = 2;
   function makeColonist(R, o = {}) {
+    const gen = o.gen === 1 ? 1 : GEN, L = DATA_CACHE[gen];
     const female = o.female ?? R() < .5, age = o.age ?? Math.round(18 + Math.pow(R(), 1.4) * 47);
     const traitN = R() < .25 ? 3 : 2, traits = [];
     for (let guard = 0; traits.length < traitN && guard < 60; guard++) {
@@ -84,7 +97,7 @@ const ColonistCore = (() => {
       if (traits.some(x => TRAIT_BY[x].conflicts.includes(t.id) || t.conflicts.includes(x))) continue;
       traits.push(t.id);
     }
-    const child = pick(R, CHILD), adult = age >= 25 ? pick(R, ADULT) : null;
+    const child = pick(R, L.CHILD), adult = age >= 25 ? pick(R, L.ADULT) : null;
     const skills = {}, passion = {};
     for (const s of SKILLS) {
       let v = 2 + Math.round(R() * 5);
@@ -97,27 +110,31 @@ const ColonistCore = (() => {
     const ranked = SKILLS.map(s => ({ id: s.id, w: skills[s.id] + R() * 6 })).sort((a, b) => b.w - a.w);
     passion[ranked[0].id] = R() < .45 ? 2 : 1; passion[ranked[1].id] = 1; if (R() < .35) passion[ranked[2].id] = 1;
     const no = [...new Set([...(child.no || []), ...(adult ? adult.no : [])])];
-    const surname = pick(R, SURN); let name = pick(R, female ? FEMALE : MALE);
-    for (let g = 0; g < 20 && o.used && o.used.has(name); g++) name = pick(R, female ? FEMALE : MALE); // імена в колонії різні (поки вистачає)
-    const nick = R() < .22 ? pick(R, NICK) : '';
-    return { id: o.id ?? 0, name, surname: female ? surname.replace(/(о|ий)$/, m => (m === 'ий' ? 'а' : 'о')) : surname, nick, female, age, traits, child: child.id, adult: adult ? adult.id : null, skills, passion, noJobs: no, seed: o.seed ?? 0 };
+    const surname = pick(R, L.SURN); let name = pick(R, female ? L.FEMALE : L.MALE);
+    for (let g = 0; g < 20 && o.used && o.used.has(name); g++) name = pick(R, female ? L.FEMALE : L.MALE); // імена в колонії різні (поки вистачає)
+    const nick = R() < .22 ? pick(R, L.NICK) : '';
+    // покоління 2: епізод життя й звичка (кидки в кінці, щоб не зсувати попередні)
+    const life = gen === 2 ? pick(R, D2.LIFE) : null, quirk = gen === 2 ? pick(R, D2.QUIRK) : '';
+    if (life) for (const k of Object.keys(life.skill)) skills[k] = clamp(skills[k] + life.skill[k], 0, 20);
+    return { id: o.id ?? 0, gen, name, surname: female ? surname.replace(/(о|ий)$/, m => (m === 'ий' ? 'а' : 'о')) : surname, nick, female, age, traits, child: child.id, adult: adult ? adult.id : null, life: life ? life.id : null, quirk, skills, passion, noJobs: no, seed: o.seed ?? 0 };
   }
   const fullName = c => `${c.name}${c.nick ? ` «${c.nick}»` : ''} ${c.surname}`;
-  const backstoryText = c => [CHILD.find(b => b.id === c.child), c.adult && ADULT.find(b => b.id === c.adult)].filter(Boolean);
+  const ALL_CHILD = [...CHILD, ...D2.CHILD], ALL_ADULT = [...ADULT, ...D2.ADULT];
+  const backstoryText = c => [ALL_CHILD.find(b => b.id === c.child), c.adult && ALL_ADULT.find(b => b.id === c.adult), c.life && D2.LIFE.find(b => b.id === c.life)].filter(Boolean);
 
   /* Колонія з n людей. locks: { індекс: колоніст } лишаються на місці. */
-  function generateColony(seed, n, locks = {}) {
+  function generateColony(seed, n, locks = {}, gen = GEN) {
     const R = rngFromSeed('colony:' + seed), out = [];
     for (let i = 0; i < n; i++) {
       const rr = rngFromSeed(`c:${seed}:${i}`); // кожен слот має власний потік: зміна n не перетасовує вже згенерованих
       const used = new Set(out.map(c => c.name));
-      out.push(locks[i] || makeColonist(rr, { id: i, seed: `${seed}:${i}`, used }));
+      out.push(locks[i] || makeColonist(rr, { id: i, seed: `${seed}:${i}`, used, gen }));
       out[i].id = i;
     }
-    return { seed, colonists: out, relations: buildRelations(out, R) };
+    return { seed, gen, colonists: out, relations: buildRelations(out, R) };
   }
   // окрема перегенерація одного слота
-  function reroll(colony, i, newSeed) { const c = makeColonist(rngFromSeed(`r:${newSeed}:${i}`), { id: i, seed: `${newSeed}:${i}`, used: new Set(colony.colonists.filter((_, k) => k !== i).map(x => x.name)) }); c.id = i; const cs = colony.colonists.slice(); cs[i] = c; return { seed: colony.seed, colonists: cs, relations: buildRelations(cs, rngFromSeed('colony:' + colony.seed + ':' + newSeed)) }; }
+  function reroll(colony, i, newSeed) { const c = makeColonist(rngFromSeed(`r:${newSeed}:${i}`), { id: i, seed: `${newSeed}:${i}`, gen: colony.gen ?? 1, used: new Set(colony.colonists.filter((_, k) => k !== i).map(x => x.name)) }); c.id = i; const cs = colony.colonists.slice(); cs[i] = c; return { seed: colony.seed, gen: colony.gen, colonists: cs, relations: buildRelations(cs, rngFromSeed('colony:' + colony.seed + ':' + newSeed)) }; }
 
   /* ---------- стосунки ---------- */
   // base: вроджена симпатія за рисами; rel: родинні/сердечні зв'язки
@@ -173,6 +190,11 @@ const ColonistCore = (() => {
       out[j.id] = lvl >= 14 ? 1 : lvl >= 10 ? 2 : lvl >= 6 ? 3 : 4;
     }
     return out;
+  }
+  // професія: найвища робота за пріоритетом і навичкою (для тих, хто нічого не вміє, — «Підсобник»)
+  function profession(c) {
+    const p = priorities(c), best = JOBS.filter(j => p[j.id] > 0).sort((a, b) => p[a.id] - p[b.id] || c.skills[b.skill] - c.skills[a.skill])[0];
+    return best && p[best.id] <= 2 ? PROF[best.id][c.female ? 1 : 0] : (c.female ? 'Підсобниця' : 'Підсобник');
   }
   const effSkill = (c, skill) => c.skills[skill] * (c.passion[skill] === 2 ? 1.3 : c.passion[skill] === 1 ? 1.1 : 1);
 
@@ -253,7 +275,7 @@ const ColonistCore = (() => {
     return [head.map(h => JSON.stringify(h)).join(','), ...rows].join('\n');
   };
 
-  return { SKILLS, JOBS, NEEDS, TRAITS, TRAIT_BY, CHILD, ADULT, REL, rngFromSeed, makeColonist, generateColony, reroll, fullName, backstoryText, baseOpinion, opinion, relOf, priorities, effSkill, simulateDay, toCsv };
+  return { SKILLS, JOBS, NEEDS, TRAITS, TRAIT_BY, CHILD, ADULT, REL, rngFromSeed, makeColonist, generateColony, reroll, fullName, backstoryText, baseOpinion, opinion, relOf, priorities, profession, PROF, effSkill, simulateDay, toCsv };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = ColonistCore;
