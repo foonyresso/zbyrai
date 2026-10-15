@@ -166,7 +166,7 @@
   $('tName').oninput = e => { st.name = e.target.value.trim(); if (st.name) st.locks.name = true; save(); syncLocks(); if (info) { info.name = st.name || PC.planetName(st.seed, st.kind); renderCard(); } };
   $('tName').onchange = () => { if (!st.name) { st.locks.name = false; st.name = PC.planetName(st.seed, st.kind); save(); sync(); if (info) { info.name = st.name; renderCard(); } } };
   const kb = $('kinds');
-  for (const grp of [['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
+  for (const grp of [['world', 'Типи світів'], ['real', 'Реальні типи'], ['fantasy', 'Фантастичні типи']]) {
     kb.append(el('h5', {}, grp[1]));
     for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
   }

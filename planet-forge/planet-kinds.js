@@ -99,7 +99,7 @@ const PlanetKinds = (() => {
   def('earth', { name: 'Земного типу', group: 'real', hab: 'terran', tc: [-55, 55], ac: [110, 170, 255],
     blurb: 'Континенти, океани, ліси й полярні шапки: найближче до рідного дому.', life: 'Багата біосфера, ліси, луки й океанічні екосистеми.',
     gases: [['Азот', 77], ['Кисень', 21], ['Аргон', 1], ['Інше', 1]], res: ['Дерево', 'Родюча земля', 'Метали', 'Прісна вода'], liqName: 'Вода',
-    knobs: { sea: { min: .05, max: .95, def: .62 }, scale: { min: .8, max: 3.2, def: 1.4 }, mount: {}, temp: { min: -.6, max: .8, def: .05 }, humid: { min: .1, max: 1, def: .55 }, caps: {}, atmo: { min: .3, max: 1, def: .6 }, cloud: { def: .55 }, lights: { def: .5 }, tilt: {}, moons: {}, hue: { min: -.14, max: .14 } },
+    knobs: { sea: { min: .05, max: .9, def: .48 }, scale: { min: .8, max: 3.2, def: 1.4 }, mount: {}, temp: { min: -.6, max: .8, def: .05 }, humid: { min: .1, max: 1, def: .55 }, caps: {}, atmo: { min: .3, max: 1, def: .6 }, cloud: { def: .55 }, lights: { def: .5 }, tilt: {}, moons: {}, hue: { min: -.14, max: .14 } },
     terran: { liq: 'water', cap: 2, land: landBiome } });
   KINDS.earth.px = terran(KINDS.earth.terran);
 
@@ -414,6 +414,9 @@ const PlanetKinds = (() => {
     } });
   const RAIN = B('Райдужні смуги', [200, 160, 220]);
 
+  // типи світів: окремий файл, отримує внутрішні засоби цього
+  const WORLDS = typeof module !== 'undefined' && module.exports ? require('./planet-kinds-worlds.js') : (typeof PlanetWorlds === 'function' ? PlanetWorlds : null);
+  if (WORLDS) WORLDS({ def, terran, B, BIOMES, KINDS, landBiome, mulc, mixc, lerp, clamp, smooth });
   return { BIOMES, LIQ, KINDS, landBiome, hsv, G, ABSENT };
 })();
 

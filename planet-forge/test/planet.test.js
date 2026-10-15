@@ -142,5 +142,13 @@ test('фони: п’ять типів, у кожного ручки; clampBg в
   let n = 0; const seen = new Set(); for (let i = 0; i < 80; i++) { const r = B.randomBg(prev, false); seen.add(r.bg); n += r.bgArms >= 2 && r.bgArms <= 6 ? 1 : 0; } assert.equal(n, 80); assert.ok(seen.size >= 4);
 });
 
+test('типи світів: група «world» з п’яти..чотирьох типів, континентальний перший; вулканічний має лаву, кислотні озера й джерела', () => {
+  const ids = Object.keys(P.KINDS).filter(k => P.KINDS[k].group === 'world'); assert.deepEqual(ids, ['continental', 'pangaea', 'archipelago', 'volcanic']);
+  for (const id of ids) { const t = P.generateTexture(P.fromKind(id, 'w1'), W, H), d = P.describe(P.fromKind(id, 'w1'), t); assert.ok(d.blurb && d.biomes.length >= 3, id); }
+  const v = P.describe(P.fromKind('volcanic', 'w1'), P.generateTexture(Object.assign(P.fromKind('volcanic', 'w1'), { acid: 1, springs: 1 }), 256, 128)).biomes.map(b => b.name);
+  assert.ok(v.includes('Лава') || v.includes('Магмове море')); assert.ok(v.includes('Кислотне озеро'), v.join());
+  const e = P.fromKind('earth', 'x'); assert.ok(e.sea <= .5, 'земного типу менше води');
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
