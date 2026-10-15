@@ -8,7 +8,7 @@ Atlas.registerWorld({
   entry: "worlds/continent/index.html?embed=1",
   description: "Скінченна карта: провінції, регіони, міста, чотири типи доріг, морські шляхи, лігва монстрів.",
   preset: {"worldType": "continent", "theme": "continent"},
-  biomes: { allow: "all" },
+  biomes: { allow: "all", deny: "tag:exclusive" },
   extraActions: [
     { id: "btnWorld", label: "Експорт світу (.json)", title: "Завантажити повний експорт світу для гри: провінції, регіони, міста, дороги, лігва, шари біомів" },
     { id: "btnCsv", label: "Таблиця міст (.csv)", title: "Завантажити таблицю всіх поселень у форматі CSV (відкривається в Excel)" },

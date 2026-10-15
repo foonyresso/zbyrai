@@ -464,7 +464,7 @@ const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", 
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
   won: () => WON, wrd: () => WRD, wbd: () => WBD,
-  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st,
+  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st, rldg: () => RLAY.dg,
   rmaj: () => WRT.major, rmed: () => WRT.medium, rmin: () => WRT.minor, rtrl: () => WRT.trail,
 };
 function toast(msg, ms = 1800) {

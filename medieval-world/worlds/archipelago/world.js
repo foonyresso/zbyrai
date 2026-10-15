@@ -8,6 +8,6 @@ Atlas.registerWorld({
   entry: "worlds/continent/index.html?embed=1",
   preset: {"worldType": "archipelago", "size": "l", "provinces": 4, "warm": 0.15, "wet": 0.1, "ruggedness": 0.35, "riverDensity": 0.8, "theme": "archipelago"},
   description: "Скінченний світ із багатьма островами: морські шляхи між портами важливіші за дороги.",
-  biomes: { allow: "all" },
+  biomes: { allow: "all", deny: "tag:exclusive" },
   inherit: "continent",
 });

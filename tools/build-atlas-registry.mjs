@@ -1,4 +1,4 @@
-// Збирає medieval-world/registry.js: перелік файлів світів (worlds/*/world.js) і біомів (biomes/*.js).
+// Збирає medieval-world/registry.js: перелік файлів світів (worlds/*/world.js), біомів (biomes/*.js), монстрів (monsters/*.js) і підземель (dungeons/*.js).
 // Запуск: node tools/build-atlas-registry.mjs   (--check: лише перевірити, що registry.js актуальний)
 import { readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -13,8 +13,9 @@ export function buildRegistry() {
     .map((e) => `worlds/${e.name}/world.js`).sort();
   const biomes = readdirSync(join(base, 'biomes')).filter((f) => f.endsWith('.js')).map((f) => `biomes/${f}`).sort();
   const monsters = readdirSync(join(base, 'monsters')).filter((f) => f.endsWith('.js')).map((f) => `monsters/${f}`).sort();
+  const dungeons = readdirSync(join(base, 'dungeons')).filter((f) => f.endsWith('.js')).map((f) => `dungeons/${f}`).sort();
   return '/* Автоматично: node tools/build-atlas-registry.mjs. Не правити вручну. */\n'
-    + 'Atlas.manifest = ' + JSON.stringify({ worlds, biomes, monsters }, null, 2) + ';\n';
+    + 'Atlas.manifest = ' + JSON.stringify({ worlds, biomes, monsters, dungeons }, null, 2) + ';\n';
 }
 
 /* Списки монстрів рушія «Материк» (src/data/realm/monsters-*.js) збираються з файлів monsters/: рушій читає старий формат { monsters: [назви], bosses: [{ n, alias, variants, tier }] }.

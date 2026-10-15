@@ -35,5 +35,14 @@
       ctx.fillStyle = '#f0e4cc'; ctx.beginPath(); ctx.arc(sx, sy, s * 0.28, 0, 6.3); ctx.fill();
     }
   }
-  R.IconsPlaces = { drawPoi, drawLair };
+  // Підземелля: темний арковий вхід у світлій рамці; колір смужки за небезпекою (1 жовта ... 5 червона)
+  const DGC = ['', '#d9b84a', '#d98a3a', '#cc5a3a', '#b02a2e', '#7a1c4a'];
+  function drawDungeon(ctx, o, sx, sy, k) {
+    const s = 6.5 * k;
+    ctx.fillStyle = '#2b2430'; ctx.strokeStyle = '#f0e4cc'; ctx.lineWidth = Math.max(1, s * 0.16);
+    ctx.beginPath(); ctx.moveTo(sx - s, sy + s); ctx.lineTo(sx - s, sy - s * 0.1); ctx.arc(sx, sy - s * 0.1, s, Math.PI, 0); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0c0a10'; ctx.beginPath(); ctx.moveTo(sx - s * 0.5, sy + s); ctx.lineTo(sx - s * 0.5, sy); ctx.arc(sx, sy, s * 0.5, Math.PI, 0); ctx.lineTo(sx + s * 0.5, sy + s); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = DGC[o.def.danger] || DGC[1]; ctx.fillRect(sx - s, sy + s * 0.78, s * 2, s * 0.26);
+  }
+  R.IconsPlaces = { drawPoi, drawLair, drawDungeon };
 })();

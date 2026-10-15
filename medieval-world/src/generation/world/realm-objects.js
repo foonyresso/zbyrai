@@ -3,7 +3,7 @@
    Дані (монстри, боси, типи місць) спільні з «Материком»: src/data/realm/. Малювання: src/render/world/realm-layers.js */
 const RX_PC = 1000;
 function rx() {
-  return WLD.rx || (WLD.rx = { m: new Map(), p: new Map() });
+  return WLD.rx || (WLD.rx = { m: new Map(), p: new Map(), d: new Map() });
 }
 /* поблизу немає поселень: інакше значок ліг на село */
 function rxClear(x, y, r) {
@@ -111,7 +111,7 @@ function rxPoi(i, j) {
       }
       if (ids.length && rxClear(x, y, 120)) {
         const type = rxPick(ids, H2(i, j, s + 924)), def = P[type];
-        o = { id: "P" + key, x, y, type, cls: def.cls, name: def.name + " «" + cname(s + "p" + key) + "»" };
+        o = { id: "P" + key, i, j, x, y, type, cls: def.cls, name: def.name + " «" + cname(s + "p" + key) + "»" };
       }
     }
   }
@@ -150,6 +150,13 @@ function realmInfo(x, y) {
   if (!WLD || !WON) return null;
   const tol = 14 / S;
   let best = null, bd = 1e9;
+  if (dgShown()) {
+    dgnEach(x - tol, y - tol, x + tol, y + tol, (o) => {
+      const d = Math.hypot(o.x - x, o.y - y);
+      if (d < tol && d < bd) { bd = d; best = o; }
+    });
+    if (best) return dgnInfo(best);
+  }
   rxEach(x - tol, y - tol, x + tol, y + tol, (o) => {
     if (!rxShown(o)) return;
     const d = Math.hypot(o.x - x, o.y - y);

@@ -13,6 +13,8 @@ const biomeFiles = fs.readdirSync(path.join(base, 'biomes')).filter((f) => f.end
 for (const f of biomeFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'biomes', f + '.js'), 'utf8'));
 const monFiles = fs.readdirSync(path.join(base, 'monsters')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
 for (const f of monFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'monsters', f + '.js'), 'utf8'));
+const dgFiles = fs.readdirSync(path.join(base, 'dungeons')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
+for (const f of dgFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'dungeons', f + '.js'), 'utf8'));
 for (const f of worldFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'worlds', f, 'world.js'), 'utf8'));
 
 test('кожен файл реєструє світ/біом з id, що збігається з назвою файлу', () => {
@@ -21,8 +23,8 @@ test('кожен файл реєструє світ/біом з id, що збі�
 });
 test('registry.js актуальний (node tools/build-atlas-registry.mjs)', () => {
   const m = JSON.parse(fs.readFileSync(path.join(base, 'registry.js'), 'utf8').replace(/^[\s\S]*?Atlas\.manifest = /, '').replace(/;\s*$/, ''));
-  assert.deepEqual(m.worlds, worldFiles.sort().map((f) => `worlds/${f}/world.js`));
-  assert.deepEqual(m.biomes, biomeFiles.sort().map((f) => `biomes/${f}.js`));
+  assert.deepEqual(m.worlds, worldFiles.map((f) => `worlds/${f}/world.js`).sort());
+  assert.deepEqual(m.biomes, biomeFiles.map((f) => `biomes/${f}.js`).sort());
 });
 test('рівно один світ за замовчуванням, режим builtin або iframe з entry', () => {
   assert.equal(Atlas.worlds.filter((w) => w.default).length, 1);
@@ -37,13 +39,13 @@ test('вибір біомів: allow/deny/теги/ваги', () => {
   assert.equal(ids({ biomes: { allow: 'all' } }).length, Atlas.biomes.length);
   assert.ok(!ids({ biomes: { allow: 'all', deny: 'tag:water' } }).includes('sea'));
   assert.deepEqual(ids({ biomes: { allow: 'tag:cold+forest' } }), ['taiga']);
-  const r = Atlas.resolveBiomes({ biomes: { allow: ['grass', 'tag:mountain'], weights: { grass: 3, 'tag:cold': 0 } } });
+  const r = Atlas.resolveBiomes({ biomes: { allow: ['grass', 'tag:mountain'], deny: 'tag:exclusive', weights: { grass: 3, 'tag:cold': 0 } } });
   assert.deepEqual(r.map((x) => x.biome.id).sort(), ['grass', 'mountain']);
   assert.equal(r.find((x) => x.biome.id === 'grass').weight, 3);
 });
 test('дубль id і невідомий формат відхиляються', () => {
   assert.throws(() => Atlas.registerBiome({ format: 1, id: 'grass', name: 'x', color: '#000000', tags: ['a'] }), /вже/);
-  assert.throws(() => Atlas.registerWorld({ format: 2, id: 'zz', name: 'x', runner: 'builtin' }), /формат/);
+  assert.throws(() => Atlas.registerWorld({ format: 99, id: 'zz', name: 'x', runner: 'builtin' }), /формат/);
 });
 test('кожен файл монстра реєструє монстра з id = назві файлу, типом, природою й біомами', () => {
   assert.deepEqual(Atlas.monsters.map((m) => m.id).sort(), monFiles.slice().sort());
@@ -70,7 +72,77 @@ test('monstersFor фільтрує за типом і біомом', () => {
 });
 test('registry.js містить усі файли монстрів', () => {
   const m = JSON.parse(fs.readFileSync(path.join(base, 'registry.js'), 'utf8').replace(/^[\s\S]*?Atlas\.manifest = /, '').replace(/;\s*$/, ''));
-  assert.deepEqual(m.monsters, monFiles.slice().sort().map((f) => `monsters/${f}.js`));
+  assert.deepEqual(m.monsters, monFiles.map((f) => `monsters/${f}.js`).sort());
+});
+test('файли формату 1 і 2 співіснують; формат 2 додає лише необов\'язкове lore', () => {
+  assert.ok(Atlas.biomes.some((b) => b.format === 1) && Atlas.biomes.some((b) => b.format === 2));
+  assert.ok(Atlas.worlds.some((w) => w.format === 1) && Atlas.worlds.some((w) => w.format === 2));
+  assert.doesNotThrow(() => Atlas.registerBiome({ format: 1, id: 'zz-old', name: 'Старий формат', color: '#000000', tags: ['x'] }));
+  assert.doesNotThrow(() => Atlas.registerBiome({ format: 2, id: 'zz-new', name: 'Новий формат', color: '#000000', tags: ['x'], lore: { description: 'x' } }));
+  Atlas.biomes.splice(Atlas.biomes.findIndex((b) => b.id === 'zz-old'), 1);
+  Atlas.biomes.splice(Atlas.biomes.findIndex((b) => b.id === 'zz-new'), 1);
+});
+test('кожен файл підземелля реєструє підземелля з id = назві файлу й коректними розмірами та біомами', () => {
+  assert.deepEqual(Atlas.dungeons.map((d) => d.id).sort(), dgFiles.slice().sort());
+  for (const d of Atlas.dungeons) {
+    assert.ok(d.danger >= 1 && d.danger <= 5 && d.chance > 0 && d.chance <= 1, d.id);
+    assert.ok(d.inhabitants.length, d.id + ': немає мешканців');
+    assert.ok(d.lore && d.lore.description, d.id + ': немає опису');
+    if (d.spawn.biomes !== 'all') for (const b of d.spawn.biomes) assert.ok(Atlas.biomes.some((x) => x.id === b), d.id + ': невідомий біом ' + b);
+    if (d.spawn.worlds !== 'all') for (const w of d.spawn.worlds) assert.ok(Atlas.worlds.some((x) => x.id === w), d.id + ': невідомий світ ' + w);
+    for (const m of d.monsters) assert.ok(Atlas.monsters.some((x) => x.id === m), d.id + ': невідомий монстр ' + m);
+  }
+  assert.throws(() => Atlas.registerDungeon({ format: 1, id: 'q', name: 'x', anchor: { type: 'city' }, size: { rooms: [1, 2], length: [1, 2], area: [1, 2] }, spawn: { biomes: 'all', worlds: 'all' } }), /формат 2/);
+  assert.throws(() => Atlas.registerDungeon({ format: 2, id: 'q', name: 'x', anchor: { type: 'sky' }, size: { rooms: [1, 2], length: [1, 2], area: [1, 2] }, spawn: { biomes: 'all', worlds: 'all' } }), /прив/);
+  assert.throws(() => Atlas.registerDungeon({ format: 2, id: 'q', name: 'x', anchor: { type: 'city' }, size: { rooms: [5, 2], length: [1, 2], area: [1, 2] }, spawn: { biomes: 'all', worlds: 'all' } }), /size/);
+});
+test('підземелля прив\'язані логічно: під містами, у поселеннях, у місцях інтересу; у кожної прив\'язки є вибір', () => {
+  const f = (a, b = ['grass']) => Atlas.dungeonsFor(a, b, 'infinite').map((d) => d.id);
+  assert.ok(f({ type: 'city', tier: 4 }).includes('catacombs') && !f({ type: 'city', tier: 3 }).includes('catacombs'));
+  assert.ok(f({ type: 'settlement', state: 'ruined' }).includes('ruin-cellars') && f({ type: 'settlement', state: 'occupied' }).includes('occupied-warren'));
+  assert.ok(f({ type: 'poi', poi: 'ruins' }).includes('ancient-vault') && f({ type: 'poi', poi: 'mage_tower' }).includes('mage-cellar'));
+  assert.ok(f({ type: 'poi', poi: 'small_mine' }, ['mountain']).includes('mine') && !f({ type: 'poi', poi: 'small_mine' }, ['grass']).includes('mine'));
+  assert.deepEqual(f({ type: 'poi', poi: 'hollow-cavity' }, ['star-caverns']), [], 'підземелля чужого світу не з\'являються в нескінченному');
+  assert.deepEqual(Atlas.dungeonsFor({ type: 'poi', poi: 'hollow-cavity' }, ['star-caverns'], 'astrakor').map((d) => d.id), ['star-cavern']);
+});
+test('registry.js містить усі файли підземель', () => {
+  const m = JSON.parse(fs.readFileSync(path.join(base, 'registry.js'), 'utf8').replace(/^[\s\S]*?Atlas\.manifest = /, '').replace(/;\s*$/, ''));
+  assert.deepEqual(m.dungeons, dgFiles.map((f) => `dungeons/${f}.js`).sort());
+});
+test('назви біомів, монстрів і підземель не дублюються (використовуй наявні)', () => {
+  for (const [what, list] of [['біом', Atlas.biomes], ['монстр', Atlas.monsters], ['підземелля', Atlas.dungeons]]) {
+    const seen = new Map();
+    for (const x of list) { const k = x.name.toLowerCase(); assert.ok(!seen.has(k), what + ' «' + x.name + '»: дубль ' + seen.get(k) + ' і ' + x.id); seen.set(k, x.id); }
+  }
+});
+test('світи формату 2: усі посилання в lore існують і прив\'язані до цього світу', () => {
+  const full = Atlas.worlds.filter((w) => w.lore);
+  assert.ok(full.length >= 6, 'шість нових світів');
+  for (const w of full) {
+    const L = w.lore;
+    for (const k of ['concept', 'meaning', 'history', 'structure', 'sky', 'exploration']) assert.ok(typeof L[k] === 'string' && L[k].length > 20, w.id + ': немає ' + k);
+    for (const k of ['biomes', 'peoples', 'creatures', 'bosses', 'architecture', 'mechanics', 'resources', 'dungeons']) assert.ok(Array.isArray(L[k]) && L[k].length, w.id + ': порожнє ' + k);
+    assert.ok(L.visual && L.visual.palette.length >= 4 && L.visual.signature, w.id + ': немає вигляду');
+    assert.ok(L.structures && L.structures.under && L.structures.above, w.id + ': немає підземних і надземних споруд');
+    for (const b of L.biomes) assert.ok(Atlas.biomes.some((x) => x.id === b.id), w.id + ': біом ' + b.id);
+    for (const b of w.biomes.allow) assert.ok(Atlas.biomes.some((x) => x.id === b), w.id + ': дозволений біом ' + b);
+    for (const id of L.creatures.concat(L.bosses)) {
+      const m = Atlas.monsters.find((x) => x.id === id);
+      assert.ok(m, w.id + ': монстр ' + id);
+      assert.ok(m.spawn.worlds === 'all' || m.spawn.worlds.includes(w.id), w.id + ': ' + id + ' не з\'являється в цьому світі');
+    }
+    for (const id of L.bosses) assert.ok(Atlas.monsters.find((x) => x.id === id).kind !== 'monster', w.id + ': ' + id + ' не бос');
+    for (const id of L.dungeons) { const d = Atlas.dungeons.find((x) => x.id === id); assert.ok(d, w.id + ': підземелля ' + id); assert.ok(d.spawn.worlds === 'all' || d.spawn.worlds.includes(w.id), w.id + ': ' + id + ' не з\'являється в цьому світі'); }
+    assert.ok(w.preset && w.preset.theme, w.id + ': немає теми');
+  }
+});
+test('світи не змішують біоми один одного: біоми з тегом exclusive не потрапляють у старі світи', () => {
+  for (const id of ['continent', 'archipelago', 'island', 'pangea']) assert.ok(Atlas.resolveBiomes(Atlas.worldById(id)).every((r) => !r.biome.tags.includes('exclusive')), id);
+});
+test('тема кожного світу на рушії «Материк» існує в themes.js', () => {
+  const sb = { RealmMap: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(base, 'worlds/continent/render/themes.js'), 'utf8'), Object.assign(sb, { globalThis: sb }));
+  for (const w of Atlas.worlds) if (w.preset && w.preset.theme) assert.ok(sb.RealmMap.Themes[w.preset.theme], w.id + ': немає теми ' + w.preset.theme);
 });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

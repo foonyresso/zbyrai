@@ -1,6 +1,8 @@
 /* ---- малювання шарів карти королівств у нескінченному світі: морські шляхи, лігва й боси, місця, стани поселень ----
    Кожен шар має власний перемикач (RLAY.*); значки спільні з «Материком» (src/render/realm/icons-places.js) */
-var RLAY = { mo: true, bs: true, po: true, sr: true, st: true };
+var RLAY = { mo: true, bs: true, po: true, sr: true, st: true, dg: true };
+/* підземелля видно від масштабу, коли видно міста й місця інтересу */
+const dgShown = () => RLAY.dg && S >= .07;
 const rlIk = () => Math.max(.6, Math.min(1.5, Math.sqrt(S * 14)));
 /* масштаб, з якого видно тип монстрів: світові боси видно здалеку, слабких лише зблизька */
 const RL_KIND_S = { weak: .12, monster: .07, other: .07, "mini-boss": .035, boss: .02, "super-boss": .015, "world-boss": .008 };
@@ -49,6 +51,11 @@ function drawRealmObjects() {
       if (o.type) P.drawPoi(ctx, o, sx, sy, ik);
       else P.drawLair(ctx, o, sx, sy, ik * (o.scale || 1), 0);
     }
+  }
+  if (dgShown()) {
+    const dl = [];
+    dgnEach(x0 - 100, y0 - 100, x1 + 100, y1 + 100, (o) => dl.push(o));
+    for (const o of dl) P.drawDungeon(ctx, o, ox + o.x * S, oy + o.y * S, ik);
   }
   if (RLAY.st && S >= .05) {
     for (const v of vlist(x0 - 320, y0 - 320, x1 + 320, y1 + 320)) {

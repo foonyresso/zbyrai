@@ -6,7 +6,7 @@
 - `<інструмент>/style.css`: акцент (`--accent` у `:root`) та специфіка інструмента.
 - `index.html` + `assets/hub.css` + `assets/hub.js`: головна. Картка інструмента + клас кольору `.c-…` у `hub.css`.
 - `tools/ui-rules.test.js`: перевіряє правила інтерфейсу (довідка, верхня панель, підказки, тема). Список `TOOLS` у файлі ведеться вручну: додавайте туди новий інструмент.
-- `tools/build-atlas-registry.mjs`: збирає `medieval-world/registry.js` зі списку файлів `worlds/*/world.js`, `biomes/*.js` і `monsters/*.js` (а також генерує `src/data/realm/monsters-{mountain,forest,sea}.js`, їх не правити вручну; формат — docs/atlas/monster-files.md); `tools/atlas-registry.test.js` перевіряє формат і актуальність реєстру. Після додавання світу, біому чи монстра: запустити перший, потім другий.
+- `tools/build-atlas-registry.mjs`: збирає `medieval-world/registry.js` зі списку файлів `worlds/*/world.js`, `biomes/*.js` і `monsters/*.js` і `dungeons/*.js` (а також генерує `src/data/realm/monsters-{mountain,forest,sea}.js`, їх не правити вручну; формат — docs/atlas/monster-files.md); `tools/atlas-registry.test.js` перевіряє формат і актуальність реєстру. Після додавання світу, біому чи монстра: запустити перший, потім другий.
 - `sitemap.xml`, `robots.txt`: SEO; адреса `https://zbyrai.pages.dev` також у `canonical`/`og:url` кожної сторінки.
 - `README.md`: опис і команди тестів; `ROADMAP.md`: стан робіт і передача між діалогами.
 

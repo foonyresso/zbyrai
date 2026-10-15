@@ -1,10 +1,11 @@
-/* ---- Реєстр світів і біомів «Проекту Атлас» (формат 1) ----
-   Світ = один файл worlds/<id>/world.js, біом = один файл biomes/<id>.js. Файли самі себе реєструють
-   (Atlas.registerWorld / Atlas.registerBiome); ядро знає лише цей реєстр, а перелік файлів бере з registry.js,
-   який генерує `node tools/build-atlas-registry.mjs`. Документація: docs/atlas/world-files.md, docs/atlas/biome-files.md */
+/* ---- Реєстр світів, біомів, монстрів і підземель «Проекту Атлас» (формати 1 і 2) ----
+   Світ = worlds/<id>/world.js, біом = biomes/<id>.js, монстр = monsters/<id>.js, підземелля = dungeons/<id>.js. Файли самі себе
+   реєструють (Atlas.registerWorld / registerBiome / registerMonster / registerDungeon); ядро знає лише цей реєстр, а перелік файлів
+   бере з registry.js, який генерує `node tools/build-atlas-registry.mjs`. Формат 2 лише додає необов'язкове поле lore (повний опис для гри);
+   файли формату 1 працюють без змін. Документація: docs/atlas/{world,biome,monster,dungeon}-files.md */
 (function (root) {
   "use strict";
-  const A = { FORMAT: 1, worlds: [], biomes: [], monsters: [], manifest: { worlds: [], biomes: [], monsters: [] } };
+  const A = { FORMAT: 2, FORMATS: [1, 2], worlds: [], biomes: [], monsters: [], dungeons: [], manifest: { worlds: [], biomes: [], monsters: [], dungeons: [] } };
   /* Типи монстрів від найслабших до найсильніших. rank — сила; city/village — найменша відстань до краю міста (містечка й більші)
      та села/хутора (у світових одиницях нескінченного світу): чим сильніший тип, тим далі від людей. weakNear — частка слабких,
      що все ж трапляються ближче за village (лише біля сіл і хуторів, рідко). cell/gate — сітка й імовірність появи в нескінченному світі */
@@ -22,14 +23,14 @@
 
   A.registerWorld = function (w) {
     need(w, ["format", "id", "name", "runner"], "світ");
-    if (w.format !== A.FORMAT) throw new Error("світ " + w.id + ": невідомий формат " + w.format);
+    if (!A.FORMATS.includes(w.format)) throw new Error("світ " + w.id + ": невідомий формат " + w.format);
     if (A.worlds.some((x) => x.id === w.id)) throw new Error("світ " + w.id + " вже зареєстровано");
     A.worlds.push(Object.assign({ order: 100, extraActions: [], inherit: null, biomes: { allow: "all" } }, w));
     A.worlds.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, "uk"));
   };
   A.registerMonster = function (m) {
     need(m, ["format", "id", "name", "kind", "nature", "spawn"], "монстр");
-    if (m.format !== A.FORMAT) throw new Error("монстр " + m.id + ": невідомий формат " + m.format);
+    if (!A.FORMATS.includes(m.format)) throw new Error("монстр " + m.id + ": невідомий формат " + m.format);
     if (!A.monsterKinds[m.kind]) throw new Error("монстр " + m.id + ": невідомий тип " + m.kind);
     if (!A.monsterNatures[m.nature]) throw new Error("монстр " + m.id + ": невідома природа " + m.nature);
     if (A.monsters.some((x) => x.id === m.id)) throw new Error("монстр " + m.id + " вже зареєстровано");
@@ -38,9 +39,34 @@
   };
   A.registerBiome = function (b) {
     need(b, ["format", "id", "name", "color", "tags"], "біом");
-    if (b.format !== A.FORMAT) throw new Error("біом " + b.id + ": невідомий формат " + b.format);
+    if (!A.FORMATS.includes(b.format)) throw new Error("біом " + b.id + ": невідомий формат " + b.format);
     if (A.biomes.some((x) => x.id === b.id)) throw new Error("біом " + b.id + " вже зареєстровано");
     A.biomes.push(b);
+  };
+
+  /* підземелля: точка прив'язки anchor.type — city (місто), settlement (село, хутір; часто зруйноване), poi (місце інтересу) */
+  A.dungeonAnchors = { city: "місто", settlement: "поселення", poi: "місце інтересу" };
+  A.registerDungeon = function (d) {
+    need(d, ["format", "id", "name", "anchor", "size", "spawn"], "підземелля");
+    if (!A.FORMATS.includes(d.format) || d.format < 2) throw new Error("підземелля " + d.id + ": потрібен формат 2");
+    if (!A.dungeonAnchors[d.anchor.type]) throw new Error("підземелля " + d.id + ": невідома прив'язка " + d.anchor.type);
+    for (const k of ["rooms", "length", "area"]) if (!Array.isArray(d.size[k]) || d.size[k].length !== 2 || d.size[k][0] > d.size[k][1]) throw new Error("підземелля " + d.id + ": size." + k + " має бути [мін, макс]");
+    if (A.dungeons.some((x) => x.id === d.id)) throw new Error("підземелля " + d.id + " вже зареєстровано");
+    A.dungeons.push(Object.assign({ order: 1000, chance: 0.3, danger: 1, inhabitants: [], monsters: [] }, d));
+    A.dungeons.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+  };
+  /* підземелля, що підходять точці: anchor { type, tier?, state?, poi? }, біоми точки (id), світ */
+  A.dungeonsFor = function (anchor, biomeIds, worldId) {
+    const bs = (biomeIds || []).map((id) => A.biomes.find((b) => b.id === id)).filter(Boolean);
+    return A.dungeons.filter((d) => {
+      const a = d.anchor;
+      if (a.type !== anchor.type) return false;
+      if (a.tiers && !a.tiers.includes(anchor.tier)) return false;
+      if (a.states && !a.states.includes(anchor.state)) return false;
+      if (a.poi && !a.poi.includes(anchor.poi)) return false;
+      if (d.spawn.worlds !== "all" && !d.spawn.worlds.includes(worldId)) return false;
+      return bs.some((b) => [].concat(d.spawn.biomes).some((s) => A.matches(b, s)));
+    });
   };
 
   A.worldById = (id) => A.worlds.find((w) => w.id === id) || null;
@@ -74,7 +100,7 @@
   /* завантажує файли з registry.js по черзі (статичний сайт без сервера), повертає Promise */
   A.load = function () {
     /* async=false: файли вантажаться паралельно, а виконуються по черзі */
-    return Promise.all(A.manifest.biomes.concat(A.manifest.monsters, A.manifest.worlds).map((src) => new Promise((ok, no) => {
+    return Promise.all(A.manifest.biomes.concat(A.manifest.monsters, A.manifest.dungeons, A.manifest.worlds).map((src) => new Promise((ok, no) => {
       const s = document.createElement("script");
       s.src = src;
       s.async = false;
