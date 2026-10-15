@@ -165,7 +165,10 @@ function realmInfo(x, y) {
     if (d < tol && d < bd) { bd = d; best = o; }
   });
   if (!best) return null;
-  if (best.type) return { n: best.name, c: "Місце", d: (best.cls == "major" ? "Значне місце: до нього веде мала дорога." : "Дрібне місце: до нього веде стежка.") };
+  if (best.type) {
+    const r = best.type == "small_mine" ? mineRes(best) : null;
+    return { n: best.name, c: "Місце", d: (best.cls == "major" ? "Значне місце: до нього веде мала дорога." : "Дрібне місце: до нього веде стежка.") + (r ? " Ресурс: " + r.name + ", жила " + MINE_RICH[r.rich] + "." : "") };
+  }
   const K = Atlas.monsterKinds[best.mk], biome = Atlas.biomes.find((b) => b.id == best.biome);
   return {
     n: best.name, c: K.name,

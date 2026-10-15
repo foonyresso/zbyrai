@@ -11,7 +11,9 @@ function drawBase() {
   }
   if (F.rel) drawRel();
   if (WON) {
+    drawDanger();
     drawRoads();
+    drawObjectTrails();
     drawSeaRoutes();
     drawVillages();
     drawRealmObjects();
@@ -403,7 +405,7 @@ document.querySelectorAll("[data-rl]").forEach((b) => {
   b.onclick = () => {
     RLAY[b.dataset.rl] = !RLAY[b.dataset.rl];
     b.classList.toggle("on", RLAY[b.dataset.rl]);
-    if (b.dataset.rl == "sb" && WLD) { WLD.t.clear(); WLD.gl = null; }
+    if (b.dataset.rl == "sb" && WLD) { WLD.t.clear(); WLD.gl = null; WLD.dn = null; }
     bdirty = true;
     redraw();
   };
@@ -466,7 +468,7 @@ const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", 
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
   won: () => WON, wrd: () => WRD, wbd: () => WBD,
-  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st, rldg: () => RLAY.dg, rlpp: () => RLAY.pp, rlsb: () => RLAY.sb,
+  rlmo: () => RLAY.mo, rlbs: () => RLAY.bs, rlpo: () => RLAY.po, rlsr: () => RLAY.sr, rlst: () => RLAY.st, rldg: () => RLAY.dg, rlpp: () => RLAY.pp, rlsb: () => RLAY.sb, rldn: () => RLAY.dn,
   rmaj: () => WRT.major, rmed: () => WRT.medium, rmin: () => WRT.minor, rtrl: () => WRT.trail,
 };
 function toast(msg, ms = 1800) {

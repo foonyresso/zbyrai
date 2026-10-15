@@ -1,6 +1,6 @@
 /* ---- малювання шарів карти королівств у нескінченному світі: морські шляхи, лігва й боси, місця, стани поселень ----
    Кожен шар має власний перемикач (RLAY.*); значки спільні з «Материком» (src/render/realm/icons-places.js) */
-var RLAY = { mo: true, bs: true, po: true, sr: true, st: true, dg: true, pp: true, sb: true };
+var RLAY = { mo: true, bs: true, po: true, sr: true, st: true, dg: true, pp: true, sb: true, dn: false };
 /* підземелля видно від масштабу, коли видно міста й місця інтересу */
 const dgShown = () => RLAY.dg && S >= .07;
 const rlIk = () => Math.max(.6, Math.min(1.5, Math.sqrt(S * 14)));
@@ -48,7 +48,19 @@ function drawRealmObjects() {
     list.sort((a, b) => a.y - b.y);
     for (const o of list) {
       const sx = ox + o.x * S, sy = oy + o.y * S;
-      if (o.type) P.drawPoi(ctx, o, sx, sy, ik);
+      if (o.type) {
+        P.drawPoi(ctx, o, sx, sy, ik);
+        if (o.type == "small_mine" && S >= .1) {
+          const r = mineRes(o);
+          ctx.beginPath();
+          ctx.arc(sx + 7 * ik, sy + 6 * ik, (2.2 + r.rich * .7) * ik, 0, PI2);
+          ctx.fillStyle = r.color;
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "#2f2418";
+          ctx.stroke();
+        }
+      }
       else P.drawLair(ctx, o, sx, sy, ik * (o.scale || 1), 0);
     }
   }
@@ -102,4 +114,49 @@ function drawRealmObjects() {
       ctx.restore();
     }
   }
+}
+/* стежки до лігв і місць: малюються під значками, лише коли шар об'єктів і тип доріг «стежка/мала» увімкнені */
+function drawObjectTrails() {
+  if (!WRD || S < .06) return;
+  const m = OT_MAX + 300, can = S >= .12, x0 = -ox / S, y0 = -oy / S, x1 = (W - ox) / S, y1 = (H - oy) / S;
+  rxEach(x0 - m, y0 - m, x1 + m, y1 + m, (o) => {
+    if (!rxShown(o)) return;
+    const cls = otClass(o);
+    if (!WRT[cls]) return;
+    let g = WLD.lg.get("o" + o.id);
+    if (g === undefined && can) g = otTrail(o);
+    if (!g || !(g.bb[2] > x0 && g.bb[0] < x1 && g.bb[3] > y0 && g.bb[1] < y1)) return;
+    const [w, col, bw, bcol] = ROAD_STYLE[cls];
+    strokeRoad(g, Math.max(1, w * S), col, Math.max(2, bw * S), bcol, cls == "trail" ? [Math.max(3, 8 * S), Math.max(2, 5 * S)] : null);
+  });
+}
+/* карта небезпеки: напівпрозорий градієнт зелений → жовтий → червоний, клітинки згладжені масштабуванням малого растру */
+let dnCv = null;
+function drawDanger() {
+  if (!RLAY.dn || S < .008) return;
+  let cs = 250;
+  while (cs * S < 18) cs *= 2;
+  const i0 = Math.floor(-ox / S / cs) - 1, j0 = Math.floor(-oy / S / cs) - 1, i1 = Math.floor((W - ox) / S / cs) + 1, j1 = Math.floor((H - oy) / S / cs) + 1,
+    w = i1 - i0 + 1, h = j1 - j0 + 1;
+  if (w * h > 6000) return;
+  dnCv = dnCv || document.createElement("canvas");
+  dnCv.width = w;
+  dnCv.height = h;
+  const g = dnCv.getContext("2d"), im = g.createImageData(w, h), d = im.data;
+  for (let j = 0; j < h; j++) {
+    for (let i = 0; i < w; i++) {
+      const v = dangerCell(cs, i0 + i, j0 + j), o = (j * w + i) * 4;
+      if (v === undefined || v < 0) continue;
+      const t = Math.min(1, v * 1.15);
+      d[o] = t < .5 ? 60 + t * 2 * 190 : 250;
+      d[o + 1] = t < .5 ? 190 : 190 - (t - .5) * 2 * 150;
+      d[o + 2] = 60;
+      d[o + 3] = 40 + t * 120;
+    }
+  }
+  g.putImageData(im, 0, 0);
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(dnCv, ox + i0 * cs * S, oy + j0 * cs * S, w * cs * S, h * cs * S);
+  ctx.restore();
 }
