@@ -19,12 +19,12 @@
       document.querySelectorAll('#starTypes button').forEach(b => b.classList.toggle('on', sys && b.dataset.star === sys.star));
       document.querySelectorAll('#sysScale button').forEach(b => b.classList.toggle('on', b.dataset.scale === scale));
       if (sys) { $('rCount').value = sys.planets.length; $('oCount').textContent = sys.planets.length; }
-      $('btnToSys').hidden = on; document.querySelectorAll('.vp-bar > :not(#btnToSys)').forEach(e => e.style.display = on ? 'none' : '');
+      document.body.classList.toggle('view-system', on);
       const L = $('sysList'); L.replaceChildren();
       if (sys) sys.planets.forEach((p, i) => { const inf = PS.info(sys, i), b = document.createElement('button'); b.type = 'button'; b.className = 'sysrow' + (i === cur ? ' on' : ''); b.title = 'Відкрити планету «' + p.params.name + '»'; b.innerHTML = ''; const n = document.createElement('b'); n.textContent = p.params.name; const k = document.createElement('span'); k.textContent = PlanetCore.KINDS[p.params.kind].name + ' · ' + p.au + ' а.о. · ' + (inf.temp > 0 ? '+' : '') + inf.temp + ' °C' + (inf.inZone ? ' · зона життя' : ''); b.append(n, k); b.onclick = () => openPlanet(i); L.append(b); });
     }
     function ensure() { if (!sys) { make(A.state().seed, null, 0, true); } }
-    function enter() { ensure(); if (cur >= 0) syncBack(); on = true; persist(); render(); A.draw(); }
+    function enter() { A.deactivateOthers(ctrl); ensure(); if (cur >= 0) syncBack(); on = true; persist(); render(); A.draw(); }
     function openPlanet(i) { syncBack(); cur = i; on = false; zoom = 1; A.openPlanet(sys.planets[i].params); persist(); render(); }
     function leave() { syncBack(); on = false; persist(); render(); A.refresh(); }
     btnT.onclick = () => (on ? leave() : enter()); $('btnToSys').onclick = enter;
@@ -38,13 +38,14 @@
     cv.addEventListener('pointermove', e => { if (!on) return; const h = pick(e); if (h !== hover) { hover = h; cv.style.cursor = h >= 0 ? 'pointer' : ''; } });
     cv.addEventListener('click', e => { if (!on) return; const i = pick(e); if (i >= 0) openPlanet(i); });
     cv.addEventListener('wheel', e => { if (!on || scale !== 'real') return; e.preventDefault(); zoom = Math.min(12, Math.max(.4, zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); A.draw(); }, { passive: false });
-    A.attach({
+    const ctrl = {
       active: () => on && !!sys, tick: dt => { t += dt; },
       draw: (ctx, w, h, dpr) => { hits = PSV.draw(ctx, w, h, sys, { mode: scale, zoom, t, cur, hover, dpr }); },
       reroll: opts => fresh(!opts.keepKind),
       payload: () => { syncBack(); return { tool: 'planet-forge', system: sys }; },
-      load: s => { const c = PS.clampSystem(s); if (!c) return false; sys = c; cur = -1; on = true; persist(); render(); A.draw(); return true; },
-    });
+      load: d => { const c = d.system && PS.clampSystem(d.system); if (!c) return false; A.deactivateOthers(ctrl); sys = c; cur = -1; on = true; persist(); render(); A.draw(); return true; }, deactivate() { if (on) { on = false; persist(); render(); } },
+    };
+    A.attach(ctrl);
     render(); if (on) A.draw();
   };
   window.PFSystemInit();

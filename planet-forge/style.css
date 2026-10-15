@@ -93,3 +93,6 @@ details.how { max-height: 45vh; overflow: auto; }
 .sysrow b { font-size: 13px; } .sysrow span { font-size: 11px; color: var(--faint); font-weight: 400; }
 .sysrow.on { background: var(--accent-glow); border-color: var(--accent); }
 #cv { cursor: grab; }
+body[class*="view-"] .vp-bar > label, body[class*="view-"] #btnToSys { display: none; }
+body[class*="view-"] #cv { cursor: default; }
+body[class*="view-"] .vp-bar { display: none; }

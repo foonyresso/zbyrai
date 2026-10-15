@@ -161,5 +161,14 @@ test('зоряна система: детермінована, 3–9 плане�
   assert.ok(hot.planets[0].au > red.planets[8].au * .1);
 });
 
+test('літаючий континент: детермінований, плит не більше заданого, ручки змінюють світ, clampSky виправляє, randomSky у межах', () => {
+  const K = require('../planet-sky.js'); const a = K.generate({ seed: 'a', isl: 8 }); assert.deepEqual(a, K.generate({ seed: 'a', isl: 8 })); assert.ok(a.islands.length >= 3 && a.islands.length <= 8);
+  assert.notDeepEqual(a.islands, K.generate({ seed: 'b', isl: 8 }).islands);
+  assert.ok(K.generate({ seed: 'a', rivers: 1 }).islands.some(o => o.rivers.length) && K.generate({ seed: 'a', rivers: 0 }).islands.every(o => !o.rivers.length));
+  assert.ok(K.generate({ seed: 'a', bridges: 1 }).bridges.length >= K.generate({ seed: 'a', bridges: 0 }).bridges.length); assert.ok(K.generate({ seed: 'a', mist: 1 }).clouds.length > K.generate({ seed: 'a', mist: 0 }).clouds.length);
+  const c = K.clampSky({ isl: 99, size: -1, pal: 9, seed: 5 }); assert.equal(c.isl, 14); assert.equal(c.size, .5); assert.equal(c.pal, 3); assert.equal(c.seed, '5');
+  for (let i = 0; i < 40; i++) { const r = K.randomSky(); assert.deepEqual(r, K.clampSky(r)); }
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);
