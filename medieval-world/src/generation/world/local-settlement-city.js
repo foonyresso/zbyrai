@@ -236,7 +236,8 @@ function drawSettle(v) {
       path(p);
       ctx.fill();
     }
-    for (const b of L) if (!b.o) drawB(b);
+    const sst = v.tier < 3 ? rxState(v) : "normal";
+    for (const b of L) if (!b.o) { if (sst == "normal") drawB(b); else stDraw(b, sst); }
     drawWall();
   } finally {
     pplLeave(pp0);

@@ -40,11 +40,13 @@ function drawVillages() {
         ctx.lineWidth = 1;
         ctx.stroke();
         if (r > 6) {
+          const sst = RLAY.st && v.tier < 3 ? rxState(v) : "normal";
           for (let q = 0, n = 4 + v.tier * 5; q < n; q++) {
+            if (sst == "ruined" && H2(v.i, v.j, q + 600) < .5) continue;
             const a = H2(v.i, v.j, q + 300) * PI2,
               d = Math.sqrt(H2(v.i, v.j, q + 400)) * .65 * RB[v.tier],
               z = Math.max(1.6, 5 * S);
-            ctx.fillStyle = pplRoof(v, q);
+            ctx.fillStyle = sst == "normal" || sst == "occupied" ? pplRoof(v, q) : "#8a8374";
             ctx.fillRect(
               ox + (v.x + Math.cos(a) * d) * S - z / 2,
               oy + (v.y + Math.sin(a) * d) * S - z / 2,
