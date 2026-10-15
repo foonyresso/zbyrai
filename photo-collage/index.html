@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Колаж фото</title>
+<meta name="description" content="Колаж фото: закинь кілька картинок, задай розмір полотна, і вони самі розкладуться. Рандом розкладки, ручне пересування, експорт у PNG. Безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/photo-collage/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Колаж фото: автоматична розкладка картинок">
+<meta property="og:description" content="Кілька фото, полотно заданого розміру, авто-розкладка, рандом і ручне пересування, експорт у PNG.">
+<meta property="og:url" content="https://zbyrai.pages.dev/photo-collage/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M6 6h12v12H6zM20 6h6v6h-6zM20 14h6v12H20zM6 20h12v6H6z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5h10v10h-10zM15.5 3.5h5v6h-5zM15.5 11.5h5v9h-5zM3.5 15.5h10v5h-10z"/></svg><div>Колаж <span>фото</span></div></div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити налаштування колажу (розмір, проміжок, розкладку) з файлу .json; фото потрібно додати знову">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати налаштування й розкладку як JSON (самі фото не входять)">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити налаштування й розкладку як файл photo-collage.json">Зберегти .json</button>
+    <button class="btn-copy" id="btnPng" title="Завантажити готовий колаж як картинку PNG у повному розмірі">Зберегти .png</button>
+  </div>
+</header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div><h3>Що це</h3><p>Простий складальник колажів: кілька фото розкладаються по полотну заданого розміру, із легким обрізанням під пропорції комірок.</p></div>
+    <div><h3>Для чого</h3><p>Швидко зібрати афішу, обкладинку чи добірку фото в одну картинку без редактора.</p></div>
+    <div><h3>Як користуватися</h3>
+      <ol>
+        <li><b>Додай фото</b> кнопкою або перетягни їх на полотно.</li>
+        <li><b>Задай розмір</b> полотна й проміжок між фото.</li>
+        <li><b>«Розкласти інакше»</b> дає нову випадкову розкладку.</li>
+        <li><b>Перетягуй фото мишкою</b>, якщо хочеш посунути; подвійний клік повертає його на місце.</li>
+        <li><b>Збережи PNG</b> кнопкою угорі.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<main class="panes">
+  <section class="pane side">
+    <div class="pane-h"><h2>Параметри</h2></div>
+    <div class="pane-b">
+      <div class="row">
+        <button class="btn-main" id="btnAdd" title="Вибрати одне чи кілька фото з комп'ютера">＋ Додати фото</button>
+        <input type="file" id="fileImg" accept="image/*" multiple hidden>
+        <button id="btnShuffle" title="Згенерувати нову випадкову розкладку з тими самими фото">🎲 Розкласти інакше</button>
+      </div>
+      <label title="Готові пропорції полотна">Пропорції
+        <select id="preset" title="Готові пропорції полотна; «Свій» дозволяє задати ширину й висоту числами"></select></label>
+      <div class="row">
+        <label title="Ширина готової картинки в пікселях">Ширина, px <input type="number" id="cw" min="200" max="6000" step="10" title="Ширина полотна в пікселях (200–6000)"></label>
+        <label title="Висота готової картинки в пікселях">Висота, px <input type="number" id="ch" min="200" max="6000" step="10" title="Висота полотна в пікселях (200–6000)"></label>
+      </div>
+      <label title="Відстань між фото і до краю полотна">Проміжок, px <span id="gapV"></span>
+        <input type="range" id="gap" min="0" max="80" step="2" title="Проміжок між фото та від краю полотна, пікселів"></label>
+      <label title="Колір полотна, що видно в проміжках">Колір фону <input type="color" id="bg" title="Колір полотна в проміжках між фото"></label>
+      <div class="row">
+        <button id="btnReset" title="Повернути всі фото на місця поточної розкладки">Скинути пересування</button>
+        <button id="btnClear" title="Прибрати всі фото з полотна">Очистити</button>
+      </div>
+      <p class="hint" id="count">Фото: 0</p>
+    </div>
+  </section>
+
+  <section class="pane stage">
+    <div class="pane-h"><h2>Полотно</h2><span class="hint" id="info"></span></div>
+    <div class="pane-b" id="drop">
+      <canvas id="cv" title="Перетягуй фото, щоб посунути; подвійний клік повертає фото на місце"></canvas>
+      <div class="empty" id="empty">Перетягни сюди фото або натисни «Додати фото»</div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast">Скопійовано!</div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./collage-core.js"></script>
+<script src="./app.js"></script>
+<script src="./tool-chrome.js"></script>
+</body>
+</html>

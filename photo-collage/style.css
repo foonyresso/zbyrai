@@ -1,0 +1,38 @@
+/* Колаж фото — розмітка поверх спільної теми (theme.css). */
+:root { --accent: #7fc8a9; }
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; line-height: 1.45;
+  background: radial-gradient(1200px 420px at 50% -120px, rgba(127, 200, 169, .09), transparent 70%), var(--bg); }
+header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 18px;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; font-size: 20px; margin-right: 8px; white-space: nowrap; letter-spacing: .07em; }
+.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
+.brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
+.spacer { flex: 1; }
+.top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); color: var(--gold-ink); border-color: #d6bb82; font-weight: 700; }
+.btn-copy { background: transparent; border-color: var(--gold-lo); color: var(--gold-hi); font-weight: 600; }
+.btn-copy:hover { background: var(--gold-glow); border-color: var(--gold); }
+
+details.how { margin: 12px 18px 0; }
+.how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding: 10px 4px; }
+
+.panes { display: grid; grid-template-columns: 300px 1fr; gap: 14px; padding: 14px 18px; flex: 1; min-height: 0; }
+.pane { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.pane-h { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.pane-h h2 { margin: 0; }
+.pane-b { padding: 14px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.side label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted, #9a9aa5); }
+.side .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.side .row > * { flex: 1; }
+.hint { color: var(--faint); font-size: 12.5px; margin: 0; }
+
+.stage .pane-b { position: relative; align-items: center; justify-content: center; background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
+#cv { max-width: 100%; max-height: 100%; box-shadow: 0 8px 30px rgba(0, 0, 0, .5); touch-action: none; cursor: grab; }
+#cv.drag { cursor: grabbing; }
+.empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--faint); pointer-events: none; }
+.stage .pane-b.over { outline: 2px dashed var(--accent); outline-offset: -8px; }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--gold-lo); padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.on { opacity: 1; }
+
+@media (max-width: 760px) { .panes { grid-template-columns: 1fr; } .stage .pane-b { min-height: 320px; } }
