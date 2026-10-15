@@ -405,6 +405,7 @@ cv.ondblclick = (e) => {
 $("#gen").onclick = () => gen(true);
 $("#size").onchange = () => gen(false);
 $("#seed").onchange = () => gen(false);
+$("#shore").onchange =
 $("#riv").onchange =
   $("#sea").onchange =
   $("#lay").onchange =
@@ -435,7 +436,7 @@ resize();
 gen(false);
 
 /* ---------- збереження й обмін (верхня панель) ---------- */
-const SAVE_IDS = ["size", "seed", "lay", "bio", "riv", "sea", "wtype", "wseed"];
+const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", "wseed"];
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
   won: () => WON, wrd: () => WRD,

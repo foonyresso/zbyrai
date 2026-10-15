@@ -51,7 +51,15 @@ function drawWall() {
     sg = [];
   for (let k = 0; k < N; k++) {
     const k2 = (k + 1) % N;
-    if (RC && R[k] >= RC[k] - 3.5 && R[k2] >= RC[k2] - 3.5) continue;
+    /* на морському березі стін немає: воду прикриває сам берег, причали й порт.
+       Одне правило для всіх: відрізок біля води (обидва кінці ближче 9 до неї) без стіни. */
+    if (SE) {
+      const a1_ = -Math.PI + k / N * PI2, a2_ = a1_ + PI2 / N;
+      if (
+        seaD(Math.cos(a1_) * R[k], Math.sin(a1_) * R[k]) > -9 &&
+        seaD(Math.cos(a2_) * R[k2], Math.sin(a2_) * R[k2]) > -9
+      ) continue;
+    }
     const a1 = -Math.PI + k / N * PI2, a2 = a1 + PI2 / N;
     {
       const s = [

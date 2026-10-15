@@ -5,7 +5,7 @@
 | Інструмент | Папка | Логіка / дані | UI | Тести | Ключ LS |
 |---|---|---|---|---|---|
 | Кубик промптів | `prompt-dice/` | `pools.js`, `styles.js`, `types.js` | `app.js` | немає | `pd2_` |
-| Генератор середньовічних міст | `medieval-world/` | `src/core/city-core.js`, `src/data/buildings.js`, `src/generation/{city,world}/` | `src/main.js`, `src/ui/`, `src/render/` | немає | |
+| Генератор середньовічних міст | `medieval-world/` | `src/core/city-core.js`, `src/data/buildings.js`, `src/generation/{city,world}/` (вода: `city/coast-kinds.js` типи берега, `city/water.js` річка/море, `city/waterfront.js` причали, рибальські місця, маяк, млин) | `src/main.js`, `src/ui/`, `src/render/` | немає | |
 | Конструктор візерунків | `pattern-maker/` | `pattern-core.js`, `pattern-fx.js` | `app.js` | `test/fold.test.js`, `test/fx.test.js` | `pm_` |
 | Кузня луту | `loot-forge/` | `loot-core.js`, `gdd-core.js`, `gdd-data.js` | `app.js`, `loot-ui.js`, `gdd-ui.js` | `test/loot.test.js`, `test/gdd.test.js` | `lf_` |
 | Лабораторія дерев скілів | `skill-tree/` | `tree-core.js` | `app.js` | `test/tree.test.js` | `st_` |

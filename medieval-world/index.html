@@ -67,7 +67,7 @@
 <label title="Число, з якого створюється місто">Зерно</label><div class="row"><input id="seed" title="Зерно — число, з якого створюється місто. Те саме зерно й ті самі параметри дають те саме місто."></div>
 <label title="Форма стіни, доріг і воріт">Планування</label><select id="lay" title="Планування: форма стіни, доріг і воріт. Радіальне, решітка, звивисте, витягнуте. «Випадково» обирає за зерном."><option value="r">Випадково</option><option value="rad">Радіальне</option><option value="grid">Решітка</option><option value="wind">Звивисте</option><option value="long">Витягнуте</option></select>
 <label title="Колір землі, лісів і полів">Біом</label><select id="bio" title="Біом: колір землі, лісів і полів та відтінок будівель. «Випадково» обирає за зерном."><option value="r">Випадково</option><option value="grass">Луки</option><option value="snow">Сніг</option><option value="desert">Пустеля</option><option value="swamp">Болото</option></select>
-<label title="Річка й море">Вода</label><div class="row"><select id="riv" title="Чи буде через місто річка з мостами."><option value="r">Річка: авто</option><option value="1">Річка: є</option><option value="0">Річка: ні</option></select><select id="sea" title="Чи буде місто на узбережжі з причалами, кораблями та верф’ю."><option value="r">Море: авто</option><option value="1">Море: є</option><option value="0">Море: ні</option></select></div>
+<label title="Тип берега: вода визначає план міста">Берег</label><div class="row"><select id="shore" title="Тип берега міста. Авто — генератор обирає сам. Річка — рибальські місця, млин, мости. Море — затока з причалами й кораблями. Океан — довгий хвилястий берег, хвилеріз і маяк. Дельта — і річка, і море."><option value="r">Берег: авто</option><option value="none">Суходіл</option><option value="river">Річка</option><option value="sea">Море</option><option value="ocean">Океан</option><option value="delta">Річка й море</option></select></div><label title="Точне налаштування води">Вода</label><div class="row"><select id="riv" title="Чи буде через місто річка з мостами."><option value="r">Річка: авто</option><option value="1">Річка: є</option><option value="0">Річка: ні</option></select><select id="sea" title="Чи буде місто на узбережжі з причалами, кораблями та верф’ю."><option value="r">Море: авто</option><option value="1">Море: є</option><option value="0">Море: ні</option></select></div>
 <button id="gen" title="Створити нове місто з випадковим зерном і поточними налаштуваннями." class="pri">Згенерувати</button></section>
       <section class="pn" data-pn="b">
         <button class="chip" id="mag"
@@ -110,6 +110,8 @@
     <script src="src/core/city-core.js"></script>
     <script src="src/generation/city/water.js"></script>
     <script src="src/render/city-water.js"></script>
+    <script src="src/generation/city/coast-kinds.js"></script>
+    <script src="src/generation/city/waterfront.js"></script>
     <script src="src/generation/city/layout.js"></script>
     <script src="src/generation/city/setup.js"></script>
     <script src="src/ui/city-editor.js"></script>

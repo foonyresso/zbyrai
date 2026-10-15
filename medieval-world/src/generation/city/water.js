@@ -4,16 +4,10 @@ const pb = (o) => {
     !(CP && (pip(CP, o.cx, o.cy) || o.poly.some((q) => pip(CP, q[0], q[1]))))
   ) B.push(o);
 };
-const SEB = (q) => {
-    const a = Math.abs(q);
-    return a < 900
-      ? 0
-      : sst(900, 1900, a) * (vn(q * .0016, 5.5, SE.sb) - .5) * 900;
-  },
-  seaD = (x, y) => {
-    const q = -x * SE.uy + y * SE.ux;
-    return (x * SE.ux + y * SE.uy) - (SE.D + 4 * Math.sin(q * .04) + SEB(q));
-  };
+const seaD = (x, y) => {
+  const q = -x * SE.uy + y * SE.ux;
+  return (x * SE.ux + y * SE.uy) - shoreAt(q);
+};
 function rivD(x, y) {
   let m = 1e9;
   const P = RV.pts;
@@ -33,19 +27,35 @@ function rivD(x, y) {
 function water() {
   const r = mk(seed + "wt"),
     op = (v) => v == "1" ? 1 : v == "0" ? 0 : null,
-    ro = op($("#riv").value),
-    so = op($("#sea").value),
-    hr = ro !== null ? ro : r() < .45,
-    hsea = so !== null ? so : (tier >= 2 && r() < .3),
+    sh = pickShore(r, tier, $("#shore").value, op($("#riv").value), op($("#sea").value)),
+    hr = sh.river,
     mx = Rm * 1.6 + 80;
   RV = null;
   SE = null;
   RC = null;
+  SHORE = sh.sea ? (hr ? "delta" : sh.sea) : hr ? "river" : "none";
+  if (sh.sea) {
+    const a = r() * PI2;
+    SE = {
+      ux: Math.cos(a),
+      uy: Math.sin(a),
+      kind: sh.sea,
+      D: Rm * (sh.sea == "ocean" ? .85 : .75),
+      a,
+      sb: hs(seed + "sb"),
+      /* море — затока: вода підходить ближче по боках; океан — майже пряма хвиляста лінія */
+      bayR: Rm * 3,
+      bayMax: sh.sea == "sea" ? Rm * .55 : 0,
+    };
+    if (sh.sea == "ocean") SE.bayR = 1e9;
+  }
   if (hr) {
-    const a = r() * PI2,
+    /* з морем річка тече до моря (під невеликим кутом до берега); без моря — у довільному напрямку */
+    const a = SE ? SE.a + (r() - .5) * 1.1 : r() * PI2,
       ux = Math.cos(a),
       uy = Math.sin(a),
-      off = (r() - .5) * Rm * .5,
+      bank = !SE && r() < .35,
+      off = bank ? (r() < .5 ? -1 : 1) * Rm * .6 : (r() - .5) * Rm * .5,
       A = Rm * .12,
       ph = r() * 6,
       pts = [];
@@ -92,15 +102,7 @@ function water() {
       }
     }
   }
-  if (hsea) {
-    const a = r() * PI2;
-    SE = {
-      ux: Math.cos(a),
-      uy: Math.sin(a),
-      D: Rm * .8,
-      a,
-      sb: hs(seed + "sb"),
-    };
+  if (SE) {
     if (RV) {
       /* річка закінчується гирлом на березі, а не тече морем */
       const P = RV.pts;
@@ -129,5 +131,9 @@ function clampSea() {
     while (q < PR * 1.5 && seaD(Math.cos(a) * q, Math.sin(a) * q) < 0) q += 1;
     return q;
   });
-  R = R.map((v, k) => Math.max(10, Math.min(v, RC[k] - 3)));
+  /* місто розтягується вздовж берега (а не зрізається колом), далі береже відступ від води */
+  R = R.map((v, k) => {
+    const a = -Math.PI + k / N * PI2;
+    return Math.max(10, Math.min(v * shoreStretch(a), RC[k] - 3));
+  });
 }

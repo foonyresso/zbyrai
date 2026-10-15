@@ -268,7 +268,7 @@ function build() {
     dc.push(...P);
   }
   const kd = (x, y) => {
-      if (SE && seaD(x, y) > -28) return "port";
+      if ((SE && seaD(x, y) > -28) || (RV && tier >= 1 && rivD(x, y) < RV.w / 2 + 14)) return "port";
       if (CS && Math.hypot(x - CS.x, y - CS.y) < CS.r + 32) return "rich";
       let a = 0, ad = 1e9, b = 0, bd = 1e9;
       dc.forEach((c, i) => {
@@ -549,38 +549,7 @@ function build() {
   ).forEach((b, i) => b.t = sp[i]);
   B.push(mkb(tier >= 2 ? "fountain" : "well", "c", rp(0, 0, 3, 3, 0)));
   if (CAS) B.push(CAS);
-  if (SE) {
-    const u = [SE.ux, SE.uy],
-      nn = [-SE.uy, SE.ux],
-      th = SE.a - Math.PI / 2,
-      sp2 = mk(seed + "pr");
-    for (let q = -mx; q <= mx; q += 24) {
-      const d = SE.D + 4 * Math.sin(q * .04),
-        px = u[0] * d + nn[0] * q,
-        py = u[1] * d + nn[1] * q,
-        j = sp2();
-      if (Math.hypot(px, py) > Rat(Math.atan2(py, px)) + 10) continue;
-      B.push(
-        mkb("pier", "p" + q, rp(px + u[0] * 5, py + u[1] * 5, 3, 16, th), 1),
-      );
-      if (j < .55) {
-        B.push(
-          mkb(
-            "ship",
-            "s" + q,
-            rp(
-              px + u[0] * (26 + j * 30) + nn[0] * 5,
-              py + u[1] * (26 + j * 30) + nn[1] * 5,
-              5,
-              13,
-              th + (j - .3) * .3,
-            ),
-            1,
-          ),
-        );
-      }
-    }
-  }
+  waterfront(mx);
   const fs = [],
     so = mk(seed + "o"),
     gp = (a) => G.some((g) => Math.abs(nrm(a - g)) * (Rat(a) + 30) < 12);

@@ -9,18 +9,18 @@ function drawSea() {
     ) => [ox + (u[0] * d + n[0] * q) * S, oy + (u[1] * d + n[1] * q) * S],
     cl = () => {
       for (let q = -M; q <= M; q += 10) {
-        const z = P(q, SE.D + 4 * Math.sin(q * .04));
+        const z = P(q, shoreAt(q));
         q == -M ? ctx.moveTo(z[0], z[1]) : ctx.lineTo(z[0], z[1]);
       }
     };
   ctx.beginPath();
   cl();
-  let z = P(M, SE.D + M);
+  let z = P(M, shoreAt(M) + M);
   ctx.lineTo(z[0], z[1]);
-  z = P(-M, SE.D + M);
+  z = P(-M, shoreAt(-M) + M);
   ctx.lineTo(z[0], z[1]);
   ctx.closePath();
-  ctx.fillStyle = "#a8cde3";
+  ctx.fillStyle = SE.kind == "ocean" ? "#8fbad6" : "#a8cde3";
   ctx.fill();
   ctx.strokeStyle = "#6f9fbd";
   ctx.lineWidth = Math.max(1, 1.4 * S);
