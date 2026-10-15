@@ -134,5 +134,13 @@ test('clampParams: застарілі або чужі значення прив�
   const c = P.clampParams({ kind: 'lava', seed: 'q', sea: 5, heat: -3, moons: 9 }); assert.ok(c.sea <= .7 && c.heat >= .2 && c.moons <= 3); assert.equal(P.clampParams({ kind: 'nope' }).kind, 'earth');
 });
 
+test('фони: п’ять типів, у кожного ручки; clampBg виправляє, randomBg поважає замочок', () => {
+  const B = require('../planet-bg.js'); assert.ok(B.ORDER.length >= 5);
+  for (const id of B.ORDER) assert.ok(B.knobsOf(id).length >= 2 && B.TYPES[id].name && B.TYPES[id].tip);
+  const c = B.clampBg({ bg: 'x', bgArms: 99, bgDens: -4 }); assert.equal(c.bg, 'stars'); assert.equal(c.bgArms, 6); assert.equal(c.bgDens, .1);
+  const prev = B.clampBg({ bg: 'galaxy' }); assert.deepEqual(B.randomBg(prev, true), prev);
+  let n = 0; const seen = new Set(); for (let i = 0; i < 80; i++) { const r = B.randomBg(prev, false); seen.add(r.bg); n += r.bgArms >= 2 && r.bgArms <= 6 ? 1 : 0; } assert.equal(n, 80); assert.ok(seen.size >= 4);
+});
+
 console.log(failed ? `\nПровалено: ${failed} з ${total}` : `\nУсі ${total} тестів пройдено`);
 process.exit(failed ? 1 : 0);

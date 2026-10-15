@@ -73,3 +73,4 @@ details.fold[open] > summary::before { transform: rotate(90deg); }
 details.fold > summary h2 { margin: 0; }
 details.fold > summary b { color: var(--text); letter-spacing: .04em; }
 details.fold[open] { gap: 9px; }
+.bgtypes { margin-bottom: 4px; }

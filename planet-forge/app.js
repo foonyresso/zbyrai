@@ -2,15 +2,15 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const PC = PlanetCore;
+  const PC = PlanetCore, PB = PlanetBg;
   const store = {
     get(k, d) { try { const v = localStorage.getItem('pf_' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem('pf_' + k, JSON.stringify(v)); } catch {} },
   };
   const randSeed = () => Math.random().toString(36).slice(2, 8).padEnd(6, "0");
-  const UI = ['spin', 'sun', 'auto', 'locks'];
-  let st = Object.assign(PC.fromKind('earth', randSeed()), { spin: 40, sun: 35, auto: true, locks: {} });
-  { const saved = store.get('state3', null); if (saved && PC.KINDS[saved.kind]) Object.assign(st, saved); st = Object.assign(st, PC.clampParams(st)); if (!st.locks || typeof st.locks !== 'object') st.locks = {}; if (!st.name) st.name = PC.planetName(st.seed, st.kind); }
+  const UI = ['spin', 'sun', 'auto', 'locks', 'bg', ...Object.values(PB.KNOBS).map(o => o.k)];
+  let st = Object.assign(PC.fromKind('earth', randSeed()), { spin: 40, sun: 35, auto: true, locks: {} }, PB.defaults());
+  { const saved = store.get('state3', null); if (saved && PC.KINDS[saved.kind]) Object.assign(st, saved); st = Object.assign(st, PC.clampParams(st)); Object.assign(st, PB.clampBg(st)); if (!st.locks || typeof st.locks !== 'object') st.locks = {}; if (!st.name) st.name = PC.planetName(st.seed, st.kind); }
   const save = () => store.set('state3', st);
   const keepUI = () => Object.fromEntries(UI.map(k => [k, st[k]]));
   const KD = () => PC.KINDS[st.kind];
@@ -18,7 +18,7 @@
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v)), smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
-  let tex = null, info = null, spin = st.spin * Math.PI / 180, cloudDrift = 0, stars = [], lastT = 0;
+  let tex = null, info = null, spin = st.spin * Math.PI / 180, cloudDrift = 0, lastT = 0, bgT = 0, texVer = 0, sphereSig = '';
   const cv = $('cv'), ctx = cv.getContext('2d'), view = $('view'), sphere = document.createElement('canvas'), sctx = sphere.getContext('2d');
 
   /* ---------- вибірка текстури (білінійна, з обгорткою по довготі) ---------- */
@@ -65,13 +65,11 @@
   }
 
   /* ---------- сцена: зорі, кільця, супутники, планета ---------- */
-  function makeStars() { const R = PC.rngFromSeed('stars:' + st.seed); stars = Array.from({ length: 170 }, () => ({ x: R(), y: R(), r: .3 + R() * 1.1, a: .25 + R() * .75 })); }
-  function draw() {
+    function draw() {
     if (!tex) return;
     const dpr = Math.min(devicePixelRatio || 1, 1.5), w = view.clientWidth, h = view.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#05060d'; ctx.fillRect(0, 0, w, h);
-    for (const s of stars) { ctx.globalAlpha = s.a; ctx.fillStyle = '#fff'; ctx.fillRect(s.x * w, s.y * h, s.r, s.r); } ctx.globalAlpha = 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); PB.draw(ctx, w, h, st, st.seed, bgT);
     const cx = w / 2, cy = h / 2 - 10, Rp = Math.min(w, h) * (st.ring ? .3 - .05 * (st.ringw ?? .5) : .33), tilt = st.tilt * Math.PI / 180, k = .24;
     const phi = st.sun * Math.PI / 180, lx = -Math.cos(phi), lz = Math.sin(phi);
     const moons = info.moons;
@@ -88,7 +86,7 @@
     };
     if (st.ring) ring(Math.PI, Math.PI * 2);
     ctx.restore();
-    const S = Math.round(Rp * 2 * 1.12) ; renderSphere(S, Rp); ctx.drawImage(sphere, cx - S / 2, cy - S / 2);
+    const S = Math.round(Rp * 2 * 1.12), sig = [S, spin.toFixed(4), cloudDrift.toFixed(4), st.sun, st.tilt, texVer].join('|'); if (sig !== sphereSig) { renderSphere(S, Rp); sphereSig = sig; } ctx.drawImage(sphere, cx - S / 2, cy - S / 2);
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(tilt); if (st.ring) ring(0, Math.PI);
     for (const m of moons) if (Math.sin(m.phase) >= 0) drawMoon(m);
     ctx.restore();
@@ -97,9 +95,9 @@
   /* ---------- генерація текстури: швидка чернетка, потім повна ---------- */
   let genTimer = 0, fullTimer = 0;
   const genParams = () => Object.assign({}, st);
-  function generate(W, H) { tex = PC.generateTexture(genParams(), W, H); info = PC.describe(genParams(), tex); }
+  function generate(W, H) { texVer++; tex = PC.generateTexture(genParams(), W, H); info = PC.describe(genParams(), tex); }
   function regenerate() {
-    clearTimeout(genTimer); clearTimeout(fullTimer); makeStars();
+    clearTimeout(genTimer); clearTimeout(fullTimer);
     genTimer = setTimeout(() => { generate(256, 128); renderCard(); draw(); }, 0);
     fullTimer = setTimeout(() => { generate(640, 320); renderCard(); draw(); }, 350);
   }
@@ -138,8 +136,22 @@
     }
   }
   for (const [id, key] of [['lkKind', 'kind'], ['lkSeed', 'seed'], ['lkName', 'name'], ['lkRing', 'ring']]) { const b = $(id); b.dataset.lock = key; b.title = 'Зафіксувати: «Повний рандом» і «Рандом налаштувань» цього не змінять'; b.onclick = () => { st.locks[key] = !st.locks[key]; save(); syncLocks(); }; }
+  /* ---------- фон ---------- */
+  let bgBuilt = '';
+  function buildBg() {
+    const key = st.bg; if (bgBuilt === key) return; bgBuilt = key;
+    const tb = $('bgTypes'); tb.replaceChildren(...PB.ORDER.map(id => { const b = document.createElement('button'); b.type = 'button'; b.dataset.bg = id; b.textContent = PB.TYPES[id].name; b.title = PB.TYPES[id].tip; b.onclick = () => { st.bg = id; save(); sync(); draw(); }; return b; }));
+    const box = $('bgCtl'); box.replaceChildren();
+    for (const o of PB.knobsOf(st.bg)) {
+      const out = el('output', { id: 'o_' + o.k }), inp = el('input', { type: 'range', id: 'r_' + o.k, min: o.min, max: o.max, step: o.f === 'int' ? 1 : .01 });
+      inp.addEventListener('input', e => { st[o.k] = +e.target.value; out.textContent = FMT[o.f](st[o.k]); save(); draw(); });
+      box.append(el('div', { class: 'ctl', title: o.tip }, el('span', {}, o.l), out, el('span'), inp));
+    }
+  }
+  function syncBg() { buildBg(); document.querySelectorAll('#bgTypes button').forEach(b => b.classList.toggle('on', b.dataset.bg === st.bg)); for (const o of PB.knobsOf(st.bg)) { $('r_' + o.k).value = st[o.k]; $('o_' + o.k).textContent = FMT[o.f](st[o.k]); } }
+  $('lkBg').dataset.lock = 'bg'; $('lkBg').onclick = () => { st.locks.bg = !st.locks.bg; save(); syncLocks(); };
   function sync() {
-    buildControls();
+    buildControls(); syncBg();
     for (const kb of KD().knobs) { const r = $('r_' + kb.k); if (r) { r.value = st[kb.k]; $('o_' + kb.k).textContent = FMT[kb.f](st[kb.k]); } }
     $('tSeed').value = st.seed; $('tName').value = st.name || ''; $('cRing').checked = !!st.ring; $('cSpin').checked = st.auto; $('rSpin').value = Math.round(((spin * 180 / Math.PI) % 360 + 360) % 360); $('rSun').value = st.sun;
     document.querySelectorAll('.kinds button').forEach(b => b.classList.toggle('on', b.dataset.kind === st.kind));
@@ -158,7 +170,7 @@
     kb.append(el('h5', {}, grp[1]));
     for (const [k, v] of Object.entries(PC.KINDS)) if (v.group === grp[0]) { const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = k; b.textContent = v.name; b.onclick = () => { st = Object.assign(PC.switchKind(st, k, st.locks), keepUI()); save(); sync(); regenerate(); $('kindsFold').open = false; }; kb.append(b); }
   }
-  const reroll = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); save(); sync(); regenerate(); };
+  const reroll = opts => { st = Object.assign(PC.randomPlanet(st, st.locks, Math.random, opts), keepUI()); if (!opts.keepKind) Object.assign(st, PB.randomBg(st, st.locks.bg)); save(); sync(); regenerate(); };
   $('btnNew').onclick = () => reroll({ keepKind: true });
   $('btnSurprise').onclick = () => reroll({});
   addEventListener('keydown', e => { if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('btnNew').click(); } });
@@ -189,14 +201,14 @@
       const d = JSON.parse(await f.text()), p = d.params;
       if (!p || !PC.KINDS[p.kind] || !p.seed) throw new Error('bad');
       st = Object.assign(PC.fromKind(p.kind, String(p.seed)), p, { locks: st.locks });
-      st = Object.assign(st, PC.clampParams(st)); save(); sync(); regenerate(); toast('Планету завантажено');
+      st = Object.assign(st, PC.clampParams(st), PB.clampBg(st)); save(); sync(); regenerate(); toast('Планету завантажено');
     } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
   };
 
   /* ---------- цикл анімації ---------- */
   function frame(t) {
     const dt = Math.min(.1, (t - lastT) / 1000 || 0); lastT = t;
-    if (st.auto && tex && !drag && !document.hidden) { spin += dt * .35; cloudDrift = (cloudDrift + dt * .004) % 1; for (const m of info.moons) m.phase += dt * .35 * m.speed; draw(); }
+    if (tex && !drag && !document.hidden) { bgT += dt; if (st.auto) { spin += dt * .35; cloudDrift = (cloudDrift + dt * .004) % 1; for (const m of info.moons) m.phase += dt * .35 * m.speed; } if (st.auto || PB.animated(st)) draw(); }
     requestAnimationFrame(frame);
   }
   if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(view);
