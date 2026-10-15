@@ -9,7 +9,7 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
 .brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
 .spacer { flex: 1; }
-.work { flex: 1; position: relative; min-height: 520px; height: calc(100vh - 118px); overflow: hidden; background: #0b0b0f; touch-action: none; }
+.work { flex: 1; position: relative; min-height: 520px; height: calc(100vh - 118px); overflow: hidden; background: var(--bg); touch-action: none; }
 .work > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
 .work > canvas.drag { cursor: grabbing; }
 .rail { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
@@ -32,7 +32,9 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .floors button { background: color-mix(in srgb, var(--panel) 90%, transparent); } .floors button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
 .zoom { position: absolute; right: 12px; bottom: 12px; z-index: 3; display: flex; gap: 6px; }
 .zoom button { min-width: 38px; }
-.meta { position: absolute; right: 14px; bottom: 56px; text-align: right; margin: 0; z-index: 2; font-size: 12px; color: var(--faint); font-family: var(--ff-mono); pointer-events: none; text-shadow: 0 1px 3px #000; }
+/* статистика текстом під картою */
+.meta { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); width: min(1000px, calc(100% - 200px)); margin: 0; z-index: 2; font-size: 12px; line-height: 1.5; color: var(--muted); text-align: center; pointer-events: none; text-shadow: 0 1px 4px #000, 0 0 8px #000; }
+.work.shift .meta { left: calc(50% + 200px); width: min(1000px, calc(100% - 640px)); }
 .tip { position: absolute; z-index: 6; pointer-events: none; max-width: 260px; padding: 7px 10px; border-radius: 8px; background: var(--panel-3, #1b1b22); border: 1px solid var(--accent); font-size: 12px; line-height: 1.45; color: var(--text); box-shadow: var(--shadow-2); }
 .roomcard { position: absolute; right: 12px; top: 10px; width: min(330px, calc(100vw - 24px)); z-index: 5; padding: 12px 14px; max-height: calc(100% - 90px); overflow: auto; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); }
@@ -46,11 +48,9 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .info { font-size: 13px; line-height: 1.55; color: var(--muted); }
 .info b { color: var(--text); } .info p { margin: 3px 0; }
 .info .tag { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 11px; border: 1px solid var(--line); margin: 0 4px 2px 0; color: var(--accent-hi); }
-.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 12px; color: var(--muted); }
-.legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
   font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%); }
 #printArea { display: none; }
-@media (max-width: 760px) { header.top { padding: 10px 12px; } .bar { max-width: calc(100% - 20px); bottom: 58px; } .floors { top: 10px; left: 90px; transform: none; } .meta { display: none; } .roomcard { top: auto; bottom: 100px; } }
+@media (max-width: 760px) { header.top { padding: 10px 12px; } .bar { max-width: calc(100% - 20px); bottom: 58px; } .floors { top: 10px; left: 90px; transform: none; } .meta { width: calc(100% - 100px); left: calc(50% + 40px); bottom: 100px; font-size: 11px; } .roomcard { top: auto; bottom: 100px; } }
 @media print { body > *:not(#printArea) { display: none !important; } #printArea { display: block; } #printArea img { width: 100%; page-break-after: always; } #printArea h3 { color: #000; font: 600 14px sans-serif; } }

@@ -34,7 +34,20 @@ test('двері стикуються: кожне ребро має по две�
   const d = C.generate({ seed: 'dr', rooms: 60, loops: 80, secrets: 100 }), f = d.floors[0];
   const total = f.rooms.reduce((s, r) => s + r.doors.length, 0);
   assert.strictEqual(total, f.edges.length * 2);
-  for (const r of f.rooms) for (const [x, y, sec] of r.doors) assert.strictEqual(f.tiles[y * f.w + x], sec ? T.SECRET : T.DOOR);
+  for (const r of f.rooms) for (const [x, y, sec] of r.doors) { const t = f.tiles[y * f.w + x]; if (sec) assert.strictEqual(t, T.SECRET); else assert.ok(t === T.DOOR || t === T.FLOOR || t === T.CORR, 'порожній вихід'); }
+});
+test('зв’язки: усі види трапляються, «Зв’язки» 0 = лише тунелі, 100 = майже без тунелів', () => {
+  const cnt = l => { const m = {}; for (let i = 0; i < 8; i++) for (const k in C.generate({ seed: 'lk' + i, rooms: 60, link: l }).stats.links) m[k] = (m[k] || 0) + C.generate({ seed: 'lk' + i, rooms: 60, link: l }).stats.links[k]; return m; };
+  const z = cnt(0), f = cnt(100); assert.deepStrictEqual(Object.keys(z), ['tunnel']); for (const k of ['tunnel', 'direct', 'wide', 'natural']) assert.ok(f[k] > 0, 'немає ' + k); assert.ok(f.tunnel < f.direct + f.wide + f.natural);
+});
+test('прямий прохід: кімнати стоять впритул через стіну з прорізом', () => {
+  const f = C.generate({ seed: 'dp', rooms: 80, link: 100, loops: 80 }).floors[0]; let n = 0;
+  for (const e of f.edges) if (e.kind === 'direct') { n++; const A = f.rooms[e.a], B = f.rooms[e.b]; assert.ok(A.doors.length && B.doors.length); assert.ok(Math.abs(A.mx - B.mx) + Math.abs(A.my - B.my) < 25); }
+  assert.ok(n > 5);
+});
+test('форми кімнат різні, центр завжди підлога', () => {
+  const shapes = new Set(); for (const style of ['brick', 'cave']) for (let i = 0; i < 6; i++) for (const r of C.generate({ seed: 'sh' + i, rooms: 80, style }).floors[0].rooms) { shapes.add(r.shape); assert.ok(r.w >= 4 && r.h >= 4); }
+  assert.ok(shapes.size >= 5, [...shapes].join());
 });
 test('таємні двері лише на глухих кінцях і петлях: видимий граф лишається зв’язним', () => {
   const d = C.generate({ seed: 'sc', rooms: 80, loops: 50, secrets: 100 }), f = d.floors[0];

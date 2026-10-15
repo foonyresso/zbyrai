@@ -49,9 +49,9 @@
     <div>
       <h3>Як користуватися</h3>
       <ol>
-        <li><b>Меню зліва</b>: «Тип» (тип підземелля і його власні налаштування), «Форма» (кімнат від 3 до 300, поверхи, небезпека, ходи), «Вигляд», «Підсумок».</li>
+        <li><b>Меню зліва</b>: «Тип» (тип підземелля і його власні налаштування), «Форма» (кімнат від 3 до 300, поверхи, небезпека, ходи), «Вигляд» (шари). Статистика внизу карти.</li>
         <li><b>Натисни «Зарандомити»</b> (Пробіл) або підкрути «Розгалуження», «Петлі», «Таємниці», «Пастки».</li>
-        <li><b>Коліщатко</b> мишки наближає, <b>перетягування</b> рухає карту, <b>наведення чи клік по кімнаті</b> показує її вміст: істот (з бази монстрів світів), здобич, пастки.</li>
+        <li><b>Коліщатко</b> мишки наближає, <b>перетягування</b> рухає карту, <b>наведення на об'єкт (істоту, пастку, двері, підлогу кімнати) показує, що це; клік дає докладну картку. Наведення чи клік по кімнаті</b> показує її вміст: істот (з бази монстрів світів), здобич, пастки.</li>
         <li><b>Збережи</b> кнопками угорі: PNG, JSON, посилання, друк.</li>
       </ol>
     </div>
@@ -64,9 +64,8 @@
   <nav class="rail" id="rail" aria-label="Меню">
     <button data-panel="type" title="Тип підземелля з Атласу і його власні налаштування"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20V7h5v4h8V7h5v13z"/><path d="M10 20v-5h4v5"/></svg><span>Тип</span></button>
     <button data-panel="shape" title="Розмір, поверхи, небезпека, форма ходів, пастки, істоти, зерно"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M10 6.5h4M17.5 10v4M10 17.5h11"/></svg><span>Форма</span></button>
-    <button data-panel="look" title="Тема карти й шари: пастки, істоти, здобич, назви, таємні двері"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
-    <button data-panel="sum" title="Підсумок підземелля та умовні позначки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg><span>Підсумок</span></button>
-  </nav>
+    <button data-panel="look" title="Шари карти: особливості, пастки, істоти, здобич, назви, таємні двері"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
+</nav>
   <aside class="drawer" id="drawer" hidden>
     <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="type">
@@ -79,7 +78,6 @@
     </section>
     <section data-panel="shape"><h2>Розмір і форма</h2><div id="ctls" class="ctls"></div></section>
     <section data-panel="look"><h2>Вигляд</h2><div id="viewCtl" class="ctls"></div><div class="layers" id="layers"></div></section>
-    <section data-panel="sum"><h2>Підсумок</h2><div id="stats" class="info"></div><h2>Позначки</h2><div id="legend" class="legend"></div></section>
   </aside>
 
   <div class="bar">
