@@ -4,13 +4,14 @@
   var L = typeof require !== 'undefined' ? require('./layout.js') : root.AlbumLayout;
   var PR = typeof require !== 'undefined' ? require('../data/print-types.js') : root.AlbumPrint;
   var TP = typeof require !== 'undefined' ? require('./templates.js') : root.AlbumTemplates;
+  var CV = typeof require !== 'undefined' ? require('../data/cover-variants.js') : root.AlbumCoverVariants;
   var DS = typeof require !== 'undefined' ? require('../data/designs.js') : root.AlbumDesigns;
   var uid = 0;
   function newId() { return 's' + (++uid) + Math.floor(Math.random() * 1e6).toString(36); }
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverVar: 'classic', coverTitle: '', coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
   // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.
@@ -123,6 +124,7 @@
     fresh.forEach(function (n) { var i = freeGroup(sp); if (i < 0) rest.push(n); else { sp.slots[i] = n; placed++; } });
     return { placed: placed, rest: rest };
   }
+  function coverVar(st) { return CV.byId(st.coverVar || 'classic'); }
   function areaOf(st, si) { var z = zoneOf(st, si); return { W: z.W, H: z.H, d: DS.DESIGNS[st.designId] || DS.DESIGNS.classic }; }
   // «Пропустити зайві»: у вільні вікна шаблону йдуть фото, найближчі за пропорціями; решта ігнорується. aspectOf(name) -> ширина/висота.
   function fillBest(st, si, names, aspectOf) {
@@ -255,9 +257,9 @@
   function slotsFor(st, si, numMap) {
     var sp = st.spreads[si], z = zoneOf(st, si), W = z.W, H = z.H, d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic, items = [], ownerName = '';
     if (sp.type === 'cover') {
-      var c = L.coverLayout(W, H, z.sb, z), ow = ownerOf(st);
+      var cvv = coverVar(st), c = L.coverLayout(W, H, z.sb, z, cvv), ow = ownerOf(st);
       ownerName = ow ? ow.name : '';
-      if (!st.coverNoPhoto) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap) : null), caption: '', kind: 'cover' }); });
+      if (!st.coverNoPhoto && cvv.photo !== false) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap) : null), caption: '', kind: 'cover' }); });
     } else if (sp.type === 'first') {
       var pc = L.pageCenters(W, z.bleed, z.safe), f = L.firstLayout(W, H, z.sb, pc.left, pc.right), tl = teachers(st);
       if (tl.length) {
@@ -379,6 +381,6 @@
   }
   var api = { newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
-    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
+    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;
 })(typeof self !== 'undefined' ? self : this);

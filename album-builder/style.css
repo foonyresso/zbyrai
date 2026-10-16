@@ -110,3 +110,9 @@ input[type=color]::-webkit-color-swatch-wrapper { padding: 0; } input[type=color
 .swapthumb { width: 100%; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; background: #fff; display: block; }
 .gridopts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .gopt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px; font-size: 12px; } .gopt.on { border-color: var(--accent); background: var(--accent-glow); } .gopt canvas { width: 100%; border: 1px solid var(--line); } .gopt small { color: var(--faint); font-size: 10px; }
 .tapegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 120px; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; } .tapegrid button { padding: 6px; font-size: 16px; } .tapegrid button.on { border-color: var(--accent); background: var(--accent-glow); }
+
+.cvgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin: 8px 0; }
+.cvbtn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px; border: 1px solid var(--line, #d8d4cf); border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; }
+.cvbtn canvas { width: 100%; height: auto; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+.cvbtn small { color: var(--faint, #888); }
+.cvbtn.on { outline: 2px solid var(--accent, #3b82f6); }

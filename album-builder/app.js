@@ -509,6 +509,32 @@
     });
     box.appendChild(wrap);
   }
+  // Варіанти обкладинки дизайну «Класичний»: фільтр за категорією закладу, мініатюри, свій заголовок
+  var cvAll = false;
+  function coverVariantsUI(box) {
+    var CV = AlbumCoverVariants, cat = DS.CATEGORIES.filter(function (x) { return x.id === st.catId; })[0];
+    box.appendChild(el('h4', '', 'Варіант обкладинки'));
+    var lf = el('label', 'chk', null, 'Показати варіанти лише для категорії «' + (cat ? cat.name : '') + '» і універсальні'), cf = document.createElement('input'); cf.type = 'checkbox'; cf.checked = !cvAll;
+    cf.onchange = function () { cvAll = !cf.checked; buildObjPanel(); }; lf.appendChild(cf); lf.appendChild(document.createTextNode(' Лише для моєї категорії')); box.appendChild(lf);
+    var tl = el('label', '', 'Свій заголовок: '), ti = document.createElement('input'); ti.type = 'text'; ti.value = st.coverTitle || ''; ti.placeholder = 'за замовчуванням з варіанта'; ti.title = 'Замінює головний напис варіанта (порожньо = стандартний)';
+    ti.oninput = function () { st.coverTitle = ti.value; redraw(); save(); }; ti.onchange = function () { thumbs(); }; tl.appendChild(ti); box.appendChild(tl);
+    var list = (cvAll ? CV.VARIANTS : CV.forCat(st.catId)), grid = el('div', 'cvgrid'), z = PR.spreadSize(st.fmtId), k = 0.45;
+    box.appendChild(grid);
+    var fonts = {}; list.forEach(function (v) { CV.fontsOf(v.id).forEach(function (n) { fonts[n] = n; }); });
+    var ens = window.AlbumFonts && AlbumFonts.ensure ? AlbumFonts.ensure({ font: null, tf: fonts, spreads: [] }) : Promise.resolve();
+    list.forEach(function (v) {
+      var b = el('button', 'cvbtn' + ((st.coverVar || 'classic') === v.id ? ' on' : ''), null, v.name + ': ' + v.note), c = document.createElement('canvas'), cw = Math.round(z.W * k / 2);
+      c.width = cw; c.height = Math.round(z.H * k); b.appendChild(c); b.appendChild(el('span', '', v.name)); b.appendChild(el('small', '', v.photo ? 'з фото' : 'без фото'));
+      b.onclick = function () { st.coverVar = v.id; cur = 0; refresh(); };
+      grid.appendChild(b);
+      var draw = function () {
+        var full = document.createElement('canvas'); full.width = Math.round(z.W * k); full.height = c.height;
+        var tmp = Object.assign({}, st, { coverVar: v.id, coverNoPhoto: false }); tmp.spreads = st.spreads;
+        try { R.draw(full.getContext('2d'), tmp, 0, numMap, imgs, { pxPerMm: k, preview: true }); c.getContext('2d').drawImage(full, full.width - cw, 0, cw, full.height, 0, 0, cw, c.height); } catch (e) {}
+      };
+      draw(); ens.then(function (x) { if (x) draw(); });
+    });
+  }
   function buildObjPanel() {
     var box = $('objBody'); if (!box) return; box.textContent = ''; var sp = st.spreads[cur]; if (!sp) return;
     var it = selItem();
@@ -538,6 +564,7 @@
     if (sp.type === 'cover') {
       var lc = el('label', 'chk', null, 'Прибрати фото з обкладинки: лишається лише дизайн, рік і назва'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!st.coverNoPhoto;
       cb.onchange = function () { st.coverNoPhoto = cb.checked; refresh(); }; lc.appendChild(cb); lc.appendChild(document.createTextNode(' Обкладинка без фото')); box.appendChild(lc);
+      coverVariantsUI(box);
       box.appendChild(el('p', 'hint', 'Рік, прізвище й назву закладу клікни на макеті: тут з\'являться шрифт, регістр, колір і розмір.')); return;
     }
     if (sp.type === 'first') {

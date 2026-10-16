@@ -286,5 +286,15 @@ test('JSON туди й назад', () => {
   assert.strictEqual(S.fromJSON(S.toJSON(st)).spreads.length, st.spreads.length);
   assert.throws(() => S.fromJSON('{"v":2}'));
 });
+test('варіанти обкладинок: унікальні id, категорії існують, є для кожної категорії з фото й без, фото-варіанти мають місце фото', () => {
+  const CV = require('../data/cover-variants.js'), DSg = require('../data/designs.js'), L = require('../core/layout.js');
+  const ids = CV.VARIANTS.map(v => v.id); assert.strictEqual(new Set(ids).size, ids.length);
+  CV.VARIANTS.forEach(v => (v.cats || []).forEach(c => assert.ok(DSg.CATEGORIES.some(x => x.id === c), c)));
+  DSg.CATEGORIES.forEach(c => { const l = CV.forCat(c.id); assert.ok(l.some(v => v.photo) && l.some(v => !v.photo), c.id); });
+  CV.VARIANTS.filter(v => v.photo && !v.builtin).forEach(v => { const c = L.coverLayout(466, 236, 8, { bleed: 3, spine: 0 }, v); assert.ok(c.photo.y > 0 && c.photo.y + c.photo.h < 236 * 0.8); });
+  const st = S.newState(); st.coverVar = 'frame'; st.children = '1 А А'; S.buildSpreads(st); assert.strictEqual(S.fromJSON(S.toJSON(st)).coverVar, 'frame');
+  assert.ok(S.slotsFor(st, 0, new Map()).items.every(i => i.kind === 'cover'));
+  st.coverVar = 'abstract'; assert.strictEqual(S.slotsFor(st, 0, new Map()).items.length, 0);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

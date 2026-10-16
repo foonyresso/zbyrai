@@ -56,6 +56,14 @@
     };
     ctx.save(); ctx.setTransform(o.pxPerMm, 0, 0, o.pxPerMm, 0, 0);
     paintBg(ctx, W, H, sp.bg || st.bg, imgs, d.bg);
+    var cvv = sp.type === 'cover' ? S.coverVar(st) : null, cg = null;
+    if (cvv && !cvv.builtin) {
+      var cl = root.AlbumLayout.coverLayout(W, H, sb, info.z, cvv);
+      cg = { ctx: ctx, W: W, H: H, sb: sb, cx: cl.cx, x0: W / 2 + (info.z.spine || 0) / 2, x1: W - info.z.bleed, bx0: 0, bx1: W, tx: tx, fx: fx,
+        year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', t: function (s) { return st.coverTitle || s; }, t2: function (s) { return s; } };
+      if (!sp.bg) { var vb = cvv.bg; if (Array.isArray(vb)) { var vg = ctx.createLinearGradient(0, 0, 0, H); vg.addColorStop(0, vb[0]); vg.addColorStop(1, vb[1]); ctx.fillStyle = vg; } else ctx.fillStyle = vb || '#ffffff'; ctx.fillRect(0, 0, W, H); }
+      if (cvv.deco) { ctx.save(); cvv.deco(cg); ctx.restore(); }
+    }
     var yr = st.year || '', inst = st.inst.full || st.inst.short || '';
     var drawItem = function (it) {
       var r = it.rect, img = it.name && imgs.get(it.name);
@@ -96,7 +104,8 @@
       drawItem(it);
       if (it.pivot) ctx.restore();
     });
-    if (sp.type === 'cover') {
+    if (cg && cvv.text) { ctx.save(); cvv.text(cg); ctx.restore(); }
+    else if (sp.type === 'cover') {
       var cv = require_cover(W, H, sb, info.z);
       if (yr) tx('year', yr, cv.year.x, cv.year.y, cv.year.size, Math.min(cv.photo.w * 1.5, W * 0.4), 'fontLight', d.title, '200', 'center', 0.02);
       var ny = Math.min(cv.name.line, cv.name.y - H * 0.06);
