@@ -24,6 +24,12 @@
   }
   // Номери з назви файлу (без розширення), без нулів попереду.
   function fileRuns(fileName) { return numsOf(String(fileName).replace(/\.[^.]*$/, '')); }
-  var api = { parseChildren: parseChildren, parseTeachers: parseTeachers, fileRuns: fileRuns, numsOf: numsOf };
+  // Нормалізація списку: номери фото на початку рядка завжди з 4 цифр (1 → 0001), решта рядка без змін.
+  function pad4(text) {
+    return String(text || '').split(/\r?\n/).map(function (line) {
+      return line.replace(/\d+/g, function (m) { return m.length < 4 ? ('0000' + parseInt(m, 10)).slice(-4) : m; });
+    }).join('\n');
+  }
+  var api = { pad4: pad4, parseChildren: parseChildren, parseTeachers: parseTeachers, fileRuns: fileRuns, numsOf: numsOf };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumParse = api;
 })(typeof self !== 'undefined' ? self : this);

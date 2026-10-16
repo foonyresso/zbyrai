@@ -38,13 +38,25 @@
   }
   function fillForm() {
     $('instFull').value = st.inst.full; $('instShort').value = st.inst.short; $('year').value = st.year;
-    $('children').value = st.children; $('noAlbum').value = st.noAlbum; $('pairs').value = st.pairs || ''; $('teachers').value = st.teachers;
+    $('children').value = st.children; $('noAlbum').value = st.noAlbum; buildPairs(); $('teachers').value = st.teachers;
   }
   document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { showStep(+b.dataset.back); }; });
-  $('btnPair').onclick = function () { var t = $('pairs'); t.value = t.value.replace(/\s+$/, '') + (t.value.trim() ? '\n' : '') + ' + '; t.focus(); };
+  // Подвійні альбоми: окреме поле на кожну пару (два рядки), біля кожного хрестик
+  var pairVals = [];
+  function buildPairs() {
+    pairVals = (Array.isArray(st.pairs) ? st.pairs : []).slice(); var box = $('pairBox'); box.textContent = '';
+    pairVals.forEach(function (v, i) {
+      var w = el('label', 'pairf', 'Подвійний альбом ' + (i + 1) + ': два рядки «0000 0000 Прізвище Ім\'я» або «0000 Прізвище Ім\'я»', 'Двоє дітей з одного альбому: кожна дитина в окремому рядку, той самий формат'), t = document.createElement('textarea'), x = el('button', 'x2', '✕', 'Прибрати цей подвійний альбом');
+      t.rows = 2; t.value = v; t.placeholder = '0005 Іваненко Іван\n0006 Коваль Марія'; t.oninput = function () { pairVals[i] = t.value; };
+      x.type = 'button'; x.onclick = function () { pairVals.splice(i, 1); st.pairs = pairVals.slice(); buildPairs(); };
+      w.appendChild(t); w.appendChild(x); box.appendChild(w);
+    });
+  }
+  $('btnPair').onclick = function () { st.pairs = pairVals.concat(['']); buildPairs(); var ts = $('pairBox').querySelectorAll('textarea'); if (ts.length) ts[ts.length - 1].focus(); };
   $('btnOk').onclick = function () {
     st.inst.full = $('instFull').value.trim(); st.inst.short = $('instShort').value.trim(); st.year = $('year').value.trim();
-    st.children = $('children').value; st.noAlbum = $('noAlbum').value; st.pairs = $('pairs').value; st.teachers = $('teachers').value;
+    st.children = AlbumParse.pad4($('children').value); st.noAlbum = AlbumParse.pad4($('noAlbum').value); st.pairs = pairVals.map(AlbumParse.pad4).filter(function (v) { return v.trim(); }); st.teachers = AlbumParse.pad4($('teachers').value);
+    $('children').value = st.children; $('noAlbum').value = st.noAlbum; $('teachers').value = st.teachers;
     st.order = []; S.people(st);
     if (!st.spreads.length) S.buildSpreads(st); else S.resizePortrait(st);
     cur = Math.min(cur, st.spreads.length - 1); sel = null; showEditor();

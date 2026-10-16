@@ -85,7 +85,7 @@ test('візерунок клітинки: ставиться без текст�
   const AP = require('../data/patterns.js'); assert.ok(AP.LIST.length >= 30); assert.ok(AP.LIST.every(p => typeof p.draw === 'function'));
 });
 test('подвійні альбоми: пара = один альбом, портрет навпіл, один підпис, одна позиція в експорті', () => {
-  const st = S.newState(); st.children = '1 А А\n2 Б Б\n5 Іваненко Іван\n7 В В\n6 Коваль Марія\n9 Мельник Ольга\n10 Бондар Тарас'; st.pairs = '6 + 5\nМельник + 10'; S.buildSpreads(st);
+  const st = S.newState(); st.children = '1 А А\n2 Б Б\n5 Іваненко Іван\n7 В В\n6 Коваль Марія\n9 Мельник Ольга\n10 Бондар Тарас'; st.pairs = ['0006\n0005', 'Мельник Ольга\n0010']; S.buildSpreads(st);
   assert.strictEqual(S.people(st).length, 7); assert.strictEqual(S.albumKids(st).length, 5);
   const o = S.albumKids(st)[2]; assert.strictEqual(o.name, 'Іваненко Іван і Коваль Марія');
   st.owner = o.id; const nm = S.numMapOf(['5.jpg', '6.jpg']);
@@ -94,6 +94,9 @@ test('подвійні альбоми: пара = один альбом, пор�
   assert.strictEqual(S.slotsFor(st, 0, nm).ownerName, 'Іваненко Іван і Коваль Марія');
   S.setPhoto(st, 1, { t: 'fright', m: 1 }, 'x.jpg'); assert.strictEqual(S.slotsFor(st, 1, new Map()).items.filter(x => x.kind === 'portrait1')[1].name, 'x.jpg');
   assert.strictEqual(S.exportPlan(st).filter(p => p.si === 0).length, 5);
+});
+test('номери в списках нормалізуються до 4 цифр', () => {
+  const P2 = require('../core/parse.js'); assert.strictEqual(P2.pad4('1 22 Іваненко Іван\n005 Б Б'), '0001 0022 Іваненко Іван\n0005 Б Б');
 });
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
@@ -113,12 +116,13 @@ test('перший розворот: без вчителів — загальн�
   assert.strictEqual(it.filter(x => x.kind === 'teacher').length, 2);
   assert.strictEqual(it[0].name, '50.jpg'); assert.strictEqual(it[0].post, 'вчитель');
 });
-test('один номер: те саме фото на обкладинці, першому розвороті й у розкладці; два номери: дальній для обкладинки', () => {
+test('один номер: те саме фото на обкладинці, першому розвороті й у розкладці; два номери: перший на обкладинці й у сітці, другий лише на першому розвороті', () => {
   const st = S.newState(); st.children = '1 Іваненко Іван\n2 3 Коваль Марія'; S.buildSpreads(st);
   const m = S.numMapOf(['1.jpg', '2.jpg', '3.jpg']);
   assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '1.jpg');
   assert.strictEqual(S.slotsFor(st, 1, m).items.slice(-1)[0].name, '1.jpg');
-  st.owner = 1; assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '3.jpg');
+  st.owner = 1; assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '2.jpg');
+  assert.strictEqual(S.slotsFor(st, 1, m).items.slice(-1)[0].name, '3.jpg');
   assert.strictEqual(S.slotsFor(st, 0, m).ownerName, 'Коваль Марія');
   st.coverNoPhoto = true; assert.strictEqual(S.slotsFor(st, 0, m).items.length, 0);
 });

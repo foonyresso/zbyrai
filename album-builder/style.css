@@ -99,3 +99,4 @@ details.how { margin: 12px 18px 0; }
 .dots { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); display: flex; gap: 3px; }
 .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
 .dots i.new { background: #f0a028; box-shadow: 0 0 5px #f0a028; }
+.pairf { position: relative; } .pairf textarea { width: 100%; } .x2 { position: absolute; right: 4px; top: 0; width: 26px; height: 26px; padding: 0; line-height: 1; }

@@ -10,7 +10,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', pairs: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', pairs: [], noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
   // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.
@@ -21,10 +21,15 @@
     for (var k = 0; k < list.length; k++) if (list[k].pair == null && (norm(list[k].name) === nm || norm(list[k].name).split(' ').indexOf(nm) >= 0)) return k;
     return -1;
   }
+  // st.pairs: масив блоків; кожен блок — два рядки у форматі списку (одна пара). Старий рядковий формат «a + b» теж читається.
+  function pairBlocks(st) {
+    if (Array.isArray(st.pairs)) return st.pairs;
+    return String(st.pairs || '').split(/\r?\n/).filter(function (l) { return /[+\/]/.test(l); }).map(function (l) { return l.split(/\s*[+\/]\s*/).join('\n'); });
+  }
   function applyPairs(st, list) {
     var k = 0;
-    String(st.pairs || '').split(/\r?\n/).forEach(function (line) {
-      var hs = line.split(/\s*[+\/]\s*/).map(function (x) { return P.parseChildren(x)[0]; }).filter(Boolean).slice(0, 2);
+    pairBlocks(st).forEach(function (block) {
+      var hs = P.parseChildren(block).slice(0, 2);
       if (hs.length < 2) return;
       var idx = hs.map(function (h) { var f = findIn(list, h); if (f < 0) { h.kind = 'child'; list.push(h); f = list.length - 1; } return f; });
       if (idx[0] === idx[1]) return;
@@ -197,7 +202,7 @@
   function assignUnmatched(st, kind, names, numMap, si) {
     var map = kind === 'cover' ? st.coverPhotos : st.spreads[si].kidPhotos, kids = albumKids(st), n = 0;
     var un = names.filter(function (nm) { return !personByName(st, nm); }).sort();
-    var need = []; kids.forEach(function (o) { (o.members || [o]).forEach(function (p) { if (!map[p.id] && !photoFor(p, numMap, true)) need.push(p); }); });
+    var need = []; kids.forEach(function (o) { (o.members || [o]).forEach(function (p) { if (!map[p.id] && !photoFor(p, numMap, kind !== 'cover')) need.push(p); }); });
     un.forEach(function (nm) { var p = need.shift(); if (p) { map[p.id] = nm; n++; } });
     return n;
   }
@@ -241,7 +246,7 @@
     if (sp.type === 'cover') {
       var c = L.coverLayout(W, H, z.sb, z), ow = ownerOf(st);
       ownerName = ow ? ow.name : '';
-      if (!st.coverNoPhoto) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap, true) : null), caption: '', kind: 'cover' }); });
+      if (!st.coverNoPhoto) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap) : null), caption: '', kind: 'cover' }); });
     } else if (sp.type === 'first') {
       var f = L.firstLayout(W, H, z.sb), tl = teachers(st);
       if (tl.length) {
