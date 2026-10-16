@@ -99,10 +99,12 @@
     return out;
   }
   // sb = відстань від краю полотна до безпечної межі (виліт + безпечна зона): текст не заходить далі.
-  // Обкладинка: портрет майже квадратний (трохи витягнутий) на ~70% висоти, зверху до краю, по центру правої частини; рік перекриває його низ; підпис під ним.
-  function coverLayout(W, H, sb) {
-    sb = sb || 8; var ph = Math.min(H * 0.7, H - sb - 40), pw = ph * 0.85, cx = W * 0.78;
-    return { photo: { x: cx - pw / 2, y: 0, w: pw, h: ph }, year: { x: Math.min(cx + pw / 2 + W * 0.02, W - sb - 4), y: ph + H * 0.015, size: H * 0.2 }, name: { x: cx, y: Math.min(H * 0.915, H - sb - 3), line: ph + H * 0.1 } };
+  // Обкладинка = задня частина + корінець + передня на одному полотні. Центр передньої сторони: між краєм корінця (W/2 + spine/2) і лінією обрізу праворуч (W - bleed).
+  // Портрет майже квадратний (трохи витягнутий), ~70% висоти, зверху до краю; рік центрований і перекриває його низ; ім'я й заклад центровані під ним.
+  function coverLayout(W, H, sb, z) {
+    sb = sb || 8; var bleed = (z && z.bleed) || 3, spine = (z && z.spine) || 0;
+    var cx = ((W / 2 + spine / 2) + (W - bleed)) / 2, ph = Math.min(H * 0.7, H - sb - 40), pw = ph * 0.85;
+    return { cx: cx, photo: { x: cx - pw / 2, y: 0, w: pw, h: ph }, year: { x: cx, y: ph + H * 0.012, size: H * 0.2 }, name: { x: cx, y: Math.min(H * 0.915, H - sb - 3), line: ph + H * 0.1 } };
   }
   function firstLayout(W, H, sb) {
     sb = sb || 8;

@@ -9,7 +9,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, safe: null, coverSafe: null, spreads: [] };
+      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   function people(st) {
     var list = P.parseChildren(st.children).map(function (p) { p.kind = 'child'; return p; })
@@ -113,7 +113,7 @@
   function zoneOf(st, si) {
     var z = PR.spreadSize(st.fmtId), cover = st.spreads[si] && st.spreads[si].type === 'cover';
     var safe = cover ? (st.coverSafe == null ? DEF_COVER_SAFE : st.coverSafe) : (st.safe == null ? z.safe : st.safe);
-    return { W: z.W, H: z.H, bleed: z.bleed, safe: safe, sb: z.bleed + safe, pageW: z.pageW, pageH: z.pageH };
+    return { W: z.W, H: z.H, bleed: z.bleed, safe: safe, sb: z.bleed + safe, spine: st.spine == null ? z.spine : st.spine, pageW: z.pageW, pageH: z.pageH };
   }
   // Фото без збігу номера (інші назви файлів): іде людям без фото за порядком списку. Повертає скільки призначено.
   function assignUnmatched(st, kind, names, numMap, si) {
@@ -161,7 +161,7 @@
   function slotsFor(st, si, numMap) {
     var sp = st.spreads[si], z = zoneOf(st, si), W = z.W, H = z.H, d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic, items = [], ownerName = '';
     if (sp.type === 'cover') {
-      var c = L.coverLayout(W, H, z.sb), ow = ownerOf(st);
+      var c = L.coverLayout(W, H, z.sb, z), ow = ownerOf(st);
       ownerName = ow ? ow.name : '';
       if (!st.coverNoPhoto) items.push({ rect: c.photo, ref: { t: 'cover' }, name: (ow && st.coverPhotos[ow.id]) || (ow ? photoFor(ow, numMap, true) : null), caption: '', kind: 'cover' });
     } else if (sp.type === 'first') {

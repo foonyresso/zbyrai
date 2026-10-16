@@ -45,8 +45,8 @@
       }
     });
     if (sp.type === 'cover') {
-      var cv = require_cover(W, H, sb);
-      if (yr) fitText(ctx, yr, cv.year.x, cv.year.y, cv.year.size, W * 0.5, d.fontLight, d.title, '200', 'right', 0.02);
+      var cv = require_cover(W, H, sb, info.z);
+      if (yr) fitText(ctx, yr, cv.year.x, cv.year.y, cv.year.size, Math.min(cv.photo.w * 1.5, W * 0.4), d.fontLight, d.title, '200', 'center', 0.02);
       var ny = Math.min(cv.name.line, cv.name.y - H * 0.06);
       if (info.ownerName) fitText(ctx, info.ownerName.toUpperCase(), cv.name.x, ny, H * 0.036, W * 0.34, d.font, d.text, '400', 'center', 0.1);
       if (inst) fitText(ctx, inst.toUpperCase(), cv.name.x, ny + H * 0.055, H * 0.021, W * 0.34, d.font, '#9a9a9a', '400', 'center', 0.08);
@@ -67,7 +67,9 @@
         ctx.lineWidth = Math.max(0.3, 1.2 / o.pxPerMm); ctx.setLineDash([3, 2]);
         ctx.strokeStyle = 'rgba(224,70,70,.95)'; ctx.strokeRect(bl, bl, W - 2 * bl, H - 2 * bl);
         ctx.strokeStyle = 'rgba(240,160,40,.95)'; ctx.strokeRect(sf, sf, W - 2 * sf, H - 2 * sf);
-        ctx.strokeStyle = 'rgba(70,120,224,.9)'; ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(70,120,224,.9)'; ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+        if (z.spine > 0 && sp.type === 'cover') { ctx.beginPath(); ctx.moveTo(W / 2 - z.spine / 2, 0); ctx.lineTo(W / 2 - z.spine / 2, H); ctx.moveTo(W / 2 + z.spine / 2, 0); ctx.lineTo(W / 2 + z.spine / 2, H); ctx.stroke(); }
+        ctx.setLineDash([]);
       }
       if (o.sel) info.items.forEach(function (it) {
         if (JSON.stringify(it.ref) === JSON.stringify(o.sel)) { ctx.strokeStyle = '#b9a0e6'; ctx.lineWidth = Math.max(0.8, 3 / o.pxPerMm); ctx.strokeRect(it.rect.x, it.rect.y, it.rect.w, it.rect.h); }
@@ -96,6 +98,6 @@
     if (img) drawImg(ctx, img, inner, crop(st, it.name)); else { ctx.fillStyle = '#f1eeea'; ctx.fillRect(inner.x, inner.y, inner.w, inner.h); }
     ctx.restore();
   }
-  function require_cover(W, H, sb) { return root.AlbumLayout.coverLayout(W, H, sb); }
+  function require_cover(W, H, sb, z) { return root.AlbumLayout.coverLayout(W, H, sb, z); }
   root.AlbumRender = { draw: draw, crop: crop };
 })(typeof self !== 'undefined' ? self : this);

@@ -169,7 +169,9 @@ test('стилі групових розкладок: потрібна кіль�
 });
 test('обкладинка: портрет ~70% висоти, майже квадратний, у безпечній зоні', () => {
   const z = S.zoneOf((() => { const st = S.newState(); S.buildSpreads(st); return st; })(), 0), c = L.coverLayout(z.W, z.H, z.sb);
-  assert.ok(Math.abs(c.photo.h / z.H - 0.7) < 0.02); assert.ok(c.photo.h / c.photo.w > 1 && c.photo.h / c.photo.w < 1.4);
+  assert.ok(Math.abs(c.photo.h / z.H - 0.7) < 0.02);
+  const mid = ((z.W / 2 + z.spine / 2) + (z.W - z.bleed)) / 2; assert.ok(Math.abs(c.photo.x + c.photo.w / 2 - mid) < 1e-6, 'портрет по центру передньої сторони'); assert.ok(Math.abs(c.year.x - mid) < 1e-6 && Math.abs(c.name.x - mid) < 1e-6);
+  assert.ok(c.photo.x >= z.W / 2 && c.photo.x + c.photo.w <= z.W - z.bleed); assert.ok(c.photo.h / c.photo.w > 1 && c.photo.h / c.photo.w < 1.4);
 });
 test('вибіркове завантаження портретів: фото, що вже є на розворотах, пропускаються', () => {
   const st = S.newState(); st.children = Array.from({ length: 12 }, (_, i) => `${i + 1} Д${i} Д`).join('\n'); S.buildSpreads(st);

@@ -71,6 +71,8 @@
     <button class="btn-main" id="btnAdd" title="Вибрати фото з комп'ютера: портрети підтягнуться за номерами, на груповий розворот лягуть по порядку">＋ Додати фото</button>
     <input type="file" id="fileImg" accept="image/*" multiple hidden>
     <button id="btnLeftPhotos" hidden title="Додати фото на ліву сторінку першого розвороту: вчителі (за номерами або по порядку), а якщо вчителів нема, загальне фото">＋ Загальне фото</button>
+    <button id="btnShuffle" hidden title="Нова випадкова розкладка групових фото на цьому розвороті">🎲 Розкласти інакше</button>
+    <button id="btnStyle" hidden title="Змінити стиль розкладки групових фото: мозаїка, рівні ряди, вклеєні в альбом">Стиль</button>
     <button id="btnFolder" title="Вибрати цілу папку з фото">Папка</button>
     <input type="file" id="fileDir" webkitdirectory multiple hidden>
     <button id="btnPlus" title="Додати розворот: портретний або груповий">＋ Розворот</button>
@@ -98,6 +100,7 @@
       <label class="chk" title="Червоне: виліт, що точно обріжеться; червона лінія: обріз; жовта: безпечна межа, за яку не можна заходити текстом; синя: згин. У файл не потрапляють"><input type="checkbox" id="guides" checked> Виліт, обріз і безпечна зона</label>
       <div class="two"><label title="Безпечна межа від лінії обрізу для внутрішніх розворотів, мм">Безпечна межа, мм <input type="number" id="safeIn" min="0" max="40" step="0.5" title="Скільки мм від обрізу не заходити текстом (внутрішні розвороти)"></label>
         <label title="Безпечна межа для обкладинки (зазвичай більша), мм">Для обкладинки, мм <input type="number" id="coverSafeIn" min="0" max="60" step="0.5" title="Скільки мм від обрізу не заходити текстом на обкладинці"></label></div>
+      <label title="Ширина корінця (зазор між задньою й передньою частинами обкладинки), мм. Від неї залежить центр передньої сторони"><span>Корінець обкладинки, мм</span> <input type="number" id="spineIn" min="0" max="60" step="0.5" title="Ширина корінця в мм; поки 0 (невідомо)"></label>
       <p class="hint" id="safeInfo"></p><p class="hint" id="sizeInfo"></p></section>
   </aside>
   <div class="kids" id="kidStrip" hidden title="Діти зі списку: клік показує обкладинку й індивідуальні розвороти саме цієї дитини"></div>
