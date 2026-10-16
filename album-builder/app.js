@@ -526,18 +526,25 @@
     l.appendChild(inp); l.appendChild(b1); l.appendChild(b2); box.appendChild(l);
   }
   function cvTextFields(box) { ['ctitle', 'csub'].forEach(function (k) { cvTextField(box, k); }); }
-  var cvAll = false;
+  var cvAll = false, cvGrp = '';
   function coverVariantsUI(box) {
     var CV = AlbumCoverVariants, cat = DS.CATEGORIES.filter(function (x) { return x.id === st.catId; })[0];
     box.appendChild(el('h4', '', 'Варіант обкладинки'));
     var lf = el('label', 'chk', null, 'Показати варіанти лише для категорії «' + (cat ? cat.name : '') + '» і універсальні'), cf = document.createElement('input'); cf.type = 'checkbox'; cf.checked = !cvAll;
     cf.onchange = function () { cvAll = !cf.checked; buildObjPanel(); }; lf.appendChild(cf); lf.appendChild(document.createTextNode(' Лише для моєї категорії')); box.appendChild(lf);
+    var catList = (cvAll ? CV.VARIANTS : CV.forCat(st.catId)), gl = el('label', '', 'Група: '), gs = document.createElement('select'); gs.title = 'Показати лише варіанти однієї групи (стилю)';
+    var gOpt = function (v, t) { var o = document.createElement('option'); o.value = v; o.textContent = t; gs.appendChild(o); };
+    gOpt('', 'Усі групи (' + catList.length + ')'); CV.GROUPS.forEach(function (n) { var cnt = catList.filter(function (v) { return CV.groupOf(v) === n; }).length; if (cnt) gOpt(n, n + ' (' + cnt + ')'); });
+    if (cvGrp && !catList.some(function (v) { return CV.groupOf(v) === cvGrp; })) cvGrp = '';
+    gs.value = cvGrp; gs.onchange = function () { cvGrp = gs.value; buildObjPanel(); }; gl.appendChild(gs); box.appendChild(gl);
     cvTextFields(box);
-    var list = (cvAll ? CV.VARIANTS : CV.forCat(st.catId)), grid = el('div', 'cvgrid'), z = PR.spreadSize(st.fmtId), k = 0.45;
+    var list = cvGrp ? catList.filter(function (v) { return CV.groupOf(v) === cvGrp; }) : catList, grid = el('div', 'cvgrid'), z = PR.spreadSize(st.fmtId), k = 0.45, lastG = null;
     box.appendChild(grid);
     var fonts = {}; list.forEach(function (v) { CV.fontsOf(v.id).forEach(function (n) { fonts[n] = n; }); });
     var ens = window.AlbumFonts && AlbumFonts.ensure ? AlbumFonts.ensure({ font: null, tf: fonts, spreads: [] }) : Promise.resolve();
+    list = list.slice().sort(function (a, b) { return CV.GROUPS.indexOf(CV.groupOf(a)) - CV.GROUPS.indexOf(CV.groupOf(b)); });
     list.forEach(function (v) {
+      if (!cvGrp && CV.groupOf(v) !== lastG) { lastG = CV.groupOf(v); grid.appendChild(el('div', 'cvgh', lastG)); }
       var b = el('button', 'cvbtn' + ((st.coverVar || 'classic') === v.id ? ' on' : ''), null, v.name + ': ' + v.note), c = document.createElement('canvas'), cw = Math.round(z.W * k / 2);
       c.width = cw; c.height = Math.round(z.H * k); b.appendChild(c); b.appendChild(el('span', '', v.name)); b.appendChild(el('small', '', v.photo ? 'з фото' : 'без фото'));
       b.onclick = function () { st.coverVar = v.id; st.coverIndividual = v.general ? false : null; cur = 0; refresh(); };
@@ -545,7 +552,7 @@
       var draw = function () {
         var full = document.createElement('canvas'); full.width = Math.round(z.W * k); full.height = c.height;
         var tmp = Object.assign({}, st, { coverVar: v.id, coverNoPhoto: false }); tmp.spreads = st.spreads;
-        try { R.draw(full.getContext('2d'), tmp, 0, numMap, imgs, { pxPerMm: k, preview: true }); c.getContext('2d').drawImage(full, full.width - cw, 0, cw, full.height, 0, 0, cw, c.height); } catch (e) {}
+        try { R.draw(full.getContext('2d'), tmp, 0, numMap, imgs, { pxPerMm: k, preview: true, sample: true }); c.getContext('2d').drawImage(full, full.width - cw, 0, cw, full.height, 0, 0, cw, c.height); } catch (e) {}
       };
       draw(); ens.then(function (x) { if (x) draw(); });
     });

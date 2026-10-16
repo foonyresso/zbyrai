@@ -45,9 +45,20 @@
     var info = S.slotsFor(st, si, numMap), d = info.design, W = info.W, H = info.H, sp = st.spreads[si], sb = info.z.sb;
     var FT = root.AlbumFonts, hits = []; info.texts = hits;
     if (st.font && FT && FT.stack(st.font)) d = Object.assign({}, d, { font: FT.stack(st.font), fontLight: FT.stack(st.font) });
-    // Текст зі своїм шрифтом (st.tf[key]) і областю для клацання (hits)
+    // Умовне «фото» для мініатюр вибору обкладинки: градієнт, боке й силует (щоб було видно, як дизайн лягає на справжнє фото)
+  function sampleScene(ctx, r, k) {
+    var pal = [['#a9bb98', '#5b7550'], ['#a9bfd3', '#617f9b'], ['#d9b9a0', '#8f6a55']][k % 3], g = ctx.createLinearGradient(0, r.y, 0, r.y + r.h), cx = r.x + r.w / 2, u = Math.min(r.w, r.h * 0.8);
+    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip(); g.addColorStop(0, pal[0]); g.addColorStop(1, pal[1]); ctx.fillStyle = g; ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; for (var i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(r.x + r.w * ((i * 0.37) % 1), r.y + r.h * ((i * 0.23 + 0.1) % 0.7), u * (0.08 + (i % 3) * 0.04), 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#efe9df'; ctx.beginPath(); ctx.ellipse(cx, r.y + r.h * 1.02, u * 0.5, u * 0.34, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#e4b697'; ctx.fillRect(cx - u * 0.05, r.y + r.h * 0.6, u * 0.1, r.h * 0.2);
+    ctx.fillStyle = '#5a3b26'; ctx.beginPath(); ctx.ellipse(cx, r.y + r.h * 0.47, u * 0.2, u * 0.26, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e4b697'; ctx.beginPath(); ctx.ellipse(cx, r.y + r.h * 0.5, u * 0.14, u * 0.18, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#5a3b26'; ctx.beginPath(); ctx.ellipse(cx, r.y + r.h * 0.44, u * 0.16, u * 0.12, 0, Math.PI, 0); ctx.fill(); ctx.restore();
+  }
+  // Текст зі своїм шрифтом (st.tf[key]) і областю для клацання (hits)
     var fx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase) {
-      var ov = st.ts && st.ts[key] || {}, f = st.tf && st.tf[key] && FT && FT.stack(st.tf[key]) || d[kind || 'font'], k = ov.scale || 1;
+      var ov = st.ts && st.ts[key] || {}, f = st.tf && st.tf[key] && FT && FT.stack(st.tf[key]) || d[kind || 'font'] || FT && FT.stack(kind) || d.font, k = ov.scale || 1;
       return fitText(ctx, applyCase(text, defCase === 'as' ? null : ov.case, defCase), x, y, size * k, maxW * Math.max(1, k), f, ov.color || color, weight, align, spacing);
     };
     var tx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase) {
@@ -73,6 +84,7 @@
       if (img) drawImg(ctx, img, r, crop(st, it.name), rad);
       else if (it.dark) { ctx.fillStyle = '#1f1f23'; rrect(ctx, r, rad); ctx.fill(); if (o.preview) fitText(ctx, 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.1, r.w * 0.8, d.font, '#55555c'); }
       else if (it.kind === 'teacher') { ctx.fillStyle = d.ph; ctx.fillRect(r.x, r.y, r.w, r.h); }
+      else if (o.sample && (it.kind === 'cover' || it.kind === 'group')) sampleScene(ctx, r, it.ref && it.ref.i || 0);
       else if (o.preview && !it.text) {
         ctx.fillStyle = '#f4f2f0'; ctx.fillRect(r.x, r.y, r.w, r.h); ctx.strokeStyle = '#c9c4be'; ctx.setLineDash([2, 2]); ctx.lineWidth = 0.4; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1); ctx.setLineDash([]);
         fitText(ctx, it.kind === 'cell' ? 'клік: фото чи текст' : 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.12, r.w * 0.8, d.font, '#b5aea6');

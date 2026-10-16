@@ -383,13 +383,23 @@
   function byId(id) { return V.filter(function (v) { return v.id === id; })[0] || V[0]; }
   function forCat(catId) { return V.filter(function (v) { return !v.cats || v.cats.indexOf(catId) >= 0; }); }
   // Шрифти всіх написів варіанта (для завантаження перед малюванням)
-  function fontsOf(id) { var v = byId(id), out = {}, src = String(v.text || ''); (src.match(/'[A-Z][A-Za-z0-9 ]+'/g) || []).forEach(function (s) { out[s.slice(1, -1)] = 1; }); return Object.keys(out); }
+  function fontsOf(id) { var v = byId(id), out = {}, src = String(v.text || ''); (src.match(/'[A-Z][A-Za-z0-9 ]+'/g) || []).forEach(function (s) { out[s.slice(1, -1)] = 1; }); (v.fonts || []).forEach(function (n) { out[n] = 1; }); return Object.keys(out); }
   // Стандартні тексти варіанта (для полів редагування): { ctitle, csub }
   function defaults(id) {
     var v = byId(id), out = {}, cap = function (key, text) { if (key === 'ctitle' || key === 'csub') out[key] = text; return 0; };
     if (v.text) try { v.text({ H: 100, W: 200, cx: 150, x0: 100, x1: 200, sb: 8, year: '', owner: '', inst: '', t: function (x) { return x; }, t2: function (x) { return x; }, get: function (k, d) { cap(k, d); return d; }, tx: cap, fx: function () { return 0; } }); } catch (e) {}
     return out;
   }
-  var api = { shapePath: shapePath, defaults: defaults, VARIANTS: V, byId: byId, forCat: forCat, fontsOf: fontsOf, std: std };
+  // Групи варіантів для фільтра вибору обкладинки (порядок у списку). Варіант без grp потрапляє в «Інші».
+  var GROUPS = ['Фото й каліграфія', 'Типографіка й цифри', 'Мінімалізм і лукбук', 'Ніжні й весільні', 'Шкільні й дитячі', 'Строгі й золоті', 'Фото у формах', 'Загальне фото класу', 'Інші'];
+  var OLD_GROUPS = { 'Шкільні й дитячі': ['kg-sun', 'kg-confetti', 'kg-stars', 'p-pencils', 'p-bubbles', 'circle-sun', 'heart', 'doodles', 'letters', 'clouds', 'splash'],
+    'Строгі й золоті': ['grad-photo', 'g9-geo', 'g9-wave', 'g11-gold', 'g11-class', 'u-alumni', 'black-gold', 'marble', 'big-year'],
+    'Фото у формах': ['arch', 'oval-flowers', 'diamond', 'hexagon'], 'Загальне фото класу': ['gp-frame', 'gp-full', 'gp-oval', 'gp-3', 'gp-5', 'gp-strips'],
+    'Ніжні й весільні': ['botanic', 'watercolor'], 'Мінімалізм і лукбук': ['classic', 'frame', 'abstract', 'lines', 'noir', 'silver', 'script-year', 'only-year'] };
+  Object.keys(OLD_GROUPS).forEach(function (g) { OLD_GROUPS[g].forEach(function (id) { var v = V.filter(function (x) { return x.id === id; })[0]; if (v && !v.grp) v.grp = g; }); });
+  function groupOf(v) { return v.grp || 'Інші'; }
+  // Спільні малювальні примітиви для файлів з варіантами (data/cover-variants-ref.js)
+  var H = { circle: circle, star: star, tri: tri, line: line, frame: frame, rr: rr, rnd: rnd, sprig: sprig, wave: wave, fillWave: fillWave, outline: outline, flower: flower, leaf: leaf, wash: wash, spray: spray, bouquet: bouquet, std: std, SCH: SCH, HI: HI, G9: G9, P4: P4, KG: KG };
+  var api = { shapePath: shapePath, defaults: defaults, VARIANTS: V, byId: byId, forCat: forCat, fontsOf: fontsOf, std: std, GROUPS: GROUPS, groupOf: groupOf, H: H };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumCoverVariants = api;
 })(typeof self !== 'undefined' ? self : this);

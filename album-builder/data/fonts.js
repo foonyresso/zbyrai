@@ -18,6 +18,7 @@
     { n: 'Podkova', k: 'serif', g: 'Класичні із засічками' },
     { n: 'Oranienbaum', k: 'serif', g: 'Класичні із засічками' },
     { n: 'Forum', k: 'serif', g: 'Класичні із засічками' },
+    { n: 'Prata', k: 'serif', g: 'Класичні із засічками' },
     { n: 'PT Sans', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Montserrat', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Raleway', k: 'sans-serif', g: 'Гротески без засічок' },
@@ -50,12 +51,15 @@
     { n: 'Unbounded', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Yanone Kaffeesatz', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Kurale', k: 'sans-serif', g: 'Заголовкові й декоративні' },
+    { n: 'Sofia Sans Extra Condensed', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Caveat', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Marck Script', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Pacifico', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Bad Script', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Lobster', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Comforter', k: 'cursive', g: 'Рукописні й каліграфічні' },
+    { n: 'Great Vibes', k: 'cursive', g: 'Рукописні й каліграфічні' },
+    { n: 'Comforter Brush', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Comfortaa', k: 'cursive', g: 'Дитячі й ігрові' },
     { n: 'Underdog', k: 'cursive', g: 'Дитячі й ігрові' },
     { n: 'Pangolin', k: 'cursive', g: 'Дитячі й ігрові' },
@@ -76,7 +80,7 @@
   }
   function ensure(st) {
     if (typeof document === 'undefined' || !document.fonts) return Promise.resolve(false);
-    var need = []; used(st).forEach(function (n) { [400, 700].forEach(function (w) { var f = w + ' 20px "' + n + '"'; if (!document.fonts.check(f, 'Аб1')) need.push(document.fonts.load(f, 'Аб1')); }); });
+    var need = []; used(st).forEach(function (n) { ['300', '400', '500', '600', '700', '800', '900', 'italic 400'].forEach(function (w) { var f = w + ' 20px "' + n + '"'; if (!document.fonts.check(f, 'Аб1')) need.push(document.fonts.load(f, 'Аб1')); }); });
     return need.length ? Promise.all(need).then(function () { return true; }, function () { return false; }) : Promise.resolve(false);
   }
   var GROUPS = []; LIST.forEach(function (f) { if (GROUPS.indexOf(f.g) < 0) GROUPS.push(f.g); });

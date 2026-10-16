@@ -328,5 +328,22 @@ test('обкладинки: колажі й фігури', () => {
   st.coverVar = 'arch'; assert.strictEqual(S.slotsFor(st, 0, new Map()).items[0].shape, 'arch');
   assert.ok(CV.VARIANTS.filter(v => v.photo).length >= 7);
 });
+test('обкладинки за зразками: групи, шрифти, місце фото, написи не виходять за безпечну смугу', () => {
+  const CV = require('../data/cover-variants.js'); require('../data/cover-ref-kit.js'); require('../data/cover-ref-photo.js'); require('../data/cover-ref-extra.js');
+  const L = require('../core/layout.js'), FT = require('../data/fonts.js'), ids = {}, groups = {};
+  CV.VARIANTS.forEach(v => { assert.ok(!ids[v.id], 'дубль ' + v.id); ids[v.id] = 1; assert.ok(CV.GROUPS.includes(CV.groupOf(v)), v.id + ': група'); groups[CV.groupOf(v)] = (groups[CV.groupOf(v)] || 0) + 1; });
+  const ref = CV.VARIANTS.filter(v => v.grp && /^(cal|typ|min|soft|sch|kid)-/.test(v.id)); assert.strictEqual(ref.length, 20);
+  ref.forEach(v => {
+    assert.ok(v.text && v.fonts && v.fonts.length, v.id + ': шрифти');
+    CV.fontsOf(v.id).forEach(n => assert.ok(FT.stack(n), v.id + ': шрифт ' + n + ' відсутній у data/fonts.js'));
+    if (v.photo) { assert.ok(v.prf || v.pr, v.id + ': місце фото'); const c = L.coverLayout(466, 236, 18, { bleed: 3, spine: 0 }, v); assert.ok(c.photo.w > 20 && c.photo.h > 20 && c.photo.x >= 233 - 1e-6, v.id + ': фото на передній сторінці'); }
+    // малювання з імітацією canvas: усі виклики тексту мають y у безпечній смузі [sb, H - sb]
+    const ys = [], noop = () => 0, ctx = new Proxy({}, { get: (t, k) => k === 'measureText' ? () => ({ width: 1 }) : (k === 'createLinearGradient' || k === 'createRadialGradient') ? () => ({ addColorStop: noop }) : noop, set: () => true });
+    const g = { ctx, W: 466, H: 236, sb: 18, cx: 348, x0: 233, x1: 463, bx0: 0, bx1: 466, ph: { x: 280, y: 40, w: 120, h: 130 }, year: '2025', owner: 'Іваненко Олена', inst: 'Ліцей №5', get: (k, d) => d, t: x => x, t2: x => x, fx: noop, tx: (k, t, x, y) => { if (y !== 0) ys.push(y); return 0; } }; // y = 0: напис у повернутій системі координат (не рахується)
+    v.text(g); assert.ok(ys.length >= 3, v.id + ': написи');
+    ys.forEach(y => assert.ok(y >= 17.99 && y <= 236 - 18 + 0.01, v.id + ': y=' + y + ' поза безпечною смугою'));
+  });
+  assert.ok(Object.keys(groups).length >= 6);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);
