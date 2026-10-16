@@ -48,7 +48,10 @@ details.how { margin: 12px 18px 0; }
 .drawer .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .seg button { border: 0; border-radius: 0; background: none; padding: 6px 12px; }
-.bar { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 6px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); max-width: calc(100% - 24px); }
+.bar > * { flex: none; }
+.vseg { flex-direction: column; margin-top: 6px; }
+.vseg button { width: 100%; font-size: 11px; padding: 6px 2px; line-height: 1.2; }
+.bar { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 3; display: flex; flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; gap: 8px; align-items: center; justify-content: flex-start; padding: 6px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); max-width: calc(100% - 24px); }
 .work.shift .bar { left: calc(50% + 177px); max-width: calc(100% - 470px); }
 #cellMenu { position: fixed; z-index: 30; max-height: 70vh; overflow: auto; bottom: auto; right: auto; margin: 0; min-width: 220px; }
 #cellMenu h4 { margin: 4px 2px 0; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
@@ -74,3 +77,5 @@ details.how { margin: 12px 18px 0; }
 .dlg { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; }
 .dlgbox { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px; max-width: 460px; display: flex; flex-direction: column; gap: 14px; }
 .dlgbox p { margin: 0; } #dlgBtns { display: flex; flex-direction: column; gap: 8px; }
+
+.addmenu { position: absolute; bottom: 62px; right: 24px; left: auto; margin: 0; z-index: 6; }
