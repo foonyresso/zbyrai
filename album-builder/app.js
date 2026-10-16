@@ -126,7 +126,7 @@
     $('count').textContent = 'Портрети на розворотах: ' + pst.placed + '/' + pst.total + (tl.length ? ' · вчителі: ' + tk + '/' + tl.length : '') + ' · фото в пам\'яті: ' + files.size;
     var k = S.portraitK(st);
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
-    $('kSel').value = st.kOverride ? String(st.kOverride) : '';
+    if (panel === 'layout') buildGridUI($('gridBody'));
     fontSample();
     var z = S.zoneOf(st, cur), t = st.spreads[cur].type;
     $('btnLeftPhotos').hidden = t !== 'first';
@@ -489,6 +489,25 @@
       };
     });
   }
+  // Варіанти сітки портретів для кількості дітей: ліва й права сторінки з однаковою кількістю, згин між колонками
+  function buildGridUI(box) {
+    if (!box) return; box.textContent = ''; var n = S.people(st).length, z = S.zoneOf(st, Math.max(0, st.spreads.findIndex(function (s) { return s.type === 'portrait'; })));
+    function apply(g) { st.grid = g; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); buildGridUI(box); }
+    box.appendChild(el('p', 'hint', 'Дітей: ' + n + '. Обери сітку портретів: ліворуч і праворуч однаково, нічого не стоїть на згині. Вільні вікна можна заповнити текстом чи логотипом (клік по вікну).'));
+    var sg = el('div', 'seg'); [['dense', 'Щільно, впритул', 'Портрети до країв, як на зразках'], ['framed', 'З відступами', 'Окремі портрети з відступами, не прилягаючи до країв']].forEach(function (o) {
+      var b = el('button', (st.pstyle || 'dense') === o[0] ? 'on' : '', o[1], o[2]); b.onclick = function () { st.pstyle = o[0]; refresh(); buildGridUI(box); }; sg.appendChild(b);
+    }); box.appendChild(sg);
+    var auto = el('button', !st.grid ? 'on' : '', 'Авто', 'Підібрати сітку автоматично під кількість дітей'); auto.onclick = function () { st.kOverride = null; apply(null); }; box.appendChild(auto);
+    var wrap = el('div', 'gridopts');
+    AlbumLayout.gridOptions(n, z.W, z.H).forEach(function (g) {
+      var b = el('button', 'gopt' + (st.grid && st.grid.cols === g.cols && st.grid.rows === g.rows ? ' on' : ''), null, g.cols + '×' + g.rows + ' = ' + g.cap + ' на розворот, розворотів ' + g.spreads + (g.free ? ', вільних вікон ' + g.free : '')), c = document.createElement('canvas'), w = 96; c.width = w; c.height = Math.round(w * z.H / z.W);
+      var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); var k = w / z.W; x.setTransform(k, 0, 0, k, 0, 0);
+      AlbumLayout.portraitSlots(g.cap, z.W, z.H, 1.2, g, st.pstyle).forEach(function (r) { x.fillStyle = '#6b6b75'; x.fillRect(r.x, r.y, r.w, r.h); });
+      x.strokeStyle = '#4a7bd6'; x.lineWidth = 1 / k; x.beginPath(); x.moveTo(z.W / 2, 0); x.lineTo(z.W / 2, z.H); x.stroke();
+      b.appendChild(c); b.appendChild(el('span', '', g.cols + '×' + g.rows + ' · ' + g.cap)); b.appendChild(el('small', '', g.spreads + ' розв.' + (g.free ? ' · +' + g.free + ' вільн.' : ''))); b.onclick = function () { apply({ cols: g.cols, rows: g.rows }); }; wrap.appendChild(b);
+    });
+    box.appendChild(wrap);
+  }
   function buildObjPanel() {
     var box = $('objBody'); if (!box) return; box.textContent = ''; var sp = st.spreads[cur]; if (!sp) return;
     var it = selItem();
@@ -591,14 +610,13 @@
     $('drawer').hidden = !panel; $('work').classList.toggle('shift', !!panel);
     document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.classList.toggle('on', b.dataset.panel === panel); });
     document.querySelectorAll('.drawer section').forEach(function (s) { s.classList.toggle('on', s.dataset.panel === panel); });
-    if (panel === 'obj') buildObjPanel(); if (panel === 'bg') bgLoad();
+    if (panel === 'obj') buildObjPanel(); if (panel === 'bg') bgLoad(); if (panel === 'layout') buildGridUI($('gridBody'));
     setTimeout(redraw, 170);
   }
   document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.onclick = function () { openPanel(b.dataset.panel); }; });
   $('drawerX').onclick = function () { openPanel(panel); };
   document.querySelector('.rail [data-go=list]').onclick = function () { showStep(4); };
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
-  $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   $('btnShuffle').onclick = function () { st.spreads[cur].seed = 1 + Math.floor(Math.random() * 99999); st.spreads[cur].off = {}; refresh(); };
   $('btnStyle').onclick = function () { var sp = st.spreads[cur], ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); refresh(); };

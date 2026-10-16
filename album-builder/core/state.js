@@ -10,7 +10,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', names: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', names: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
   // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.
@@ -45,7 +45,7 @@
     return st.order.map(function (i) { return list[i]; });
   }
   function teachers(st) { return P.parseTeachers(st.teachers); }
-  function portraitK(st) { return st.kOverride || L.autoK(people(st).length); }
+  function portraitK(st) { return st.grid && st.grid.cols ? st.grid.cols * st.grid.rows : st.kOverride || L.autoK(people(st).length); }
   function portraitCount(st) { return Math.max(1, Math.ceil(people(st).length / portraitK(st))); }
   function mkSpread(type) { return { id: newId(), type: type, seed: 1 + Math.floor(Math.random() * 9999), slots: type === 'cover' ? [null] : type === 'first' ? [null, null] : [], extra: {}, text: {}, span: {}, teacherPhotos: {}, kidPhotos: {}, style: 'mosaic', template: null, frame: false, bg: null }; }
   function buildSpreads(st) {
@@ -265,7 +265,7 @@
       var ow1 = ownerOf(st);
       halves(f.portrait, ow1).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'fright' } : { t: 'fright', m: q.m }, name: (q.p && sp.kidPhotos && sp.kidPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap, true) : null), caption: '', kind: 'portrait1' }); });
     } else if (sp.type === 'portrait') {
-      var k = portraitK(st), rs = L.portraitSlots(k, W, H, d.gap), cols = L.gridFor(k, W, H, 0.8).cols, covered = {};
+      var k = portraitK(st), rs = L.portraitSlots(k, W, H, d.gap, st.grid, st.pstyle), cols = (st.grid && st.grid.cols) || L.gridFor(k, W, H, 0.8).cols, covered = {};
       rs.forEach(function (r, j) {
         if (covered[j]) return;
         var rect = r, span = spanCells(sp, j, k, cols, 0, covered), name = sp.extra[j] || null, pe = name && !span ? personByName(st, name) : null;

@@ -108,3 +108,4 @@ input[type=color]::-webkit-color-swatch-wrapper { padding: 0; } input[type=color
 #fontGrid button small { font-family: var(--ff-ui); font-size: 10px; color: var(--faint); } #fontGrid button span { font-size: 18px; line-height: 1.15; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #fontSel { width: 100%; text-align: left; }
 .swapthumb { width: 100%; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; background: #fff; display: block; }
+.gridopts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .gopt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px; font-size: 12px; } .gopt.on { border-color: var(--accent); background: var(--accent-glow); } .gopt canvas { width: 100%; border: 1px solid var(--line); } .gopt small { color: var(--faint); font-size: 10px; }

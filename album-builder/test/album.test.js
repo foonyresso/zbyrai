@@ -106,6 +106,19 @@ test('обмін фото між портретними розворотами �
   assert.ok(S.swapAcross(st, ps[0], 2, ps[1], 6)); assert.ok(!st.spreads[ps[0]].extra[2] && st.spreads[ps[1]].extra[6] === 'b.jpg');
   const p = S.people(st)[0]; st.names = { [p.id]: 'Виправлене Ім\'я' }; assert.strictEqual(S.people(st)[0].name, 'Виправлене Ім\'я');
 });
+test('сітки портретів: будь-яка кількість, парні колонки, нічого на згині, стиль з відступами', () => {
+  const z = PR.spreadSize('23x23'), z2 = PR.spreadSize('20x30');
+  [z, z2].forEach(zz => [14, 20, 27, 45].forEach(n => {
+    const o = L.gridOptions(n, zz.W, zz.H); assert.ok(o.length >= 3); o.forEach(g => assert.ok(g.cols % 2 === 0 && g.cap >= 4));
+  }));
+  const rs = L.portraitSlots(18, z.W, z.H, 1.2, { cols: 6, rows: 3 }, 'dense'); assert.strictEqual(rs.length, 18);
+  rs.forEach(r => assert.ok(r.x + r.w <= z.W / 2 + 1e-6 || r.x >= z.W / 2 - 1e-6));
+  const fr = L.portraitSlots(18, z.W, z.H, 1.2, { cols: 6, rows: 3 }, 'framed'); assert.ok(fr[0].x >= 14 && fr[0].y >= 14);
+  fr.forEach(r => assert.ok(r.x + r.w <= z.W / 2 + 1e-6 || r.x >= z.W / 2 - 1e-6));
+  const st = S.newState(); st.children = Array.from({ length: 30 }, (_, i) => (i + 1) + ' А А').join('\n'); st.grid = { cols: 10, rows: 3 }; S.buildSpreads(st);
+  assert.strictEqual(S.portraitK(st), 30); assert.strictEqual(st.spreads.filter(s => s.type === 'portrait').length, 1);
+  assert.strictEqual(S.slotsFor(st, 2, new Map()).items.length, 30);
+});
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
   S.placePortrait(st, 2, '1.jpg'); S.placePortrait(st, 2, '2.jpg');

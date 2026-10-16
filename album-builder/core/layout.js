@@ -29,9 +29,25 @@
     for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) out.push({ x: area.x + c * (cw + gap), y: area.y + r * (ch + gap), w: cw, h: ch });
     return out;
   }
-  function portraitSlots(k, W, H, gap) {
-    var g = gridFor(k, W, H, 0.8);
+  // Сітка портретів: grid {cols, rows} (cols парне: ліва й права сторінки мають однакову кількість, згин проходить між колонками).
+  // style: dense — впритул до країв (як зразки); framed — окремі портрети з відступами від країв, не прилягаючи до обрізу.
+  function portraitSlots(k, W, H, gap, grid, style) {
+    var g = grid && grid.cols && grid.rows ? grid : gridFor(k, W, H, 0.8);
+    if (style === 'framed') { var m = Math.max(14, Math.min(W, H) * 0.07); return gridRects(g.cols, g.rows, { x: m, y: m, w: W - 2 * m, h: H - 2 * m }, Math.max(gap * 3, 4)); }
     return gridRects(g.cols, g.rows, { x: 0, y: 0, w: W, h: H }, gap);
+  }
+  // Варіанти сітки для n дітей: парна кількість колонок, комірка близька до портретної, мало порожніх вікон, розумна кількість розворотів.
+  function gridOptions(n, W, H) {
+    var out = [], N = Math.max(1, n);
+    for (var cols = 4; cols <= 12; cols += 2) for (var rows = 1; rows <= 6; rows++) {
+      var cap = cols * rows; if (cap < 4 || cap > 48) continue;
+      var sp = Math.max(1, Math.ceil(N / cap)); if (sp > 8) continue;
+      var asp = (W / cols) / (H / rows); if (asp < 0.5 || asp > 1.25) continue;
+      var free = sp * cap - N, score = Math.abs(Math.log(asp / 0.8)) * 3 + free / cap * 2.2 + Math.abs(sp - 2) * 0.12;
+      out.push({ cols: cols, rows: rows, cap: cap, spreads: sp, free: free, score: score });
+    }
+    out.sort(function (a, b) { return a.score - b.score; });
+    return out.slice(0, 10);
   }
   function split(r, n, gap, rand, out) {
     if (n === 1) { out.push(r); return; }
@@ -136,6 +152,6 @@
   }
   // Край зображення = середина між лінією обрізу й безпечною межею; центр сторінки рахується від цього краю до осі розвороту.
   function pageCenters(W, bleed, safe) { var e = bleed + safe / 2; return { edge: e, left: (e + W / 2) / 2, right: (W / 2 + W - e) / 2 }; }
-  var api = { pageCenters: pageCenters, rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, teacherRows: teacherRows, teacherPresets: teacherPresets, normRows: normRows, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
+  var api = { gridOptions: gridOptions, pageCenters: pageCenters, rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, teacherRows: teacherRows, teacherPresets: teacherPresets, normRows: normRows, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumLayout = api;
 })(typeof self !== 'undefined' ? self : this);
