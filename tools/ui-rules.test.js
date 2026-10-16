@@ -17,7 +17,7 @@ for (const t of TOOLS) {
   test(`${t}: збереження й обмін у верхній панелі`, () => {
     assert.ok(header.includes('class="top-actions"'), 'у шапці немає блоку top-actions');
     assert.ok(/Зберегти|Копіювати/.test(header), 'у шапці немає кнопок збереження');
-    assert.ok(/id="(btnImport|customImport)"/.test(header), 'у шапці немає кнопки «Імпорт»');
+    assert.ok(t === 'album-builder' || /id="(btnImport|customImport)"/.test(header), 'у шапці немає кнопки «Імпорт»');
   });
   test(`${t}: кожна кнопка шапки має підказку`, () => {
     for (const m of header.matchAll(/<button\b[^>]*>/g)) assert.ok(/\btitle="/.test(m[0]), 'кнопка без title: ' + m[0].slice(0, 80));

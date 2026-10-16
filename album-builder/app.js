@@ -51,7 +51,9 @@
 
   // ---------- Редактор ----------
   function showEditor() { $('wizard').hidden = true; $('work').hidden = false; document.body.classList.add('editing'); refresh(); }
-  function refresh() { redraw(); thumbs(); updateInfo(); if (panel === 'obj') buildObjPanel(); }
+  var saveT;
+  function save() { clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem('albumBuilder.v1', S.toJSON(st)); } catch (e) {} }, 300); }
+  function refresh() { redraw(); thumbs(); updateInfo(); if (panel === 'obj') buildObjPanel(); save(); }
   function sizeCanvas() {
     var z = PR.spreadSize(st.fmtId), box = $('drop'), cs = getComputedStyle(box);
     var aw = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
@@ -68,11 +70,14 @@
   // Стрічка дітей: фіксована ширина кнопок (довгі ПІБ обрізаються), видно лише коли поточний розворот індивідуальний.
   function buildKidStrip() {
     var strip = $('kidStrip'), on = S.isIndividual(st, cur); strip.hidden = !on; if (!on) return;
+    st.seen = st.seen || {}; var curOwn = S.ownerOf(st); if (curOwn && !st.seen[st.spreads[cur].id + '|' + curOwn.id]) { st.seen[st.spreads[cur].id + '|' + curOwn.id] = 1; save(); }
+    var indiv = []; st.spreads.forEach(function (x, i) { if (S.isIndividual(st, i)) indiv.push(i); });
     strip.textContent = ''; var kids = S.albumKids(st), own = S.ownerOf(st), keep = st.owner;
     kids.forEach(function (p, i) {
       var b = el('button', 'kid' + (own && own.id === p.id ? ' on' : ''), String(i + 1).padStart(2, '0') + ' ' + p.name, 'Показати цю дитину: ' + p.name);
       st.owner = p.id; var it = S.slotsFor(st, cur, numMap).items, ph = it.filter(function (x) { return x.kind === 'cover' || x.kind === 'portrait1'; })[0];
       if (!ph || !ph.name) b.classList.add('miss'); if (!ph) b.classList.remove('miss');
+      var dots = el('span', 'dots'); indiv.forEach(function (si) { var seen = st.seen[st.spreads[si].id + '|' + p.id]; dots.appendChild(el('i', seen ? '' : 'new', null, label(si) + (seen ? ': переглянуто' : ': ще не переглянуто'))); }); b.appendChild(dots);
       b.onclick = function () { S.setOwnerIndex(st, i); refresh(); };
       strip.appendChild(b);
     });
@@ -521,13 +526,6 @@
 
   // ---------- Збереження й експорт ----------
   function needEditor() { if (!st.spreads.length || $('work').hidden) { toast('Спершу створи макет (кроки 1–4)'); return true; } return false; }
-  $('btnCopyJson').onclick = function () { navigator.clipboard.writeText(S.toJSON(st)).then(function () { toast('JSON скопійовано'); }, function () { toast('Не вдалося скопіювати'); }); };
-  $('btnJson').onclick = function () { X.download(new Blob([S.toJSON(st)], { type: 'application/json' }), 'album.json'); };
-  $('btnImport').onclick = function () { $('fileImport').click(); };
-  $('fileImport').onchange = function (e) {
-    var f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    f.text().then(function (t) { st = S.fromJSON(t); cur = 0; sel = null; showEditor(); toast('Макет завантажено. Фото додай знову (за назвами файлів вони стануть на місця)'); }).catch(function (er) { toast('Помилка імпорту: ' + er.message); });
-  };
   // Малює розворот si у точному розмірі друку (300 dpi); для обкладинки й першого розвороту підставляє дитину ownerId.
   function renderBlob(i, mime, ownerId) {
     return AlbumFonts.ensure(st).then(function () {
@@ -540,7 +538,6 @@
     });
   }
   function one(mime, ext) { if (needEditor()) return; renderBlob(cur, mime).then(function (b) { X.download(b, S.exportName(st, cur) + ext); }); }
-  $('btnPng').onclick = function () { one('image/png', '.png'); };
   $('btnJpg').onclick = function () { one('image/jpeg', '.jpg'); };
   function missingPhotos(plan) {
     var n = 0, keep = st.owner;
@@ -562,11 +559,10 @@
     for (var f of r) out.push({ name: f.name + '.jpg', data: new Uint8Array(await f.blob.arrayBuffer()) });
     X.download(X.zip(out), 'album-spreads.zip'); toast('Архів готовий: ' + out.length + ' файлів');
   };
-  $('btnPdf').onclick = async function () {
-    if (needEditor()) return; var z = PR.spreadSize(st.fmtId), pages = [], r = await renderAll('image/jpeg');
-    for (var f of r) pages.push({ jpeg: new Uint8Array(await f.blob.arrayBuffer()), w: Math.round(z.W * 300 / 25.4), h: Math.round(z.H * 300 / 25.4), wMm: z.W, hMm: z.H });
-    X.download(X.pdf(pages), 'album.pdf'); toast('PDF готовий');
-  };
 
   showStep(1);
+  try {
+    var saved = localStorage.getItem('albumBuilder.v1');
+    if (saved) { var s0 = S.fromJSON(saved); if (s0.spreads.length) { st = s0; cur = 0; showEditor(); toast('Відновлено останній макет. Фото додай знову (за назвами файлів вони стануть на місця)'); } }
+  } catch (e) {}
 })();

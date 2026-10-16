@@ -95,3 +95,7 @@ details.how { margin: 12px 18px 0; }
 .patgrid button { padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; } .patgrid button.on { border-color: var(--accent); background: var(--accent-glow); }
 .patgrid canvas { width: 76px; height: 56px; background: #fff; border-radius: 4px; display: block; }
 #patDlg { background: rgba(0,0,0,.25); }
+.kid { padding-right: 34px; }
+.dots { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); display: flex; gap: 3px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.dots i.new { background: #f0a028; box-shadow: 0 0 5px #f0a028; }
