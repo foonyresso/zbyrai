@@ -19,7 +19,7 @@
 | Симулятор підземель | `dungeon-sim/` | `dungeon-core.js`, `dungeon-monsters.js` (читає medieval-world/monsters/*.js і dungeons/*.js за реєстром та room-kinds/*.js), `room-kinds/` (види кімнат, по файлу на тему), `dungeon-types.js` (генерується з `medieval-world/dungeons/` скриптом `tools/build-dungeon-types.mjs`) | `app.js`, `dungeon-render.js` | `test/dungeon.test.js` | `dg_` |
 | Симуляція колонії | `colonist-foundry/` | `colonist-core.js` (генерація), `colony-data.js`, `colony-grammar.js`, `colony-world.js`, `colony-events.js`, `colony-sim.js` (покроковий рушій) | `app.js` (стан, час), `ui-common.js`, `ui-portrait.js`, `ui-setup.js`, `ui-detail.js`, `ui-views.js` | `test/colonist.test.js`, `test/sim.test.js` | `cf_` |
 | Планувальник виробничих ланцюжків | `production-planner/` | `planner-core.js` | `app.js` | `test/planner.test.js` | `pp_` |
-| Криві балансу й хвилі | `balance-curves/` | `curves-core.js` | `app.js` | `test/curves.test.js` | `bc_` |
+| Криві балансу й хвилі | `balance-curves/` | `curves-core.js`, `formula.js` (парсер власних формул), `formula-presets.js` (бібліотека) | `app.js`, `formula-ui.js` | `test/curves.test.js`, `test/formula.test.js` | `bc_` |
 | Чистильник спрайтів | `sprite-cleaner/` | `sprite-core.js` | `app.js` | `test/sprite.test.js` | `sc_` |
 
 `tool-chrome.js` у кожній папці — копія `shared/tool-chrome.js` (не правити вручну).

@@ -15,13 +15,14 @@
       { id: 2, name: 'Шкода гравця', type: 'power', a: 40, b: 0, p: 1.6, color: COLORS[0], on: true },
       { id: 3, name: 'XP до рівня', type: 'power', a: 50, b: 0, p: 2.1, color: COLORS[2], on: false },
     ],
-    waves: { to: 40, seed: 11, boss: 10, share: 40, budget: { type: 'linear', a: 8, b: 4, p: 0 },
+    waves: { to: 40, seed: 11, boss: 10, share: 40, budget: { type: 'linear', a: 8, b: 4, p: 0 }, hpScale: { type: 'linear', a: 1, b: 0, p: 0 },
       types: [{ name: 'Гобліни', cost: 1, hp: 30, minWave: 1, weight: 4 }, { name: 'Лучники', cost: 2, hp: 24, minWave: 3, weight: 2 }, { name: 'Орки', cost: 5, hp: 110, minWave: 8, weight: 2 }, { name: 'Тролі', cost: 12, hp: 380, minWave: 18, weight: 1 }] },
   });
   const saved = store.get('state', null);
   const st = saved && saved.curves ? Object.assign(DEFAULTS(), saved) : DEFAULTS();
   st.waves = Object.assign(DEFAULTS().waves, st.waves);
-  const save = () => store.set('state', st);
+  const save = () => { B.setContext(st.curves); store.set('state', st); };
+  B.setContext(st.curves);
   const toast = (m, ms = 1800) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } e.append(...kids.flat().filter(x => x != null)); return e; };
   const svg = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
@@ -91,11 +92,11 @@
       const color = el('input', { type: 'color', value: c.color, 'aria-label': 'Колір', title: 'Колір лінії на графіку' }); color.oninput = () => { c.color = color.value; commit(false); };
       const on = el('input', { type: 'checkbox', checked: c.on, 'aria-label': 'Показувати', title: 'Показувати цю криву на графіку й у таблиці' }); on.onchange = () => { c.on = on.checked; commit(false); };
       const sel = el('select', { 'aria-label': 'Тип кривої', title: 'Форма росту: лінійна — рівномірно, степенева — прискорюється, експоненційна — швидко вибухає, S-крива — виходить на стелю, логарифмічна — швидко на початку й повільно далі, сходинки — баланс змінюється кожні N рівнів, квадратична й корінь — для тонкого підгону' }, Object.entries(B.TYPES).map(([k, t]) => el('option', { value: k, selected: k === c.type }, t.name)));
-      sel.onchange = () => { c.type = sel.value; if (c.type === 'logistic' && !c.p) { c.a = Math.max(c.a, 100); c.b = .2; c.p = (from + to) / 2; } if (c.type === 'log' && !c.b) c.b = .5; if (c.type === 'exp' && (!c.b || c.b < 1)) c.b = 1.1; if (c.type === 'steps' && !(c.p > 0)) { c.p = 10; if (!c.b) c.b = c.a || 10; } c.fit = null; commit(true); };
-      const params = el('div', { class: 'params' }, Object.entries(T.params).map(([k, lab]) => { const i = el('input', { type: 'number', step: 'any', value: c[k], 'aria-label': lab, title: 'Параметр формули: ' + lab }); i.oninput = () => { c[k] = +i.value || 0; commit(false, true); }; return el('label', { title: 'Параметр формули: ' + lab }, lab, i); }));
+      sel.onchange = () => { c.type = sel.value; if (c.type === 'custom') { c.expr = c.expr || 'a * x ^ p'; if (!c.a) c.a = 1; if (!c.p) c.p = 1; } if (c.type === 'logistic' && !c.p) { c.a = Math.max(c.a, 100); c.b = .2; c.p = (from + to) / 2; } if (c.type === 'log' && !c.b) c.b = .5; if (c.type === 'exp' && (!c.b || c.b < 1)) c.b = 1.1; if (c.type === 'steps' && !(c.p > 0)) { c.p = 10; if (!c.b) c.b = c.a || 10; } c.fit = null; commit(true); };
+      const params = el('div', { class: 'params' }, Object.entries(T.params).map(([k, lab0]) => { const lab = (c.type === 'custom' && c.pl && c.pl[k]) || lab0; const i = el('input', { type: 'number', step: 'any', value: c[k], 'aria-label': lab, title: 'Параметр формули: ' + lab }); i.oninput = () => { c[k] = +i.value || 0; commit(false, true); }; return el('label', { title: 'Параметр формули: ' + lab }, lab, i); }));
             box.append(el('div', { class: 'card cv', style: `--k:${c.color}` },
         el('div', { class: 'cv-top' }, on, color, name, el('button', { title: 'Видалити цю криву', onclick: () => { st.curves = st.curves.filter(x => x !== c); commit(true); } }, '✕')),
-        el('div', { class: 'row2' }, sel, el('span', { class: 'formula', title: 'Формула кривої' }, T.f)), params,
+        el('div', { class: 'row2' }, sel, el('span', { class: 'formula', title: 'Формула кривої' }, c.type === 'custom' ? '= ' + (c.expr || '…') : T.f)), c.type === 'custom' ? FormulaUI.exprBox(c, () => { c.type === 'custom' && save(); renderChart(); }) : null, params,
         el('div', { class: 'cv-btns' }, canFit ? el('button', { title: 'Задати, яке значення хочете на двох рівнях, і порахувати параметри автоматично', onclick: () => fit.classList.toggle('open') }, 'Підібрати під точки') : null,
           el('button', { title: 'Створити копію цієї кривої, щоб поекспериментувати', onclick: () => { st.curves.push(Object.assign({}, c, { id: Date.now(), name: c.name + ' копія', color: COLORS[st.curves.length % COLORS.length] })); commit(true); } }, 'Дублювати')), fit));
     }
@@ -123,6 +124,8 @@
     const rows = []; for (let x = from; x <= to; x++) rows.push(el('tr', {}, el('td', {}, x), vis.map(c => el('td', {}, B.fmt(B.evalCurve(c, x))))));
     t.replaceChildren(el('thead', {}, head), el('tbody', {}, rows));
   }
+  $('presetSlot').append(FormulaUI.presetSelect(p => { st.curves.push({ id: Date.now(), name: p.name.slice(0, 32), type: 'custom', expr: p.expr, a: p.a, b: p.b, p: p.p, pl: p.pl, color: COLORS[st.curves.length % COLORS.length], on: true }); commit(true); toast('Додано: ' + p.name + '. ' + p.hint, 3500); }));
+  $('formulaHelp').append(FormulaUI.help());
   function commit(rebuild, light) { save(); if (rebuild) renderCurves(); renderChart(); }
   $('btnAdd').onclick = () => { st.curves.push({ id: Date.now(), name: 'Крива ' + (st.curves.length + 1), type: 'linear', a: 10, b: 5, p: 0, color: COLORS[st.curves.length % COLORS.length], on: true }); commit(true); };
   $('nFrom').oninput = e => { st.from = Math.max(0, Math.round(+e.target.value) || 0); commit(false); };
@@ -135,14 +138,21 @@
   const curvesJson = () => { const [f, t] = range(); download(JSON.stringify({ from: f, to: t, curves: st.curves.map(c => ({ name: c.name, type: c.type, a: c.a, b: c.b, p: c.p, values: B.series(c, f, t).map(p => Math.round(p.y * 1e4) / 1e4) })) }, null, 2), 'balance-curves-table.json', 'application/json'); };
 
   /* ---------- вкладка «Хвилі» ---------- */
+  /* Редактор кривої для вкладки «Хвилі» (бюджет, множник HP): тип, параметри, власна формула й бібліотека. */
+  function curveEditor(box, bd, what, rebuild, light, o) {
+    const T = B.TYPES, bs = el('select', { 'aria-label': 'Тип кривої ' + what, title: 'Як росте крива ' + what + ' від хвилі до хвилі; «Власна формула» дозволяє записати свою' }, Object.entries(T).map(([k, t]) => el('option', { value: k, selected: k === bd.type }, t.name)));
+    bs.onchange = () => { bd.type = bs.value; if (bd.type === 'exp' && bd.b < 1) bd.b = o.b; if (bd.type === 'custom') { bd.expr = bd.expr || 'a + b * x'; if (!bd.a) bd.a = 1; } o.def(bd); rebuild(); };
+    const lib = FormulaUI.presetSelect(p => { Object.assign(bd, { type: 'custom', expr: p.expr, a: p.a, b: p.b, p: p.p, pl: p.pl }); rebuild(); }, '＋ Формула з бібліотеки…');
+    box.replaceChildren(el('div', { class: 'row2' }, bs, el('span', { class: 'formula', title: 'Формула' }, bd.type === 'custom' ? '= ' + (bd.expr || '…') : T[bd.type].f)),
+      bd.type === 'custom' ? FormulaUI.exprBox(bd, light) : null,
+      el('div', { class: 'params' }, Object.entries(T[bd.type].params).map(([k, lab0]) => { const lab = (bd.type === 'custom' && bd.pl && bd.pl[k]) || lab0, i = el('input', { type: 'number', step: 'any', value: bd[k], 'aria-label': lab, title: 'Параметр: ' + lab }); i.oninput = () => { bd[k] = +i.value || 0; light(); }; return el('label', {}, lab, i); })), lib);
+  }
   let wavesCache = [];
   function renderWaveUi() {
     const w = st.waves;
     $('wTo').value = w.to; $('wSeed').value = w.seed; $('wBoss').value = w.boss; $('wShare').value = w.share;
-    const T = B.TYPES, bd = w.budget, bs = el('select', { 'aria-label': 'Тип кривої бюджету', title: 'Як росте бюджет складності від хвилі до хвилі' }, Object.entries(T).map(([k, t]) => el('option', { value: k, selected: k === bd.type }, t.name)));
-    bs.onchange = () => { bd.type = bs.value; if (bd.type === 'exp' && bd.b < 1) bd.b = 1.08; if (bd.type === 'logistic') { bd.a = 200; bd.b = .15; bd.p = w.to / 2; } renderWaveUi(); wcommit(); };
-    $('wBudget').replaceChildren(el('div', { class: 'row2' }, bs, el('span', { class: 'formula', title: 'Формула бюджету' }, T[bd.type].f)),
-      el('div', { class: 'params' }, Object.entries(T[bd.type].params).map(([k, lab]) => { const i = el('input', { type: 'number', step: 'any', value: bd[k], 'aria-label': lab, title: 'Параметр бюджету: ' + lab }); i.oninput = () => { bd[k] = +i.value || 0; wcommit(); }; return el('label', {}, lab, i); })));
+    curveEditor($('wBudget'), w.budget, 'бюджету', () => { renderWaveUi(); wcommit(); }, () => wcommit(), { type: 'exp', b: 1.08, def: bd => { if (bd.type === 'logistic') { bd.a = 200; bd.b = .15; bd.p = w.to / 2; } } });
+    curveEditor($('wHp'), w.hpScale, 'множника HP', () => { renderWaveUi(); wcommit(); }, () => wcommit(), { type: 'exp', b: 1.03, def: bd => { if (bd.type === 'logistic') { bd.a = 5; bd.b = .15; bd.p = w.to / 2; } } });
     const wtips = { name: 'Назва типу ворога', cost: 'Скільки бюджету складності забирає один ворог цього типу', hp: 'Здоров\'я одного ворога (для підрахунку загального HP хвилі)', minWave: 'З якої хвилі цей тип починає з\'являтися', weight: 'Як часто тип обирається, коли є вибір: більша вага означає частіше' };
     const box = $('wTypes'); box.replaceChildren();
     w.types.forEach((t, idx) => {
@@ -154,7 +164,7 @@
   function wcommit() { save(); renderWaves(); }
   function renderWaves() {
     const w = st.waves;
-    wavesCache = B.buildWaves({ to: w.to, seed: w.seed, budget: w.budget, bossEvery: w.boss, bossShare: w.share / 100, types: w.types.filter(t => t.name) });
+    wavesCache = B.buildWaves({ to: w.to, seed: w.seed, budget: w.budget, hpScale: w.hpScale, bossEvery: w.boss, bossShare: w.share / 100, types: w.types.filter(t => t.name) });
     const names = [...new Set(wavesCache.flatMap(x => x.enemies.map(e => e.name)))], color = n => COLORS[Math.max(0, names.indexOf(n)) % COLORS.length];
     const xs = wavesCache.map(x => x.wave);
     $('wlegend').replaceChildren(...names.map(n => el('span', {}, el('i', { style: `background:${color(n)}` }), n)), el('span', {}, '▲ — хвиля з босом'));
@@ -185,7 +195,7 @@
       const j = JSON.parse(await f.text()); if (!Array.isArray(j.curves)) throw new Error('немає curves');
       const d = DEFAULTS(); for (const k of Object.keys(st)) delete st[k];
       Object.assign(st, d, j); st.waves = Object.assign(d.waves, j.waves || {});
-      st.curves = j.curves.map((c, i) => ({ id: c.id || Date.now() + i, name: String(c.name || 'Крива ' + (i + 1)), type: B.TYPES[c.type] ? c.type : 'linear', a: +c.a || 0, b: +c.b || 0, p: +c.p || 0, color: c.color || COLORS[i % COLORS.length], on: c.on !== false }));
+      st.curves = j.curves.map((c, i) => ({ id: c.id || Date.now() + i, name: String(c.name || 'Крива ' + (i + 1)), type: B.TYPES[c.type] ? c.type : 'linear', a: +c.a || 0, b: +c.b || 0, p: +c.p || 0, expr: c.type === 'custom' ? String(c.expr || 'x').slice(0, 400) : undefined, pl: c.type === 'custom' && c.pl ? { a: String(c.pl.a || ''), b: String(c.pl.b || ''), p: String(c.pl.p || '') } : undefined, color: c.color || COLORS[i % COLORS.length], on: c.on !== false }));
       save(); renderCurves(); renderWaveUi(); tab(curTab()); toast('Імпортовано');
     } catch { toast('Не вдалося прочитати файл'); }
   };

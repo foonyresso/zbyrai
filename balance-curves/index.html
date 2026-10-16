@@ -75,7 +75,9 @@
   </section>
   <aside class="side">
     <div class="side-h"><h2 title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри">Криві</h2><span class="spacer"></span><button id="btnReset" title="Повернути приклад за замовчуванням і прибрати свої зміни">Скинути</button><button id="btnAdd" class="btn-primary" title="Додати нову криву">+ Крива</button></div>
+    <div class="presetrow" id="presetSlot"></div>
     <div id="curves"></div>
+    <div id="formulaHelp"></div>
     <p class="hint">Підібрати під точки: задайте, що хочете бачити на двох рівнях (наприклад, 100 HP на 1-му й 9000 на 30-му), і параметри лінійної, степеневої чи експоненційної кривої розрахуються самі.</p>
   </aside>
 </main>
@@ -98,6 +100,10 @@
       <div class="row2"><label class="num" title="Кожна N-та хвиля отримує боса. 0 означає без босів">Бос кожні (0 = без) <input type="number" id="wBoss" min="0" max="100" title="Кожна N-та хвиля отримує боса. 0 означає без босів"></label><label class="num" title="Яку частину бюджету хвилі забирає бос">Частка бюджету боса, % <input type="number" id="wShare" min="5" max="90" title="Яку частину бюджету хвилі забирає бос"></label></div>
     </div>
     <div class="card">
+      <h2 title="Множник здоров'я всіх ворогів за номером хвилі: 1 означає без змін. Наприклад, власна формула 1 + 0.03*x">Зростання HP ворогів із хвилею</h2>
+      <div id="wHp"></div>
+    </div>
+    <div class="card">
       <h2 title="Які вороги бувають: вартість, здоров'я, з якої хвилі з'являються">Типи ворогів <button id="btnWType" title="Додати новий тип ворога">+ Тип</button></h2>
       <div id="wTypes"></div>
       <p class="hint">Вартість: скільки бюджету забирає один ворог. «З хвилі»: коли тип з'являється. Вага: як часто його беруть, коли вибір є. Бос: найдорожчий доступний тип.</p>
@@ -111,7 +117,10 @@
 (function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
 if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
+<script src="./formula.js"></script>
+<script src="./formula-presets.js"></script>
 <script src="./curves-core.js"></script>
+<script src="./formula-ui.js"></script>
 <script src="./app.js"></script>
 <script src="./tool-chrome.js"></script>
 </body>

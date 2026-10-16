@@ -1,6 +1,10 @@
 /* Wave & Balance Curves: обчислення без DOM (браузер: глобал BalanceCore; Node: module.exports).
    Крива = { type, a, b, p } (параметри залежать від типу), x = рівень чи номер хвилі (зазвичай від 1). */
 const BalanceCore = (() => {
+  const F = typeof Formula !== 'undefined' ? Formula : require('./formula.js');
+  /* Контекст для посилань c1…c20 у власних формулах: масив кривих, який виставляє інтерфейс (setContext). */
+  let ctx = [], depth = 0;
+  const setContext = list => { ctx = Array.isArray(list) ? list : []; };
   const TYPES = {
     linear: { name: 'Лінійна', f: '= a + b·(x−1)', fn: (c, x) => c.a + c.b * (x - 1), params: { a: 'старт (a)', b: 'приріст за крок (b)' } },
     power: { name: 'Степенева', f: '= a·x^p', fn: (c, x) => c.a * Math.pow(x, c.p), params: { a: 'множник (a)', p: 'степінь (p)' } },
@@ -9,9 +13,10 @@ const BalanceCore = (() => {
     log: { name: 'Логарифмічна', f: '= a·ln(1+b·x)', fn: (c, x) => c.a * Math.log(1 + c.b * x), params: { a: 'множник (a)', b: 'швидкість (b)' } },
     steps: { name: 'Сходинки', f: '= a + b·⌊(x−1)/p⌋', fn: (c, x) => c.a + c.b * Math.floor((x - 1) / (c.p > 0 ? c.p : 1)), params: { a: 'старт (a)', b: 'приріст за сходинку (b)', p: 'довжина сходинки в рівнях (p)' } },
     quad: { name: 'Квадратична', f: '= a + b·x + p·x²', fn: (c, x) => c.a + c.b * x + c.p * x * x, params: { a: 'старт (a)', b: 'лінійна частина (b)', p: 'квадратична частина (p)' } },
+    custom: { name: 'Власна формула', f: '= ваша формула', fn: (c, x) => F.evaluate(c.expr, x, +c.a || 0, +c.b || 0, +c.p || 0, i => { const t = ctx[i - 1]; return t && t !== c && depth < 8 ? (depth++, (() => { try { return evalCurve(t, x); } finally { depth--; } })()) : NaN; }), params: { a: 'a', b: 'b', p: 'p' } },
     sqrt: { name: 'Корінь', f: '= a·√x + b', fn: (c, x) => c.a * Math.sqrt(x) + c.b, params: { a: 'множник (a)', b: 'зсув (b)' } },
   };
-  const evalCurve = (c, x) => { const t = TYPES[c.type]; const v = t ? t.fn(c, x) : NaN; return Number.isFinite(v) ? v : NaN; };
+  function evalCurve(c, x) { const t = TYPES[c.type]; const v = t ? t.fn(c, x) : NaN; return Number.isFinite(v) ? v : NaN; }
   const series = (c, from, to) => { const out = []; for (let x = from; x <= to; x++) out.push({ x, y: evalCurve(c, x) }); return out; };
   const cumulative = s => { let t = 0; return s.map(p => ({ x: p.x, y: (t += p.y) })); };
 
@@ -55,6 +60,7 @@ const BalanceCore = (() => {
   function buildWaves(o) {
     const R = rng(o.seed ?? 1), out = [];
     for (let w = o.from || 1; w <= o.to; w++) {
+      const hs = o.hpScale ? evalCurve(o.hpScale, w) : 1, hpk = Number.isFinite(hs) ? Math.max(0, hs) : 1; // множник HP ворогів за хвилею (необов'язкова крива)
       const budget = Math.max(0, evalCurve(o.budget, w)), pool = o.types.filter(t => w >= (t.minWave || 1) && t.cost > 0);
       const enemies = new Map(); let left = budget, hp = 0, boss = false;
       if (o.bossEvery > 0 && w % o.bossEvery === 0 && pool.length) {
@@ -68,7 +74,7 @@ const BalanceCore = (() => {
         for (const t of aff) { r -= t.weight ?? 1; if (r <= 0) { pick = t; break; } }
         const e = enemies.get(pick.name) || { n: 0, t: pick }; e.n++; enemies.set(pick.name, e); left -= pick.cost;
       }
-      const list = [...enemies.entries()].map(([name, e]) => { const mult = e.boss ? (o.bossHpMul ?? 1) : 1; hp += e.n * e.t.hp * mult; return { name, count: e.n }; });
+      const list = [...enemies.entries()].map(([name, e]) => { const mult = e.boss ? (o.bossHpMul ?? 1) : 1; hp += e.n * e.t.hp * mult * hpk; return { name, count: e.n }; });
       const total = list.reduce((s, e) => s + e.count, 0);
       out.push({ wave: w, budget, spent: budget - left, enemies: list, total, hp, boss });
     }
@@ -84,6 +90,12 @@ const BalanceCore = (() => {
   // готова формула для коду
   function toCode(c, lang = 'js') {
     const n = v => Number((+v || 0).toPrecision(6));
+    if (c.type === 'custom') {
+      const body = F.toCode(c.expr, lang, { a: +c.a || 0, b: +c.b || 0, p: +c.p || 0 }) ?? 'NaN /* у формулі помилка */';
+      const nm = (c.name || 'curve').replace(/[^\w]/g, '_').replace(/^(\d)/, '_$1') || 'curve';
+      const refs = /c\d/.test(body) ? ' // c1, c2…: інші криві, їх треба оголосити окремо' : '';
+      return lang === 'py' ? `import math\n\ndef ${nm}(x):${refs.replace('//', '  #')}\n    return ${body}` : lang === 'cs' ? `static double ${nm}(double x) => ${body};${refs}` : `const ${nm} = x => ${body};${refs}`;
+    }
     const f = { linear: `${n(c.a)} + ${n(c.b)} * (x - 1)`, power: `${n(c.a)} * Math.pow(x, ${n(c.p)})`, exp: `${n(c.a)} * Math.pow(${n(c.b)}, x - 1)`,
       logistic: `${n(c.a)} / (1 + Math.exp(-${n(c.b)} * (x - ${n(c.p)})))`, log: `${n(c.a)} * Math.log(1 + ${n(c.b)} * x)`,
       steps: `${n(c.a)} + ${n(c.b)} * Math.floor((x - 1) / ${n(c.p > 0 ? c.p : 1)})`, quad: `${n(c.a)} + ${n(c.b)} * x + ${n(c.p)} * x * x`, sqrt: `${n(c.a)} * Math.sqrt(x) + ${n(c.b)}` }[c.type];
@@ -93,7 +105,7 @@ const BalanceCore = (() => {
     return `const ${name} = x => ${f};`;
   }
 
-  return { TYPES, evalCurve, series, cumulative, fitTwo, ratio, crossings, doublingStep, growthPerStep, rng, buildWaves, fmt, toCsv, toCode };
+  return { TYPES, setContext, evalCurve, series, cumulative, fitTwo, ratio, crossings, doublingStep, growthPerStep, rng, buildWaves, fmt, toCsv, toCode };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = BalanceCore;
