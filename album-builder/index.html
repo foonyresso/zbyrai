@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Макетник альбомів</title>
+<meta name="description" content="Макетник випускних альбомів: тип друку, формат, дизайн, список дітей і автоматична розкладка розворотів. Усе працює лише у вашому браузері.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M5 8h10v16H5zM17 8h10v16H17z%27 fill=%27none%27 stroke=%27%23b9a0e6%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h8.5v14H3zM12.5 5H21v14h-8.5z"/></svg><div>Макетник <span>альбомів</span></div></div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити макет (тексти, розворотів, налаштування) з файлу .json; самі фото потрібно додати знову">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати макет як JSON (без фото). Дані дітей лишаються лише у вас">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити макет як файл album.json (без фото)">Зберегти .json</button>
+    <button class="btn-copy" id="btnPng" title="Завантажити поточний розворот як PNG у друкованому розмірі (300 dpi)">Розворот .png</button>
+    <button class="btn-copy" id="btnJpg" title="Завантажити поточний розворот як JPG (300 dpi)">Розворот .jpg</button>
+    <button class="btn-copy" id="btnZip" title="Усі розвороти JPG в одному архіві .zip: cover_01, 01_01, 02, 03…">Усі .zip</button>
+    <button class="btn-copy" id="btnPdf" title="Заготовка: усі розвороти одним PDF (сторінка = розворот)">PDF</button>
+  </div>
+</header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div><h3>Що це</h3><p>Макетник випускних альбомів: обираєш тип друку, формат і дизайн, вставляєш список дітей і вчителів, і розвороти (обкладинка, перший розворот, портрети, групові фото) збираються самі. Дані дітей і фото не покидають ваш браузер: нічого не надсилається й не зберігається на сервері.</p></div>
+    <div><h3>Для чого</h3><p>Швидко розставити фото й підписи за номерами з назв файлів і вивантажити розвороти в PNG/JPG (або PDF) для друкарні.</p></div>
+    <div><h3>Як користуватися</h3>
+      <ol>
+        <li>Пройди кроки: тип друку, формат, дизайн, список. У списку номер(и) фото й «Прізвище Ім'я» в будь-якому порядку; у вчителів: номер, потім прізвище, ім'я, по батькові, далі посада.</li>
+        <li>У редакторі додай фото (кнопка внизу або перетягни на полотно). Фото підтягуються за номером у назві файлу, підпис береться зі списку.</li>
+        <li>Перетягни фото на інше, щоб поміняти місцями; з Alt (або в режимі «Кадр») зсуваєш кадр, колесо мишки наближає. Подвійний клік скидає кадр. Порожнє вікно: клік додає фото.</li>
+        <li>Знизу стрічка розворотів: перетягуй для зміни порядку, «＋» додає розворот. Зберігай угорі.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<main class="wizard" id="wizard">
+  <ol class="steps" id="steps"></ol>
+  <section id="w1" class="step"><h2>1. Тип друку</h2><div class="cards" id="typeCards"></div></section>
+  <section id="w2" class="step" hidden><h2>2. Формат</h2><div class="cards" id="fmtCards"></div><p class="hint" id="fmtNote"></p><div class="nav"><button data-back="1" title="Назад до вибору типу друку">← Назад</button></div></section>
+  <section id="w3" class="step" hidden><h2>3. Дизайн</h2><div class="tabs" id="catTabs"></div><div class="cards" id="designCards"></div><div class="nav"><button data-back="2" title="Назад до вибору формату">← Назад</button></div></section>
+  <section id="w4" class="step" hidden><h2>4. Заклад і списки</h2>
+    <div class="form">
+      <label title="Повна назва закладу; можна не заповнювати">Назва закладу, повна <input id="instFull" type="text" placeholder="напр. Ліцей №1 імені …"></label>
+      <label title="Скорочена назва; можна не заповнювати">Назва закладу, скорочена <input id="instShort" type="text" placeholder="напр. Ліцей №1"></label>
+      <label title="Рік випуску, напр. 2026">Рік <input id="year" type="text" maxlength="4" placeholder="2026"></label>
+      <label class="wide" title="Список дітей стовпчиком: один рядок на дитину. Номер(и) фото й прізвище та ім'я в будь-якому порядку. Підпис береться з рядка без номерів">Діти (стовпчиком: номери фото та «Прізвище Ім'я»)
+        <textarea id="children" rows="9" placeholder="12 13 Іваненко Іван&#10;Коваль Марія 14"></textarea></label>
+      <label class="wide" title="Ті, хто не бере альбом, але їхнє фото потрібне всередині. Той самий формат рядка">Без альбому, але фото в середині
+        <textarea id="noAlbum" rows="3" placeholder="20 Петренко Олег"></textarea></label>
+      <label class="wide" title="Вчителі: номер(и) фото, потім перші три слова — прізвище, ім'я, по батькові, решта слів — посада (може не бути). Вчителі стають вікнами на першому розвороті замість загального фото">Вчителі (номер, ПІБ з трьох слів, посада)
+        <textarea id="teachers" rows="4" placeholder="101 Мельник Ірина Петрівна вчитель математики&#10;102 Бондар Олег Степанович"></textarea></label>
+    </div>
+    <div class="nav"><button data-back="3" title="Назад до вибору дизайну">← Назад</button><button class="btn-main" id="btnOk" title="Створити макет і перейти до редактора розворотів">OK, до редактора</button></div>
+  </section>
+</main>
+
+<div class="work" id="work" hidden>
+  <div class="stagebox" id="drop">
+    <canvas id="cv" title="Клік вибирає фото. Перетягування: поміняти фото місцями (з Alt: зсунути кадр). Колесо: наблизити кадр. Подвійний клік: скинути кадр"></canvas>
+  </div>
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-go="list" title="Повернутися до заповнення закладу та списків дітей і вчителів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Списки</span></button>
+    <button data-go="album" title="Повернутися до вибору типу друку, формату й дизайну"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h8.5v14H3zM12.5 5H21v14h-8.5z"/></svg><span>Альбом</span></button>
+    <button data-panel="layout" title="Розкладка портретів: 8, 12, 16 або 32 на розворот"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5h7v7h-7zM13.5 3.5h7v7h-7zM3.5 13.5h7v7h-7zM13.5 13.5h7v7h-7z"/></svg><span>Розкладка</span></button>
+    <button data-panel="spread" title="Поточний розворот: порядок, видалення, перерозкладка групових"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M12 6v12"/></svg><span>Розворот</span></button>
+    <button data-panel="view" title="Вигляд: лінії обрізу й згину, режим перетягування"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="layout"><h2>Портрети на розворот</h2>
+      <label title="Одна розкладка на весь альбом. «Авто» вибирає за кількістю дітей, зайві вікна лишаються білими для групового фото">Кількість вікон
+        <select id="kSel" title="Авто або 8 / 12 / 16 / 32 портретів на розворот"><option value="">Авто</option><option>8</option><option>12</option><option>16</option><option>32</option></select></label>
+      <p class="hint" id="kInfo"></p></section>
+    <section data-panel="spread"><h2>Розворот</h2><p class="hint" id="spInfo"></p>
+      <div class="two"><button id="btnLeft" title="Пересунути розворот ближче до початку (обкладинка й перший розворот закріплені)">← Раніше</button><button id="btnRight" title="Пересунути розворот ближче до кінця">Пізніше →</button></div>
+      <button id="btnShuffle" title="Нова випадкова розкладка групових фото на цьому розвороті">🎲 Розкласти інакше</button>
+      <button id="btnRemovePhoto" title="Прибрати вибране фото з вікна (Delete)">Прибрати вибране фото</button>
+      <button id="btnDel" title="Видалити цей розворот (обкладинку й перший розворот видалити не можна)">Видалити розворот</button></section>
+    <section data-panel="view"><h2>Вигляд</h2>
+      <div class="seg" id="dragMode" title="Що робить перетягування фото"><button data-dm="swap" class="on" title="Перетягни фото на інше, і вони поміняються місцями. Alt перемикає на «Кадр»">Обмін місцями</button><button data-dm="crop" title="Перетягування зсуває кадр усередині вікна">Кадр</button></div>
+      <label class="chk" title="Червона пунктирна лінія — обріз без вильоту, синя — згин розвороту. У файл не потрапляють"><input type="checkbox" id="guides"> Лінії обрізу й згину</label></section>
+  </aside>
+  <div class="bar">
+    <button class="btn-main" id="btnAdd" title="Вибрати фото з комп'ютера: портрети підтягнуться за номерами, на груповий розворот лягуть по порядку">＋ Додати фото</button>
+    <input type="file" id="fileImg" accept="image/*" multiple hidden>
+    <button id="btnFolder" title="Вибрати цілу папку з фото">Папка</button>
+    <input type="file" id="fileDir" webkitdirectory multiple hidden>
+    <button id="btnPlus" title="Додати розворот: портретний або груповий">＋ Розворот</button>
+    <span class="hint" id="count"></span>
+    <div class="menu" id="addMenu" hidden><button data-add="portrait" title="Додати ще один розворот із портретами">Портрети</button><button data-add="group" title="Додати розворот із груповими фото">Групові фото</button></div>
+  </div>
+  <div class="strip" id="strip" title="Розвороти: клік вибирає, перетягування змінює порядок"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="./data/print-types.js"></script>
+<script src="./data/designs.js"></script>
+<script src="./core/parse.js"></script>
+<script src="./core/layout.js"></script>
+<script src="./core/state.js"></script>
+<script src="./render.js"></script>
+<script src="./export.js"></script>
+<script src="./app.js"></script>
+<script src="./tool-chrome.js"></script>
+</body>
+</html>

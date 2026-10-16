@@ -1,0 +1,248 @@
+/* =====================================================================
+   Єдина дизайн-система сайту — «Обсидіан і золото».
+   Джерело правди: shared/theme.css. Кожен інструмент має власну копію
+   (theme.css у своїй папці), щоб папку можна було скачати окремо.
+   Оновити копії: node tools/sync-theme.mjs
+   ===================================================================== */
+:root {
+  color-scheme: dark;
+
+  /* поверхні */
+  --bg: #09090c;
+  --bg-elev: #0e0e13;
+  --panel: #131318;
+  --panel-2: #1a1a21;
+  --panel-3: #22222b;
+  --line: #2a2a34;
+  --line-soft: #1e1e26;
+
+  /* текст */
+  --text: #ece8df;
+  --muted: #a39e93;
+  --faint: #6f6b63;
+
+  /* акцент: шампанське золото */
+  --gold: #c9a766;
+  --gold-hi: #e8d29e;
+  --gold-lo: #8c7240;
+  --gold-ink: #17120a;
+  --gold-glow: rgba(201, 167, 102, .16);
+  --gold-line: rgba(201, 167, 102, .38);
+
+  /* службові кольори */
+  --ok: #8dbf95;
+  --warn: #dab560;
+  --danger: #d9786f;
+  --info: #88a9d6;
+
+  /* типографіка: без зовнішніх шрифтів, щоб усе працювало офлайн */
+  --ff-ui: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Roboto, sans-serif;
+  --ff-display: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, "Iowan Old Style", Georgia, serif;
+  --ff-mono: "Cascadia Mono", "JetBrains Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --ring: 0 0 0 2px rgba(201, 167, 102, .55);
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 10px 30px rgba(0, 0, 0, .45);
+  --shadow-2: 0 24px 70px rgba(0, 0, 0, .65);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+
+  /* тонке зерно (SVG feTurbulence), вмикається класом .has-grain на body */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 var(--ff-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body.has-grain::before {
+  content: ""; position: fixed; inset: 0; z-index: 1000; pointer-events: none;
+  background-image: var(--grain); opacity: .035; mix-blend-mode: overlay;
+}
+
+::selection { background: rgba(201, 167, 102, .35); color: #fff; }
+
+/* тонкі скролбари */
+* { scrollbar-width: thin; scrollbar-color: #3a3a46 transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #34343f; border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #4a4a58; background-clip: padding-box; border: 2px solid transparent; }
+
+a { color: var(--gold-hi); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- форми й кнопки ---------- */
+button, input, select, textarea { font: inherit; color: inherit; }
+
+button {
+  cursor: pointer;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 7px 13px;
+  color: var(--text);
+  transition: border-color .18s var(--ease), background .18s var(--ease), color .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+button:hover { border-color: var(--gold-lo); background: var(--panel-3); }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+input, select, textarea {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px 11px;
+  transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+select { cursor: pointer; }
+input:hover, select:hover, textarea:hover { border-color: #3b3b48; }
+input:focus, select:focus, textarea:focus { border-color: var(--gold-lo); }
+::placeholder { color: var(--faint); }
+option { background: var(--panel); color: var(--text); }
+
+/* головна кнопка: золотий градієнт */
+.btn-primary {
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f);
+  color: var(--gold-ink);
+  border-color: #d6bb82;
+  font-weight: 650;
+  letter-spacing: .01em;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px rgba(201, 167, 102, .18);
+}
+.btn-primary:hover { background: linear-gradient(180deg, #f1dfae, #d3b274 55%, #bf9b58); border-color: #e6cd96; color: var(--gold-ink); }
+
+/* другорядна: контур із золотом */
+.btn-outline {
+  background: transparent;
+  border-color: var(--gold-lo);
+  color: var(--gold-hi);
+  font-weight: 600;
+}
+.btn-outline:hover { background: var(--gold-glow); border-color: var(--gold); }
+
+/* рядок-перемикач (сегментований контрол); активний — золотий контур */
+.seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); }
+.seg button { background: transparent; border-color: transparent; color: var(--muted); border-radius: calc(var(--r-md) - 3px); }
+.seg button:hover { color: var(--text); background: var(--panel-2); border-color: transparent; }
+.seg button.on { background: var(--panel-3); color: var(--gold-hi); border-color: var(--gold-lo); }
+
+/* пілюля-фільтр */
+.chip { border-radius: 99px; padding: 5px 12px; font-size: 13px; }
+.chip.on { background: var(--gold-glow); border-color: var(--gold); color: var(--gold-hi); }
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  height: 4px; padding: 0; border: 0; border-radius: 99px;
+  background: linear-gradient(90deg, var(--gold-lo), var(--line));
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--gold-hi), var(--gold) 70%);
+  border: 1px solid #0007; box-shadow: 0 2px 6px #0009;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%; border: 1px solid #0007;
+  background: radial-gradient(circle at 35% 30%, var(--gold-hi), var(--gold) 70%);
+}
+input[type="checkbox"], input[type="radio"] { accent-color: var(--gold); width: 15px; height: 15px; padding: 0; }
+
+/* ---------- типографіка ---------- */
+h1, h2, h3, .display { font-family: var(--ff-display); font-weight: 600; letter-spacing: .005em; }
+
+.eyebrow {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .18em;
+  color: var(--gold); font-weight: 600;
+}
+
+.hairline { height: 1px; border: 0; background: linear-gradient(90deg, transparent, var(--line), transparent); margin: 0; }
+
+/* ---------- поверхні ---------- */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); }
+
+.tag {
+  display: inline-block; padding: 2px 9px; border-radius: 99px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .02);
+  color: var(--muted); font-size: 11px; letter-spacing: .02em; white-space: nowrap;
+}
+
+/* модальне вікно і тост */
+.modal-overlay { background: rgba(5, 5, 8, .72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.modal { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.toast-box {
+  background: var(--panel-3); color: var(--gold-hi); border: 1px solid var(--gold-lo);
+  border-radius: 99px; box-shadow: var(--shadow-2); font-weight: 600;
+}
+
+/* ---------- посилання на головну ---------- */
+.hub-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px 5px 9px;
+  border: 1px solid var(--line); border-radius: 99px;
+  background: rgba(255, 255, 255, .02);
+  color: var(--muted); font-size: 12px; letter-spacing: .02em; white-space: nowrap;
+  transition: color .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+}
+.hub-back:hover { color: var(--gold-hi); border-color: var(--gold-lo); background: var(--gold-glow); text-decoration: none; }
+.hub-back[hidden] { display: none; }
+.hub-back svg { width: 13px; height: 13px; }
+.hub-back b { color: var(--gold-hi); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* ---------- довідка «Що це, для чого, як користуватися» (спільна для всіх інструментів) ---------- */
+details.how { margin: 12px 18px 0; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg-elev); }
+details.how > summary { cursor: pointer; padding: 10px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 8px; list-style: none; }
+details.how > summary::-webkit-details-marker { display: none; }
+details.how > summary::before { content: ""; width: 0; height: 0; border-left: 6px solid var(--accent, var(--gold)); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .18s var(--ease); display: inline-block; }
+details.how[open] > summary::before { transform: rotate(90deg); }
+details.how > summary:hover { color: var(--text); }
+.how-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 2px 16px 14px; }
+.how-grid h3 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--accent, var(--gold)); font-weight: 600; }
+.how-grid p, .how-grid li { font-size: 12.8px; line-height: 1.55; color: var(--muted); margin: 0 0 6px; }
+.how-grid ol { margin: 0; padding-left: 18px; }
+.how-grid b { color: var(--text); font-weight: 600; }
+@media (max-width: 900px) { .how-grid { grid-template-columns: minmax(0, 1fr); } details.how { margin: 10px 16px 0; } }
+
+/* верхня панель інструмента: кнопки збереження й обміну */
+header.top .top-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------- кнопка «Інфо» і спливаюче вікно довідки (shared/tool-chrome.js) ---------- */
+html.has-info details.how, html.has-info details.about { display: none; }
+.info-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 4px 11px 4px 8px;
+  border: 1px solid var(--line); border-radius: 99px; background: rgba(255, 255, 255, .02);
+  color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+  transition: color .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+}
+.info-btn:hover { color: var(--gold-hi); border-color: var(--gold-lo); background: var(--gold-glow); }
+.info-btn svg { width: 14px; height: 14px; }
+.info-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5, 5, 8, .72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.info-overlay[hidden] { display: none; }
+.info-modal { position: relative; width: min(720px, 100%); max-height: 86vh; overflow: auto; padding: 24px 26px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.info-modal h2 { margin: 0 0 14px; font-size: 18px; color: var(--text); }
+.info-modal .how-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 0 0 6px; }
+.info-modal .how-grid p, .info-modal .how-grid li { font-size: 13.5px; }
+.info-close { position: absolute; top: 10px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.info-close:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
+.info-ok { margin-top: 12px; padding: 7px 22px; border: 1px solid var(--gold-lo); border-radius: 99px; background: var(--gold-glow); color: var(--gold-hi); font: inherit; cursor: pointer; }
+.info-ok:hover { background: var(--gold-lo); color: var(--text); }
