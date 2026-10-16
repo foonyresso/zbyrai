@@ -2,9 +2,14 @@
 (function (root) {
   var S = root.AlbumState;
   function crop(st, name) { var c = st.crops[name]; return c || (st.crops[name] = { z: 1, fx: 0.5, fy: 0.35 }); }
-  function drawImg(ctx, img, r, c) {
+  function rrect(ctx, r, rad) {
+    rad = Math.min(rad || 0, r.w / 2, r.h / 2); ctx.beginPath();
+    if (rad > 0) { ctx.moveTo(r.x + rad, r.y); ctx.arcTo(r.x + r.w, r.y, r.x + r.w, r.y + r.h, rad); ctx.arcTo(r.x + r.w, r.y + r.h, r.x, r.y + r.h, rad); ctx.arcTo(r.x, r.y + r.h, r.x, r.y, rad); ctx.arcTo(r.x, r.y, r.x + r.w, r.y, rad); ctx.closePath(); }
+    else ctx.rect(r.x, r.y, r.w, r.h);
+  }
+  function drawImg(ctx, img, r, c, rad) {
     var s = Math.max(r.w / img.naturalWidth, r.h / img.naturalHeight) * c.z, dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip();
+    ctx.save(); rrect(ctx, r, rad); ctx.clip();
     ctx.drawImage(img, r.x - (dw - r.w) * c.fx, r.y - (dh - r.h) * c.fy, dw, dh); ctx.restore();
   }
   // Текст, що стискається до ширини maxW.
@@ -34,8 +39,9 @@
     var drawItem = function (it) {
       var r = it.rect, img = it.name && imgs.get(it.name);
       if (it.rot) { drawPaper(ctx, img, it, st, o, d); return; }
-      if (img) drawImg(ctx, img, r, crop(st, it.name));
-      else if (it.dark) { ctx.fillStyle = '#1f1f23'; ctx.fillRect(r.x, r.y, r.w, r.h); if (o.preview) fitText(ctx, 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.1, r.w * 0.8, d.font, '#55555c'); }
+      var rad = sp.type === 'group' && it.kind === 'group' ? (sp.round != null ? sp.round : st.round || 0) : 0;
+      if (img) drawImg(ctx, img, r, crop(st, it.name), rad);
+      else if (it.dark) { ctx.fillStyle = '#1f1f23'; rrect(ctx, r, rad); ctx.fill(); if (o.preview) fitText(ctx, 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.1, r.w * 0.8, d.font, '#55555c'); }
       else if (it.kind === 'teacher') { ctx.fillStyle = d.ph; ctx.fillRect(r.x, r.y, r.w, r.h); }
       else if (o.preview && !it.text) {
         ctx.fillStyle = '#f4f2f0'; ctx.fillRect(r.x, r.y, r.w, r.h); ctx.strokeStyle = '#c9c4be'; ctx.setLineDash([2, 2]); ctx.lineWidth = 0.4; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1); ctx.setLineDash([]);

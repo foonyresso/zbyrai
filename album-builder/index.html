@@ -97,7 +97,9 @@
         <select id="kSel" title="Авто або 8 / 12 / 16 / 32 портретів на розворот"><option value="">Авто</option><option>8</option><option>12</option><option>16</option><option>32</option></select></label>
       <p class="hint" id="kInfo"></p></section>
     <section data-panel="spread"><h2>Розворот</h2><p class="hint" id="spInfo"></p>
-      <label class="chk" title="Прибрати фото з обкладинки: лишається лише дизайн, рік і назва"><input type="checkbox" id="coverNoPhoto"> Обкладинка без фото</label></section>
+      <label class="chk" title="Прибрати фото з обкладинки: лишається лише дизайн, рік і назва"><input type="checkbox" id="coverNoPhoto"> Обкладинка без фото</label>
+      <div id="roundRow"><label title="Скруглення кутів групових фото, мм (0 — прямі кути)">Скруглення кутів фото, мм <input type="range" id="roundIn" min="0" max="15" step="0.5" value="0"></label>
+        <button id="roundAll" title="Застосувати це скруглення до всіх групових розворотів">На всі групові розвороти</button></div></section>
     <section data-panel="bg"><h2>Фон</h2>
       <label title="Тип фону">Тип <select id="bgType" title="Однотонний, градієнт чи картинка"><option value="color">Колір</option><option value="gradient">Градієнт</option><option value="image">Картинка</option></select></label>
       <div class="two"><label title="Колір (для градієнта: початковий)">Колір <input type="color" id="bgC1" value="#ffffff" title="Колір з палітри"></label>

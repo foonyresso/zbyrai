@@ -110,6 +110,7 @@
     $('kSel').value = st.kOverride ? String(st.kOverride) : '';
     $('spInfo').textContent = 'Розворот: ' + label(cur) + '.';
     var z = S.zoneOf(st, cur), t = st.spreads[cur].type;
+    $('roundRow').hidden = t !== 'group'; $('roundIn').value = st.spreads[cur].round != null ? st.spreads[cur].round : st.round || 0;
     $('btnLeftPhotos').hidden = t !== 'first';
     $('btnAdd').textContent = t === 'cover' || t === 'first' ? '＋ Портрети' : '＋ Додати фото';
     $('btnLeftPhotos').textContent = S.teachers(st).length ? '＋ Вчителі' : '＋ Загальне фото';
@@ -330,6 +331,8 @@
     e.preventDefault(); var it = lastInfo ? hit(mmAt(e)) : null; sel = it ? it.ref : null; redraw(); openMenu(it, e);
   });
   document.addEventListener('pointerdown', function (e) { if (!$('cellMenu').hidden && !$('cellMenu').contains(e.target) && e.target !== cv) closeMenu(); });
+  $('roundIn').oninput = function () { st.spreads[cur].round = +$('roundIn').value; redraw(); };
+  $('roundAll').onclick = function () { var v = +$('roundIn').value; st.round = v; st.spreads.forEach(function (s) { if (s.type === 'group') s.round = v; }); redraw(); toast('Скруглення застосовано до всіх групових розворотів'); };
   $('coverNoPhoto').onchange = function () { st.coverNoPhoto = $('coverNoPhoto').checked; refresh(); };
   function removeSel() {
     if (!sel) return toast('Спершу вибери фото'); 
