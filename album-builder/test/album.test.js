@@ -114,10 +114,16 @@ test('об\'єднання порожніх клітинок і текст у к
   assert.strictEqual(S.slotsFor(st, 2, new Map()).items.filter(i => i.text).length, 1);
   assert.ok(S.setSpan(st, 2, 2, 1, 1)); assert.strictEqual(S.slotsFor(st, 2, new Map()).items.length, 8);
 });
-test('вчительські вікна невеликі й у безпечній зоні', () => {
+test('вчителі: великі фото в безпечній зоні лівої сторінки, ряди по центру, конструктор рядів', () => {
   const z = PR.spreadSize('23x23');
+  assert.ok(L.teacherSlots(2, z.W, z.H)[0].photo.w > 80, 'двоє вчителів: великі фото');
+  assert.deepStrictEqual(L.teacherRows(3), [[0, 1], [2]]);
+  assert.deepStrictEqual(L.normRows([[2], [0], []], 4), [[2], [0, 1, 3]]);
+  const t3 = L.teacherSlots(3, z.W, z.H, { rows: [[0], [1, 2]] });
+  assert.ok(Math.abs((t3[0].photo.x + t3[0].photo.w / 2) - (t3[1].photo.x + t3[2].photo.x + t3[2].photo.w) / 2) < 1e-6, 'ряд по центру');
+  assert.ok(L.teacherPresets(5).length >= 2 && L.teacherPresets(5).every(r => r.reduce((a, b) => a + b, 0) === 5));
+  const half = L.teacherSlots(2, z.W, z.H, { size: 50 })[0].photo.w, full = L.teacherSlots(2, z.W, z.H)[0].photo.w; assert.ok(Math.abs(half * 2 - full) < 1e-6);
   for (let n = 1; n <= 8; n++) L.teacherSlots(n, z.W, z.H).forEach(t => {
-    assert.ok(t.photo.w <= z.W * 0.111 + 1e-6, 'завелике вікно');
     assert.ok(t.photo.x >= z.sb && t.cap.y + t.cap.h <= z.H - z.sb + 1e-6, 'поза безпечною зоною n=' + n);
   });
 });

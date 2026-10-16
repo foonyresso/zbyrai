@@ -51,7 +51,7 @@
 
   // ---------- Редактор ----------
   function showEditor() { $('wizard').hidden = true; $('work').hidden = false; document.body.classList.add('editing'); refresh(); }
-  function refresh() { redraw(); thumbs(); updateInfo(); }
+  function refresh() { redraw(); thumbs(); updateInfo(); if (panel === 'obj') buildObjPanel(); }
   function sizeCanvas() {
     var z = PR.spreadSize(st.fmtId), box = $('drop'), cs = getComputedStyle(box);
     var aw = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
@@ -191,7 +191,7 @@
   }
   function selFor(p, it) { if (it) return it.ref; var k = hitText(p); return k ? { t: 'text', key: k } : { t: 'bg' }; }
   cv.addEventListener('pointerdown', function (e) {
-    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it);
+    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it); if (panel === 'obj') buildObjPanel();
     drag = it ? { it: it, x: e.clientX, y: e.clientY, p: p, crop: !!(e.altKey || dragMode === 'crop'), moved: false } : null;
     if (drag) cv.setPointerCapture(e.pointerId); redraw();
   });
@@ -214,6 +214,9 @@
     if (d.moved && !d.crop) {
       var t = hit(mmAt(e));
       if (t && t !== d.it) { if (d.it.span || t.span) toast('Об\'єднані вікна не міняються місцями: спершу роз\'єднай (правий клік)'); else if (S.swapRefs(st, cur, d.it.ref, t.ref)) { sel = t.ref; refresh(); } else toast('Ці вікна не можна поміняти місцями'); }
+    } else if (!d.moved && d.it.kind === 'teacher' || !d.moved && d.it.kind === 'group' && st.spreads[cur].type === 'first') {
+      if (panel !== 'obj') openPanel('obj'); else buildObjPanel();
+      if (!d.it.name) { pickRef = d.it.ref; pickSide = 'left'; $('fileImg').click(); }
     } else if (!d.moved && d.it.kind === 'cell' && !d.it.name && !d.it.text) {
       openMenu(d.it, e);
     } else if (!d.moved && !d.it.name && (d.it.kind === 'group' || d.it.kind === 'cover' || d.it.kind === 'portrait1' || d.it.kind === 'teacher')) {
@@ -370,6 +373,83 @@
   });
   window.addEventListener('resize', redraw);
 
+  // ---------- Панель «Об'єкт»: вміст залежить від вибраного ----------
+  function slider(label, min, max, step, get, set, title) {
+    var l = el('label', '', label + ': '), inp = document.createElement('input'), v = el('span', 'hint', ''); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = get(); inp.title = title || label;
+    function sh() { v.textContent = ' ' + (+inp.value); } sh();
+    inp.oninput = function () { set(+inp.value); sh(); redraw(); thumbs(); }; l.appendChild(v); l.appendChild(inp); return l;
+  }
+  function buildTeacherUI(box) {
+    var tl = S.teachers(st), n = tl.length, cfg = st.tl = st.tl || {}, AL = AlbumLayout;
+    var rows = AL.normRows(cfg.rows && cfg.rows.length ? cfg.rows : AL.teacherRows(n), n), dragIdx = null;
+    box.appendChild(el('p', 'hint', 'Вчителів: ' + n + '. Перетягни кубик в інший ряд або на «+ новий ряд». Ряди завжди по центру.'));
+    function setRows(r) { cfg.rows = AL.normRows(r, n); refresh(); buildObjPanel(); }
+    function move(idx, ri, before) {
+      var rs = rows.map(function (r) { return r.slice(); }), tgtRow = ri === 'new' ? null : rs[ri];
+      rs.forEach(function (r) { var k = r.indexOf(idx); if (k >= 0) r.splice(k, 1); });
+      if (ri === 'new') { rs.splice(before, 0, [idx]); }
+      else { var k2 = before == null ? tgtRow.length : tgtRow.indexOf(before); tgtRow.splice(k2 < 0 ? tgtRow.length : k2, 0, idx); }
+      setRows(rs.filter(function (r) { return r.length; }));
+    }
+    var pr = el('div', 'pbtns'); pr.appendChild(el('span', 'hint', 'Готові:'));
+    AL.teacherPresets(n).forEach(function (counts) {
+      var b = el('button', '', counts.join(' + '), 'Ряди: ' + counts.join(', ') + ' вчителів у ряду'), i = 0;
+      b.onclick = function () { i = 0; setRows(counts.map(function (c) { var r = []; for (var k = 0; k < c; k++) r.push(i++); return r; })); }; pr.appendChild(b);
+    });
+    box.appendChild(pr);
+    var sch = el('div', 'tsch');
+    function zone(pos) { var z = el('div', 'tnew', '+ новий ряд', 'Перетягни кубик сюди, щоб почати новий ряд'); z.ondragover = function (e) { e.preventDefault(); z.classList.add('over'); }; z.ondragleave = function () { z.classList.remove('over'); }; z.ondrop = function (e) { e.preventDefault(); if (dragIdx != null) move(dragIdx, 'new', pos); }; return z; }
+    sch.appendChild(zone(0));
+    rows.forEach(function (r, ri) {
+      var rowEl = el('div', 'trow');
+      rowEl.ondragover = function (e) { e.preventDefault(); rowEl.classList.add('over'); }; rowEl.ondragleave = function () { rowEl.classList.remove('over'); };
+      rowEl.ondrop = function (e) { e.preventDefault(); rowEl.classList.remove('over'); if (dragIdx != null) move(dragIdx, ri, null); };
+      r.forEach(function (idx) {
+        var c = el('div', 'cube' + (sel && sel.t === 'teacher' && sel.i === idx ? ' on' : ''), String(idx + 1), (tl[idx] ? tl[idx].name : '') + ': перетягни в інший ряд, клік вибирає на розвороті'); c.draggable = true;
+        c.ondragstart = function (e) { dragIdx = idx; c.classList.add('drag'); e.dataTransfer.setData('text/plain', String(idx)); e.dataTransfer.effectAllowed = 'move'; };
+        c.ondragend = function () { dragIdx = null; c.classList.remove('drag'); };
+        c.ondragover = function (e) { e.preventDefault(); e.stopPropagation(); }; c.ondrop = function (e) { e.preventDefault(); e.stopPropagation(); if (dragIdx != null && dragIdx !== idx) move(dragIdx, ri, idx); };
+        c.onclick = function () { sel = { t: 'teacher', i: idx }; redraw(); buildObjPanel(); };
+        rowEl.appendChild(c);
+      });
+      sch.appendChild(rowEl); sch.appendChild(zone(ri + 1));
+    });
+    box.appendChild(sch);
+    var ab = el('div', 'pbtns');
+    var add = el('button', '', '＋ Ряд', 'Додати ряд: останній вчитель найдовшого ряду переходить у новий ряд внизу'); add.onclick = function () { var li = 0; rows.forEach(function (r, i) { if (r.length > rows[li].length) li = i; }); if (rows[li].length < 2) return toast('Немає з чого створити ряд'); var rs = rows.map(function (r) { return r.slice(); }), x = rs[li].pop(); rs.push([x]); setRows(rs); };
+    var del = el('button', '', '− Ряд', 'Прибрати останній ряд: вчителі переходять у попередній'); del.onclick = function () { if (rows.length < 2) return; var rs = rows.map(function (r) { return r.slice(); }), last = rs.pop(); rs[rs.length - 1] = rs[rs.length - 1].concat(last); setRows(rs); };
+    var rst = el('button', '', 'Авто', 'Повернути типові ряди'); rst.onclick = function () { cfg.rows = null; refresh(); buildObjPanel(); };
+    ab.appendChild(add); ab.appendChild(del); ab.appendChild(rst); box.appendChild(ab);
+    box.appendChild(slider('Розмір фото, %', 30, 100, 1, function () { return cfg.size == null ? 100 : cfg.size; }, function (v) { cfg.size = v; }, 'Менше значення: фото менші, блок усе одно по центру'));
+    box.appendChild(slider('Пропорція (вузькі ← → широкі)', 0.7, 1.6, 0.05, function () { return cfg.asp == null ? 1.1 : +(2.3 - cfg.asp).toFixed(2); }, function (v) { cfg.asp = +(2.3 - v).toFixed(2); }, 'Вліво: вертикальні (високі) фото; вправо: горизонтальні (широкі)'));
+    box.appendChild(slider('Відстань між фото, мм', 0, 30, 1, function () { return cfg.gap == null ? 10 : cfg.gap; }, function (v) { cfg.gap = v; }, 'Проміжок між фото'));
+  }
+  function buildGeneralUI(box) {
+    var g = st.gp = st.gp || {};
+    box.appendChild(el('p', 'hint', 'Загальне фото на лівій сторінці першого розвороту. Центр лишається на місці.'));
+    box.appendChild(slider('Ширина, %', 30, 100, 1, function () { return g.w == null ? 100 : g.w; }, function (v) { g.w = v; }, 'Вужче чи ширше'));
+    box.appendChild(slider('Висота, %', 30, 100, 1, function () { return g.h == null ? 100 : g.h; }, function (v) { g.h = v; }, 'Нижче чи вище'));
+    var b = el('button', '', 'Скинути розмір', 'Повернути типовий розмір'); b.onclick = function () { st.gp = null; refresh(); buildObjPanel(); }; box.appendChild(b);
+  }
+  function buildObjPanel() {
+    var box = $('objBody'); if (!box) return; box.textContent = ''; var sp = st.spreads[cur]; if (!sp) return;
+    if (sel && sel.t === 'text') {
+      box.appendChild(el('p', 'hint', 'Вибрано напис: ' + (TEXTNAME[sel.key] || '') + '. Шрифт: правий клік по ньому.'));
+      var s = el('select', '', null, 'Шрифт цього напису'); s.appendChild(el('option', '', 'Як у альбомі')).value = '';
+      AlbumFonts.LIST.forEach(function (f) { var o = el('option', '', f.n); o.value = f.n; s.appendChild(o); }); s.value = (st.tf || {})[sel.key] || '';
+      s.onchange = function () { st.tf = st.tf || {}; if (s.value) st.tf[sel.key] = s.value; else delete st.tf[sel.key]; refresh(); }; box.appendChild(s); return;
+    }
+    if (sel && sel.t === 'bg') {
+      box.appendChild(el('p', 'hint', 'Вибрано фон розвороту. Колір, градієнт, картинка й візерунки: вкладка «Фон».'));
+      var bb = el('button', '', 'Відкрити «Фон»', 'Перейти до налаштувань фону'); bb.onclick = function () { openPanel('bg'); }; box.appendChild(bb); return;
+    }
+    if (sp.type === 'first') { if (S.teachers(st).length) buildTeacherUI(box); else buildGeneralUI(box); return; }
+    if (sp.type === 'group') {
+      box.appendChild(slider('Скруглення кутів, мм', 0, 15, 0.5, function () { return sp.round != null ? sp.round : st.round || 0; }, function (v) { sp.round = v; }, 'Скруглення кутів групових фото цього розвороту'));
+      return;
+    }
+    box.appendChild(el('p', 'hint', 'Клікни по фото, напису чи фону. На першому розвороті тут конструктор вчителів або розмір загального фото, на груповому скруглення кутів.'));
+  }
   // ---------- Шрифти ----------
   (function () {
     var s = $('fontSel'), g = '';
@@ -385,6 +465,7 @@
     $('drawer').hidden = !panel; $('work').classList.toggle('shift', !!panel);
     document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.classList.toggle('on', b.dataset.panel === panel); });
     document.querySelectorAll('.drawer section').forEach(function (s) { s.classList.toggle('on', s.dataset.panel === panel); });
+    if (panel === 'obj') buildObjPanel();
     setTimeout(redraw, 170);
   }
   document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.onclick = function () { openPanel(b.dataset.panel); }; });

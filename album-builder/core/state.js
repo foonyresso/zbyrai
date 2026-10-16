@@ -10,7 +10,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, font: null, pattern: null, tsize: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, font: null, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   function people(st) {
     var list = P.parseChildren(st.children).map(function (p) { p.kind = 'child'; return p; })
@@ -115,6 +115,11 @@
     return { n: all.length, tpl: t };
   }
   // Переносить фото з комірки (ref) розвороту si на розворот to: портретний бере вільну комірку, груповий додає в кінець.
+  // Загальне фото першого розвороту (коли немає вчителів): розмір у % від типового, центр лишається на місці
+  function generalRect(st, g) {
+    var c = st.gp || {}, w = g.w * Math.min(1, Math.max(0.3, (c.w == null ? 100 : c.w) / 100)), h = g.h * Math.min(1, Math.max(0.3, (c.h == null ? 100 : c.h) / 100));
+    return { x: g.x + (g.w - w) / 2, y: g.y + (g.h - h) / 2, w: w, h: h };
+  }
   function movePhoto(st, si, ref, to) {
     var sp = st.spreads[si], name = ref.t === 'extra' ? sp.extra[ref.j] : sp.slots[ref.i], dst = st.spreads[to];
     if (!name || !dst || to === si) return false;
@@ -209,8 +214,8 @@
     } else if (sp.type === 'first') {
       var f = L.firstLayout(W, H, z.sb), tl = teachers(st);
       if (tl.length) {
-        L.teacherSlots(tl.length, W, H).forEach(function (q, i) { items.push({ rect: q.photo, capRect: q.cap, ref: { t: 'teacher', i: i }, name: (sp.teacherPhotos && sp.teacherPhotos[i]) || photoFor(tl[i], numMap), caption: tl[i].name, post: tl[i].post, kind: 'teacher' }); });
-      } else items.push({ rect: f.group, ref: { t: 'slot', i: 0 }, name: sp.slots[0] || null, caption: '', kind: 'group' });
+        L.teacherSlots(tl.length, W, H, st.tl || undefined).forEach(function (q, i) { items.push({ rect: q.photo, capRect: q.cap, ref: { t: 'teacher', i: i }, name: (sp.teacherPhotos && sp.teacherPhotos[i]) || photoFor(tl[i], numMap), caption: tl[i].name, post: tl[i].post, kind: 'teacher' }); });
+      } else items.push({ rect: generalRect(st, f.group), ref: { t: 'slot', i: 0 }, name: sp.slots[0] || null, caption: '', kind: 'group' });
       var ow1 = ownerOf(st);
       items.push({ rect: f.portrait, ref: { t: 'fright' }, name: (ow1 && sp.kidPhotos && sp.kidPhotos[ow1.id]) || (ow1 ? photoFor(ow1, numMap, true) : null), caption: '', kind: 'portrait1' });
     } else if (sp.type === 'portrait') {

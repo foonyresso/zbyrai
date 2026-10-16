@@ -78,24 +78,47 @@
     var out = []; split({ x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, n, gap, rng(seed || 1), out);
     return out.map(function (r, i) { r.i = i; return r; });
   }
-  // Вчителі: невеликі прямокутні вікна фото (висота 1.15 ширини) зі смугою під підпис (capH мм), блок по центру лівої сторінки першого розвороту.
-  function teacherSlots(n, W, H) {
-    var area = { x: W * 0.04, y: H * 0.07, w: W * 0.43, h: H * 0.72 }, capH = Math.max(11, H * 0.085), gap = 12, maxW = W * 0.11;
+  // Вчителі: фото (висота = asp × ширина) зі смугою під підпис, ряди по центру лівої сторінки. cfg: {rows: [[індекси]], size: % від максимуму, asp, gap}.
+  // Повертає масив за номером вчителя: {photo, cap}. Без cfg.rows ряди беруться з teacherRows(n).
+  var TEACHER_AREA = { x: 0.04, y: 0.06, w: 0.43, h: 0.74 };
+  // Типові ряди для n вчителів: 2 → [2], 3 → [2,1], 4 → [2,2], 5 → [3,2], 6 → [3,3], 7 → [4,3] …
+  function teacherRows(n) {
+    var rows = [], rest = n, per = n <= 2 ? n : n <= 4 ? 2 : n <= 6 ? 3 : n <= 8 ? 4 : n <= 12 ? 4 : 5, i = 0;
+    var cnt = Math.ceil(n / per); per = Math.ceil(n / cnt);
+    while (rest > 0) { var c = Math.min(per, rest); rows.push(Array.from({ length: c }, function (_, k) { return i + k; })); i += c; rest -= c; }
+    return rows;
+  }
+  // Усі розумні розбивки n вчителів на 1–3 ряди (для готових варіантів): кожен ряд 1–6, різниця сусідніх рядів не більше 2.
+  function teacherPresets(n) {
+    var out = [];
+    function rec(rest, cur) {
+      if (cur.length > 3) return;
+      if (!rest) { if (cur.every(function (c, k) { return k === 0 || Math.abs(c - cur[k - 1]) <= 2; })) out.push(cur.slice()); return; }
+      for (var c = Math.min(6, rest); c >= 1; c--) { cur.push(c); rec(rest - c, cur); cur.pop(); }
+    }
+    rec(n, []);
+    out.sort(function (a, b) { return a.length - b.length || Math.max.apply(0, a) - Math.max.apply(0, b) || 0; });
+    return out.slice(0, 8);
+  }
+  // Приводить ряди до дійсного вигляду: кожен індекс 0..n-1 рівно один раз, порожні ряди прибрані.
+  function normRows(rows, n) {
+    var seen = {}, out = [];
+    (rows || []).forEach(function (r) { var q = (r || []).filter(function (x) { return x >= 0 && x < n && !seen[x] && (seen[x] = 1); }); if (q.length) out.push(q); });
+    for (var k = 0; k < n; k++) if (!seen[k]) { if (!out.length) out.push([]); out[out.length - 1].push(k); }
+    return out;
+  }
+  function teacherSlots(n, W, H, cfg) {
+    cfg = cfg || {};
+    var area = { x: W * TEACHER_AREA.x, y: H * TEACHER_AREA.y, w: W * TEACHER_AREA.w, h: H * TEACHER_AREA.h }, capH = Math.max(10, H * 0.07), gap = cfg.gap != null ? cfg.gap : 10, asp = cfg.asp || 1.1;
     if (n <= 0) return [];
-    var best = null, bs = Infinity;
-    for (var c = 1; c <= n; c++) {
-      var r = Math.ceil(n / c), cw = Math.min(maxW, (area.w - gap * (c - 1)) / c), ph = cw * 1.15;
-      if (r * (ph + capH) + (r - 1) * gap > area.h) cw = (area.h - (r - 1) * gap - r * capH) / r / 1.15;
-      if (cw <= 0) continue;
-      var sc = -cw + (c * r - n) * 2 + r * 4;
-      if (sc < bs) { bs = sc; best = { cols: c, rows: r, cw: cw }; }
-    }
-    var cw2 = best.cw, ph2 = cw2 * 1.15, cellH = ph2 + capH, totW = best.cols * cw2 + (best.cols - 1) * gap, totH = best.rows * cellH + (best.rows - 1) * gap;
-    var x0 = area.x + (area.w - totW) / 2, y0 = area.y + (area.h - totH) / 2, out = [];
-    for (var i = 0; i < n; i++) {
-      var col = i % best.cols, row = Math.floor(i / best.cols), x = x0 + col * (cw2 + gap), y = y0 + row * (cellH + gap);
-      out.push({ photo: { x: x, y: y, w: cw2, h: ph2 }, cap: { x: x - gap / 2, y: y + ph2, w: cw2 + gap, h: capH } });
-    }
+    var rows = cfg.rows && cfg.rows.length ? normRows(cfg.rows, n) : teacherRows(n), nr = rows.length, mc = Math.max.apply(0, rows.map(function (r) { return r.length; }));
+    var cw = Math.min((area.w - gap * (mc - 1)) / mc, (area.h - (nr - 1) * gap - nr * capH) / (nr * asp));
+    cw = Math.max(4, cw) * Math.min(1, Math.max(0.3, (cfg.size == null ? 100 : cfg.size) / 100));
+    var ph = cw * asp, cellH = ph + capH, totH = nr * cellH + (nr - 1) * gap, y0 = area.y + (area.h - totH) / 2, out = [];
+    rows.forEach(function (r, ri) {
+      var totW = r.length * cw + (r.length - 1) * gap, x0 = area.x + (area.w - totW) / 2, y = y0 + ri * (cellH + gap);
+      r.forEach(function (idx, ci) { var x = x0 + ci * (cw + gap); out[idx] = { photo: { x: x, y: y, w: cw, h: ph }, cap: { x: x - gap / 2, y: y + ph, w: cw + gap, h: capH } }; });
+    });
     return out;
   }
   // sb = відстань від краю полотна до безпечної межі (виліт + безпечна зона): текст не заходить далі.
@@ -110,6 +133,6 @@
     sb = sb || 8;
     return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: Math.min(H * 0.865, H - sb - H * 0.058) } };
   }
-  var api = { rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
+  var api = { rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, teacherRows: teacherRows, teacherPresets: teacherPresets, normRows: normRows, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumLayout = api;
 })(typeof self !== 'undefined' ? self : this);
