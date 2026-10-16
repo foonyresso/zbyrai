@@ -100,3 +100,5 @@ details.how { margin: 12px 18px 0; }
 .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
 .dots i.new { background: #f0a028; box-shadow: 0 0 5px #f0a028; }
 .pairf { position: relative; } .pairf textarea { width: 100%; } .x2 { position: absolute; right: 4px; top: 0; width: 26px; height: 26px; padding: 0; line-height: 1; }
+input[type=color] { width: 64px; height: 36px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev); cursor: pointer; }
+input[type=color]::-webkit-color-swatch-wrapper { padding: 0; } input[type=color]::-webkit-color-swatch { border: 0; border-radius: 6px; }

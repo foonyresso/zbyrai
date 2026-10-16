@@ -289,13 +289,25 @@
   }
   $('btnLayouts').onclick = function () { var s2 = $('layoutStrip'); s2.hidden = !s2.hidden; if (!s2.hidden) buildLayoutStrip(); setTimeout(redraw, 30); };
   var bgDraft = { type: 'color', color: '#ffffff', color2: '#cfd8ff', angle: 90, image: null };
-  function bgSync() { bgDraft.type = $('bgType').value; bgDraft.color = $('bgC1').value; bgDraft.color2 = $('bgC2').value; bgDraft.angle = +$('bgAngle').value; $('bgC2L').hidden = $('bgAngL').hidden = bgDraft.type !== 'gradient'; $('bgImgRow').hidden = bgDraft.type !== 'image'; $('bgC1').parentNode.hidden = bgDraft.type === 'image' && false; }
-  ['bgType', 'bgC1', 'bgC2', 'bgAngle'].forEach(function (id) { $(id).oninput = $(id).onchange = bgSync; }); bgSync();
+  // Фон застосовується одразу при будь-якій зміні: на цей розворот або на весь альбом (тоді власні фони розворотів скидаються, щоб було видно різницю)
+  function bgApply() {
+    bgDraft.type = $('bgType').value; bgDraft.color = $('bgC1').value; bgDraft.color2 = $('bgC2').value; bgDraft.angle = +$('bgAngle').value;
+    $('bgC2L').hidden = $('bgAngL').hidden = bgDraft.type !== 'gradient'; $('bgImgRow').hidden = bgDraft.type !== 'image';
+    if (bgDraft.type === 'image' && !bgDraft.image) return;
+    var b = JSON.parse(JSON.stringify(bgDraft));
+    if ($('bgScope').value === 'all') { st.bg = b; st.spreads.forEach(function (s) { s.bg = null; }); } else st.spreads[cur].bg = b;
+    redraw(); thumbs(); save();
+  }
+  // Показує у контролях фон, що діє на поточному розвороті
+  function bgLoad() {
+    var b = st.spreads[cur] && (st.spreads[cur].bg || st.bg); if (!b) return;
+    bgDraft = JSON.parse(JSON.stringify(b)); $('bgType').value = b.type; $('bgC1').value = b.color || '#ffffff'; $('bgC2').value = b.color2 || '#cfd8ff'; $('bgAngle').value = b.angle || 90;
+    $('bgC2L').hidden = $('bgAngL').hidden = b.type !== 'gradient'; $('bgImgRow').hidden = b.type !== 'image';
+  }
+  ['bgType', 'bgC1', 'bgC2', 'bgAngle'].forEach(function (id) { $(id).oninput = $(id).onchange = bgApply; });
+  $('bgScope').onchange = function () { if ($('bgScope').value === 'all') bgApply(); };
   $('bgImgBtn').onclick = function () { $('fileBg').click(); };
-  $('fileBg').onchange = async function (e) { var f = e.target.files[0]; e.target.value = ''; if (!f) return; var im = await loadImage(f); if (!im) return toast('Не вдалося прочитати картинку'); var key = 'bg::' + f.name; imgs.set(key, im); bgDraft.image = key; $('bgImgName').textContent = f.name; };
-  function bgCopy() { if (bgDraft.type === 'image' && !bgDraft.image) { toast('Спершу вибери картинку'); return null; } return JSON.parse(JSON.stringify(bgDraft)); }
-  $('bgAll').onclick = function () { var b = bgCopy(); if (!b) return; st.bg = b; refresh(); };
-  $('bgOne').onclick = function () { var b = bgCopy(); if (!b) return; st.spreads[cur].bg = b; refresh(); };
+  $('fileBg').onchange = async function (e) { var f = e.target.files[0]; e.target.value = ''; if (!f) return; var im = await loadImage(f); if (!im) return toast('Не вдалося прочитати картинку'); var key = 'bg::' + f.name; imgs.set(key, im); bgDraft.image = key; $('bgImgName').textContent = f.name; bgApply(); };
   $('bgResetOne').onclick = function () { st.spreads[cur].bg = null; refresh(); };
   $('bgResetAll').onclick = function () { st.bg = null; refresh(); };
 
@@ -517,7 +529,7 @@
     $('drawer').hidden = !panel; $('work').classList.toggle('shift', !!panel);
     document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.classList.toggle('on', b.dataset.panel === panel); });
     document.querySelectorAll('.drawer section').forEach(function (s) { s.classList.toggle('on', s.dataset.panel === panel); });
-    if (panel === 'obj') buildObjPanel();
+    if (panel === 'obj') buildObjPanel(); if (panel === 'bg') bgLoad();
     setTimeout(redraw, 170);
   }
   document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.onclick = function () { openPanel(b.dataset.panel); }; });

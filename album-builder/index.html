@@ -101,13 +101,12 @@
       <div id="roundRow"><label title="Скруглення кутів групових фото, мм (0 — прямі кути)">Скруглення кутів фото, мм <input type="range" id="roundIn" min="0" max="15" step="0.5" value="0"></label>
         <button id="roundAll" title="Застосувати це скруглення до всіх групових розворотів">На всі групові розвороти</button></div></section>
     <section data-panel="bg"><h2>Фон</h2>
+      <label title="Куди застосовується фон. Зміна видна одразу"><span>Де змінюємо</span><select id="bgScope" title="Цей розворот чи весь альбом"><option value="one">Тільки цей розворот</option><option value="all">Весь альбом</option></select></label>
       <label title="Тип фону">Тип <select id="bgType" title="Однотонний, градієнт чи картинка"><option value="color">Колір</option><option value="gradient">Градієнт</option><option value="image">Картинка</option></select></label>
       <div class="two"><label title="Колір (для градієнта: початковий)">Колір <input type="color" id="bgC1" value="#ffffff" title="Колір з палітри"></label>
         <label id="bgC2L" title="Другий колір градієнта">Колір 2 <input type="color" id="bgC2" value="#cfd8ff" title="Кінцевий колір градієнта"></label></div>
       <label id="bgAngL" title="Напрямок градієнта в градусах">Кут градієнта <input type="range" id="bgAngle" min="0" max="360" step="5" value="90" title="0 вправо, 90 вниз"></label>
       <div id="bgImgRow"><button id="bgImgBtn" title="Вибрати картинку для фону з комп'ютера">Вибрати картинку…</button> <span class="hint" id="bgImgName"></span><input type="file" id="fileBg" accept="image/*" hidden></div>
-      <button id="bgAll" title="Застосувати цей фон до всіх розворотів, що не мають свого фону">На весь альбом</button>
-      <button id="bgOne" title="Застосувати цей фон лише до поточного розвороту">Тільки цей розворот</button>
       <button id="bgResetOne" title="Прибрати окремий фон поточного розвороту (буде фон альбому)">Скинути для розвороту</button>
       <button id="bgResetAll" title="Прибрати фон альбому (буде колір дизайну)">Скинути для альбому</button>
       <p class="hint">Окремий фон розвороту має перевагу над фоном альбому.</p></section>
