@@ -54,6 +54,7 @@
         ctx.fillStyle = '#f4f2f0'; ctx.fillRect(r.x, r.y, r.w, r.h); ctx.strokeStyle = '#c9c4be'; ctx.setLineDash([2, 2]); ctx.lineWidth = 0.4; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1); ctx.setLineDash([]);
         fitText(ctx, it.kind === 'cell' ? 'клік: фото чи текст' : 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.12, r.w * 0.8, d.font, '#b5aea6');
       }
+      if (it.kind === 'cell' && it.text && it.text.p && root.AlbumPatterns) root.AlbumPatterns.draw(ctx, r, it.text.p, imgs);
       if (it.pivot) { ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineWidth = 0.8; ctx.strokeRect(r.x, r.y, r.w, r.h); }
       if (it.kind === 'cell' && it.caption) {
         // підпис не заходить у безпечну зону: біля країв розвороту смуга довша, а текст зсунутий всередину
@@ -62,7 +63,7 @@
         var tx0 = Math.max(r.x, sb), tx1 = Math.min(r.x + r.w, W - sb);
         fitText(ctx, it.caption.toUpperCase(), (tx0 + tx1) / 2, by + bh * 0.64, bh * 0.4, (tx1 - tx0) * 0.92, st.tf && st.tf.cap && FT && FT.stack(st.tf.cap) || d.font, d.text, '400', 'center', 0.04);
       }
-      if (it.kind === 'cell' && it.text) cellText(ctx, it, d, sb, W, H);
+      if (it.kind === 'cell' && it.text && it.text.t) cellText(ctx, it, d, sb, W, H);
       if (it.kind === 'teacher') {
         var c = it.capRect, nm = it.caption.toUpperCase();
         fitText(ctx, nm, c.x + c.w / 2, c.y + c.h * (it.post ? 0.46 : 0.62), c.h * 0.36, c.w * 0.96, st.tf && st.tf.teach && FT && FT.stack(st.tf.teach) || d.font, d.text, '600', 'center', 0.03);

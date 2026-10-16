@@ -313,6 +313,7 @@
         st.spreads.forEach(function (x, i) { if (i !== cur && (x.type === 'portrait' || x.type === 'group')) mv.push(['→ ' + label(i), 'Перенести це фото на розворот «' + label(i) + '»', function () { if (S.movePhoto(st, cur, it.ref, i)) { sel = null; toast('Перенесено: ' + label(i)); } else toast('Там немає вільного місця'); }]); });
         if (mv.length) secs.push({ h: 'Перемістити на розворот', items: mv });
       }
+      if (it.kind === 'cell' && !it.name) secs.push({ h: 'Візерунок', items: [['Візерунки… (' + AlbumPatterns.LIST.length + ')', 'Відкрити вікно з готовими візерунками для цієї клітинки', function () { openPatterns(it); }]].concat(it.text && it.text.p ? [['Прибрати візерунок', 'Лишити клітинку без візерунка', function () { S.setPattern(st, cur, j, null); }]] : []) });
       if (it.kind === 'cell' && !it.name) {
         secs.push({ h: 'Готовий текст', items: S.presets(st).map(function (p) { return [p.label, 'Вставити текст «' + p.t.replace('\n', ' ') + '»', function () { S.setText(st, cur, j, { t: p.t, s: (it.text && it.text.s) || 'ornament' }); }]; }).concat([['Свій текст…', 'Написати довільний текст (\\n = новий рядок)', function () {
           var t = prompt('Текст для вікна (\\n = новий рядок):', it.text ? it.text.t.replace(/\n/g, '\\n') : ''); if (t != null) S.setText(st, cur, j, { t: t.replace(/\\n/g, '\n'), s: (it.text && it.text.s) || 'ornament' });
@@ -449,6 +450,39 @@
       return;
     }
     box.appendChild(el('p', 'hint', 'Клікни по фото, напису чи фону. На першому розвороті тут конструктор вчителів або розмір загального фото, на груповому скруглення кутів.'));
+  }
+  // ---------- Візерунки для порожніх клітинок ----------
+  var patTarget = null, patDraft = { id: 'dots', c: '#c9c9c9', s: 6 };
+  (function () {
+    var s = $('patColor'); AlbumPatterns.COLORS.forEach(function (c) { var o = el('option', '', c[1]); o.value = c[0]; s.appendChild(o); });
+    s.onchange = function () { patDraft.c = s.value; patApply(); };
+    $('patSize').oninput = function () { patDraft.s = +$('patSize').value; patApply(true); };
+    $('patNone').onclick = function () { if (patTarget) { S.setPattern(st, cur, patTarget.j, null); refresh(); patGrid(); } };
+    $('patClose').onclick = function () { $('patDlg').hidden = true; };
+    $('patAll').onclick = function () {
+      if (!patTarget || !patDraft.id) return; var n = 0;
+      S.slotsFor(st, cur, numMap).items.forEach(function (it) { if (it.kind === 'cell' && !it.name && !it.span) { S.setPattern(st, cur, it.ref.j, JSON.parse(JSON.stringify(patDraft))); n++; } });
+      refresh(); toast('Візерунок у ' + n + ' клітинках');
+    };
+    $('patFile').onclick = function () { $('patFileIn').click(); };
+    $('patFileIn').onchange = async function (e) {
+      var f = e.target.files[0]; e.target.value = ''; if (!f) return; var im = await loadImage(f); if (!im) return toast('Не вдалося прочитати файл');
+      var key = 'pat::' + f.name; imgs.set(key, im); patDraft = { id: 'img', img: key, s: patDraft.s }; patApply();
+    };
+  })();
+  function patApply(light) { if (!patTarget) return; S.setPattern(st, cur, patTarget.j, JSON.parse(JSON.stringify(patDraft))); if (light) { redraw(); thumbs(); } else { refresh(); patGrid(); } }
+  function patGrid() {
+    var g = $('patGrid'); g.textContent = '';
+    AlbumPatterns.LIST.forEach(function (p) {
+      var b = el('button', patDraft.id === p.id ? 'on' : '', null, p.name), c = document.createElement('canvas'); c.width = 152; c.height = 112;
+      var x = c.getContext('2d'), k = 152 / 38; x.fillStyle = '#fff'; x.fillRect(0, 0, 152, 112); x.setTransform(k, 0, 0, k, 0, 0);
+      AlbumPatterns.draw(x, { x: 0, y: 0, w: 38, h: 28 }, { id: p.id, c: patDraft.c, s: Math.min(patDraft.s, 8) });
+      b.appendChild(c); b.appendChild(el('span', '', p.name)); b.onclick = function () { patDraft.id = p.id; delete patDraft.img; patApply(); }; g.appendChild(b);
+    });
+  }
+  function openPatterns(it) {
+    patTarget = { j: it.ref.j }; var cur0 = it.text && it.text.p; if (cur0) { patDraft = JSON.parse(JSON.stringify(cur0)); if (patDraft.id === 'img' && !imgs.get(patDraft.img)) patDraft.id = 'dots'; }
+    $('patColor').value = patDraft.c || '#c9c9c9'; $('patSize').value = patDraft.s || 6; patGrid(); $('patDlg').hidden = false;
   }
   // ---------- Шрифти ----------
   (function () {

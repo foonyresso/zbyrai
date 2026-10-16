@@ -134,6 +134,13 @@
 
 <div class="menu" id="cellMenu" hidden></div>
 <div class="dlg" id="dlg" hidden><div class="dlgbox"><p id="dlgText"></p><div id="dlgBtns"></div></div></div>
+<div class="dlg" id="patDlg" hidden><div class="dlgbox patbox"><h3 style="margin:0">Візерунок для клітинки</h3>
+  <div class="patgrid" id="patGrid"></div>
+  <div class="two"><label title="Колір візерунка">Колір <select id="patColor" title="Колір візерунка"></select></label>
+    <label title="Розмір елементів візерунка, мм">Розмір, мм <input type="range" id="patSize" min="3" max="16" step="0.5" value="6" title="Розмір елементів візерунка"></label></div>
+  <p class="hint">Свій візерунок: файл з прозорим тлом (PNG), він повториться плиткою по клітинці. Файл не зберігається в макеті, як і фото.</p>
+  <div class="pbtns"><button id="patFile" title="Вибрати з комп'ютера свій візерунок (PNG із прозорим тлом)">Свій файл…</button><input type="file" id="patFileIn" accept="image/*" hidden>
+    <button id="patNone" title="Прибрати візерунок з клітинки">Без візерунка</button><button id="patAll" title="Той самий візерунок у всі порожні клітинки цього розвороту">На всі порожні</button><button id="patClose" class="btn-main" title="Закрити вікно">Готово</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script src="./data/print-types.js"></script>
 <script src="./data/designs.js"></script>
@@ -143,6 +150,7 @@
 <script src="./core/templates.js"></script>
 <script src="./core/state.js"></script>
 <script src="./data/fonts.js"></script>
+<script src="./data/patterns.js"></script>
 <script src="./render.js"></script>
 <script src="./export.js"></script>
 <script src="./app.js"></script>

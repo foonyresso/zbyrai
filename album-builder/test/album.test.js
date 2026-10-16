@@ -75,6 +75,15 @@ test('перенесення на портретний розворот міня
   assert.deepStrictEqual(st.spreads[ps[1]].extra, { 0: 'b.jpg', 1: 'd.jpg' });
   assert.deepStrictEqual(st.spreads[ps[0]].extra, { 0: 'a.jpg', 3: 'c.jpg' });
 });
+test('візерунок клітинки: ставиться без тексту, переживає зміну тексту, знімається', () => {
+  const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
+  S.setPattern(st, 2, 3, { id: 'dots', c: '#ccc', s: 6 });
+  assert.strictEqual(st.spreads[2].text[3].p.id, 'dots');
+  S.setText(st, 2, 3, { t: 'Наш клас', s: 'frame' }); assert.strictEqual(st.spreads[2].text[3].p.id, 'dots');
+  S.setPattern(st, 2, 3, null); assert.ok(!st.spreads[2].text[3].p);
+  S.setPattern(st, 2, 4, { id: 'hex' }); S.setPattern(st, 2, 4, null); assert.ok(!st.spreads[2].text[4]);
+  const AP = require('../data/patterns.js'); assert.ok(AP.LIST.length >= 30); assert.ok(AP.LIST.every(p => typeof p.draw === 'function'));
+});
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
   S.placePortrait(st, 2, '1.jpg'); S.placePortrait(st, 2, '2.jpg');

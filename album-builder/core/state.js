@@ -255,7 +255,13 @@
     else if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') { sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j]; } else return false;
     return true;
   }
-  function setText(st, si, j, obj) { var sp = st.spreads[si]; sp.text = sp.text || {}; delete sp.extra[j]; if (obj && obj.t) sp.text[j] = obj; else delete sp.text[j]; }
+  function setText(st, si, j, obj) { var sp = st.spreads[si]; sp.text = sp.text || {}; delete sp.extra[j]; if (obj && obj.t) { var old = sp.text[j]; if (old && old.p && !obj.p) obj.p = old.p; if (old && old.f && !obj.f) obj.f = old.f; sp.text[j] = obj; } else delete sp.text[j]; }
+  // Візерунок клітинки j (pat = {id, c, s, img} або null). Текст у клітинці лишається.
+  function setPattern(st, si, j, pat) {
+    var sp = st.spreads[si]; sp.text = sp.text || {}; var o = sp.text[j];
+    if (!pat) { if (o) { delete o.p; if (!o.t) delete sp.text[j]; } return; }
+    delete sp.extra[j]; if (!o) o = sp.text[j] = { t: '', s: 'plain' }; o.p = pat;
+  }
   function cycleStyle(st, si, j) { var o = st.spreads[si].text && st.spreads[si].text[j]; if (o) o.s = CELL_STYLES[(CELL_STYLES.indexOf(o.s || 'plain') + 1) % CELL_STYLES.length]; return o && o.s; }
   // Об'єднати порожню клітинку j з сусідніми: cw вправо, ch вниз. Повертає false, якщо неможливо.
   function setSpan(st, si, j, cw, ch) {
@@ -308,6 +314,6 @@
   }
   var api = { newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
-    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
+    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;
 })(typeof self !== 'undefined' ? self : this);
