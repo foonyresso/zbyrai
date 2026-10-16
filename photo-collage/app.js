@@ -1,10 +1,10 @@
-// Колаж фото: інтерфейс (завантаження фото, полотно, вибір фото, рамка/кадр, експорт). Логіка розкладки — у collage-core.js.
+// Колаж фото: інтерфейс (завантаження фото, полотно, вибір фото, обмін місцями/кадр, макет без фото, експорт). Логіка розкладки — у collage-core.js.
 (function () {
   var C = window.CollageCore, $ = function (id) { return document.getElementById(id); };
   var LS = 'pc_';
   var cv = $('cv'), ctx = cv.getContext('2d');
   // tile: {img, x,y,w,h (рамка зараз), hx,hy,hw,hh (за розкладкою), z (наближення кадру), fx,fy (зсув кадру 0..1)}
-  var st = { w: 2400, h: 1800, gap: 16, bg: '#101014', seed: 1, preset: '4:3', mode: 'tree', dragMode: 'move', tiles: [], sel: null };
+  var st = { w: 2400, h: 1800, gap: 16, bg: '#101014', seed: 1, preset: '4:3', mode: 'tree', dragMode: 'swap', blank: false, tiles: [], sel: null };
 
   function save() { try { localStorage.setItem(LS + 'cfg', JSON.stringify({ w: st.w, h: st.h, gap: st.gap, bg: st.bg, preset: st.preset, mode: st.mode })); } catch (e) {} }
   try { var s = JSON.parse(localStorage.getItem(LS + 'cfg') || 'null'); if (s) { st.w = s.w || st.w; st.h = s.h || st.h; st.gap = s.gap == null ? st.gap : s.gap; st.bg = s.bg || st.bg; st.preset = s.preset || st.preset; st.mode = C.MODES[s.mode] ? s.mode : st.mode; } } catch (e) {}
@@ -35,12 +35,23 @@
   function draw(noSel) {
     if (cv.width !== st.w) cv.width = st.w; if (cv.height !== st.h) cv.height = st.h;
     ctx.fillStyle = st.bg; ctx.fillRect(0, 0, st.w, st.h);
+    var inv = C.invertColor(st.bg);
     st.tiles.forEach(function (t) {
+      if (st.blank) { ctx.fillStyle = inv; ctx.fillRect(t.x, t.y, t.w, t.h); return; }
       var r = C.coverCrop(t.img.naturalWidth, t.img.naturalHeight, t.w, t.h, t.z, t.fx, t.fy);
       ctx.save(); ctx.beginPath(); ctx.rect(t.x, t.y, t.w, t.h); ctx.clip();
       ctx.drawImage(t.img, r.sx, r.sy, r.sw, r.sh, t.x, t.y, t.w, t.h);
       ctx.restore();
     });
+    if (!noSel && drag && drag.kind === 'swap') {
+      var k2 = Math.max(1, st.w / Math.max(1, cv.getBoundingClientRect().width)), d = drag.t;
+      ctx.save();
+      if (drag.target) { ctx.lineWidth = 4 * k2; ctx.strokeStyle = '#c9a766'; ctx.strokeRect(drag.target.x + 2 * k2, drag.target.y + 2 * k2, drag.target.w - 4 * k2, drag.target.h - 4 * k2); }
+      var gw = d.w * 0.5, gh = d.h * 0.5; ctx.globalAlpha = 0.75; ctx.fillStyle = st.blank ? inv : '#000';
+      if (st.blank) ctx.fillRect(drag.mx - gw / 2, drag.my - gh / 2, gw, gh);
+      else { var r2 = C.coverCrop(d.img.naturalWidth, d.img.naturalHeight, gw, gh, d.z, d.fx, d.fy); ctx.drawImage(d.img, r2.sx, r2.sy, r2.sw, r2.sh, drag.mx - gw / 2, drag.my - gh / 2, gw, gh); }
+      ctx.restore();
+    }
     if (!noSel && st.sel) {
       var t = st.sel, k = Math.max(1, st.w / Math.max(1, cv.getBoundingClientRect().width)), hs = 12 * k;
       ctx.save(); ctx.lineWidth = 2 * k; ctx.strokeStyle = '#7fc8a9'; ctx.strokeRect(t.x + k, t.y + k, t.w - 2 * k, t.h - 2 * k);
@@ -63,7 +74,10 @@
   function syncUI() {
     pre.value = st.preset; $('cw').value = st.w; $('ch').value = st.h; $('gap').value = st.gap; $('gapV').textContent = st.gap; $('bg').value = st.bg;
     modesBox.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === st.mode); });
-    document.querySelectorAll('#dragMode button').forEach(function (b) { b.classList.toggle('on', b.dataset.dm === st.dragMode); });
+    $('btnBlank').onclick = function () { st.blank = !st.blank; syncUI(); draw(); };
+  document.querySelectorAll('#dragMode button').forEach(function (b) { b.classList.toggle('on', b.dataset.dm === st.dragMode); });
+    $('btnBlank').classList.toggle('on', st.blank); $('btnBlank').setAttribute('aria-pressed', st.blank);
+    $('btnBlank').textContent = st.blank ? 'Показати фото' : 'Вимкнути фото';
     var t = st.sel;
     $('noSel').hidden = !!t; $('selCtls').hidden = !t;
     if (t) {
@@ -122,16 +136,16 @@
     var r = cv.getBoundingClientRect(), k = Math.min(r.width / st.w, r.height / st.h), ox = (r.width - st.w * k) / 2, oy = (r.height - st.h * k) / 2;
     return { x: (e.clientX - r.left - ox) / k, y: (e.clientY - r.top - oy) / k, k: k };
   }
-  function hit(p) { for (var i = st.tiles.length - 1; i >= 0; i--) { var t = st.tiles[i]; if (p.x >= t.x && p.x <= t.x + t.w && p.y >= t.y && p.y <= t.y + t.h) return i; } return -1; }
+  function hit(p, skip) { for (var i = st.tiles.length - 1; i >= 0; i--) { var t = st.tiles[i]; if (t !== skip && p.x >= t.x && p.x <= t.x + t.w && p.y >= t.y && p.y <= t.y + t.h) return i; } return -1; }
   function onHandle(p) { var t = st.sel; if (!t) return false; var hs = 18 / p.k; return p.x >= t.x + t.w - hs && p.x <= t.x + t.w && p.y >= t.y + t.h - hs && p.y <= t.y + t.h; }
   cv.addEventListener('pointerdown', function (e) {
     var p = pt(e);
     if (onHandle(p)) { drag = { kind: 'size', t: st.sel, ox: p.x - st.sel.w, oy: p.y - st.sel.h }; cv.setPointerCapture(e.pointerId); return; }
     var i = hit(p);
     if (i < 0) { st.sel = null; draw(); syncUI(); return; }
-    var t = st.tiles.splice(i, 1)[0]; st.tiles.push(t); st.sel = t; // піднімаємо нагору
+    var t = st.tiles[i]; st.sel = t;
     var crop = (st.dragMode === 'crop') !== e.altKey;
-    drag = { kind: crop ? 'crop' : 'move', t: t, dx: p.x - t.x, dy: p.y - t.y, px: p.x, py: p.y };
+    drag = { kind: crop && !st.blank ? 'crop' : 'swap', t: t, target: null, mx: p.x, my: p.y, px: p.x, py: p.y };
     cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); draw(); syncUI();
     if (!panel) showPanel('photo');
   });
@@ -139,7 +153,7 @@
     var p = pt(e);
     if (!drag) { cv.classList.toggle('size', onHandle(p)); cv.classList.toggle('hot', !onHandle(p) && hit(p) >= 0); return; }
     var t = drag.t;
-    if (drag.kind === 'move') { t.x = Math.round(p.x - drag.dx); t.y = Math.round(p.y - drag.dy); }
+    if (drag.kind === 'swap') { drag.mx = p.x; drag.my = p.y; var j = hit(p, t); drag.target = j < 0 ? null : st.tiles[j]; }
     else if (drag.kind === 'size') { t.w = p.x - drag.ox; t.h = p.y - drag.oy; clampTile(t); }
     else {
       var iw = t.img.naturalWidth, ih = t.img.naturalHeight, r = C.coverCrop(iw, ih, t.w, t.h, t.z, t.fx, t.fy);
@@ -150,7 +164,9 @@
     }
     draw(); syncUI();
   });
-  function end() { drag = null; cv.classList.remove('drag'); }
+  function end() {
+    if (drag && drag.kind === 'swap' && drag.target) { C.swapRects(drag.t, drag.target); }
+    drag = null; cv.classList.remove('drag'); draw(); syncUI(); }
   cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   cv.addEventListener('dblclick', function (e) { var i = hit(pt(e)); if (i < 0) return; homeTile(st.tiles[i]); draw(); syncUI(); });
   cv.addEventListener('wheel', function (e) {
@@ -162,10 +178,10 @@
 
   // ---- збереження й обмін ----
   function dl(name, blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); }
-  // Формат: версія 2 додає режим розкладки й дані кадру кожного фото (за порядком); версія 1 (лише налаштування) читається як раніше.
+  // Формат: версія 3 додає blank (фото вимкнено); версія 2 додає режим розкладки й дані кадру кожного фото (за порядком); версія 1 (лише налаштування) читається як раніше.
   function cfgJson() {
     return JSON.stringify({
-      app: 'photo-collage', v: 2, w: st.w, h: st.h, gap: st.gap, bg: st.bg, preset: st.preset, seed: st.seed, mode: st.mode, count: st.tiles.length,
+      app: 'photo-collage', v: 3, blank: st.blank, w: st.w, h: st.h, gap: st.gap, bg: st.bg, preset: st.preset, seed: st.seed, mode: st.mode, count: st.tiles.length,
       tiles: st.tiles.map(function (t) { return { x: t.x, y: t.y, w: t.w, h: t.h, z: +t.z.toFixed(3), fx: +t.fx.toFixed(3), fy: +t.fy.toFixed(3) }; })
     }, null, 2);
   }
@@ -180,7 +196,7 @@
         var d = JSON.parse(rd.result); if (d.app !== 'photo-collage') throw 0;
         st.w = Math.min(6000, Math.max(200, d.w | 0)); st.h = Math.min(6000, Math.max(200, d.h | 0));
         st.gap = Math.min(80, Math.max(0, d.gap | 0)); st.bg = /^#[0-9a-f]{6}$/i.test(d.bg) ? d.bg : st.bg; st.preset = d.preset || 'custom'; st.seed = d.seed | 0;
-        st.mode = C.MODES[d.mode] ? d.mode : 'tree';
+        st.mode = C.MODES[d.mode] ? d.mode : 'tree'; st.blank = d.blank === true;
         syncUI(); save(); relayout();
         if (Array.isArray(d.tiles) && d.tiles.length === st.tiles.length) {
           d.tiles.forEach(function (q, i) {
@@ -195,7 +211,7 @@
     };
     rd.readAsText(f);
   };
-  $('btnPng').onclick = function () { if (!st.tiles.length) return toast('Спершу додай фото'); draw(true); cv.toBlob(function (b) { dl('collage.png', b); draw(); }, 'image/png'); };
+  $('btnPng').onclick = function () { if (!st.tiles.length) return toast('Спершу додай фото'); draw(true); cv.toBlob(function (b) { dl(st.blank ? 'collage-layout.png' : 'collage.png', b); draw(); }, 'image/png'); };
 
   syncUI(); showPanel(panel); draw();
 })();

@@ -53,5 +53,18 @@ test('зум і зсув кадру: у межах картинки, зум зм
   const c = C.coverCrop(1000, 500, 200, 200, 1, 1, 0.5);
   assert.ok(Math.abs(c.sx + c.sw - 1000) < 1e-6);
 });
+test('інверсія фону: білий↔чорний, довільний колір інвертується, сірий дає контрастний', () => {
+  assert.strictEqual(C.invertColor('#ffffff'), '#000000');
+  assert.strictEqual(C.invertColor('#000000'), '#ffffff');
+  assert.strictEqual(C.invertColor('#ff8000'), '#007fff');
+  assert.ok(['#000000', '#ffffff'].includes(C.invertColor('#808080')));
+  assert.strictEqual(C.invertColor('xx'), '#ffffff');
+});
+test('обмін місцями: рамки міняються, розкладка (набір рамок) лишається', () => {
+  const a = { x: 1, y: 2, w: 3, h: 4, hx: 1, hy: 2, hw: 3, hh: 4 }, b = { x: 10, y: 20, w: 30, h: 40, hx: 10, hy: 20, hw: 30, hh: 40 };
+  C.swapRects(a, b);
+  assert.deepStrictEqual([a.x, a.y, a.w, a.h, a.hx, a.hw], [10, 20, 30, 40, 10, 30]);
+  assert.deepStrictEqual([b.x, b.y, b.w, b.h, b.hy, b.hh], [1, 2, 3, 4, 2, 4]);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

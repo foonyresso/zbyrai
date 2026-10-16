@@ -146,6 +146,22 @@
     '1:1': [2000, 2000], '4:3': [2400, 1800], '3:4': [1800, 2400], '16:9': [2560, 1440], '9:16': [1440, 2560], '3:2': [2400, 1600]
   };
 
-  var api = { rng: rng, layout: layout, coverCrop: coverCrop, PRESETS: PRESETS, MODES: MODES };
+  // Колір, інвертований до фону (для макета з порожніми місцями). Якщо інверсія майже збігається з фоном за яскравістю (середній сірий), беремо чорний або білий за яскравістю.
+  function invertColor(hex) {
+    var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '');
+    if (!m) return '#ffffff';
+    var c = [1, 2, 3].map(function (i) { return parseInt(m[i], 16); });
+    var inv = c.map(function (v) { return 255 - v; });
+    var lum = function (a) { return 0.299 * a[0] + 0.587 * a[1] + 0.114 * a[2]; };
+    if (Math.abs(lum(c) - lum(inv)) < 20) inv = lum(c) < 128 ? [255, 255, 255] : [0, 0, 0];
+    return '#' + inv.map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('');
+  }
+
+  // Міняє місцями рамки (поточні й за розкладкою) двох фото; розкладка лишається тією самою.
+  function swapRects(a, b) {
+    ['x', 'y', 'w', 'h', 'hx', 'hy', 'hw', 'hh'].forEach(function (k) { var t = a[k]; a[k] = b[k]; b[k] = t; });
+  }
+
+  var api = { invertColor: invertColor, swapRects: swapRects, rng: rng, layout: layout, coverCrop: coverCrop, PRESETS: PRESETS, MODES: MODES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.CollageCore = api;
 })(typeof self !== 'undefined' ? self : this);
