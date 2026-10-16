@@ -26,6 +26,7 @@
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
 tools/                   sync-theme.mjs, ui-rules.test.js, build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
+image-converter/         Конвертер зображень (convert-core, zip-core, convert-render, воркер і пул, app.js)
 <інструмент>/            index.html, app.js, *-core.js, style.css, theme.css, README.md, test/
 medieval-world/          «Проект Атлас»: src/ (нескінченний світ, місто, core/atlas.js реєстр), worlds/<id>/world.js (по світу на файл; continent/ має власний код), biomes/<id>.js (по біому на файл), monsters/<id>.js (по монстру), dungeons/<id>.js (по типу підземелля), registry.js (генерується)
 taste/                   закрита довідка про смаки автора (не інструмент)

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конвертер зображень</title>
+<meta name="description" content="Конвертер зображень: пачка фото в WebP, JPEG, PNG чи AVIF, нові пропорції й розмір, ручний зсув кадру, обмеження ваги, завантаження ZIP. Усе локально в браузері, безкоштовно.">
+<link rel="canonical" href="https://zbyrai.pages.dev/image-converter/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Конвертер зображень: пачка фото в WebP, JPEG, PNG, AVIF">
+<meta property="og:description" content="Масово змінюй формат, пропорції й розмір фото, підлаштовуй кадр вручну й забирай усе одним ZIP. Нічого не вантажиться в інтернет.">
+<meta property="og:url" content="https://zbyrai.pages.dev/image-converter/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M6 10h16M18 6l4 4-4 4M26 22H10M14 18l-4 4 4 4%27 fill=%27none%27 stroke=%27%23e0a458%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg><div>Конвертер <span>зображень</span></div></div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити налаштування й кадри з файлу .json; кадри застосуються до фото з тими самими іменами">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати налаштування формату, розміру й кадри фото як JSON (самі фото не входять)">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити налаштування й кадри як файл image-converter.json">Зберегти .json</button>
+    <button id="btnOne" title="Конвертувати й завантажити лише вибране фото одним файлом">Завантажити вибране</button>
+    <button class="btn-copy" id="btnZip" title="Конвертувати всі фото й завантажити одним ZIP-архівом (дуже великі набори діляться на кілька архівів)">Завантажити ZIP</button>
+  </div>
+</header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div><h3>Що це</h3><p>Масовий конвертер картинок. Закидаєш пачку фото, обираєш формат (WebP, JPEG, PNG, AVIF), якість, пропорції й розмір у пікселях, і забираєш усе одним ZIP. Усе відбувається у твоєму браузері, фото нікуди не вантажаться.</p></div>
+    <div><h3>Для чого</h3><p>Стиснути сотні скриншотів у WebP, щоб вони займали у кілька разів менше місця; привести фото до однакового розміру чи пропорції; підібрати вагу під ліміт сайту.</p></div>
+    <div><h3>Як користуватися</h3>
+      <ol>
+        <li><b>Додай фото</b> кнопкою внизу або перетягни їх на полотно: мініатюри з'являються по одній.</li>
+        <li><b>Іконки зліва:</b> «Формат» (формат, якість, ліміт ваги, імена файлів), «Розмір» (пропорції й пікселі; друга сторона підлаштовується сама), «Фото» (кадр вибраного фото).</li>
+        <li><b>Кадр.</b> Коли пропорція інша за оригінал, у рамці видно лише частину фото. Перетягни фото в рамці, щоб посунути кадр; колесо мишки наближає; подвійний клік скидає кадр.</li>
+        <li><b>«Порахувати розміри»</b> конвертує все й показує, скільки місця заощаджено. <b>«Завантажити ZIP»</b> угорі збирає готові файли в архів.</li>
+      </ol>
+      <p>Метадані (EXIF, геодані) під час конвертації прибираються; поворот за EXIF застосовується до пікселів.</p>
+    </div>
+  </div>
+</details>
+
+<div class="work" id="work">
+  <div class="stagebox" id="drop">
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty">Перетягни сюди фото або натисни «Додати фото»</div>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="format" title="Формат файлу, якість, обмеження ваги, колір фону, суфікс імені"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h4"/></svg><span>Формат</span></button>
+    <button data-panel="size" title="Пропорції й розмір у пікселях"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 10v4M17 10v4"/></svg><span>Розмір</span></button>
+    <button data-panel="photo" title="Вибране фото: наближення й зсув кадру"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg><span>Фото</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="format">
+      <h2>Формат</h2>
+      <div class="seg wide" id="fmtSeg" role="group" aria-label="Формат файлу"></div>
+      <p class="hint" id="fmtNote"></p>
+      <div id="qBox">
+        <label title="Якість стиснення: більше число дає кращу картинку й більший файл">Якість <span id="qV"></span>
+          <input type="range" id="q" min="1" max="100" step="1" title="Якість стиснення від 1 до 100"></label>
+        <div class="three" id="qPresets"></div>
+        <label title="Якщо файл вийде важчим за цей ліміт, якість автоматично знижується; 0 вимикає ліміт">Максимальна вага файлу, КБ
+          <input type="number" id="maxKB" min="0" max="50000" step="10" title="Максимальна вага одного файлу в кілобайтах; 0 = без обмеження"></label>
+      </div>
+      <label id="bgBox" title="Прозорі місця заповнюються цим кольором (JPEG не вміє прозорість)">Колір фону (для JPEG) <input type="color" id="bg" title="Колір, яким заповнюється прозорість у JPEG"></label>
+      <h2>Імена файлів</h2>
+      <label title="Додається до імені файлу перед розширенням; порожньо = те саме ім'я">Суфікс імені <input type="text" id="suffix" maxlength="20" placeholder="напр. -web" title="Текст, який додається до імені: фото.png стане фото-web.webp"></label>
+      <p class="hint" id="nameEx"></p>
+    </section>
+    <section data-panel="size">
+      <h2>Пропорції</h2>
+      <label title="Пропорції готових картинок; «Оригінал» лишає кожному фото його власні">Пропорції
+        <select id="ratio" title="Готові пропорції; фото, що не підходять, обрізаються рамкою, яку можна посунути"></select></label>
+      <div class="two" id="customRatio" hidden>
+        <label title="Ширина пропорції">Ширина <input type="number" id="ca" min="1" max="100" step="1" title="Перше число пропорції, наприклад 5 у 5:4"></label>
+        <label title="Висота пропорції">Висота <input type="number" id="cb" min="1" max="100" step="1" title="Друге число пропорції, наприклад 4 у 5:4"></label>
+      </div>
+      <h2>Розмір, px</h2>
+      <div id="fixedSize">
+        <div class="two">
+          <label title="Ширина кожної картинки в пікселях; висота підлаштується за пропорцією">Ширина <input type="number" id="w" min="16" max="12000" step="10" title="Ширина результату в пікселях (16–12000)"></label>
+          <label title="Висота кожної картинки в пікселях; ширина підлаштується за пропорцією">Висота <input type="number" id="h" min="16" max="12000" step="10" title="Висота результату в пікселях (16–12000)"></label>
+        </div>
+      </div>
+      <div id="origSize">
+        <label title="Довга сторона кожного фото не перевищить це число; 0 лишає оригінальний розмір">Довга сторона не більше, px
+          <input type="number" id="maxSide" min="0" max="12000" step="10" title="Максимум для довшої сторони, пропорції фото зберігаються; 0 = не змінювати"></label>
+      </div>
+      <div class="chips" id="quick"></div>
+      <label class="row" title="Малі фото не розтягуються до більшого розміру (інакше вони стануть розмитими й важчими)"><input type="checkbox" id="noUp" title="Не збільшувати малі фото"> Не збільшувати малі фото</label>
+      <p class="hint" id="sizeInfo"></p>
+    </section>
+    <section data-panel="photo">
+      <h2>Вибране фото</h2>
+      <p class="hint" id="noSel">Клікни по фото, щоб вибрати його.</p>
+      <div class="ctls" id="selCtls">
+        <p class="hint" id="selInfo"></p>
+        <label title="Наближення кадру всередині рамки (1 = фото заповнює рамку, більше = ближче)">Наближення кадру <span id="zV"></span>
+          <input type="range" id="selZ" min="1" max="5" step="0.05" title="Наближення кадру"></label>
+        <label title="Зсув кадру по горизонталі (працює, коли фото ширше за рамку або наближене)">Зсув кадру ←→
+          <input type="range" id="selFx" min="0" max="100" step="1" title="Зсув кадру по горизонталі"></label>
+        <label title="Зсув кадру по вертикалі">Зсув кадру ↑↓
+          <input type="range" id="selFy" min="0" max="100" step="1" title="Зсув кадру по вертикалі"></label>
+        <div class="two">
+          <button id="selCrop" title="Скинути наближення й зсув: кадр знову по центру">Скинути кадр</button>
+          <button id="selDel" title="Прибрати це фото зі списку (Delete)">Видалити</button>
+        </div>
+        <button id="selAll" title="Скопіювати наближення й зсув цього фото на всі інші (корисно, коли об'єкт у всіх на одному місці)">Застосувати кадр до всіх</button>
+      </div>
+    </section>
+  </aside>
+
+  <div class="bar">
+    <button class="btn-main" id="btnAdd" title="Вибрати одне чи кілька фото з комп'ютера">＋ Додати фото</button>
+    <input type="file" id="fileImg" accept="image/*" multiple hidden>
+    <button id="btnCalc" title="Конвертувати всі фото зараз і показати вагу кожного та загальну економію">Порахувати розміри</button>
+    <button id="btnResetAll" title="Скинути кадр (наближення й зсув) у всіх фото">Скинути кадри</button>
+    <button id="btnClear" title="Прибрати всі фото зі списку">Очистити</button>
+    <label class="zoom" title="Розмір мініатюр на полотні">Мініатюри <input type="range" id="thumb" min="120" max="420" step="10" title="Розмір мініатюр"></label>
+    <span class="hint" id="count">Фото: 0</span>
+  </div>
+</div>
+
+<div class="toast" id="toast">Готово</div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="./convert-core.js"></script>
+<script src="./zip-core.js"></script>
+<script src="./convert-render.js"></script>
+<script src="./convert-pool.js"></script>
+<script src="./app.js"></script>
+<script src="./tool-chrome.js"></script>
+</body>
+</html>
