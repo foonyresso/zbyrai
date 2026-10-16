@@ -44,20 +44,20 @@
       }
     });
     if (sp.type === 'cover') {
-      var cv = require_cover(W, H);
+      var cv = require_cover(W, H, sb);
       if (yr) fitText(ctx, yr, cv.year.x, cv.year.y, cv.year.size, W * 0.5, d.fontLight, d.title, '200', 'right', 0.02);
       if (info.ownerName) fitText(ctx, info.ownerName.toUpperCase(), cv.name.x, cv.name.y - H * 0.03, H * 0.034, W * 0.3, d.font, d.text, '400', 'center', 0.1);
       if (inst) fitText(ctx, inst.toUpperCase(), cv.name.x, cv.name.y, H * 0.02, W * 0.3, d.font, '#9a9a9a', '400', 'center', 0.08);
     }
     if (sp.type === 'first') {
-      var fl = root.AlbumLayout.firstLayout(W, H);
+      var fl = root.AlbumLayout.firstLayout(W, H, sb);
       fitText(ctx, 'ВИПУСК ' + yr, fl.text.x, fl.text.y, H * 0.036, W * 0.4, d.font, d.text, '500', 'center', 0.12);
       if (inst) fitText(ctx, inst, fl.text.x, fl.text.y + H * 0.048, H * 0.026, W * 0.42, d.font, '#9a9a9a', '400', 'center', 0.04);
       ctx.strokeStyle = '#cfcfcf'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(fl.text.x - W * 0.04, fl.text.y + H * 0.018); ctx.lineTo(fl.text.x + W * 0.04, fl.text.y + H * 0.018); ctx.stroke();
     }
     if (o.preview && sp.type === 'group' && !sp.slots.length) fitText(ctx, 'Додай групові фото: кнопка «Додати фото» або перетягни на полотно', W / 2, H / 2, H * 0.04, W * 0.8, d.font, '#b5aea6');
     if (o.preview) {
-      var z = root.AlbumPrint.spreadSize(st.fmtId);
+      var z = info.z;
       if (o.guides) {
         var bl = z.bleed, sf = z.sb;
         ctx.fillStyle = 'rgba(224,70,70,.22)';
@@ -84,6 +84,6 @@
     ctx.restore();
     lines.forEach(function (ln, i) { fitText(ctx, ln, cx, cy + (i - (lines.length - 1) / 2) * size * 1.5 + size * 0.35, size, w * 0.8, d.font, d.text, i ? '300' : '500', 'center', 0.1); });
   }
-  function require_cover(W, H) { return root.AlbumLayout.coverLayout(W, H); }
+  function require_cover(W, H, sb) { return root.AlbumLayout.coverLayout(W, H, sb); }
   root.AlbumRender = { draw: draw, crop: crop };
 })(typeof self !== 'undefined' ? self : this);

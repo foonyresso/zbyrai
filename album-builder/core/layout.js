@@ -53,14 +53,14 @@
   }
   // Вчителі: невеликі прямокутні вікна фото (висота 1.15 ширини) зі смугою під підпис (capH мм), блок по центру лівої сторінки першого розвороту.
   function teacherSlots(n, W, H) {
-    var area = { x: W * 0.04, y: H * 0.07, w: W * 0.43, h: H * 0.72 }, capH = Math.max(11, H * 0.085), gap = 4, maxW = W * 0.11;
+    var area = { x: W * 0.04, y: H * 0.07, w: W * 0.43, h: H * 0.72 }, capH = Math.max(11, H * 0.085), gap = 12, maxW = W * 0.11;
     if (n <= 0) return [];
     var best = null, bs = Infinity;
     for (var c = 1; c <= n; c++) {
       var r = Math.ceil(n / c), cw = Math.min(maxW, (area.w - gap * (c - 1)) / c), ph = cw * 1.15;
       if (r * (ph + capH) + (r - 1) * gap > area.h) cw = (area.h - (r - 1) * gap - r * capH) / r / 1.15;
       if (cw <= 0) continue;
-      var sc = -cw + (c * r - n) * 2;
+      var sc = -cw + (c * r - n) * 2 + r * 4;
       if (sc < bs) { bs = sc; best = { cols: c, rows: r, cw: cw }; }
     }
     var cw2 = best.cw, ph2 = cw2 * 1.15, cellH = ph2 + capH, totW = best.cols * cw2 + (best.cols - 1) * gap, totH = best.rows * cellH + (best.rows - 1) * gap;
@@ -71,11 +71,14 @@
     }
     return out;
   }
-  function coverLayout(W, H) {
-    return { photo: { x: W * 0.64, y: 0, w: W * 0.28, h: H * 0.94 }, year: { x: W * 0.93, y: H * 0.8, size: H * 0.24 }, name: { x: W * 0.78, y: H * 0.925 } };
+  // sb = відстань від краю полотна до безпечної межі (виліт + безпечна зона): текст не заходить далі.
+  function coverLayout(W, H, sb) {
+    sb = sb || 8;
+    return { photo: { x: W * 0.64, y: 0, w: W * 0.28, h: Math.min(H * 0.94, H - sb) }, year: { x: Math.min(W * 0.93, W - sb - 4), y: H * 0.8, size: H * 0.24 }, name: { x: W * 0.78, y: Math.min(H * 0.925, H - sb - 3) } };
   }
-  function firstLayout(W, H) {
-    return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: H * 0.865 } };
+  function firstLayout(W, H, sb) {
+    sb = sb || 8;
+    return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: Math.min(H * 0.865, H - sb - H * 0.058) } };
   }
   var api = { rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumLayout = api;

@@ -113,6 +113,31 @@ test('вчительські вікна невеликі й у безпечні�
     assert.ok(t.photo.x >= z.sb && t.cap.y + t.cap.h <= z.H - z.sb + 1e-6, 'поза безпечною зоною n=' + n);
   });
 });
+test('експорт: cover_NN і 01_NN для кожної дитини за порядком списку, далі 02, 03…', () => {
+  const st = S.newState(); st.children = '5 Б Б\n3 А А\n9 В В'; st.noAlbum = '20 Г Г'; S.buildSpreads(st);
+  const plan = S.exportPlan(st), names = plan.map(p => p.name);
+  assert.deepStrictEqual(names.slice(0, 6), ['cover_01', 'cover_02', 'cover_03', '01_01', '01_02', '01_03']);
+  assert.deepStrictEqual(names.slice(6), ['02', '03']);
+  assert.strictEqual(S.albumKids(st).length, 3);
+  S.setOwnerIndex(st, 1); assert.strictEqual(S.slotsFor(st, 0, new Map()).ownerName, 'А А'); assert.strictEqual(S.exportName(st, 0), 'cover_02');
+});
+test('портрети без збігу номерів розкладаються за порядком списку; вчителі теж', () => {
+  const st = S.newState(); st.children = '1 А А\n2 Б Б\n3 В В'; st.teachers = '50 Т Т Т\n51 У У У'; S.buildSpreads(st);
+  const m = S.numMapOf(['1.jpg', 'x_b.jpg', 'x_a.jpg']);
+  assert.strictEqual(S.assignUnmatched(st, 'cover', ['x_b.jpg', 'x_a.jpg'], m), 2);
+  S.setOwnerIndex(st, 0); assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '1.jpg');
+  S.setOwnerIndex(st, 1); assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, 'x_a.jpg');
+  S.setOwnerIndex(st, 2); assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, 'x_b.jpg');
+  assert.strictEqual(S.assignTeachers(st, 1, ['t2.jpg', 't1.jpg'], m), 2);
+  const it = S.slotsFor(st, 1, m).items.filter(x => x.kind === 'teacher');
+  assert.deepStrictEqual(it.map(x => x.name), ['t1.jpg', 't2.jpg']);
+});
+test('безпечна зона обкладинки більша; можна змінити; текст обкладинки всередині неї', () => {
+  const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
+  assert.ok(S.zoneOf(st, 0).safe > S.zoneOf(st, 2).safe);
+  st.coverSafe = 25; const z = S.zoneOf(st, 0), c = L.coverLayout(z.W, z.H, z.sb);
+  assert.strictEqual(z.safe, 25); assert.ok(c.name.y <= z.H - z.sb && c.year.x <= z.W - z.sb);
+});
 test('JSON туди й назад', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   assert.strictEqual(S.fromJSON(S.toJSON(st)).spreads.length, st.spreads.length);

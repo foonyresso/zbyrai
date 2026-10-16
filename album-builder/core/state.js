@@ -9,7 +9,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, spreads: [] };
+      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, firstPhotos: {}, safe: null, coverSafe: null, spreads: [] };
   }
   function people(st) {
     var list = P.parseChildren(st.children).map(function (p) { p.kind = 'child'; return p; })
@@ -21,7 +21,7 @@
   function teachers(st) { return P.parseTeachers(st.teachers); }
   function portraitK(st) { return st.kOverride || L.autoK(people(st).length); }
   function portraitCount(st) { return Math.max(1, Math.ceil(people(st).length / portraitK(st))); }
-  function mkSpread(type) { return { id: newId(), type: type, seed: 1 + Math.floor(Math.random() * 9999), slots: type === 'cover' ? [null] : type === 'first' ? [null, null] : [], extra: {}, text: {}, span: {} }; }
+  function mkSpread(type) { return { id: newId(), type: type, seed: 1 + Math.floor(Math.random() * 9999), slots: type === 'cover' ? [null] : type === 'first' ? [null, null] : [], extra: {}, text: {}, span: {}, teacherPhotos: {} }; }
   function buildSpreads(st) {
     var s = [mkSpread('cover'), mkSpread('first')];
     for (var i = 0; i < portraitCount(st); i++) { s.push(mkSpread('portrait')); s.push(mkSpread('group')); }
@@ -95,9 +95,34 @@
     for (var i = 0; i < order.length; i++) if (numMap.has(order[i])) return numMap.get(order[i]);
     return null;
   }
+  // Діти, які беруть альбом (у порядку списку): для них окремі обкладинка й перший розворот.
+  function albumKids(st) { return people(st).filter(function (p) { return p.kind === 'child'; }).sort(function (a, b) { return a.id - b.id; }); }
   function ownerOf(st) {
-    var ps = people(st).slice().sort(function (a, b) { return a.id - b.id; });
+    var ps = albumKids(st);
     return ps.filter(function (p) { return p.id === st.owner; })[0] || ps[0] || null;
+  }
+  function ownerIndex(st) { var o = ownerOf(st), ks = albumKids(st); for (var i = 0; o && i < ks.length; i++) if (ks[i].id === o.id) return i; return -1; }
+  function setOwnerIndex(st, i) { var ps = albumKids(st); if (ps[i]) st.owner = ps[i].id; }
+  var DEF_COVER_SAFE = 15;
+  // Зони розвороту: виліт, безпечна межа (для обкладинки окрема, більша), їх сума від краю полотна.
+  function zoneOf(st, si) {
+    var z = PR.spreadSize(st.fmtId), cover = st.spreads[si] && st.spreads[si].type === 'cover';
+    var safe = cover ? (st.coverSafe == null ? DEF_COVER_SAFE : st.coverSafe) : (st.safe == null ? z.safe : st.safe);
+    return { W: z.W, H: z.H, bleed: z.bleed, safe: safe, sb: z.bleed + safe, pageW: z.pageW, pageH: z.pageH };
+  }
+  // Фото без збігу номера (інші назви файлів): іде людям без фото за порядком списку. Повертає скільки призначено.
+  function assignUnmatched(st, kind, names, numMap) {
+    var map = kind === 'cover' ? st.coverPhotos : st.firstPhotos, kids = albumKids(st), n = 0;
+    var un = names.filter(function (nm) { return !personByName(st, nm); }).sort();
+    var need = kids.filter(function (p) { return !map[p.id] && !photoFor(p, numMap, true); });
+    un.forEach(function (nm) { var p = need.shift(); if (p) { map[p.id] = nm; n++; } });
+    return n;
+  }
+  function assignTeachers(st, si, names, numMap) {
+    var sp = st.spreads[si], tl = teachers(st), n = 0;
+    var need = tl.map(function (t, i) { return i; }).filter(function (i) { return !sp.teacherPhotos[i] && !photoFor(tl[i], numMap); });
+    names.slice().sort().forEach(function (nm) { var i = need.shift(); if (i != null) { sp.teacherPhotos[i] = nm; n++; } });
+    return n;
   }
   var CELL_STYLES = ['plain', 'ornament', 'frame'];
   function presets(st) {
@@ -129,18 +154,18 @@
   }
   // Усі вікна розвороту для малювання й взаємодії. items[].ref: {t:'person',pos} | {t:'slot',i} | {t:'extra',j}.
   function slotsFor(st, si, numMap) {
-    var sp = st.spreads[si], z = PR.spreadSize(st.fmtId), W = z.W, H = z.H, d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic, items = [], ownerName = '';
+    var sp = st.spreads[si], z = zoneOf(st, si), W = z.W, H = z.H, d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic, items = [], ownerName = '';
     if (sp.type === 'cover') {
-      var c = L.coverLayout(W, H), ow = ownerOf(st);
+      var c = L.coverLayout(W, H, z.sb), ow = ownerOf(st);
       ownerName = ow ? ow.name : '';
-      if (!st.coverNoPhoto) items.push({ rect: c.photo, ref: { t: 'slot', i: 0 }, name: sp.slots[0] || (ow ? photoFor(ow, numMap, true) : null), caption: '', kind: 'cover' });
+      if (!st.coverNoPhoto) items.push({ rect: c.photo, ref: { t: 'cover' }, name: (ow && st.coverPhotos[ow.id]) || (ow ? photoFor(ow, numMap, true) : null), caption: '', kind: 'cover' });
     } else if (sp.type === 'first') {
-      var f = L.firstLayout(W, H), tl = teachers(st);
+      var f = L.firstLayout(W, H, z.sb), tl = teachers(st);
       if (tl.length) {
-        L.teacherSlots(tl.length, W, H).forEach(function (q, i) { items.push({ rect: q.photo, capRect: q.cap, ref: { t: 'teacher', i: i }, name: photoFor(tl[i], numMap), caption: tl[i].name, post: tl[i].post, kind: 'teacher' }); });
+        L.teacherSlots(tl.length, W, H).forEach(function (q, i) { items.push({ rect: q.photo, capRect: q.cap, ref: { t: 'teacher', i: i }, name: (sp.teacherPhotos && sp.teacherPhotos[i]) || photoFor(tl[i], numMap), caption: tl[i].name, post: tl[i].post, kind: 'teacher' }); });
       } else items.push({ rect: f.group, ref: { t: 'slot', i: 0 }, name: sp.slots[0] || null, caption: '', kind: 'group' });
       var ow1 = ownerOf(st);
-      items.push({ rect: f.portrait, ref: { t: 'slot', i: 1 }, name: sp.slots[1] || (ow1 ? photoFor(ow1, numMap, true) : null), caption: '', kind: 'portrait1' });
+      items.push({ rect: f.portrait, ref: { t: 'fright' }, name: (ow1 && st.firstPhotos[ow1.id]) || (ow1 ? photoFor(ow1, numMap, true) : null), caption: '', kind: 'portrait1' });
     } else if (sp.type === 'portrait') {
       var k = portraitK(st), rs = L.portraitSlots(k, W, H, d.gap), cols = L.gridFor(k, W, H, 0.8).cols, covered = {};
       rs.forEach(function (r, j) {
@@ -166,7 +191,11 @@
   }
   function setPhoto(st, si, ref, name) {
     var sp = st.spreads[si];
-    if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') { sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j]; } else return false;
+    var ow = ownerOf(st);
+    if (ref.t === 'cover') { if (ow) st.coverPhotos[ow.id] = name; }
+    else if (ref.t === 'fright') { if (ow) st.firstPhotos[ow.id] = name; }
+    else if (ref.t === 'teacher') sp.teacherPhotos[ref.i] = name;
+    else if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') { sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j]; } else return false;
     return true;
   }
   function setText(st, si, j, obj) { var sp = st.spreads[si]; sp.text = sp.text || {}; delete sp.extra[j]; if (obj && obj.t) sp.text[j] = obj; else delete sp.text[j]; }
@@ -181,7 +210,10 @@
     if (old) sp.span[j] = old; else delete sp.span[j]; return false;
   }
   function removePhoto(st, si, ref) {
-    var sp = st.spreads[si];
+    var sp = st.spreads[si], ow = ownerOf(st);
+    if (ref.t === 'cover') { if (ow) delete st.coverPhotos[ow.id]; return true; }
+    if (ref.t === 'fright') { if (ow) delete st.firstPhotos[ow.id]; return true; }
+    if (ref.t === 'teacher') { delete sp.teacherPhotos[ref.i]; return true; }
     if (ref.t === 'slot') { if (sp.type === 'group') sp.slots.splice(ref.i, 1); else sp.slots[ref.i] = null; return true; }
     if (ref.t === 'extra') { delete sp.extra[ref.j]; if (sp.text) delete sp.text[ref.j]; return true; }
     return false;
@@ -191,11 +223,21 @@
     if (i < 2 || j < 2 || j >= st.spreads.length) return false;
     var t = st.spreads[i]; st.spreads[i] = st.spreads[j]; st.spreads[j] = t; return true;
   }
+  function pad(n, w) { return String(n).padStart(w, '0'); }
+  // Усі файли експорту: cover_NN і 01_NN для кожної дитини за порядком списку, далі спільні розвороти 02, 03…
+  // Кожен запис: {name, si (розворот), owner (id дитини або null)}.
+  function exportPlan(st) {
+    var kids = albumKids(st), w = Math.max(2, String(kids.length).length), out = [], k = Math.max(1, kids.length);
+    for (var i = 0; i < k; i++) out.push({ name: 'cover_' + pad(i + 1, w), si: 0, owner: kids[i] ? kids[i].id : null });
+    for (var j = 0; j < k; j++) out.push({ name: '01_' + pad(j + 1, w), si: 1, owner: kids[j] ? kids[j].id : null });
+    for (var m = 2; m < st.spreads.length; m++) out.push({ name: pad(m, 2), si: m, owner: null });
+    return out;
+  }
   function exportName(st, i) {
-    var sp = st.spreads[i];
-    if (sp.type === 'cover') return 'cover_01';
-    if (sp.type === 'first') return '01_01';
-    return String(i).padStart(2, '0');
+    var sp = st.spreads[i], w = Math.max(2, String(albumKids(st).length).length), idx = ownerIndex(st) + 1 || 1;
+    if (sp.type === 'cover') return 'cover_' + pad(idx, w);
+    if (sp.type === 'first') return '01_' + pad(idx, w);
+    return pad(i, 2);
   }
   function toJSON(st) { return JSON.stringify(st); }
   function fromJSON(text) {
@@ -206,6 +248,6 @@
   }
   var api = { newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
-    moveSpread: moveSpread, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, toJSON: toJSON, fromJSON: fromJSON };
+    moveSpread: moveSpread, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;
 })(typeof self !== 'undefined' ? self : this);

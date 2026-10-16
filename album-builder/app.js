@@ -95,14 +95,20 @@
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
     $('kSel').value = st.kOverride ? String(st.kOverride) : '';
     $('spInfo').textContent = 'Розворот: ' + label(cur) + '.';
-    var os = $('ownerSel'), own = S.ownerOf(st), z = PR.spreadSize(st.fmtId);
-    if (os.dataset.sig !== ps.map(function (p) { return p.id + p.name; }).join('|')) {
-      os.dataset.sig = ps.map(function (p) { return p.id + p.name; }).join('|'); os.textContent = '';
-      ps.slice().sort(function (a, b) { return a.id - b.id; }).forEach(function (p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.name || ('№' + p.nums[0]); os.appendChild(o); });
+    var os = $('ownerSel'), own = S.ownerOf(st), z = S.zoneOf(st, cur), t = st.spreads[cur].type, kids = S.albumKids(st), ki = S.ownerIndex(st);
+    $('kidNav').hidden = !(t === 'cover' || t === 'first'); $('btnLeftPhotos').hidden = t !== 'first';
+    $('btnAdd').textContent = t === 'cover' || t === 'first' ? '＋ Портрети' : '＋ Додати фото';
+    $('btnLeftPhotos').textContent = S.teachers(st).length ? '＋ Вчителі' : '＋ Загальне фото';
+    $('kidLabel').textContent = kids.length ? (ki + 1) + '/' + kids.length + ' ' + (own ? own.name : '') : 'немає дітей у списку';
+    $('safeIn').value = st.safe == null ? PR.spreadSize(st.fmtId).safe : st.safe; $('coverSafeIn').value = st.coverSafe == null ? 15 : st.coverSafe;
+    $('sizeInfo').textContent = 'Файл розвороту: ' + Math.round(z.W * 300 / 25.4) + '×' + Math.round(z.H * 300 / 25.4) + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
+    if (os.dataset.sig !== kids.map(function (p) { return p.id + p.name; }).join('|')) {
+      os.dataset.sig = kids.map(function (p) { return p.id + p.name; }).join('|'); os.textContent = '';
+      kids.forEach(function (p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.name || ('№' + p.nums[0]); os.appendChild(o); });
     }
     if (own) os.value = own.id;
     $('coverNoPhoto').checked = !!st.coverNoPhoto;
-    $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться), безпечна межа ' + z.safe + ' мм від обрізу: текст і підписи тримаємо всередині. Це типові значення, не з сайту друкарні.';
+    $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться); безпечна межа ' + z.safe + ' мм від обрізу' + (t === 'cover' ? ' (для обкладинки)' : '') + ': текст і підписи тримаємо всередині. Значення типові, не з сайту друкарні; вводь свої.';
   }
 
   // ---------- Фото ----------
@@ -112,7 +118,7 @@
     });
   }
   function portraitHas(n) { return st.spreads.some(function (s) { return s.type === 'portrait' && Object.keys(s.extra).some(function (j) { return s.extra[j] === n; }); }); }
-  async function addFiles(list, targetRef) {
+  async function addFiles(list, targetRef, side) {
     var names = [], bad = 0;
     for (var f of Array.from(list)) {
       if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name)) continue;
@@ -127,19 +133,25 @@
       if (targetRef && targetRef.t === 'extra' && rest.length) { S.setPhoto(st, cur, targetRef, rest.shift()); placed++; }
       S.sortForPortrait(st, rest.filter(function (n) { return !portraitHas(n); })).forEach(function (n) { S.placePortrait(st, cur, n); placed++; });
     }
-    else if (targetRef && targetRef.t !== 'teacher' && names.length) { S.setPhoto(st, cur, targetRef, names[0]); placed = 1; }
-    else if (sp.type === 'cover' && names.length) { sp.slots[0] = names[0]; placed = 1; }
-    else if (sp.type === 'first') {
-      var free = (lastInfo ? lastInfo.items : []).filter(function (it) { return it.ref.t === 'slot' && !it.name; });
-      names.forEach(function (n, i) { if (free[i] && S.personByFile(st, n) === null) { S.setPhoto(st, cur, free[i].ref, n); placed++; } });
+    else if (sp.type === 'cover' || sp.type === 'first') {
+      var rest2 = names.slice(), tl = S.teachers(st);
+      if (targetRef && rest2.length) { S.setPhoto(st, cur, targetRef, rest2.shift()); placed++; }
+      if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap);
+      else if (side === 'left') {
+        if (tl.length) placed += S.assignTeachers(st, cur, rest2, numMap);
+        else if (rest2.length) { sp.slots[0] = rest2[0]; placed++; }
+      } else placed += S.assignUnmatched(st, 'fright', rest2, numMap);
     }
     refresh();
-    toast('Додано файлів: ' + names.length + (placed ? ', на розворот поставлено: ' + placed : '') + (bad ? ', не прочитано: ' + bad : ''));
+    var auto = (sp.type === 'cover' || sp.type === 'first') && !placed && names.length ? ' (фото за номерами з назв підхоплено автоматично)' : '';
+    toast('Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (bad ? ', не прочитано: ' + bad : ''));
   }
-  $('btnAdd').onclick = function () { pickRef = null; $('fileImg').click(); };
+  var pickSide = 'right';
+  $('btnAdd').onclick = function () { pickRef = null; pickSide = 'right'; $('fileImg').click(); };
+  $('btnLeftPhotos').onclick = function () { pickRef = null; pickSide = 'left'; $('fileImg').click(); };
   $('btnFolder').onclick = function () { pickRef = null; $('fileDir').click(); };
-  $('fileImg').onchange = function (e) { addFiles(e.target.files, pickRef); e.target.value = ''; pickRef = null; };
-  $('fileDir').onchange = function (e) { addFiles(e.target.files, null); e.target.value = ''; };
+  $('fileImg').onchange = function (e) { addFiles(e.target.files, pickRef, pickSide); e.target.value = ''; pickRef = null; pickSide = 'right'; };
+  $('fileDir').onchange = function (e) { addFiles(e.target.files, null, 'right'); e.target.value = ''; };
 
   // ---------- Взаємодія з полотном ----------
   function mmAt(e) {
@@ -177,8 +189,8 @@
       if (t && t !== d.it) { if (d.it.span || t.span) toast('Об\'єднані вікна не міняються місцями: спершу роз\'єднай (правий клік)'); else if (S.swapRefs(st, cur, d.it.ref, t.ref)) { sel = t.ref; refresh(); } else toast('Ці вікна не можна поміняти місцями'); }
     } else if (!d.moved && d.it.kind === 'cell' && !d.it.name && !d.it.text) {
       openMenu(d.it, e);
-    } else if (!d.moved && !d.it.name && (d.it.kind === 'group' || d.it.kind === 'cover' || d.it.kind === 'portrait1')) {
-      pickRef = d.it.ref; $('fileImg').click();
+    } else if (!d.moved && !d.it.name && (d.it.kind === 'group' || d.it.kind === 'cover' || d.it.kind === 'portrait1' || d.it.kind === 'teacher')) {
+      pickRef = d.it.ref; pickSide = d.it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click();
     }
   });
   cv.addEventListener('wheel', function (e) {
@@ -191,7 +203,7 @@
   box.addEventListener('dragleave', function () { box.classList.remove('over'); });
   box.addEventListener('drop', function (e) {
     if (!e.dataTransfer.files.length) return; e.preventDefault(); box.classList.remove('over');
-    var it = lastInfo ? hit(mmAt(e)) : null; addFiles(e.dataTransfer.files, it ? it.ref : null);
+    var mm = lastInfo ? mmAt(e) : null, it = mm ? hit(mm) : null; addFiles(e.dataTransfer.files, it ? it.ref : null, mm && lastInfo && mm.x < lastInfo.W / 2 ? 'left' : 'right');
   });
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
@@ -199,7 +211,7 @@
     var secs = [], j = it && it.ref.j, sp = st.spreads[cur];
     if (it) {
       var c = [];
-      if (it.kind === 'cell' || it.kind === 'group' || it.kind === 'cover' || it.kind === 'portrait1') c.push(['Додати/замінити фото…', 'Вибрати файл для цього вікна', function () { pickRef = it.ref; $('fileImg').click(); }]);
+      if (it.kind === 'cell' || it.kind === 'group' || it.kind === 'cover' || it.kind === 'portrait1' || it.kind === 'teacher') c.push(['Додати/замінити фото…', 'Вибрати файл для цього вікна', function () { pickRef = it.ref; pickSide = it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click(); }]);
       if (it.name && (it.kind === 'cell' || it.kind === 'group')) c.push(['Видалити фото', 'Прибрати фото з вікна (його можна додати знову)', function () { S.removePhoto(st, cur, it.ref); sel = null; }]);
       if (it.text) c.push(['Видалити текст', 'Прибрати текст з вікна', function () { S.removePhoto(st, cur, it.ref); }]);
       if (it.name) c.push(['Скинути кадр', 'Повернути масштаб і зсув фото', function () { st.crops[it.name] = { z: 1, fx: 0.5, fy: 0.35 }; }]);
@@ -276,6 +288,10 @@
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
   $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
+  function stepKid(d) { var kids = S.albumKids(st); if (!kids.length) return; S.setOwnerIndex(st, (S.ownerIndex(st) + d + kids.length) % kids.length); refresh(); }
+  $('kidPrev').onclick = function () { stepKid(-1); }; $('kidNext').onclick = function () { stepKid(1); };
+  $('safeIn').onchange = function () { var v = parseFloat($('safeIn').value); st.safe = isNaN(v) ? null : Math.max(0, Math.min(40, v)); refresh(); };
+  $('coverSafeIn').onchange = function () { var v = parseFloat($('coverSafeIn').value); st.coverSafe = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };
   $('guides').onchange = function () { guides = $('guides').checked; redraw(); };
   $('btnPlus').onclick = function () { $('addMenu').hidden = !$('addMenu').hidden; };
   document.querySelectorAll('[data-add]').forEach(function (b) {
@@ -291,22 +307,37 @@
     var f = e.target.files[0]; e.target.value = ''; if (!f) return;
     f.text().then(function (t) { st = S.fromJSON(t); cur = 0; sel = null; showEditor(); toast('Макет завантажено. Фото додай знову (за назвами файлів вони стануть на місця)'); }).catch(function (er) { toast('Помилка імпорту: ' + er.message); });
   };
-  function renderBlob(i, mime) {
-    var z = PR.spreadSize(st.fmtId), k = 300 / 25.4, c = document.createElement('canvas'); c.width = Math.round(z.W * k); c.height = Math.round(z.H * k);
-    R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: k, preview: false });
+  // Малює розворот si у точному розмірі друку (300 dpi); для обкладинки й першого розвороту підставляє дитину ownerId.
+  function renderBlob(i, mime, ownerId) {
+    var z = PR.spreadSize(st.fmtId), k = 300 / 25.4, c = document.createElement('canvas'), keep = st.owner;
+    c.width = Math.round(z.W * k); c.height = Math.round(z.H * k);
+    if (ownerId != null) st.owner = ownerId;
+    R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: c.width / z.W, preview: false });
+    st.owner = keep;
     return new Promise(function (res) { c.toBlob(res, mime, 0.93); });
   }
   function one(mime, ext) { if (needEditor()) return; renderBlob(cur, mime).then(function (b) { X.download(b, S.exportName(st, cur) + ext); }); }
   $('btnPng').onclick = function () { one('image/png', '.png'); };
   $('btnJpg').onclick = function () { one('image/jpeg', '.jpg'); };
+  function missingPhotos(plan) {
+    var n = 0, keep = st.owner;
+    plan.forEach(function (p) { if (p.owner == null) return; st.owner = p.owner; var it = S.slotsFor(st, p.si, numMap).items; if (p.si === 0 && !st.coverNoPhoto && !it[0].name) n++; if (p.si === 1 && !it[it.length - 1].name) n++; });
+    st.owner = keep; return n;
+  }
+  async function renderAll(mime) {
+    var plan = S.exportPlan(st), out = [], miss = missingPhotos(plan);
+    for (var i = 0; i < plan.length; i++) { toast('Готую ' + (i + 1) + '/' + plan.length + ': ' + plan[i].name); var b = await renderBlob(plan[i].si, mime, plan[i].owner); out.push({ name: plan[i].name, blob: b }); }
+    if (miss) toast('Увага: без фото лишилося обкладинок і перших розворотів: ' + miss);
+    return out;
+  }
   $('btnZip').onclick = async function () {
-    if (needEditor()) return; toast('Готую архів…'); var out = [];
-    for (var i = 0; i < st.spreads.length; i++) { var b = await renderBlob(i, 'image/jpeg'); out.push({ name: S.exportName(st, i) + '.jpg', data: new Uint8Array(await b.arrayBuffer()) }); }
-    X.download(X.zip(out), 'album-spreads.zip'); toast('Архів готовий');
+    if (needEditor()) return; var r = await renderAll('image/jpeg'), out = [];
+    for (var f of r) out.push({ name: f.name + '.jpg', data: new Uint8Array(await f.blob.arrayBuffer()) });
+    X.download(X.zip(out), 'album-spreads.zip'); toast('Архів готовий: ' + out.length + ' файлів');
   };
   $('btnPdf').onclick = async function () {
-    if (needEditor()) return; toast('Готую PDF…'); var z = PR.spreadSize(st.fmtId), pages = [];
-    for (var i = 0; i < st.spreads.length; i++) { var b = await renderBlob(i, 'image/jpeg'); pages.push({ jpeg: new Uint8Array(await b.arrayBuffer()), w: Math.round(z.W * 300 / 25.4), h: Math.round(z.H * 300 / 25.4), wMm: z.W, hMm: z.H }); }
+    if (needEditor()) return; var z = PR.spreadSize(st.fmtId), pages = [], r = await renderAll('image/jpeg');
+    for (var f of r) pages.push({ jpeg: new Uint8Array(await f.blob.arrayBuffer()), w: Math.round(z.W * 300 / 25.4), h: Math.round(z.H * 300 / 25.4), wMm: z.W, hMm: z.H });
     X.download(X.pdf(pages), 'album.pdf'); toast('PDF готовий');
   };
 
