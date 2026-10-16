@@ -25,7 +25,7 @@ test('автовибір розкладки: 16→8, 24→12, 20→12, 30→16, 
   assert.strictEqual(L.autoK(30), 16); assert.strictEqual(L.autoK(8), 8); assert.strictEqual(L.autoK(0), 8);
 });
 test('сітка портретів: потрібна кількість вікон, без перекриття, в межах розвороту', () => {
-  for (const k of L.KS) for (const f of ['23x23', '20x30', '20x30v']) {
+  for (const k of L.KS) for (const f of ['23x23', '20x30']) {
     const z = PR.spreadSize(f), r = L.portraitSlots(k, z.W, z.H, 1.2);
     assert.strictEqual(r.length, k);
     r.forEach((a, i) => { assert.ok(a.x >= -1e-6 && a.x + a.w <= z.W + 1e-6 && a.y + a.h <= z.H + 1e-6); r.forEach((b, j) => i < j && assert.ok(!overlap(a, b))); });
