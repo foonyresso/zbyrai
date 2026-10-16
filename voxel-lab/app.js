@@ -230,7 +230,7 @@
   const drawer = $('drawer'); let panel = ''; try { panel = localStorage.getItem('vx_panel') || ''; } catch {}
   function showPanel(n) {
     panel = n; try { localStorage.setItem('vx_panel', n || ''); } catch {}
-    drawer.hidden = !n; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
+    drawer.hidden = !n; wrap.classList.toggle('shift', !!n); document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
     drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
   }
   document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); });

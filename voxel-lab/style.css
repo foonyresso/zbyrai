@@ -46,3 +46,5 @@ button.wide { width: 100%; }
   font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%); }
 @media (max-width: 760px) { header.top { padding: 10px 12px; } .bar { bottom: 8px; } .palette { bottom: 100px; } .hint.status { display: none; } }
+.work.shift .bar, .work.shift .palette { left: calc(50% + 177px); max-width: calc(100% - 470px); }
+@media (max-width: 760px) { .work.shift .bar, .work.shift .palette { left: 50%; max-width: calc(100% - 24px); } }

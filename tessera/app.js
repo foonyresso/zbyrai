@@ -99,7 +99,7 @@
     else if (def().preset) Object.assign(st, lastPal, { colors: lastPal.colors.slice() });
   }
   function pickPattern(id) {
-    const p = PAT[id]; applyPreset(p); if (!$('pinPat').checked) $('patFold').open = false;
+    const p = PAT[id]; applyPreset(p);
     st.pattern = id; st.size = p.size; st.k = p.k ? p.k.def : 50; st = T.clampParams(st);
     syncAll(); toast(p.name + (p.preset ? ': застосовано стиль зошита' : ''));
   }
@@ -122,11 +122,17 @@
   const fills = [0, 1, 2, 3, 4, 5].map(n => colorInput('Колір ' + (n + 1), 'Колір ' + (n + 1) + ' із палітри: використовується, якщо кількість кольорів не менша за ' + (n + 1), () => st.colors[n], v => { st.colors[n] = v; }));
   $('btnPalRand').addEventListener('click', () => { const p = T.randomPalette(Math.random); st.bg = p.bg; st.colors = p.colors; st.lineColor = p.bg; if (st.ncol < 2) st.ncol = 3; change(null, true); });
 
-  // вікно кольорів: поки не закріплено, згортається кліком поза ним
-  { const pin = store.get('pins', {}); $('pinPat').checked = !!pin.pat; $('pinCol').checked = !!pin.col;
-    const savePins = () => store.set('pins', { pat: $('pinPat').checked, col: $('pinCol').checked });
-    for (const id of ['pinPat', 'pinCol']) { $(id).addEventListener('change', savePins); $(id).addEventListener('click', e => e.stopPropagation()); }
-    document.addEventListener('pointerdown', e => { const f = $('colFold'); if (f.open && !$('pinCol').checked && !f.contains(e.target)) f.open = false; }); }
+  /* меню-іконки */
+  const drawer = $('drawer'); let panel = store.get('panel', 'pattern');
+  function showPanel(n) {
+    panel = n; store.set('panel', n || '');
+    drawer.hidden = !n; $('work').classList.toggle('shift', !!n);
+    document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
+    drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
+  }
+  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); });
+  $('drawerX').onclick = () => showPanel('');
+  showPanel(panel);
 
   /* ---------- відображення ---------- */
   const cv = $('cv'), view = $('view'), meta = $('meta'); let raf = 0;
