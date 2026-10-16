@@ -19,7 +19,7 @@
     if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) * s + 'px';
     var w = ctx.measureText(text).width;
     if (w > maxW) { s = s * maxW / w; ctx.font = (weight || '400') + ' ' + s + 'px ' + font; if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) * s + 'px'; }
-    ctx.fillText(text, x, y); ctx.restore(); return s;
+    ctx.fillText(text, x, y); fitText.w = Math.min(ctx.measureText(text).width, maxW); ctx.restore(); return s;
   }
   // Фон розвороту: однотонний, градієнт або картинка (bg.type: color | gradient | image); без bg колір дизайну.
   function paintBg(ctx, W, H, bg, imgs, fallback) {
@@ -33,6 +33,13 @@
   }
   function draw(ctx, st, si, numMap, imgs, o) {
     var info = S.slotsFor(st, si, numMap), d = info.design, W = info.W, H = info.H, sp = st.spreads[si], sb = info.z.sb;
+    var FT = root.AlbumFonts, hits = []; info.texts = hits;
+    if (st.font && FT && FT.stack(st.font)) d = Object.assign({}, d, { font: FT.stack(st.font), fontLight: FT.stack(st.font) });
+    // Текст зі своїм шрифтом (st.tf[key]) і областю для клацання (hits)
+    var tx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing) {
+      var f = st.tf && st.tf[key] && FT && FT.stack(st.tf[key]) || d[kind || 'font'], s = fitText(ctx, text, x, y, size, maxW, f, color, weight, align, spacing), w = fitText.w || maxW;
+      hits.push({ key: key, rect: { x: x - w / 2 - 1, y: y - s * 1.05, w: w + 2, h: s * 1.4 } }); return s;
+    };
     ctx.save(); ctx.setTransform(o.pxPerMm, 0, 0, o.pxPerMm, 0, 0);
     paintBg(ctx, W, H, sp.bg || st.bg, imgs, sp.type === 'group' && sp.style === 'scrap' ? '#efe9e0' : d.bg);
     var yr = st.year || '', inst = st.inst.full || st.inst.short || '';
@@ -53,13 +60,13 @@
         var bh = Math.min(r.h * 0.15, 11), bot = Math.min(r.y + r.h, H - sb), by = bot - bh;
         ctx.fillStyle = d.band; ctx.fillRect(r.x, by, r.w, r.y + r.h - by);
         var tx0 = Math.max(r.x, sb), tx1 = Math.min(r.x + r.w, W - sb);
-        fitText(ctx, it.caption.toUpperCase(), (tx0 + tx1) / 2, by + bh * 0.64, bh * 0.4, (tx1 - tx0) * 0.92, d.font, d.text, '400', 'center', 0.04);
+        fitText(ctx, it.caption.toUpperCase(), (tx0 + tx1) / 2, by + bh * 0.64, bh * 0.4, (tx1 - tx0) * 0.92, st.tf && st.tf.cap && FT && FT.stack(st.tf.cap) || d.font, d.text, '400', 'center', 0.04);
       }
       if (it.kind === 'cell' && it.text) cellText(ctx, it, d, sb, W, H);
       if (it.kind === 'teacher') {
         var c = it.capRect, nm = it.caption.toUpperCase();
-        fitText(ctx, nm, c.x + c.w / 2, c.y + c.h * (it.post ? 0.46 : 0.62), c.h * 0.36, c.w * 0.96, d.font, d.text, '600', 'center', 0.03);
-        if (it.post) fitText(ctx, it.post, c.x + c.w / 2, c.y + c.h * 0.84, c.h * 0.24, c.w * 0.96, d.font, d.text, '400', 'center', 0.02);
+        fitText(ctx, nm, c.x + c.w / 2, c.y + c.h * (it.post ? 0.46 : 0.62), c.h * 0.36, c.w * 0.96, st.tf && st.tf.teach && FT && FT.stack(st.tf.teach) || d.font, d.text, '600', 'center', 0.03);
+        if (it.post) fitText(ctx, it.post, c.x + c.w / 2, c.y + c.h * 0.84, c.h * 0.24, c.w * 0.96, st.tf && st.tf.teach && FT && FT.stack(st.tf.teach) || d.font, d.text, '400', 'center', 0.02);
       }
     };
     info.items.forEach(function (it) {
@@ -69,15 +76,15 @@
     });
     if (sp.type === 'cover') {
       var cv = require_cover(W, H, sb, info.z);
-      if (yr) fitText(ctx, yr, cv.year.x, cv.year.y, cv.year.size, Math.min(cv.photo.w * 1.5, W * 0.4), d.fontLight, d.title, '200', 'center', 0.02);
+      if (yr) tx('year', yr, cv.year.x, cv.year.y, cv.year.size, Math.min(cv.photo.w * 1.5, W * 0.4), 'fontLight', d.title, '200', 'center', 0.02);
       var ny = Math.min(cv.name.line, cv.name.y - H * 0.06);
-      if (info.ownerName) fitText(ctx, info.ownerName.toUpperCase(), cv.name.x, ny, H * 0.036, W * 0.34, d.font, d.text, '400', 'center', 0.1);
-      if (inst) fitText(ctx, inst.toUpperCase(), cv.name.x, ny + H * 0.055, H * 0.021, W * 0.34, d.font, '#9a9a9a', '400', 'center', 0.08);
+      if (info.ownerName) tx('name', info.ownerName.toUpperCase(), cv.name.x, ny, H * 0.036, W * 0.34, 'font', d.text, '400', 'center', 0.1);
+      if (inst) tx('inst', inst.toUpperCase(), cv.name.x, ny + H * 0.055, H * 0.021, W * 0.34, 'font', '#9a9a9a', '400', 'center', 0.08);
     }
     if (sp.type === 'first') {
       var fl = root.AlbumLayout.firstLayout(W, H, sb);
-      fitText(ctx, 'ВИПУСК ' + yr, fl.text.x, fl.text.y, H * 0.036, W * 0.4, d.font, d.text, '500', 'center', 0.12);
-      if (inst) fitText(ctx, inst, fl.text.x, fl.text.y + H * 0.048, H * 0.026, W * 0.42, d.font, '#9a9a9a', '400', 'center', 0.04);
+      tx('title', 'ВИПУСК ' + yr, fl.text.x, fl.text.y, H * 0.036, W * 0.4, 'font', d.text, '500', 'center', 0.12);
+      if (inst) tx('inst', inst, fl.text.x, fl.text.y + H * 0.048, H * 0.026, W * 0.42, 'font', '#9a9a9a', '400', 'center', 0.04);
       ctx.strokeStyle = '#cfcfcf'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(fl.text.x - W * 0.04, fl.text.y + H * 0.018); ctx.lineTo(fl.text.x + W * 0.04, fl.text.y + H * 0.018); ctx.stroke();
     }
     if (o.preview && sp.type === 'group' && !sp.slots.length) fitText(ctx, 'Додай групові фото: кнопка «Додати фото» або перетягни на полотно', W / 2, H / 2, H * 0.04, W * 0.8, d.font, '#b5aea6');
@@ -94,6 +101,8 @@
         if (z.spine > 0 && sp.type === 'cover') { ctx.beginPath(); ctx.moveTo(W / 2 - z.spine / 2, 0); ctx.lineTo(W / 2 - z.spine / 2, H); ctx.moveTo(W / 2 + z.spine / 2, 0); ctx.lineTo(W / 2 + z.spine / 2, H); ctx.stroke(); }
         ctx.setLineDash([]);
       }
+      if (o.sel && o.sel.t === 'text') hits.forEach(function (h) { if (h.key === o.sel.key) { ctx.strokeStyle = '#b9a0e6'; ctx.lineWidth = Math.max(0.6, 2 / o.pxPerMm); ctx.setLineDash([2, 1.5]); ctx.strokeRect(h.rect.x, h.rect.y, h.rect.w, h.rect.h); ctx.setLineDash([]); } });
+      if (o.sel && o.sel.t === 'bg') { ctx.strokeStyle = '#b9a0e6'; ctx.lineWidth = Math.max(0.8, 3 / o.pxPerMm); ctx.setLineDash([4, 3]); ctx.strokeRect(1, 1, W - 2, H - 2); ctx.setLineDash([]); }
       if (o.sel) info.items.forEach(function (it) {
         if (JSON.stringify(it.ref) === JSON.stringify(o.sel)) { ctx.strokeStyle = '#b9a0e6'; ctx.lineWidth = Math.max(0.8, 3 / o.pxPerMm); ctx.strokeRect(it.rect.x, it.rect.y, it.rect.w, it.rect.h); }
       });
@@ -109,7 +118,8 @@
     if (o.s === 'frame') ctx.strokeRect(x0 + w * 0.06, y0 + h * 0.06, w * 0.88, h * 0.88);
     if (o.s === 'ornament') { [-1, 1].forEach(function (sg) { var yy = cy + sg * (lines.length * size * 0.75 + h * 0.08); ctx.beginPath(); ctx.moveTo(cx - w * 0.22, yy); ctx.lineTo(cx + w * 0.22, yy); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, yy, 0.9, 0, 6.3); ctx.stroke(); }); }
     ctx.restore();
-    lines.forEach(function (ln, i) { fitText(ctx, ln, cx, cy + (i - (lines.length - 1) / 2) * size * 1.5 + size * 0.35, size, w * 0.8, d.font, d.text, i ? '300' : '500', 'center', 0.1); });
+    var cf = o.f && root.AlbumFonts && root.AlbumFonts.stack(o.f) || d.font;
+    lines.forEach(function (ln, i) { fitText(ctx, ln, cx, cy + (i - (lines.length - 1) / 2) * size * 1.5 + size * 0.35, size, w * 0.8, cf, d.text, i ? '300' : '500', 'center', 0.1); });
   }
   // Фото «вклеєне в альбом»: біла рамка, тінь, невеликий нахил.
   function drawPaper(ctx, img, it, st, o, d) {

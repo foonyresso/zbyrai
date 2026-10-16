@@ -62,6 +62,7 @@
     if ($('work').hidden) return;
     var ppm = sizeCanvas();
     lastInfo = R.draw(ctx, st, cur, numMap, imgs, { pxPerMm: ppm, preview: true, sel: sel, guides: guides });
+    if (AlbumFonts.used(st).length) AlbumFonts.ensure(st).then(function (w) { if (w) { redraw(); thumbs(); } });
   }
   function label(i) { var t = st.spreads[i].type, n = String(i).padStart(2, '0'); return t === 'cover' ? 'Обкладинка' : n + (t === 'first' ? ' індивід.' : t === 'portrait' ? ' портрети' : ' групові'); }
   // Стрічка дітей: фіксована ширина кнопок (довгі ПІБ обрізаються), видно лише коли поточний розворот індивідуальний.
@@ -108,6 +109,7 @@
     var k = S.portraitK(st);
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
     $('kSel').value = st.kOverride ? String(st.kOverride) : '';
+    fontSample();
     $('spInfo').textContent = 'Розворот: ' + label(cur) + '.';
     var z = S.zoneOf(st, cur), t = st.spreads[cur].type;
     $('roundRow').hidden = t !== 'group'; $('roundIn').value = st.spreads[cur].round != null ? st.spreads[cur].round : st.round || 0;
@@ -181,8 +183,15 @@
     for (var i = it.length - 1; i >= 0; i--) { var r = it[i].rect; if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) return it[i]; }
     return null;
   }
+  // Напис під курсором (обкладинка, перший розворот): його ключ для st.tf
+  function hitText(p) {
+    var t = lastInfo && lastInfo.texts || [];
+    for (var i = t.length - 1; i >= 0; i--) { var r = t[i].rect; if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) return t[i].key; }
+    return null;
+  }
+  function selFor(p, it) { if (it) return it.ref; var k = hitText(p); return k ? { t: 'text', key: k } : { t: 'bg' }; }
   cv.addEventListener('pointerdown', function (e) {
-    closeMenu(); var p = mmAt(e), it = hit(p); sel = it ? it.ref : null;
+    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it);
     drag = it ? { it: it, x: e.clientX, y: e.clientY, p: p, crop: !!(e.altKey || dragMode === 'crop'), moved: false } : null;
     if (drag) cv.setPointerCapture(e.pointerId); redraw();
   });
@@ -271,8 +280,23 @@
 
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
+  // Пункти вибору шрифту для напису: get/set працюють з рядком шрифту (null = шрифт альбому)
+  function fontItems(get, set) {
+    var items = [['Як у альбомі' + (get() ? '' : ' ✓'), 'Прибрати окремий шрифт цього напису', function () { set(null); }]];
+    AlbumFonts.LIST.forEach(function (f) { items.push([f.n + (get() === f.n ? ' ✓' : ''), 'Шрифт «' + f.n + '» лише для цього напису', function () { set(f.n); }]); });
+    return items;
+  }
+  var TEXTNAME = { year: 'Рік', name: 'Прізвище на обкладинці', inst: 'Назва закладу', title: 'Напис «Випуск»', cap: 'Підписи під портретами', teach: 'Підписи вчителів' };
   function menuFor(it) {
     var secs = [], j = it && it.ref.j, sp = st.spreads[cur];
+    function tfSec(key) { secs.push({ h: 'Шрифт: ' + TEXTNAME[key], items: fontItems(function () { return (st.tf || {})[key] || null; }, function (v) { st.tf = st.tf || {}; if (v) st.tf[key] = v; else delete st.tf[key]; }) }); }
+    if (!it && sel && sel.t === 'text') {
+      tfSec(sel.key); secs.push({ h: 'Альбом', items: [['Шрифт усього альбому…', 'Відкрити вибір шрифту для всього альбому', function () { if (panel !== 'font') openPanel('font'); }]] });
+    } else if (!it) {
+      secs.push({ h: 'Фон', items: [['Фон розвороту й альбому…', 'Відкрити налаштування фону: колір, градієнт, картинка', function () { if (panel !== 'bg') openPanel('bg'); }]] });
+    } else if (it.caption && it.kind === 'cell') tfSec('cap');
+    else if (it.kind === 'teacher') tfSec('teach');
+    if (it && it.kind === 'cell' && it.text) secs.push({ h: 'Шрифт тексту', items: fontItems(function () { return it.text.f || null; }, function (v) { if (v) it.text.f = v; else delete it.text.f; sp.text[j] = it.text; }) });
     if (it) {
       var c = [];
       if (it.kind === 'cell' || it.kind === 'group' || it.kind === 'cover' || it.kind === 'portrait1' || it.kind === 'teacher') c.push(['Додати/замінити фото…', 'Вибрати файл для цього вікна', function () { pickRef = it.ref; pickSide = it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click(); }]);
@@ -328,14 +352,14 @@
   }
   function openMenu(it, e) { showMenu(menuFor(it), e); }
   cv.addEventListener('contextmenu', function (e) {
-    e.preventDefault(); var it = lastInfo ? hit(mmAt(e)) : null; sel = it ? it.ref : null; redraw(); openMenu(it, e);
+    e.preventDefault(); var p = lastInfo ? mmAt(e) : null, it = p ? hit(p) : null; sel = p ? selFor(p, it) : null; redraw(); openMenu(it, e);
   });
   document.addEventListener('pointerdown', function (e) { if (!$('cellMenu').hidden && !$('cellMenu').contains(e.target) && e.target !== cv) closeMenu(); });
   $('roundIn').oninput = function () { st.spreads[cur].round = +$('roundIn').value; redraw(); };
   $('roundAll').onclick = function () { var v = +$('roundIn').value; st.round = v; st.spreads.forEach(function (s) { if (s.type === 'group') s.round = v; }); redraw(); toast('Скруглення застосовано до всіх групових розворотів'); };
   $('coverNoPhoto').onchange = function () { st.coverNoPhoto = $('coverNoPhoto').checked; refresh(); };
   function removeSel() {
-    if (!sel) return toast('Спершу вибери фото'); 
+    if (!sel || sel.t === 'bg' || sel.t === 'text') return toast('Спершу вибери фото');
     if (S.removePhoto(st, cur, sel)) { sel = null; refresh(); } else toast('Портрети й фото вчителів беруться за номером; щоб прибрати, вилучи файл або номер зі списку');
   }
   document.addEventListener('keydown', function (e) {
@@ -346,6 +370,15 @@
   });
   window.addEventListener('resize', redraw);
 
+  // ---------- Шрифти ----------
+  (function () {
+    var s = $('fontSel'), g = '';
+    s.appendChild(el('option', '', 'Як у дизайні (системний)')).value = '';
+    AlbumFonts.LIST.forEach(function (f) { var o = el('option', '', f.n + ' · ' + f.g); o.value = f.n; o.style.fontFamily = AlbumFonts.stack(f.n); s.appendChild(o); });
+    s.onchange = function () { st.font = s.value || null; fontSample(); refresh(); };
+    $('fontResetText').onclick = function () { st.tf = {}; st.spreads.forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { if (sp.text[j]) delete sp.text[j].f; }); }); refresh(); };
+  })();
+  function fontSample() { $('fontSample').style.fontFamily = (st.font && AlbumFonts.stack(st.font)) || 'inherit'; $('fontSel').value = st.font || ''; }
   // ---------- Меню й кнопки ----------
   function openPanel(name) {
     panel = panel === name ? null : name;
@@ -382,12 +415,14 @@
   };
   // Малює розворот si у точному розмірі друку (300 dpi); для обкладинки й першого розвороту підставляє дитину ownerId.
   function renderBlob(i, mime, ownerId) {
-    var z = PR.spreadSize(st.fmtId), k = 300 / 25.4, c = document.createElement('canvas'), keep = st.owner;
-    c.width = Math.round(z.W * k); c.height = Math.round(z.H * k);
-    if (ownerId != null) st.owner = ownerId;
-    R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: c.width / z.W, preview: false });
-    st.owner = keep;
-    return new Promise(function (res) { c.toBlob(res, mime, 1); });
+    return AlbumFonts.ensure(st).then(function () {
+      var z = PR.spreadSize(st.fmtId), k = 300 / 25.4, c = document.createElement('canvas'), keep = st.owner;
+      c.width = Math.round(z.W * k); c.height = Math.round(z.H * k);
+      if (ownerId != null) st.owner = ownerId;
+      R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: c.width / z.W, preview: false });
+      st.owner = keep;
+      return new Promise(function (res) { c.toBlob(res, mime, 1); });
+    });
   }
   function one(mime, ext) { if (needEditor()) return; renderBlob(cur, mime).then(function (b) { X.download(b, S.exportName(st, cur) + ext); }); }
   $('btnPng').onclick = function () { one('image/png', '.png'); };
