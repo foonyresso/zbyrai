@@ -21,8 +21,8 @@
     c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(len * 0.25, -len * 0.08, len, 0); c.stroke();
     n = n || 7;
     for (var i = 1; i <= n; i++) {
-      var t = i / (n + 1), px = len * t, py = -len * 0.08 * 2 * t * (1 - t) * 1, ls = len * 0.17 * (1 - t * 0.35);
-      [-1, 1].forEach(function (s) { c.save(); c.translate(px, py); c.rotate(s * 0.9); c.beginPath(); c.ellipse(ls * 0.5, 0, ls * 0.5, ls * 0.28, 0, 0, Math.PI * 2); c.fill(); c.restore(); });
+      var t = i / (n + 1), px = len * t, py = -len * 0.08 * 2 * t * (1 - t) * 1, ls = len * 0.12 * (1 - t * 0.35);
+      [-1, 1].forEach(function (s) { c.save(); c.translate(px, py); c.rotate(s * 0.9); c.beginPath(); c.ellipse(ls * 0.5, 0, ls * 0.5, ls * 0.24, 0, 0, Math.PI * 2); c.fill(); c.restore(); });
     }
     c.restore();
   }
@@ -73,7 +73,7 @@
       deco: function (g) {
         var c = g.ctx, sx = g.x1 - g.H * 0.16, sy = g.H * 0.17;
         for (var i = 0; i < 14; i++) { var a = i * Math.PI / 7; line(c, sx + Math.cos(a) * g.H * 0.085, sy + Math.sin(a) * g.H * 0.085, sx + Math.cos(a) * g.H * 0.12, sy + Math.sin(a) * g.H * 0.12, '#f4b73c', 1.2); }
-        circle(c, sx, sy, g.H * 0.07, '#ffd35c'); fillWave(c, g.x0, g.x1, g.H * 0.93, 1.6, 40, 0, '#bfe3a1', g.H); fillWave(c, g.x0, g.x1, g.H * 0.96, 1.4, 30, 1.5, '#9ed17c', g.H);
+        circle(c, sx, sy, g.H * 0.07, '#ffd35c'); fillWave(c, g.bx0, g.bx1, g.H * 0.93, 1.6, 40, 0, '#bfe3a1', g.H + 1); fillWave(c, g.bx0, g.bx1, g.H * 0.96, 1.4, 30, 1.5, '#9ed17c', g.H + 1);
         [[g.x0 + g.H * 0.12, g.H * 0.2], [g.x0 + g.H * 0.2, g.H * 0.15]].forEach(function (p, i) { circle(c, p[0], p[1], g.H * (0.035 - i * 0.008), '#ffffff'); circle(c, p[0] + g.H * 0.03, p[1] + 1, g.H * 0.028, '#ffffff'); });
       },
       text: function (g) { std(g, { title: g.t('Прощавай, садочку!'), ty: g.H * 0.17, tsize: g.H * 0.06, tfont: 'Pangolin', tcol: '#e07a1f', tsp: 0.01, tcase: 'as', yy: g.H * 0.8, ysize: g.H * 0.06, yfont: 'Pangolin', ycol: '#e07a1f', ny: g.H * 0.855, nsize: g.H * 0.034, ncol: '#6a4b1d', nfont: 'Pangolin', iy: g.H * 0.89, icol: '#8c6a3a' }); }
@@ -91,8 +91,9 @@
       deco: function (g) {
         var c = g.ctx, r = rnd(11);
         for (var i = 0; i < 60; i++) { var x = g.bx0 + r() * (g.bx1 - g.bx0), y = r() * g.H * 0.95, s = 0.5 + r() * 2.4; if (i % 4 === 0) star(c, x, y, s * 1.6, '#ffe58f', r() * 3); else circle(c, x, y, s * 0.4, 'rgba(255,255,255,.8)'); }
-        var mx = g.cx, my = g.H * 0.22, mr = g.H * 0.09; circle(c, mx, my, mr, '#fff3c4');
-        circle(c, mx + mr * 0.45, my - mr * 0.15, mr * 0.88, '#2f4286');
+        var mx = g.cx, my = g.H * 0.22, mr = g.H * 0.09; var mx = g.cx, my = g.H * 0.22, mr = g.H * 0.09;
+        circle(c, mx, my, mr * 1.7, 'rgba(255,243,196,.10)'); circle(c, mx, my, mr * 1.35, 'rgba(255,243,196,.14)');
+        c.save(); c.beginPath(); c.arc(mx, my, mr, 0, Math.PI * 2); c.clip(); c.beginPath(); c.rect(mx - mr * 2, my - mr * 2, mr * 4, mr * 4); c.arc(mx + mr * 0.5, my - mr * 0.18, mr * 0.82, 0, Math.PI * 2); c.fillStyle = '#fff3c4'; c.fill('evenodd'); c.restore();
       },
       text: function (g) { std(g, { title: g.t('Добраніч, садочку'), ty: g.H * 0.49, tsize: g.H * 0.07, tfont: 'Marck Script', tcol: '#fff3c4', tsp: 0.02, tcase: 'as', sub: g.t2('випуск'), sy: g.H * 0.55, scol: '#c8d4ff', sfont: 'Montserrat', ssize: g.H * 0.03, yy: g.H * 0.68, ysize: g.H * 0.09, yfont: 'Comfortaa', ycol: '#ffe58f', ny: g.H * 0.78, nfont: 'Comfortaa', ncol: '#ffffff', nsize: g.H * 0.036, iy: g.H * 0.83, icol: '#c8d4ff' }); }
     },
