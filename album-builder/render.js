@@ -81,14 +81,15 @@
       if (it.kind === 'cell' && it.caption) {
         // підпис не заходить у безпечну зону: біля країв розвороту смуга довша, а текст зсунутий всередину
         var bh = Math.min(r.h * 0.15, 11), bot = Math.min(r.y + r.h, H - sb), by = bot - bh;
-        var bw = r.w, bhh = bot - by;
+        // смуга тягнеться до краю розвороту, якщо клітинка біля нього: невідомо, де саме обріжеться
+        var bx0 = r.x <= sb ? 0 : r.x, bx1 = r.x + r.w >= W - sb ? W : r.x + r.w, bb = r.y + r.h >= H - sb ? H : r.y + r.h, bw = bx1 - bx0, bhh = bb - by;
         if (img) {
           // біле матове скло: фото під смугою розмите строго в межах смуги
-          ctx.save(); ctx.beginPath(); ctx.rect(r.x, by, bw, bhh); ctx.clip();
+          ctx.save(); ctx.beginPath(); ctx.rect(r.x, by, r.w, Math.min(bb, r.y + r.h) - by); ctx.clip();
           if ('filter' in ctx) { ctx.filter = 'blur(' + Math.max(2, 2.2 * o.pxPerMm) + 'px)'; drawImg(ctx, img, r, crop(st, it.name), rad); ctx.filter = 'none'; }
           ctx.restore();
         }
-        ctx.fillStyle = 'rgba(255,255,255,.58)'; ctx.fillRect(r.x, by, bw, bhh);
+        ctx.fillStyle = 'rgba(255,255,255,.58)'; ctx.fillRect(bx0, by, bw, bhh);
         var tx0 = Math.max(r.x, sb), tx1 = Math.min(r.x + r.w, W - sb);
         fx('cap', it.caption, (tx0 + tx1) / 2, by + bh * 0.64, bh * 0.4, (tx1 - tx0) * 0.92, 'font', d.text, '400', 'center', 0.04, 'upper');
       }

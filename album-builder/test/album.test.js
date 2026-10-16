@@ -301,5 +301,14 @@ test('тексти варіантів обкладинок: стандартні
   assert.strictEqual(CV.defaults('g11-gold').ctitle, 'Graduation'); assert.strictEqual(CV.defaults('g11-gold').csub, 'class of'); assert.ok(!('ctitle' in CV.defaults('classic')));
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st); st.cvText['g11-gold:ctitle'] = ''; assert.strictEqual(S.fromJSON(S.toJSON(st)).cvText['g11-gold:ctitle'], '');
 });
+test('захист від повторів портретів: файл і дитина не стають двічі', () => {
+  const st = S.newState(); st.children = '0001 А А\n0002 Б Б\n0003 В В'; S.buildSpreads(st);
+  const pi = st.spreads.findIndex(x => x.type === 'portrait');
+  assert.ok(S.placePortrait(st, pi, '0001.jpg') >= 0);
+  assert.strictEqual(S.placePortrait(st, pi, '0001.jpg'), -1); assert.strictEqual(S.placePortrait(st, pi, '0001_copy.jpg'), -1);
+  assert.ok(S.portraitPlaced(st, '0001.jpg')); assert.ok(!S.portraitPlaced(st, '0001.jpg', { si: pi, j: 0 }));
+  assert.ok(S.placePortrait(st, pi, '0002.jpg') >= 0);
+  S.reflowPortrait(st); let n = 0; st.spreads.forEach(x => { if (x.type === 'portrait') n += Object.keys(x.extra).length; }); assert.strictEqual(n, 2);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

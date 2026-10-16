@@ -157,16 +157,19 @@
       files.set(f.name, f); imgs.set(f.name, im); names.push(f.name);
     }
     numMap = S.numMapOf(Array.from(files.keys()));
-    var sp = st.spreads[cur], placed = 0;
+    var sp = st.spreads[cur], placed = 0, dup = 0;
     if (sp.type === 'group') {
       var fresh = names.filter(function (n) { return sp.slots.indexOf(n) < 0; });
       if (sp.style === 'tpl' && fresh.length > S.freeCount(sp)) { refresh(); tooMany(fresh); return; }
       placed = S.addGroupPhotos(st, cur, fresh).placed;
     }
     else if (sp.type === 'portrait') {
-      var rest = names.slice();
-      if (targetRef && targetRef.t === 'extra' && rest.length) { S.setPhoto(st, cur, targetRef, rest.shift()); placed++; }
-      S.sortForPortrait(st, rest.filter(function (n) { return !portraitHas(n); })).forEach(function (n) { S.placePortrait(st, cur, n); placed++; });
+      var rest = names.filter(function (n, i) { return names.indexOf(n) === i; });
+      if (targetRef && targetRef.t === 'extra' && rest.length) {
+        var n0 = rest.shift();
+        if (S.portraitPlaced(st, n0, { si: cur, j: targetRef.j })) dup++; else { S.setPhoto(st, cur, targetRef, n0); placed++; }
+      }
+      S.sortForPortrait(st, rest).forEach(function (n) { if (S.portraitPlaced(st, n)) dup++; else if (S.placePortrait(st, cur, n) >= 0) placed++; });
     }
     else if (sp.type === 'cover' || sp.type === 'first') {
       var rest2 = names.slice(), tl = S.teachers(st);
@@ -179,7 +182,7 @@
     }
     refresh();
     var auto = (sp.type === 'cover' || sp.type === 'first') && !placed && names.length ? ' (фото за номерами з назв підхоплено автоматично)' : '';
-    toast('Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (bad ? ', не прочитано: ' + bad : ''));
+    toast('Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (dup ? ', пропущено дублікатів: ' + dup : '') + (bad ? ', не прочитано: ' + bad : ''));
   }
   var pickSide = 'right';
   $('btnAdd').onclick = function () { pickRef = null; pickSide = 'right'; $('fileImg').click(); };

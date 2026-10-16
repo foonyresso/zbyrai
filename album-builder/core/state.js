@@ -74,7 +74,20 @@
     return slotsFor(st, si, new Map()).items.filter(function (x) { return x.ref.t === 'extra' && !x.name && !x.text; }).map(function (x) { return x.ref.j; });
   }
   // Кладе фото у першу вільну комірку: від розвороту from уперед, потім назад; якщо вільних немає, додає новий портретний розворот. Повертає індекс розворота.
+  // Чи стоїть уже це фото (за файлом) або ця дитина (за номером/іменем) на портретних розворотах; except = {si, j} — клітинка, яку не рахуємо
+  function portraitPlaced(st, name, except) {
+    var p = personByName(st, name), found = false;
+    st.spreads.forEach(function (s, si) {
+      if (s.type !== 'portrait') return;
+      Object.keys(s.extra).forEach(function (j) {
+        var v = s.extra[j]; if (!v || (except && except.si === si && String(except.j) === String(j))) return;
+        if (v === name || (p && (personByName(st, v) || {}).id === p.id)) found = true;
+      });
+    });
+    return found;
+  }
   function placePortrait(st, from, name) {
+    if (portraitPlaced(st, name)) return -1;
     var idx = [], i;
     st.spreads.forEach(function (s, k) { if (s.type === 'portrait') idx.push(k); });
     var order = idx.filter(function (k) { return k >= from; }).concat(idx.filter(function (k) { return k < from; }));
@@ -317,7 +330,7 @@
     else if (ref.t === 'teacher') sp.teacherPhotos[ref.i] = name;
     else if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') {
       var oldp = sp.extra[ref.j] && personByName(st, sp.extra[ref.j]); sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j];
-      if (oldp && personByName(st, name) !== oldp) { st.alias = st.alias || {}; st.alias[name] = oldp.id; }
+      if (oldp && (personByName(st, name) || {}).id !== oldp.id) { st.alias = st.alias || {}; st.alias[name] = oldp.id; }
     } else return false;
     return true;
   }
@@ -381,6 +394,6 @@
   }
   var api = { newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
-    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
+    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, portraitPlaced: portraitPlaced, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;
 })(typeof self !== 'undefined' ? self : this);
