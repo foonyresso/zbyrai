@@ -630,5 +630,16 @@
   about.open = !store.get('about_seen', false);
   if (about.open) store.set('about_seen', true);
   applyMode();
+  { /* меню іконками збоку */
+    const rail = stage.querySelectorAll('.rail button'), drawer = $('drawer'); let cur = store.get('panel', 'gen');
+    const show = n => {
+      cur = n; store.set('panel', n || ''); drawer.hidden = !n; stage.classList.toggle('shift', !!n);
+      rail.forEach(b => b.classList.toggle('on', b.dataset.panel === n));
+      drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
+    };
+    rail.forEach(b => { b.onclick = () => show(cur === b.dataset.panel ? '' : b.dataset.panel); });
+    drawer.querySelector('[data-close]').onclick = () => show('');
+    show(cur);
+  }
   resize();
 })();

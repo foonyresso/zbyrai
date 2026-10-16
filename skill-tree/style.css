@@ -14,8 +14,8 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .seg button.on { color: var(--accent-hi); border-color: var(--accent); }
 
 /* ---------- робоча область ---------- */
-main.lab { flex: 1; min-height: 640px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; padding: 14px 18px 18px; }
-.stage { position: relative; min-height: 420px; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-1);
+main.lab { flex: 1; display: flex; }
+.stage { position: relative; flex: 1; min-height: 520px; height: calc(100vh - 118px); overflow: hidden; border-top: 1px solid var(--line);
   background: radial-gradient(900px 560px at 50% 50%, rgba(122, 167, 230, .06), transparent 72%), #0b0b10; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; outline: none; }
 #cv.grabbing { cursor: grabbing; }
@@ -37,8 +37,17 @@ body.edit .edit-only { display: inline-block; }
 .tip small { display: block; margin-top: 4px; color: var(--faint); }
 
 /* ---------- бічна панель ---------- */
-.side { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 2px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); padding: 12px 14px 14px; }
+.rail { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+.rail button { width: 62px; padding: 8px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; background: color-mix(in srgb, var(--panel) 92%, transparent); }
+.rail button svg { width: 22px; height: 22px; }
+.rail button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.drawer { position: absolute; right: 82px; top: 10px; bottom: 10px; width: min(340px, calc(100vw - 100px)); z-index: 4; overflow: auto; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); padding: 14px; }
+.drawer[hidden] { display: none; }
+.drawer section { display: none; } .drawer section.on { display: block; }
+.dx { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 18px; z-index: 2; }
+.card { padding: 0; }
+.stage.shift .hud.br { right: 436px; }
+.hud.br { right: 82px; }
 .card h2 { margin: 0 0 10px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
 .hint { font-size: 12px; color: var(--faint); margin: 8px 0 0; line-height: 1.5; }
 .empty { color: var(--faint); font-size: 13px; margin: 0; line-height: 1.5; }
@@ -82,11 +91,8 @@ dialog.modal textarea { width: 100%; margin-top: 10px; font-family: var(--ff-mon
 
 @media (max-width: 980px) {
   body { height: auto; }
-  main.lab { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 16px; }
-  .stage { height: 62vh; min-height: 380px; }
   .legend { bottom: 92px; }
   header.top { padding: 12px 16px; }
-  .side { overflow: visible; }
 }
 
 /* ---------- довідка «Що це» ---------- */
