@@ -19,7 +19,7 @@
     var best = { cols: n, rows: 1 }, bs = Infinity;
     for (var c = 1; c <= n; c++) {
       if (n % c) continue;
-      var r = n / c, d = Math.abs(Math.log((W / c) / (H / r) / aspect));
+      var r = n / c, a = (W / c) / (H / r), d = Math.abs(Math.log(a / aspect)) + (a > 1.0 ? 5 : 0);
       if (d < bs) { bs = d; best = { cols: c, rows: r }; }
     }
     return best;
@@ -42,7 +42,7 @@
     for (var cols = 4; cols <= 12; cols += 2) for (var rows = 1; rows <= 6; rows++) {
       var cap = cols * rows; if (cap < 4 || cap > 48) continue;
       var sp = Math.max(1, Math.ceil(N / cap)); if (sp > 8) continue;
-      var asp = (W / cols) / (H / rows); if (asp < 0.5 || asp > 1.25) continue;
+      var asp = (W / cols) / (H / rows); if (asp < 0.5 || asp > 1.0) continue; // тільки квадратні або вертикальні комірки
       var free = sp * cap - N, score = Math.abs(Math.log(asp / 0.8)) * 3 + free / cap * 2.2 + Math.abs(sp - 2) * 0.12;
       out.push({ cols: cols, rows: rows, cap: cap, spreads: sp, free: free, score: score });
     }
