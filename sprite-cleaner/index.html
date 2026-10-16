@@ -47,7 +47,29 @@
   </div>
 </header>
 
-<div class="work">
+  <details class="about" id="about">
+    <summary title="Показати або сховати довідку"><b>Що це, для чого, як користуватися</b></summary>
+    <div class="about-body">
+      <p><b>Що це.</b> Редактор прибирає фон із зображення й робить його прозорим. Працює і зі спрайт-листами (в тому числі від ШІ), і зі звичайними фотографіями.</p>
+      <p><b>Для чого.</b> Підготувати спрайти для гри, вирізати предмет чи людину з фото, нарізати лист на окремі спрайти й зібрати атлас PNG + JSON.</p>
+      <p><b>Як користуватися.</b></p>
+      <ol>
+        <li>Відкрийте картинку: кнопка «Відкрити…» зверху, перетягування у вікно або Ctrl+V. Або натисніть «Демо».</li>
+        <li>Інструментом «Піпетка» клікайте по кольорах фону (небо, пісок, море): кожен колір потрапляє у список праворуч зі своїм допуском. Усе схоже на ці кольори стає прозорим (шашка).</li>
+        <li>Що лишилося зайвим, доправте вручну: «Паличка» стирає суміжну область, «Ластик» і «Відновити» працюють пензлем, «Рамка» стирає прямокутник. Помилилися: Ctrl+Z.</li>
+        <li>Колесо миші змінює масштаб, пробіл + тягнення (або інструмент «Рух») пересуває картинку. Утримуйте O, щоб порівняти з оригіналом.</li>
+        <li>Зверху збережіть результат: PNG, копія в буфер, ZIP зі спрайтами, атлас або JSON налаштувань.</li>
+      </ol>
+    </div>
+  </details>
+
+<div class="work" id="work">
+
+    <div class="viewport" id="vp">
+      <canvas id="cv" aria-label="Робоча область із зображенням"></canvas>
+      <div class="empty" id="empty">Перетягніть зображення сюди, вставте через Ctrl+V або натисніть «Відкрити…» чи «Демо»</div>
+      <div class="dropmask">Відпустіть, щоб завантажити</div>
+    </div>
   <nav class="rail" aria-label="Інструменти">
     <button class="tool" data-tool="hand" title="Рух (H): тягніть, щоб посунути картинку. Колесо миші: масштаб. Пробіл + тягнення працює з будь-яким інструментом.">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Рух</span></button>
@@ -67,28 +89,6 @@
     <button id="btnResetEdits" title="Скинути ручні правки (паличка, пензлі, рамка). Кольори фону лишаються. Це можна скасувати.">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span>Скинути</span></button>
   </nav>
-
-  <section class="center" aria-label="Редактор">
-    <details class="about" id="about" open>
-      <summary title="Показати або сховати довідку"><b>Що це, для чого, як користуватися</b></summary>
-      <div class="about-body">
-        <p><b>Що це.</b> Редактор прибирає фон із зображення й робить його прозорим. Працює і зі спрайт-листами (в тому числі від ШІ), і зі звичайними фотографіями.</p>
-        <p><b>Для чого.</b> Підготувати спрайти для гри, вирізати предмет чи людину з фото, нарізати лист на окремі спрайти й зібрати атлас PNG + JSON.</p>
-        <p><b>Як користуватися.</b></p>
-        <ol>
-          <li>Відкрийте картинку: кнопка «Відкрити…» зверху, перетягування у вікно або Ctrl+V. Або натисніть «Демо».</li>
-          <li>Інструментом «Піпетка» клікайте по кольорах фону (небо, пісок, море): кожен колір потрапляє у список праворуч зі своїм допуском. Усе схоже на ці кольори стає прозорим (шашка).</li>
-          <li>Що лишилося зайвим, доправте вручну: «Паличка» стирає суміжну область, «Ластик» і «Відновити» працюють пензлем, «Рамка» стирає прямокутник. Помилилися: Ctrl+Z.</li>
-          <li>Колесо миші змінює масштаб, пробіл + тягнення (або інструмент «Рух») пересуває картинку. Утримуйте O, щоб порівняти з оригіналом.</li>
-          <li>Зверху збережіть результат: PNG, копія в буфер, ZIP зі спрайтами, атлас або JSON налаштувань.</li>
-        </ol>
-      </div>
-    </details>
-    <div class="viewport" id="vp">
-      <canvas id="cv" aria-label="Робоча область із зображенням"></canvas>
-      <div class="empty" id="empty">Перетягніть зображення сюди, вставте через Ctrl+V або натисніть «Відкрити…» чи «Демо»</div>
-      <div class="dropmask">Відпустіть, щоб завантажити</div>
-    </div>
     <div class="statusbar">
       <span class="grp">
         <button id="zOut" title="Зменшити масштаб (клавіша −)">−</button>
@@ -105,11 +105,17 @@
       <span class="readout" id="readout" title="Координати й колір пікселя оригіналу під курсором">—</span>
       <span class="readout" id="info"></span>
     </div>
-  </section>
 
-  <aside class="panel" aria-label="Налаштування">
-    <details class="card" open>
-      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">1</span> Кольори фону</h2></summary>
+  <nav class="rail right" aria-label="Налаштування">
+    <button class="pbtn" data-panel="colors" title="Кольори фону: піпетка, допуски, м'який край, де прибирати"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg><span>Фон</span></button>
+    <button class="pbtn" data-panel="edits" title="Ручні правки: розмір пензля, допуск палички"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Правки</span></button>
+    <button class="pbtn" data-panel="slice" title="Нарізка листа на окремі спрайти: автоматично чи сіткою"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5h17v17h-17zM12 3.5v17M3.5 12h17"/></svg><span>Нарізка</span></button>
+    <button class="pbtn" data-panel="palette" title="Палітра: зменшити кількість кольорів (піксель-арт)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><circle cx="12" cy="16" r="2.5"/></svg><span>Палітра</span></button>
+    <button class="pbtn" data-panel="atlas" title="Параметри атласу: відступ, степені двійки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg><span>Атлас</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" hidden aria-label="Налаштування">
+    <button class="dx" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="colors"><h2>Кольори фону</h2>
       <p class="hint">Усе, що схоже на ці кольори, стає прозорим. Кожен колір має власний допуск: чим більший, тим ширший діапазон відтінків.</p>
       <div class="row2">
         <button id="btnAddPip" title="Увімкнути піпетку: клікніть по картинці, щоб додати колір до списку">+ Піпеткою</button>
@@ -121,18 +127,16 @@
         <span>М'який край</span><output id="oFea"></output><input type="range" id="rFea" min="0" max="30" step="1"></label>
       <label class="ctl" title="«З краю» прибирає лише фон, з'єднаний з краєм картинки (такий самий колір усередині предмета лишається). «Скрізь» прибирає ці кольори в усіх місцях.">
         <span>Де прибирати</span><select id="selMode"><option value="flood">З краю (суміжний фон)</option><option value="global">Скрізь, де є цей колір</option></select></label>
-    </details>
+    </section>
 
-    <details class="card" open>
-      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">2</span> Ручні правки</h2></summary>
+    <section data-panel="edits"><h2>Ручні правки</h2>
       <p class="hint">Налаштування інструментів «Паличка», «Ластик», «Відновити». Працюють поверх кольорів фону.</p>
       <label class="ctl" title="Розмір круглого пензля для інструментів «Ластик» і «Відновити» у пікселях зображення"><span>Розмір пензля</span><output id="oBrush"></output><input type="range" id="rBrush" min="1" max="200" step="1"></label>
       <label class="ctl" title="Наскільки відтінок може відрізнятися від піксела, по якому клікнули паличкою. Більше значення: ширша область."><span>Допуск палички</span><output id="oWand"></output><input type="range" id="rWand" min="0" max="100" step="1"></label>
       <label class="chk" title="Увімкнено: паличка зачіпає лише область, що торкається місця кліку. Вимкнено: усі схожі піксели на всій картинці."><input type="checkbox" id="cContig"><span>Паличка: лише суміжна область</span></label>
-    </details>
+    </section>
 
-    <details class="card">
-      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">3</span> Нарізка</h2></summary>
+    <section data-panel="slice"><h2>Нарізка</h2>
       <p class="hint">Розділяє лист на окремі спрайти для ZIP і атласу.</p>
       <label class="ctl" title="«Автоматично» шукає окремі непрозорі плями. «Сітка» ділить лист на рівні клітинки. «Без нарізки» експортує весь лист."><span>Спосіб</span><select id="selSlice"><option value="auto">Автоматично (знайти спрайти)</option><option value="grid">Сітка</option><option value="none">Без нарізки</option></select></label>
       <div id="boxAuto">
@@ -144,20 +148,18 @@
         <label class="chk" title="Обрізати кожну клітинку до непорожньої частини, порожні клітинки відкинути"><input type="checkbox" id="cTrim"><span>Обрізати порожні краї кожного спрайта</span></label>
       </div>
       <p class="hint" id="sliceInfo"></p>
-    </details>
+    </section>
 
-    <details class="card">
-      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">4</span> Палітра</h2></summary>
+    <section data-panel="palette"><h2>Палітра</h2>
       <p class="hint">Зменшує кількість кольорів (стиль піксель-арту). Для фото краще вимкнути.</p>
       <label class="ctl" title="Скільки кольорів залишити (медіанний зріз). 0 означає не чіпати кольори."><span>Кольорів (0 = не чіпати)</span><output id="oPal"></output><input type="range" id="rPal" min="0" max="64" step="1"></label>
       <div class="swatches" id="swatches"></div>
-    </details>
+    </section>
 
-    <details class="card">
-      <summary title="Згорнути або розгорнути розділ"><h2><span class="n">5</span> Параметри атласу</h2></summary>
+    <section data-panel="atlas"><h2>Параметри атласу</h2>
       <p class="hint">Як пакувати спрайти кнопкою «Атлас» зверху. Формат JSON Hash (TexturePacker) читають Phaser, PixiJS та інші рушії.</p>
       <div class="row2"><label class="num" title="Порожній проміжок між спрайтами в атласі, у пікселях"><span>Відступ</span><input type="number" id="nPad" min="0" max="16"></label><label class="chk" title="Зробити ширину й висоту атласу степенями двійки (256, 512, 1024…), як вимагають деякі відеокарти"><input type="checkbox" id="cPow2"><span>Степені двійки</span></label></div>
-    </details>
+    </section>
   </aside>
 </div>
 
