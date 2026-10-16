@@ -224,7 +224,18 @@
   cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
   cv.addEventListener('pointerleave', () => { if (!drag && hover) { hover = null; needDraw = true; } });
   cv.addEventListener('contextmenu', e => e.preventDefault());
-  wrap.addEventListener('wheel', e => { e.preventDefault(); zoomBy(Math.exp(e.deltaY * (e.deltaMode ? .05 : .0015))); }, { passive: false });
+  wrap.addEventListener('wheel', e => { if (e.target.closest('.drawer, .bar, .palette')) return; e.preventDefault(); zoomBy(Math.exp(e.deltaY * (e.deltaMode ? .05 : .0015))); }, { passive: false });
+
+  /* ---------- меню-іконки ---------- */
+  const drawer = $('drawer'); let panel = ''; try { panel = localStorage.getItem('vx_panel') || ''; } catch {}
+  function showPanel(n) {
+    panel = n; try { localStorage.setItem('vx_panel', n || ''); } catch {}
+    drawer.hidden = !n; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
+    drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
+  }
+  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); });
+  $('drawerX').onclick = () => showPanel('');
+  showPanel(panel);
 
   /* ---------- генерація ---------- */
   let lastSize = 0;
