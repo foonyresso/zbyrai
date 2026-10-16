@@ -310,5 +310,13 @@ test('захист від повторів портретів: файл і ди�
   assert.ok(S.placePortrait(st, pi, '0002.jpg') >= 0);
   S.reflowPortrait(st); let n = 0; st.spreads.forEach(x => { if (x.type === 'portrait') n += Object.keys(x.extra).length; }); assert.strictEqual(n, 2);
 });
+test('обкладинка: перемикач прізвища й імені', () => {
+  const st = S.newState(); st.children = '1 Іваненко Марія\n2 Петренко Олег'; S.buildSpreads(st);
+  assert.strictEqual(S.slotsFor(st, 0, new Map()).ownerName, 'Іваненко Марія');
+  assert.deepStrictEqual(S.exportPlan(st).filter(x => /^cover/.test(x.name)).map(x => x.name), ['cover_01', 'cover_02']);
+  st.coverIndividual = false;
+  assert.strictEqual(S.slotsFor(st, 0, new Map()).ownerName, '');
+  assert.deepStrictEqual(S.exportPlan(st).filter(x => /^cover/.test(x.name)).map(x => x.name), ['cover']);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

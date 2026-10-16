@@ -578,6 +578,8 @@
     if (sp.type === 'cover') {
       var lc = el('label', 'chk', null, 'Прибрати фото з обкладинки: лишається лише дизайн, рік і назва'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!st.coverNoPhoto;
       cb.onchange = function () { st.coverNoPhoto = cb.checked; refresh(); }; lc.appendChild(cb); lc.appendChild(document.createTextNode(' Обкладинка без фото')); box.appendChild(lc);
+      var li = el('label', 'chk', null, 'Вмикає прізвище та ім\'я на обкладинці, тоді обкладинка своя для кожної дитини (cover_01…). Вимкнено: одна обкладинка для всіх (cover.jpg)'), ci = document.createElement('input'); ci.type = 'checkbox'; ci.checked = S.coverIndividual(st);
+      ci.onchange = function () { st.coverIndividual = ci.checked; refresh(); }; li.appendChild(ci); li.appendChild(document.createTextNode(' Прізвище та ім\'я на обкладинці (індивідуальна)')); box.appendChild(li);
       coverVariantsUI(box);
       box.appendChild(el('p', 'hint', 'Рік, прізвище й назву закладу клікни на макеті: тут з\'являться шрифт, регістр, колір і розмір.')); return;
     }

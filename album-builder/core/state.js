@@ -271,7 +271,7 @@
     var sp = st.spreads[si], z = zoneOf(st, si), W = z.W, H = z.H, d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic, items = [], ownerName = '';
     if (sp.type === 'cover') {
       var cvv = coverVar(st), c = L.coverLayout(W, H, z.sb, z, cvv), ow = ownerOf(st);
-      ownerName = ow ? ow.name : '';
+      ownerName = ow && coverIndividual(st) ? ow.name : '';
       if (!st.coverNoPhoto && cvv.photo !== false) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap) : null), caption: '', kind: 'cover' }); });
     } else if (sp.type === 'first') {
       var pc = L.pageCenters(W, z.bleed, z.safe), f = L.firstLayout(W, H, z.sb, pc.left, pc.right), tl = teachers(st);
