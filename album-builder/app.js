@@ -128,9 +128,7 @@
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
     $('kSel').value = st.kOverride ? String(st.kOverride) : '';
     fontSample();
-    $('spInfo').textContent = 'Розворот: ' + label(cur) + '.';
     var z = S.zoneOf(st, cur), t = st.spreads[cur].type;
-    $('roundRow').hidden = t !== 'group'; $('roundIn').value = st.spreads[cur].round != null ? st.spreads[cur].round : st.round || 0;
     $('btnLeftPhotos').hidden = t !== 'first';
     $('btnAdd').textContent = t === 'cover' || t === 'first' ? '＋ Портрети' : '＋ Додати фото';
     $('btnLeftPhotos').textContent = S.teachers(st).length ? '＋ Вчителі' : '＋ Загальне фото';
@@ -139,7 +137,6 @@
     if (t !== 'group') $('layoutStrip').hidden = true; else if (!$('layoutStrip').hidden) buildLayoutStrip();
     $('btnStyle').textContent = 'Стиль: ' + ({ mosaic: 'мозаїка', rows: 'ряди', scrap: 'вклеєні', tpl: 'готова' }[st.spreads[cur].style || 'mosaic']);
     $('spineIn').value = st.spine == null ? PR.spreadSize(st.fmtId).spine : st.spine;
-    $('coverNoPhoto').checked = !!st.coverNoPhoto;
     $('safeIn').value = st.safe == null ? PR.spreadSize(st.fmtId).safe : st.safe; $('coverSafeIn').value = st.coverSafe == null ? 15 : st.coverSafe;
     $('sizeInfo').textContent = 'Файл розвороту: ' + Math.round(z.W * 300 / 25.4) + '×' + Math.round(z.H * 300 / 25.4) + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
     $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться); безпечна межа ' + z.safe + ' мм від обрізу' + (t === 'cover' ? ' (для обкладинки)' : '') + ': текст і підписи тримаємо всередині. Значення типові, не з сайту друкарні; вводь свої.';
@@ -389,9 +386,6 @@
     e.preventDefault(); var p = lastInfo ? mmAt(e) : null, it = p ? hit(p) : null; sel = p ? selFor(p, it) : null; redraw(); openMenu(it, e);
   });
   document.addEventListener('pointerdown', function (e) { if (!$('cellMenu').hidden && !$('cellMenu').contains(e.target) && e.target !== cv) closeMenu(); });
-  $('roundIn').oninput = function () { st.spreads[cur].round = +$('roundIn').value; redraw(); };
-  $('roundAll').onclick = function () { var v = +$('roundIn').value; st.round = v; st.spreads.forEach(function (s) { if (s.type === 'group') s.round = v; }); redraw(); toast('Скруглення застосовано до всіх групових розворотів'); };
-  $('coverNoPhoto').onchange = function () { st.coverNoPhoto = $('coverNoPhoto').checked; refresh(); };
   function removeSel() {
     if (!sel || sel.t === 'bg' || sel.t === 'text') return toast('Спершу вибери фото');
     if (S.removePhoto(st, cur, sel)) { sel = null; refresh(); } else toast('Портрети й фото вчителів беруться за номером; щоб прибрати, вилучи файл або номер зі списку');
@@ -474,9 +468,14 @@
       box.appendChild(el('p', 'hint', 'Вибрано фон розвороту. Колір, градієнт, картинка й візерунки: вкладка «Фон».'));
       var bb = el('button', '', 'Відкрити «Фон»', 'Перейти до налаштувань фону'); bb.onclick = function () { openPanel('bg'); }; box.appendChild(bb); return;
     }
+    if (sp.type === 'cover') {
+      var lc = el('label', 'chk', null, 'Прибрати фото з обкладинки: лишається лише дизайн, рік і назва'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!st.coverNoPhoto;
+      cb.onchange = function () { st.coverNoPhoto = cb.checked; refresh(); }; lc.appendChild(cb); lc.appendChild(document.createTextNode(' Обкладинка без фото')); box.appendChild(lc); return;
+    }
     if (sp.type === 'first') { if (S.teachers(st).length) buildTeacherUI(box); else buildGeneralUI(box); return; }
     if (sp.type === 'group') {
       box.appendChild(slider('Скруглення кутів, мм', 0, 15, 0.5, function () { return sp.round != null ? sp.round : st.round || 0; }, function (v) { sp.round = v; }, 'Скруглення кутів групових фото цього розвороту'));
+      var ra = el('button', '', 'На всі групові розвороти', 'Те саме скруглення в усіх групових розворотах'); ra.onclick = function () { var v = sp.round != null ? sp.round : st.round || 0; st.round = v; st.spreads.forEach(function (s) { if (s.type === 'group') s.round = v; }); refresh(); toast('Скруглення застосовано до всіх групових розворотів'); }; box.appendChild(ra);
       return;
     }
     box.appendChild(el('p', 'hint', 'Клікни по фото, напису чи фону. На першому розвороті тут конструктор вчителів або розмір загального фото, на груповому скруглення кутів.'));
