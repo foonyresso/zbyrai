@@ -2,7 +2,7 @@
 // Дизайн = набір кольорів і шрифтів для render.js; нові дизайни додавай окремим записом у DESIGNS і в designs відповідних категорій.
 (function (root) {
   var DESIGNS = {
-    classic: { id: 'classic', name: 'Світла класика', bg: '#ffffff', text: '#6b6b6b', title: '#c9c9c9', band: 'rgba(255,255,255,.62)', ph: '#e8e4e1', font: '"Helvetica Neue", Arial, sans-serif', fontLight: '"Helvetica Neue Light", "Segoe UI Light", "Helvetica Neue", Arial, sans-serif', gap: 1.2, groupGap: 3, groupMargin: 6 }
+    classic: { id: 'classic', name: 'Світла класика', bg: '#ffffff', text: '#6b6b6b', title: '#c9c9c9', band: 'rgba(255,255,255,.62)', ph: '#e8e4e1', font: '"Helvetica Neue", Arial, sans-serif', fontLight: '"Helvetica Neue Light", "Segoe UI Light", "Helvetica Neue", Arial, sans-serif', gap: 1.2, groupGap: 3, groupMargin: 11 }
   };
   var CATEGORIES = [
     { id: 'kindergarten', name: 'Садочок', designs: ['classic'] },

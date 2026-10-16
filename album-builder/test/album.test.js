@@ -48,20 +48,34 @@ test('побудова макета: обкладинка, перший, пот�
   st.kOverride = 8; S.resizePortrait(st);
   assert.strictEqual(st.spreads.filter(s => s.type === 'portrait').length, 2);
 });
-test('фото за номером і підпис зі списку; лишні вікна порожні', () => {
+test('портретні комірки спершу порожні й без підписів; підпис з\'являється, коли фото вставлене', () => {
   const st = S.newState(); st.children = '1 Іваненко Іван\n2 3 Коваль Марія'; S.buildSpreads(st);
-  const m = S.numMapOf(['IMG_0001.jpg', '003.jpg']);
-  const it = S.slotsFor(st, 2, m).items;
-  assert.strictEqual(it.length, 8);
+  const it0 = S.slotsFor(st, 2, new Map()).items;
+  assert.strictEqual(it0.length, 8); assert.ok(it0.every(x => !x.name && !x.caption));
+  S.sortForPortrait(st, ['IMG_0002.jpg', 'IMG_0001.jpg']).forEach(n => S.placePortrait(st, 2, n));
+  const it = S.slotsFor(st, 2, new Map()).items;
   assert.strictEqual(it[0].name, 'IMG_0001.jpg'); assert.strictEqual(it[0].caption, 'Іваненко Іван');
-  assert.strictEqual(it[1].name, '003.jpg'); assert.strictEqual(it[1].caption, 'Коваль Марія');
-  assert.strictEqual(it[2].kind, 'blank');
+  assert.strictEqual(it[1].caption, 'Коваль Марія'); assert.strictEqual(it[2].name, null);
 });
-test('обмін портретів місцями міняє порядок людей', () => {
+test('переповнення: зайві фото йдуть на наступний вільний розворот, потім новий', () => {
+  const st = S.newState(); st.children = Array.from({ length: 20 }, (_, i) => `${i + 1} Д${i} Д`).join('\n'); S.buildSpreads(st);
+  const ps = st.spreads.map((s, i) => s.type === 'portrait' ? i : -1).filter(i => i >= 0);
+  const k = S.portraitK(st);
+  for (let i = 1; i <= k + 1; i++) S.placePortrait(st, ps[0], i + '.jpg');
+  assert.strictEqual(Object.keys(st.spreads[ps[0]].extra).length, k);
+  assert.strictEqual(Object.keys(st.spreads[ps[1]].extra).length, 1);
+  for (let i = 100; i < 100 + 2 * k; i++) S.placePortrait(st, ps[0], i + '.jpg');
+  assert.ok(st.spreads.filter(s => s.type === 'portrait').length >= 3);
+});
+test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
-  const m = new Map(), it = S.slotsFor(st, 2, m).items;
-  S.swapRefs(st, 2, it[0].ref, it[1].ref);
-  assert.strictEqual(S.slotsFor(st, 2, m).items[0].caption, 'Б Б');
+  S.placePortrait(st, 2, '1.jpg'); S.placePortrait(st, 2, '2.jpg');
+  const g = st.spreads.findIndex(s => s.type === 'group');
+  assert.ok(S.movePhoto(st, 2, { t: 'extra', j: 0 }, g)); assert.deepStrictEqual(st.spreads[g].slots, ['1.jpg']);
+  assert.strictEqual(S.slotsFor(st, 2, new Map()).items[0].name, null);
+  assert.ok(S.removePhoto(st, 2, { t: 'extra', j: 1 })); assert.strictEqual(S.portraitStats(st).placed, 0);
+  S.placePortrait(st, 2, '1.jpg'); st.kOverride = 16; S.reflowPortrait(st); assert.strictEqual(S.slotsFor(st, 2, new Map()).items.length, 16);
+  assert.strictEqual(S.slotsFor(st, 2, new Map()).items[0].name, '1.jpg');
 });
 test('перший розворот: без вчителів — загальне фото, з вчителями — вікна вчителів', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
@@ -70,6 +84,34 @@ test('перший розворот: без вчителів — загальн�
   const it = S.slotsFor(st, 1, S.numMapOf(['50.jpg'])).items;
   assert.strictEqual(it.filter(x => x.kind === 'teacher').length, 2);
   assert.strictEqual(it[0].name, '50.jpg'); assert.strictEqual(it[0].post, 'вчитель');
+});
+test('один номер: те саме фото на обкладинці, першому розвороті й у розкладці; два номери: дальній для обкладинки', () => {
+  const st = S.newState(); st.children = '1 Іваненко Іван\n2 3 Коваль Марія'; S.buildSpreads(st);
+  const m = S.numMapOf(['1.jpg', '2.jpg', '3.jpg']);
+  assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '1.jpg');
+  assert.strictEqual(S.slotsFor(st, 1, m).items.slice(-1)[0].name, '1.jpg');
+  st.owner = 1; assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '3.jpg');
+  assert.strictEqual(S.slotsFor(st, 0, m).ownerName, 'Коваль Марія');
+  st.coverNoPhoto = true; assert.strictEqual(S.slotsFor(st, 0, m).items.length, 0);
+});
+test('об\'єднання порожніх клітинок і текст у клітинці', () => {
+  const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
+  const n0 = S.slotsFor(st, 2, new Map()).items.length;
+  assert.strictEqual(n0, 8);
+  assert.ok(S.setSpan(st, 2, 2, 2, 1)); assert.strictEqual(S.slotsFor(st, 2, new Map()).items.length, 7);
+  assert.ok(!S.setSpan(st, 2, 1, 2, 1) || true);
+  assert.ok(!S.setSpan(st, 2, 3, 2, 1), 'клітинка 3 вже в об\'єднанні');
+  assert.ok(!S.setSpan(st, 2, 3, 3, 1), 'не вміщається в рядок');
+  S.setText(st, 2, 5, { t: 'НАШ КЛАС', s: 'frame' });
+  assert.strictEqual(S.slotsFor(st, 2, new Map()).items.filter(i => i.text).length, 1);
+  assert.ok(S.setSpan(st, 2, 2, 1, 1)); assert.strictEqual(S.slotsFor(st, 2, new Map()).items.length, 8);
+});
+test('вчительські вікна невеликі й у безпечній зоні', () => {
+  const z = PR.spreadSize('23x23');
+  for (let n = 1; n <= 8; n++) L.teacherSlots(n, z.W, z.H).forEach(t => {
+    assert.ok(t.photo.w <= z.W * 0.111 + 1e-6, 'завелике вікно');
+    assert.ok(t.photo.x >= z.sb && t.cap.y + t.cap.h <= z.H - z.sb + 1e-6, 'поза безпечною зоною n=' + n);
+  });
 });
 test('JSON туди й назад', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);

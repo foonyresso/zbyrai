@@ -3,7 +3,7 @@
   var S = AlbumState, R = AlbumRender, PR = AlbumPrint, DS = AlbumDesigns, X = AlbumExport;
   var $ = function (id) { return document.getElementById(id); };
   var st = S.newState(), files = new Map(), imgs = new Map(), numMap = new Map();
-  var cur = 0, sel = null, step = 1, dragMode = 'swap', guides = false, drag = null, pickRef = null, lastInfo = null, panel = null;
+  var cur = 0, sel = null, step = 1, dragMode = 'swap', guides = true, drag = null, pickRef = null, lastInfo = null, panel = null;
   var cv = $('cv'), ctx = cv.getContext('2d');
   function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('on'); }, 2600); }
   function el(tag, cls, text, title) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (title) e.title = title; return e; }
@@ -11,7 +11,7 @@
   // ---------- Майстер ----------
   var STEPS = ['Тип друку', 'Формат', 'Дизайн', 'Списки'];
   function showStep(n) {
-    step = n; $('wizard').hidden = false; $('work').hidden = true;
+    step = n; $('wizard').hidden = false; $('work').hidden = true; document.body.classList.remove('editing'); closeMenu();
     for (var i = 1; i <= 4; i++) $('w' + i).hidden = i !== n;
     var ol = $('steps'); ol.textContent = '';
     STEPS.forEach(function (s, i) { ol.appendChild(el('li', i + 1 === n ? 'on' : '', (i + 1) + '. ' + s)); });
@@ -50,7 +50,7 @@
   };
 
   // ---------- Редактор ----------
-  function showEditor() { $('wizard').hidden = true; $('work').hidden = false; refresh(); }
+  function showEditor() { $('wizard').hidden = true; $('work').hidden = false; document.body.classList.add('editing'); refresh(); }
   function refresh() { redraw(); thumbs(); updateInfo(); }
   function sizeCanvas() {
     var z = PR.spreadSize(st.fmtId), box = $('drop'), cs = getComputedStyle(box);
@@ -89,12 +89,20 @@
     var on = strip.querySelector('.on'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
   function updateInfo() {
-    var ps = S.people(st), tl = S.teachers(st), ok = ps.filter(function (p) { return S.photoFor(p, numMap); }).length, tk = tl.filter(function (p) { return S.photoFor(p, numMap); }).length;
-    $('count').textContent = 'Портрети: ' + ok + '/' + ps.length + (tl.length ? ' · вчителі: ' + tk + '/' + tl.length : '') + ' · фото в пам\'яті: ' + files.size;
+    var ps = S.people(st), tl = S.teachers(st), pst = S.portraitStats(st), tk = tl.filter(function (p) { return S.photoFor(p, numMap); }).length;
+    $('count').textContent = 'Портрети на розворотах: ' + pst.placed + '/' + pst.total + (tl.length ? ' · вчителі: ' + tk + '/' + tl.length : '') + ' · фото в пам\'яті: ' + files.size;
     var k = S.portraitK(st);
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
     $('kSel').value = st.kOverride ? String(st.kOverride) : '';
     $('spInfo').textContent = 'Розворот: ' + label(cur) + '.';
+    var os = $('ownerSel'), own = S.ownerOf(st), z = PR.spreadSize(st.fmtId);
+    if (os.dataset.sig !== ps.map(function (p) { return p.id + p.name; }).join('|')) {
+      os.dataset.sig = ps.map(function (p) { return p.id + p.name; }).join('|'); os.textContent = '';
+      ps.slice().sort(function (a, b) { return a.id - b.id; }).forEach(function (p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.name || ('№' + p.nums[0]); os.appendChild(o); });
+    }
+    if (own) os.value = own.id;
+    $('coverNoPhoto').checked = !!st.coverNoPhoto;
+    $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться), безпечна межа ' + z.safe + ' мм від обрізу: текст і підписи тримаємо всередині. Це типові значення, не з сайту друкарні.';
   }
 
   // ---------- Фото ----------
@@ -103,6 +111,7 @@
       var u = URL.createObjectURL(f), im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { URL.revokeObjectURL(u); res(null); }; im.src = u;
     });
   }
+  function portraitHas(n) { return st.spreads.some(function (s) { return s.type === 'portrait' && Object.keys(s.extra).some(function (j) { return s.extra[j] === n; }); }); }
   async function addFiles(list, targetRef) {
     var names = [], bad = 0;
     for (var f of Array.from(list)) {
@@ -113,7 +122,12 @@
     numMap = S.numMapOf(Array.from(files.keys()));
     var sp = st.spreads[cur], placed = 0;
     if (sp.type === 'group') names.forEach(function (n) { if (sp.slots.indexOf(n) < 0) { sp.slots.push(n); placed++; } });
-    else if (targetRef && targetRef.t !== 'person' && targetRef.t !== 'teacher' && names.length) { S.setPhoto(st, cur, targetRef, names[0]); placed = 1; }
+    else if (sp.type === 'portrait') {
+      var rest = names.slice();
+      if (targetRef && targetRef.t === 'extra' && rest.length) { S.setPhoto(st, cur, targetRef, rest.shift()); placed++; }
+      S.sortForPortrait(st, rest.filter(function (n) { return !portraitHas(n); })).forEach(function (n) { S.placePortrait(st, cur, n); placed++; });
+    }
+    else if (targetRef && targetRef.t !== 'teacher' && names.length) { S.setPhoto(st, cur, targetRef, names[0]); placed = 1; }
     else if (sp.type === 'cover' && names.length) { sp.slots[0] = names[0]; placed = 1; }
     else if (sp.type === 'first') {
       var free = (lastInfo ? lastInfo.items : []).filter(function (it) { return it.ref.t === 'slot' && !it.name; });
@@ -138,7 +152,7 @@
     return null;
   }
   cv.addEventListener('pointerdown', function (e) {
-    var p = mmAt(e), it = hit(p); sel = it ? it.ref : null;
+    closeMenu(); var p = mmAt(e), it = hit(p); sel = it ? it.ref : null;
     drag = it ? { it: it, x: e.clientX, y: e.clientY, p: p, crop: !!(e.altKey || dragMode === 'crop'), moved: false } : null;
     if (drag) cv.setPointerCapture(e.pointerId); redraw();
   });
@@ -160,8 +174,10 @@
     if (!drag) return; var d = drag; drag = null; cv.style.cursor = '';
     if (d.moved && !d.crop) {
       var t = hit(mmAt(e));
-      if (t && t !== d.it) { if (S.swapRefs(st, cur, d.it.ref, t.ref)) { sel = t.ref; refresh(); } else toast('Ці вікна не можна поміняти місцями'); }
-    } else if (!d.moved && !d.it.name && (d.it.kind === 'blank' || d.it.kind === 'group' || d.it.kind === 'cover' || d.it.kind === 'portrait1')) {
+      if (t && t !== d.it) { if (d.it.span || t.span) toast('Об\'єднані вікна не міняються місцями: спершу роз\'єднай (правий клік)'); else if (S.swapRefs(st, cur, d.it.ref, t.ref)) { sel = t.ref; refresh(); } else toast('Ці вікна не можна поміняти місцями'); }
+    } else if (!d.moved && d.it.kind === 'cell' && !d.it.name && !d.it.text) {
+      openMenu(d.it, e);
+    } else if (!d.moved && !d.it.name && (d.it.kind === 'group' || d.it.kind === 'cover' || d.it.kind === 'portrait1')) {
       pickRef = d.it.ref; $('fileImg').click();
     }
   });
@@ -177,6 +193,63 @@
     if (!e.dataTransfer.files.length) return; e.preventDefault(); box.classList.remove('over');
     var it = lastInfo ? hit(mmAt(e)) : null; addFiles(e.dataTransfer.files, it ? it.ref : null);
   });
+  // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
+  function closeMenu() { $('cellMenu').hidden = true; }
+  function menuFor(it) {
+    var secs = [], j = it && it.ref.j, sp = st.spreads[cur];
+    if (it) {
+      var c = [];
+      if (it.kind === 'cell' || it.kind === 'group' || it.kind === 'cover' || it.kind === 'portrait1') c.push(['Додати/замінити фото…', 'Вибрати файл для цього вікна', function () { pickRef = it.ref; $('fileImg').click(); }]);
+      if (it.name && (it.kind === 'cell' || it.kind === 'group')) c.push(['Видалити фото', 'Прибрати фото з вікна (його можна додати знову)', function () { S.removePhoto(st, cur, it.ref); sel = null; }]);
+      if (it.text) c.push(['Видалити текст', 'Прибрати текст з вікна', function () { S.removePhoto(st, cur, it.ref); }]);
+      if (it.name) c.push(['Скинути кадр', 'Повернути масштаб і зсув фото', function () { st.crops[it.name] = { z: 1, fx: 0.5, fy: 0.35 }; }]);
+      if (it.kind === 'cover') c.push([st.coverNoPhoto ? 'Показати фото на обкладинці' : 'Обкладинка без фото', 'Лише дизайн без фото', function () { st.coverNoPhoto = !st.coverNoPhoto; }]);
+      secs.push({ h: 'Вікно', items: c });
+      if (it.name && (it.kind === 'cell' || it.kind === 'group')) {
+        var mv = [];
+        st.spreads.forEach(function (x, i) { if (i !== cur && (x.type === 'portrait' || x.type === 'group')) mv.push(['→ ' + label(i), 'Перенести це фото на розворот «' + label(i) + '»', function () { if (S.movePhoto(st, cur, it.ref, i)) { sel = null; toast('Перенесено: ' + label(i)); } else toast('Там немає вільного місця'); }]); });
+        if (mv.length) secs.push({ h: 'Перемістити на розворот', items: mv });
+      }
+      if (it.kind === 'cell' && !it.name) {
+        secs.push({ h: 'Готовий текст', items: S.presets(st).map(function (p) { return [p.label, 'Вставити текст «' + p.t.replace('\n', ' ') + '»', function () { S.setText(st, cur, j, { t: p.t, s: (it.text && it.text.s) || 'ornament' }); }]; }).concat([['Свій текст…', 'Написати довільний текст (\\n = новий рядок)', function () {
+          var t = prompt('Текст для вікна (\\n = новий рядок):', it.text ? it.text.t.replace(/\n/g, '\\n') : ''); if (t != null) S.setText(st, cur, j, { t: t.replace(/\\n/g, '\n'), s: (it.text && it.text.s) || 'ornament' });
+        }]]) });
+      }
+      if (it.kind === 'cell' && it.text) secs.push({ h: 'Оформлення тексту', items: [['Візерунок: ' + ({ plain: 'без', ornament: 'лінії', frame: 'рамка' }[it.text.s || 'plain']) + ' → далі', 'Змінити: без візерунка, лінії, рамка', function () { S.cycleStyle(st, cur, j); }]] });
+      if (it.kind === 'cell' && !it.name) {
+        var mg = [[2, 1, '2 вправо'], [3, 1, '3 вправо'], [1, 2, '2 вниз'], [2, 2, '2×2']].map(function (a) { return ['Об\'єднати: ' + a[2], 'Об\'єднати з сусідніми порожніми в одне велике вікно', function () { if (!S.setSpan(st, cur, j, a[0], a[1])) toast('Тут не вийде: сусідні клітинки зайняті або поза розворотом'); }]; });
+        if (it.span) mg.push(['Роз\'єднати', 'Повернути окремі клітинки', function () { S.setSpan(st, cur, j, 1, 1); }]);
+        secs.push({ h: 'Об\'єднання', items: mg });
+      }
+    }
+    var sc = [];
+    if (sp.type === 'group') sc.push(['🎲 Розкласти інакше', 'Нова випадкова розкладка групових фото', function () { sp.seed = 1 + Math.floor(Math.random() * 99999); }]);
+    if (cur >= 2) {
+      sc.push(['← Розворот раніше', 'Пересунути розворот ближче до початку', function () { if (S.moveSpread(st, cur, -1)) cur--; }]);
+      sc.push(['Розворот пізніше →', 'Пересунути розворот ближче до кінця', function () { if (S.moveSpread(st, cur, 1)) cur++; }]);
+      sc.push(['Видалити розворот', 'Видалити цей розворот разом з розкладкою', function () { if (confirm('Видалити цей розворот?')) { st.spreads.splice(cur, 1); cur = Math.min(cur, st.spreads.length - 1); sel = null; } }]);
+    }
+    sc.push(['＋ Портрети після цього', 'Додати порожній портретний розворот', function () { st.spreads.splice(Math.max(cur, 1) + 1, 0, S.mkSpread('portrait')); cur = Math.max(cur, 1) + 1; }]);
+    sc.push(['＋ Групові після цього', 'Додати розворот під групові фото', function () { st.spreads.splice(Math.max(cur, 1) + 1, 0, S.mkSpread('group')); cur = Math.max(cur, 1) + 1; }]);
+    secs.push({ h: 'Розворот', items: sc });
+    return secs;
+  }
+  function showMenu(secs, e) {
+    var m = $('cellMenu'); m.textContent = '';
+    secs.forEach(function (sec) {
+      if (!sec.items.length) return; m.appendChild(el('h4', '', sec.h));
+      sec.items.forEach(function (a) { var b = el('button', '', a[0], a[1]); b.onclick = function () { closeMenu(); a[2](); refresh(); }; m.appendChild(b); });
+    });
+    m.hidden = false; var w = m.offsetWidth, h = m.offsetHeight;
+    m.style.left = Math.max(8, Math.min(e.clientX, innerWidth - w - 8)) + 'px'; m.style.top = Math.max(8, Math.min(e.clientY, innerHeight - h - 8)) + 'px';
+  }
+  function openMenu(it, e) { showMenu(menuFor(it), e); }
+  cv.addEventListener('contextmenu', function (e) {
+    e.preventDefault(); var it = lastInfo ? hit(mmAt(e)) : null; sel = it ? it.ref : null; redraw(); openMenu(it, e);
+  });
+  document.addEventListener('pointerdown', function (e) { if (!$('cellMenu').hidden && !$('cellMenu').contains(e.target) && e.target !== cv) closeMenu(); });
+  $('ownerSel').onchange = function () { st.owner = +$('ownerSel').value; refresh(); };
+  $('coverNoPhoto').onchange = function () { st.coverNoPhoto = $('coverNoPhoto').checked; refresh(); };
   function removeSel() {
     if (!sel) return toast('Спершу вибери фото'); 
     if (S.removePhoto(st, cur, sel)) { sel = null; refresh(); } else toast('Портрети й фото вчителів беруться за номером; щоб прибрати, вилучи файл або номер зі списку');
@@ -201,15 +274,7 @@
   $('drawerX').onclick = function () { openPanel(panel); };
   document.querySelector('.rail [data-go=list]').onclick = function () { showStep(4); };
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
-  $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
-  $('btnLeft').onclick = function () { if (S.moveSpread(st, cur, -1)) { cur--; refresh(); } };
-  $('btnRight').onclick = function () { if (S.moveSpread(st, cur, 1)) { cur++; refresh(); } };
-  $('btnShuffle').onclick = function () { var sp = st.spreads[cur]; if (sp.type !== 'group') return toast('Перерозкладка діє на групових розворотах'); sp.seed = 1 + Math.floor(Math.random() * 99999); refresh(); };
-  $('btnRemovePhoto').onclick = removeSel;
-  $('btnDel').onclick = function () {
-    if (cur < 2) return toast('Обкладинку й перший розворот видалити не можна');
-    if (!confirm('Видалити цей розворот?')) return; st.spreads.splice(cur, 1); cur = Math.min(cur, st.spreads.length - 1); sel = null; refresh();
-  };
+  $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   $('guides').onchange = function () { guides = $('guides').checked; redraw(); };
   $('btnPlus').onclick = function () { $('addMenu').hidden = !$('addMenu').hidden; };

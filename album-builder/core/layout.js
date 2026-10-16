@@ -51,24 +51,31 @@
     if (n > 0) split({ x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, n, gap, rng(seed || 1), out);
     return out;
   }
-  // Вчителі: вікна фото зі смугою під підпис (capH мм) в області лівої сторінки першого розвороту.
+  // Вчителі: невеликі прямокутні вікна фото (висота 1.15 ширини) зі смугою під підпис (capH мм), блок по центру лівої сторінки першого розвороту.
   function teacherSlots(n, W, H) {
-    var area = { x: W * 0.04, y: H * 0.07, w: W * 0.43, h: H * 0.74 }, capH = Math.max(9, H * 0.075), gap = 3;
+    var area = { x: W * 0.04, y: H * 0.07, w: W * 0.43, h: H * 0.72 }, capH = Math.max(11, H * 0.085), gap = 4, maxW = W * 0.11;
     if (n <= 0) return [];
-    var best = { cols: n, rows: 1 }, bs = Infinity;
+    var best = null, bs = Infinity;
     for (var c = 1; c <= n; c++) {
-      var r = Math.ceil(n / c), cw = (area.w - gap * (c - 1)) / c, ch = (area.h - gap * (r - 1)) / r, d = Math.abs(Math.log(cw / ch / 0.72)) + (c * r - n) * 0.15;
-      if (d < bs) { bs = d; best = { cols: c, rows: r }; }
+      var r = Math.ceil(n / c), cw = Math.min(maxW, (area.w - gap * (c - 1)) / c), ph = cw * 1.15;
+      if (r * (ph + capH) + (r - 1) * gap > area.h) cw = (area.h - (r - 1) * gap - r * capH) / r / 1.15;
+      if (cw <= 0) continue;
+      var sc = -cw + (c * r - n) * 2;
+      if (sc < bs) { bs = sc; best = { cols: c, rows: r, cw: cw }; }
     }
-    var cells = gridRects(best.cols, best.rows, area, gap), out = [];
-    for (var i = 0; i < n; i++) { var q = cells[i]; out.push({ photo: { x: q.x, y: q.y, w: q.w, h: q.h - capH }, cap: { x: q.x, y: q.y + q.h - capH, w: q.w, h: capH } }); }
+    var cw2 = best.cw, ph2 = cw2 * 1.15, cellH = ph2 + capH, totW = best.cols * cw2 + (best.cols - 1) * gap, totH = best.rows * cellH + (best.rows - 1) * gap;
+    var x0 = area.x + (area.w - totW) / 2, y0 = area.y + (area.h - totH) / 2, out = [];
+    for (var i = 0; i < n; i++) {
+      var col = i % best.cols, row = Math.floor(i / best.cols), x = x0 + col * (cw2 + gap), y = y0 + row * (cellH + gap);
+      out.push({ photo: { x: x, y: y, w: cw2, h: ph2 }, cap: { x: x - gap / 2, y: y + ph2, w: cw2 + gap, h: capH } });
+    }
     return out;
   }
   function coverLayout(W, H) {
-    return { photo: { x: W * 0.64, y: 0, w: W * 0.28, h: H * 0.94 }, year: { x: W * 0.93, y: H * 0.8, size: H * 0.24 }, name: { x: W * 0.78, y: H * 0.955 } };
+    return { photo: { x: W * 0.64, y: 0, w: W * 0.28, h: H * 0.94 }, year: { x: W * 0.93, y: H * 0.8, size: H * 0.24 }, name: { x: W * 0.78, y: H * 0.925 } };
   }
   function firstLayout(W, H) {
-    return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: H * 0.9 } };
+    return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: H * 0.865 } };
   }
   var api = { rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumLayout = api;
