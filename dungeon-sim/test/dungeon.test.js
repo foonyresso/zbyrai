@@ -36,17 +36,28 @@ test('двері стикуються: кожне ребро має по две�
   assert.strictEqual(total, f.edges.length * 2);
   for (const r of f.rooms) for (const [x, y, sec] of r.doors) { const t = f.tiles[y * f.w + x]; if (sec) assert.strictEqual(t, T.SECRET); else assert.ok(t === T.DOOR || t === T.FLOOR || t === T.CORR, 'порожній вихід'); }
 });
-test('частка коридорів: 0 = без тунелів, 100 = лише тунелі, між ними всі види', () => {
-  const cnt = c => { const m = {}; for (let i = 0; i < 8; i++) { const L = C.generate({ seed: 'lk' + i, rooms: 60, corr: c }).stats.links; for (const k in L) m[k] = (m[k] || 0) + L[k]; } return m; };
-  const z = cnt(0), f = cnt(100), mid = cnt(30); assert.ok(!z.tunnel); for (const k of ['direct', 'wide', 'natural']) assert.ok(z[k] > 0, 'немає ' + k); assert.deepStrictEqual(Object.keys(f), ['tunnel']); assert.ok(mid.tunnel > 0 && mid.direct > 0);
+test('частка коридорів: 0 = усе впритул, 100 = усі зв’язки дерева коридори, типово 5-10%', () => {
+  const cnt = c => { const m = { tunnel: 0, direct: 0 }; for (let i = 0; i < 8; i++) { const L = C.generate({ seed: 'lk' + i, rooms: 60, corr: c, loops: 0 }).stats.links; for (const k in L) m[k] += L[k]; } return m; };
+  const z = cnt(0), f = cnt(100), mid = cnt(30), def = cnt(C.defaults().corr);
+  assert.strictEqual(z.tunnel, 0); assert.ok(z.direct > 0); assert.strictEqual(f.direct, 0); assert.ok(mid.tunnel > 0 && mid.direct > 0);
+  const share = def.tunnel / (def.tunnel + def.direct); assert.ok(share > .02 && share < .16, 'типова частка ' + share);
+});
+test('без коридорів кімнати впритул: між сусідніми з проходом рівно одна стіна', () => {
+  const f = C.generate({ seed: 'flush', rooms: 60, corr: 0 }).floors[0];
+  for (const e of f.edges) { const A = f.rooms[e.a], B = f.rooms[e.b], gx = Math.max(A.x - (B.x + B.w), B.x - (A.x + A.w)), gy = Math.max(A.y - (B.y + B.h), B.y - (A.y + A.h)); assert.strictEqual(Math.max(gx, gy), 1, 'зазор між зв’язаними кімнатами'); }
+});
+test('коридор відсуває кімнату: зазор дорівнює довжині ходу, решта групи щільна', () => {
+  const f = C.generate({ seed: 'gap', rooms: 60, corr: 15 }).floors[0]; let t = 0, d = 0;
+  for (const e of f.edges) { const A = f.rooms[e.a], B = f.rooms[e.b], g = Math.max(A.x - (B.x + B.w), B.x - (A.x + A.w), A.y - (B.y + B.h), B.y - (A.y + A.h)); if (e.kind === 'tunnel') { t++; assert.ok(g >= 3, 'короткий коридор ' + g); } else { d++; assert.strictEqual(g, 1); } }
+  assert.ok(t > 0 && d > t);
 });
 test('довжина коридорів: більше значення дає довші проміжки', () => {
   const len = l => { let s = 0; for (let i = 0; i < 6; i++) { const d = C.generate({ seed: 'ln' + i, rooms: 40, corr: 100, corrLen: l }); s += d.stats.corridors / d.stats.rooms; } return s; };
   assert.ok(len(100) > len(0) * 1.5, len(0) + ' ' + len(100));
 });
-test('розкид довжини: 0 дає однакові проміжки, 100 дуже різні', () => {
-  const widths = v => { const d = C.generate({ seed: 'vr', rooms: 80, corrVar: v, corrLen: 30 }), f = d.floors[0]; const xs = new Set(); for (const r of f.rooms) xs.add(r.cx); const set = new Set(); let prev = null; for (let x = 0; x < f.W; x++) { const rs = f.rooms.filter(r => r.cx === x); if (rs.length) { const m = Math.min(...rs.map(r => r.x)); if (prev !== null) set.add(m - prev); prev = m; } } return set.size; };
-  assert.ok(widths(100) > widths(0), widths(0) + ' ' + widths(100));
+test('розкид довжини: 0 дає однакові коридори, 100 дуже різні; усе досяжне', () => {
+  const sd = v => { const L = []; for (let i = 0; i < 6; i++) for (const e of C.generate({ seed: 'vr' + i, rooms: 60, corr: 100, corrVar: v, corrLen: 30, loops: 0 }).floors[0].edges) { const A = 0; L.push(e.path.length); } const m = L.reduce((a, b) => a + b) / L.length; return Math.sqrt(L.reduce((a, b) => a + (b - m) ** 2, 0) / L.length); };
+  assert.ok(sd(100) > sd(0) + 2, sd(0) + ' ' + sd(100));
   for (const v of [0, 50, 100]) for (const l of [0, 100]) { const d = C.generate({ seed: 'vv' + v, rooms: 120, levels: 2, corrVar: v, corrLen: l, corr: 30 }); for (const f of d.floors) { const seen = reach(f); for (const r of f.rooms) assert.ok(seen[r.my * f.w + r.mx], 'недосяжна'); } }
 });
 test('прямий прохід: кімнати стоять впритул через стіну з прорізом', () => {

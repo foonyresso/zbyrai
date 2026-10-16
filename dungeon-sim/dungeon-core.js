@@ -120,56 +120,63 @@
   }
 
   /* ---------- один поверх ---------- */
-  // розміри клітинок ґратки: база від «довжини», розкид від «розкиду довжини» (від 1 до ~10 клітинок між кімнатами)
-  function cellSizes(P, W, rnd) {
-    const e0 = P.corrLen / 100 * 14, lo = e0 * (1 - P.corrVar / 100), hi = e0 + (24 - e0) * P.corrVar / 100, one = () => 12 + Math.round(lo + rnd() * (hi - lo));
-    const cw = Array.from({ length: W }, one), ch = Array.from({ length: W }, one), acc = a => { const o = [0]; for (const v of a) o.push(o[o.length - 1] + v); return o; };
-    return { cw, ch, x0: acc(cw), y0: acc(ch) };
+  // Кімнати ростуть деревом від входу. Без коридору нова кімната стає впритул до батьківської (між ними лише стіна з проходом).
+  // Коридор — окремий елемент: він відсуває кімнату далі на свою довжину, решта групи лишається щільною.
+  const LINKS = { tunnel: 'коридор', direct: 'прохід у стіні' };
+  function corrLength(P, rnd) { // довжина коридору (плиток між кімнатами): база з «довжини», розкид з «розкиду»
+    const e0 = 3 + P.corrLen / 100 * 15, lo = Math.max(3, e0 * (1 - P.corrVar / 100)), hi = e0 + (30 - e0) * P.corrVar / 100;
+    return Math.round(lo + rnd() * (hi - lo));
   }
-  const LINKS = { tunnel: 'тунель', direct: 'прямий прохід', wide: 'зал-прохід', natural: 'печерний хід' };
-  function genFloor(P, n, fi, last, start, W, H, rnd, sz) {
-    const { cw, ch, x0, y0 } = sz; // ширини колонок і висоти рядків ґратки: чим більші, тим довші проміжки між кімнатами
-    const cells = [], used = new Map(), open = [0], edges = [], key = (x, y) => y * W + x;
-    const add = (x, y) => { used.set(key(x, y), cells.length); cells.push({ x, y, adj: [] }); return cells.length - 1; };
-    const link = (a, b, loop) => { edges.push({ a, b, secret: false, loop: !!loop, kind: 'tunnel' }); cells[a].adj.push(b); cells[b].adj.push(a); };
-    add(start.x, start.y);
-    while (cells.length < n && open.length) {
-      const i = rnd() < P.branch / 100 ? Math.floor(rnd() * open.length) : open.length - 1; // «розгалуження»: випадкова клітинка проти найновішої (довгі ходи)
-      const c = cells[open[i]], nb = DIRS.filter(([dx, dy]) => { const x = c.x + dx, y = c.y + dy; return x >= 0 && y >= 0 && x < W && y < H && !used.has(key(x, y)); });
-      if (!nb.length) { open.splice(i, 1); continue; }
-      const [dx, dy] = pick(rnd, nb), ni = add(c.x + dx, c.y + dy);
-      link(open[i], ni); open.push(ni);
+  function genFloor(P, n, fi, last, rnd) {
+    const rooms = [], edges = [], occ = new Map(), K = 40000, key = (x, y) => (x + 20000) * K + (y + 20000), cave = P.style === 'cave';
+    const mark = r => { for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) occ.set(key(x, y), r.id); };
+    const free = (x, y, w, h) => { for (let yy = y - 1; yy <= y + h; yy++) for (let xx = x - 1; xx <= x + w; xx++) if (occ.has(key(xx, yy))) return false; return true; };
+    const dim = () => rnd() < .3 ? ri(rnd, 6, 10) : ri(rnd, 4, 8);
+    const link = (a, b, kind, loop, path) => { edges.push({ a, b, secret: false, loop: !!loop, kind, path }); rooms[a].adj.push(b); rooms[b].adj.push(a); };
+    const room = (x, y, w, h) => { const r = { id: rooms.length, x, y, w, h, adj: [] }; rooms.push(r); mark(r); return r; };
+    room(0, 0, ri(rnd, 6, 9), ri(rnd, 6, 9));
+    const open = [0];
+    while (rooms.length < n && open.length) {
+      const i = rnd() < P.branch / 100 ? Math.floor(rnd() * open.length) : open.length - 1, A = rooms[open[i]];
+      let done = false;
+      for (let t = 0; t < 14 && !done; t++) {
+        const d = ri(rnd, 0, 3), hor = d === 1 || d === 3, tun = rnd() < P.corr / 100, rw = dim(), rh = dim(), L = tun ? corrLength(P, rnd) : 1;
+        const ax = hor ? A.y : A.x, al = hor ? A.h : A.w, bl = hor ? rh : rw; // вздовж стіни
+        const lo = ax - bl + (tun ? -1 : 3), hi = ax + al - (tun ? 1 : 3) + (tun ? 3 : 0), off = ri(rnd, tun ? lo - 3 : lo, Math.max(hi, tun ? lo - 3 : lo));
+        if (!tun && (Math.min(ax + al, off + bl) - Math.max(ax, off) < 3)) continue;
+        const bx = d === 1 ? A.x + A.w + L : d === 3 ? A.x - L - rw : hor ? 0 : off, by = d === 2 ? A.y + A.h + L : d === 0 ? A.y - L - rh : hor ? off : 0;
+        const x = hor ? bx : off, y = hor ? off : by;
+        if (!free(x, y, rw, rh)) continue;
+        let path = null;
+        if (tun) { // Z-подібний хід посередині проміжку, не торкаючись інших кімнат і ходів
+          const B = { x, y, w: rw, h: rh }, mx = r => r.x + (r.w >> 1), my = r => r.y + (r.h >> 1), c = hor ? (d === 1 ? A.x + A.w + (L >> 1) : B.x + B.w + (L >> 1)) : (d === 2 ? A.y + A.h + (L >> 1) : B.y + B.h + (L >> 1));
+          const pts = hor ? [[mx(A), my(A)], [c, my(A)], [c, my(B)], [mx(B), my(B)]] : [[mx(A), my(A)], [mx(A), c], [mx(B), c], [mx(B), my(B)]];
+          path = []; for (let k = 0; k < 3; k++) { let [px, py] = pts[k]; const [tx, ty] = pts[k + 1], sx = Math.sign(tx - px), sy = Math.sign(ty - py); while (px !== tx || py !== ty) { path.push([px, py]); px += sx; py += sy; } } path.push(pts[3]);
+          const inr = (r, px, py) => px >= r.x && px < r.x + r.w && py >= r.y && py < r.y + r.h; let ok = true;
+          for (const [px, py] of path) { if (inr(A, px, py) || inr(B, px, py)) continue; if (occ.has(key(px, py))) { ok = false; break; } for (const [dx, dy] of DIRS) { const o = occ.get(key(px + dx, py + dy)); if (o !== undefined && o !== A.id && !inr(B, px + dx, py + dy)) { ok = false; break; } } if (!ok) break; }
+          if (!ok) continue;
+          for (const [px, py] of path) if (!inr(A, px, py) && !inr(B, px, py)) occ.set(key(px, py), -2);
+        }
+        const B = room(x, y, rw, rh); link(A.id, B.id, tun ? 'tunnel' : 'direct', false, path); open.push(B.id); done = true;
+      }
+      if (!done) open.splice(i, 1);
     }
-    const loopsWant = Math.round(P.loops / 100 * cells.length * 0.35);
-    const cand = [];
-    cells.forEach((c, i) => { for (const [dx, dy] of [[1, 0], [0, 1]]) { const j = used.get(key(c.x + dx, c.y + dy)); if (j !== undefined && !c.adj.includes(j)) cand.push([i, j]); } });
-    for (let k = 0; k < loopsWant && cand.length; k++) { const [a, b] = cand.splice(Math.floor(rnd() * cand.length), 1)[0]; link(a, b, true); }
+    // петлі: сусіди впритул (одна стіна, перетин ≥3 плитки), ще не з'єднані
+    const near = (A, B) => { if (A.x + A.w + 1 === B.x || B.x + B.w + 1 === A.x) return Math.min(A.y + A.h, B.y + B.h) - Math.max(A.y, B.y) >= 3; if (A.y + A.h + 1 === B.y || B.y + B.h + 1 === A.y) return Math.min(A.x + A.w, B.x + B.w) - Math.max(A.x, B.x) >= 3; return false; };
+    const cand = []; for (const A of rooms) for (const B of rooms) if (A.id < B.id && !A.adj.includes(B.id) && near(A, B)) cand.push([A.id, B.id]);
+    for (let k = Math.round(P.loops / 100 * rooms.length * .35); k > 0 && cand.length; k--) { const [a, b] = cand.splice(Math.floor(rnd() * cand.length), 1)[0]; link(a, b, 'direct', true); }
     // відстані від входу: найдальша кімната = фінал або сходи вниз
-    const dist = cells.map(() => -1); dist[0] = 0; const q = [0];
-    for (let h = 0; h < q.length; h++) for (const j of cells[q[h]].adj) if (dist[j] < 0) { dist[j] = dist[q[h]] + 1; q.push(j); }
+    const dist = rooms.map(() => -1); dist[0] = 0; const q = [0];
+    for (let h = 0; h < q.length; h++) for (const j of rooms[q[h]].adj) if (dist[j] < 0) { dist[j] = dist[q[h]] + 1; q.push(j); }
     let exit = 0; dist.forEach((d, i) => { if (d > dist[exit]) exit = i; });
-    // вид зв'язку: тунель, прямий прохід (кімнати впритул), зал-прохід, печерний хід
-    const need = cells.map(() => ({ E: 0, W: 0, N: 0, S: 0 })), cave = P.style === 'cave';
-    for (const e of edges) {
-      if (rnd() < P.corr / 100) continue; // тунель
-      const r = rnd(); e.kind = r < (cave ? .3 : .55) ? 'direct' : r < (cave ? .4 : .85) ? 'wide' : 'natural';
-      if (e.kind !== 'direct') continue;
-      let A = e.a, B = e.b, hor = cells[A].y === cells[B].y; if (hor ? cells[A].x > cells[B].x : cells[A].y > cells[B].y) [A, B] = [B, A];
-      const [fa, fb] = hor ? ['E', 'W'] : ['S', 'N'], [oa, ob] = hor ? ['W', 'E'] : ['N', 'S'];
-      if (need[A][oa] || need[B][ob]) { e.kind = 'wide'; continue; }
-      need[A][fa] = 1; need[B][fb] = 1;
+    // зсув у додатні координати
+    let mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9; for (const r of rooms) { mnx = Math.min(mnx, r.x); mny = Math.min(mny, r.y); mxx = Math.max(mxx, r.x + r.w); mxy = Math.max(mxy, r.y + r.h); }
+    const PAD = 3, sx = PAD - mnx, sy = PAD - mny, w = mxx - mnx + PAD * 2, h = mxy - mny + PAD * 2, tiles = new Uint8Array(w * h), rid = new Int16Array(w * h).fill(-1);
+    for (const e of edges) if (e.path) e.path = e.path.map(([x, y]) => [x + sx, y + sy]);
+    for (const c of rooms) {
+      c.x += sx; c.y += sy; const deg = c.adj.length, i = c.id;
+      Object.assign(c, { mx: c.x + (c.w >> 1), my: c.y + (c.h >> 1), shape: pickShape(rnd, P.style), cor: ri(rnd, 0, 3), role: i === 0 ? 'start' : i === exit ? (last ? 'boss' : 'down') : deg === 1 ? 'dead' : deg >= 3 ? 'hub' : 'room', deg, dist: dist[i], doors: [], traps: [], monsters: null, loot: null, secret: false, name: '' }); delete c.adj;
     }
-    // кімнати: форма, розмір, розташування в клітинці (впритул до межі, якщо є прямий прохід)
-    const w = x0[W], h = y0[H], tiles = new Uint8Array(w * h), rid = new Int16Array(w * h).fill(-1);
-    const rooms = cells.map((c, i) => {
-      const deg = c.adj.length, big = i === 0 || i === exit || deg >= 3, nd = need[i];
-      const shape = pickShape(rnd, P.style), rw = ri(rnd, big ? 6 : 4, 9), rh = ri(rnd, big ? 6 : 4, 9);
-      const CW = cw[c.x], CH = ch[c.y];
-      const ox = nd.W ? 0 : nd.E ? CW - 1 - rw : ri(rnd, 1, CW - 1 - rw), oy = nd.N ? 0 : nd.S ? CH - 1 - rh : ri(rnd, 1, CH - 1 - rh);
-      const x = x0[c.x] + ox, y = y0[c.y] + oy;
-      const role = i === 0 ? 'start' : i === exit ? (last ? 'boss' : 'down') : deg === 1 ? 'dead' : deg >= 3 ? 'hub' : 'room';
-      return { id: i, cx: c.x, cy: c.y, x, y, w: rw, h: rh, mx: x + (rw >> 1), my: y + (rh >> 1), shape, cor: ri(rnd, 0, 3), role, deg, dist: dist[i], doors: [], traps: [], monsters: null, loot: null, secret: false, name: '' };
-    });
     for (const r of rooms) for (let yy = 0; yy < r.h; yy++) for (let xx = 0; xx < r.w; xx++) {
       if (!(xx === (r.w >> 1) && yy === (r.h >> 1)) && !inShape(r.shape, r.cor, r.w, r.h, xx, yy)) continue;
       const t = (r.y + yy) * w + r.x + xx; tiles[t] = T.FLOOR; rid[t] = r.id;
@@ -180,60 +187,38 @@
       if (e.loop ? rnd() < P.secrets / 100 * 0.5 : dead !== undefined && rnd() < P.secrets / 100 * 0.6) { e.secret = true; if (!e.loop) rooms[dead].secret = true; }
     }
     const at = (x, y) => y * w + x;
-    const stepPath = pts => { const out = []; for (let i = 0; i < pts.length - 1; i++) { let [x, y] = pts[i]; const [tx, ty] = pts[i + 1], sx = Math.sign(tx - x), sy = Math.sign(ty - y); while (x !== tx || y !== ty) { out.push([x, y]); x += sx; y += sy; } } out.push(pts[pts.length - 1]); return out; };
-    // прямий прохід: проріз у стіні між двома кімнатами, що стоять впритул
+    // прохід у стіні між двома кімнатами, що стоять впритул
     function carveDirect(A, B, hor, e) {
-      const g = hor ? B.x - 1 : B.y - 1; if ((hor ? A.x + A.w : A.y + A.h) !== g) return false;
+      const g = hor ? B.x - 1 : B.y - 1;
       const lo = hor ? Math.max(A.y, B.y) : Math.max(A.x, B.x), hi = hor ? Math.min(A.y + A.h, B.y + B.h) : Math.min(A.x + A.w, B.x + B.w), ok = [];
       for (let k = lo; k < hi; k++) { const t1 = hor ? at(g - 1, k) : at(k, g - 1), t2 = hor ? at(g + 1, k) : at(k, g + 1); if (rid[t1] === A.id && rid[t2] === B.id) ok.push(k); }
-      if (!ok.length) return false;
+      if (!ok.length) { // форма не дотягується до стіни: прорубуємо ходок усередину кімнати до її підлоги
+        const k = (lo + hi) >> 1;
+        for (const [x, y, dx, dy, R] of hor ? [[g - 1, k, -1, 0, A], [g + 1, k, 1, 0, B]] : [[k, g - 1, 0, -1, A], [k, g + 1, 0, 1, B]])
+          for (let px = x, py = y; px >= R.x && py >= R.y && px < R.x + R.w && py < R.y + R.h && rid[at(px, py)] !== R.id; px += dx, py += dy) { tiles[at(px, py)] = T.FLOOR; rid[at(px, py)] = R.id; }
+        ok.push(k);
+      }
       let a0 = ri(rnd, 0, ok.length - 1), len = 1; if (!e.secret) { const full = rnd() < .25; while (len < (full ? 9 : 3) && a0 + len < ok.length && ok[a0 + len] === ok[a0] + len && (full || rnd() < .6)) len++; }
       for (let i = 0; i < len; i++) { const k = ok[a0 + i], t = hor ? at(g, k) : at(k, g); tiles[t] = e.secret ? T.SECRET : len === 1 ? T.DOOR : T.FLOOR; }
       const m = ok[a0 + (len >> 1)], d = hor ? [g, m, e.secret ? 1 : 0] : [m, g, e.secret ? 1 : 0]; A.doors.push(d); B.doors.push(d);
-      return true;
     }
-    // вибір смуги для вертикального/горизонтального звену ламаної: колонка без чужих кімнат поруч
-    const band = (c0, ya, yb, hor, span) => {
-      const lo = Math.min(ya, yb), hi = Math.max(ya, yb);
-      for (const c of [c0, c0 - 1, c0 + 1, c0 - 2]) { let ok = true; for (let k = lo; k <= hi && ok; k++) for (let o = -span; o <= span; o++) { const t = hor ? at(c + o, k) : at(k, c + o); if (rid[t] >= 0) { ok = false; break; } } if (ok) return c; }
-      return c0;
-    };
-    function carvePath(A, B, hor, e) {
-      let pts;
-      if (hor) { const c = band(x0[B.cx], A.my, B.my, true, e.kind === 'wide' ? 2 : 1); pts = [[A.mx, A.my], [c, A.my], [c, B.my], [B.mx, B.my]]; }
-      else { const c = band(y0[B.cy], A.mx, B.mx, false, e.kind === 'wide' ? 2 : 1); pts = [[A.mx, A.my], [A.mx, c], [B.mx, c], [B.mx, B.my]]; }
-      let path;
-      if (e.kind === 'natural') { // блукання від центру до центру з нахилом до цілі, без заходу в чужі кімнати
-        path = []; let [x, y] = [A.mx, A.my]; const [tx, ty] = [B.mx, B.my]; let guard = 0;
-        while ((x !== tx || y !== ty) && guard++ < 600) {
-          path.push([x, y]); const dx = tx - x, dy = ty - y; let mx = 0, my = 0;
-          if (rnd() < .28) { if (Math.abs(dx) > Math.abs(dy)) my = rnd() < .5 ? 1 : -1; else mx = rnd() < .5 ? 1 : -1; }
-          else if (dx !== 0 && (dy === 0 || rnd() < Math.abs(dx) / (Math.abs(dx) + Math.abs(dy)))) mx = Math.sign(dx); else my = Math.sign(dy);
-          const nx = x + mx, ny = y + my; if (nx < 1 || ny < 1 || nx >= w - 1 || ny >= h - 1) continue;
-          const r = rid[at(nx, ny)]; if (r >= 0 && r !== A.id && r !== B.id) continue;
-          x = nx; y = ny;
-        }
-        if (x !== tx || y !== ty) path = stepPath(pts); else path.push([tx, ty]);
-      } else path = stepPath(pts);
-      const spread = e.kind === 'wide' ? 1 : 0;
-      for (const [x, y] of path) {
-        for (let oy = -spread; oy <= spread; oy++) for (let ox = -spread; ox <= spread; ox++) { const t = at(x + ox, y + oy); if (x + ox < 0 || y + oy < 0 || x + ox >= w || y + oy >= h) continue; if (tiles[t] === T.ROCK) tiles[t] = e.kind === 'wide' ? T.FLOOR : T.CORR; }
-        if (e.kind === 'natural' && rnd() < .3) { const [ox, oy] = pick(rnd, DIRS), x2 = x + ox, y2 = y + oy; if (x2 > 0 && y2 > 0 && x2 < w - 1 && y2 < h - 1 && rid[at(x2, y2)] < 0 && tiles[at(x2, y2)] === T.ROCK) tiles[at(x2, y2)] = T.CORR; }
-      }
-      const door = (order, R) => { for (const [x, y] of order) { const t = at(x, y); if (rid[t] !== R.id) { if (e.secret) tiles[t] = T.SECRET; else if (e.kind === 'tunnel' && tiles[t] === T.CORR) tiles[t] = T.DOOR; R.doors.push([x, y, e.secret ? 1 : 0]); return; } } };
+    function carveTunnel(A, B, e) {
+      const path = e.path;
+      for (const [x, y] of path) if (tiles[at(x, y)] === T.ROCK) tiles[at(x, y)] = T.CORR;
+      const door = (order, R) => { for (const [x, y] of order) { const t = at(x, y); if (rid[t] !== R.id) { if (e.secret) tiles[t] = T.SECRET; else if (tiles[t] === T.CORR) tiles[t] = T.DOOR; R.doors.push([x, y, e.secret ? 1 : 0]); return; } } };
       door(path, A); door(path.slice().reverse(), B);
     }
     for (const e of edges) {
-      let A = rooms[e.a], B = rooms[e.b]; const hor = A.cy === B.cy;
-      if (hor ? A.cx > B.cx : A.cy > B.cy) [A, B] = [B, A];
-      if (e.kind === 'direct' && carveDirect(A, B, hor, e)) continue;
-      if (e.kind === 'direct') e.kind = cave ? 'natural' : 'wide';
-      carvePath(A, B, hor, e);
+      let A = rooms[e.a], B = rooms[e.b];
+      if (e.kind === 'tunnel') { carveTunnel(A, B, e); continue; }
+      const hor = A.x + A.w + 1 === B.x || B.x + B.w + 1 === A.x;
+      if (hor ? A.x > B.x : A.y > B.y) [A, B] = [B, A];
+      carveDirect(A, B, hor, e);
     }
     // сходи
     if (fi > 0) tiles[rooms[0].my * w + rooms[0].mx] = T.UP;
     if (!last) tiles[rooms[exit].my * w + rooms[exit].mx] = T.DOWN;
-    return { index: fi, w, h, W, H, tiles, rid, rooms, edges, exit, start: { x: start.x, y: start.y }, traps: [] };
+    return { index: fi, w, h, tiles, rid, rooms, edges, exit, traps: [] };
   }
 
   function populate(P, f, rnd, inhab, pool) {
@@ -269,14 +254,11 @@
     const P = normalize(params), rnd = rng(P.seed + '|' + P.type + '|' + P.rooms + '|' + P.levels), ty = typeById(P.type), pool = monsterPool(ty);
     const inhab = ty && ty.inhabitants.length ? ty.inhabitants : GENERIC;
     const per = Array.from({ length: P.levels }, (_, i) => Math.floor(P.rooms / P.levels) + (i < P.rooms % P.levels ? 1 : 0));
-    const W = Math.max(3, Math.ceil(Math.sqrt(Math.max(...per) * 2.5)) + 1), floors = [];
-    let start = { x: ri(rnd, 0, W - 1), y: ri(rnd, 0, W - 1) };
-    const sz = cellSizes(P, W, rng(P.seed + '|sizes'));
+    const floors = [];
     for (let i = 0; i < P.levels; i++) {
-      const f = genFloor(P, per[i], i, i === P.levels - 1, start, W, W, rnd, sz);
+      const f = genFloor(P, per[i], i, i === P.levels - 1, rnd);
       populate(P, f, rng(P.seed + '|pop|' + i), inhab, pool);
       floors.push(f);
-      const ex = f.rooms[f.exit]; start = { x: ex.cx, y: ex.cy };
     }
     const all = floors.flatMap(f => f.rooms);
     const stats = {
