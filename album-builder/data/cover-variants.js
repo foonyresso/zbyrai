@@ -339,7 +339,7 @@
     ,{
       id: 'script-year', name: 'Рік і каліграфія', note: 'Блідий рожевий фон, великий контурний рік і рукописне слово поверх нього', cats: null, photo: false, bg: ['#f2e9ec', '#e8dbe0'],
       text: function (g) { var c = g.ctx, y = g.year || '';
-        if (y) { c.save(); c.beginPath(); c.rect(g.x0, 0, g.W - g.x0, g.H); c.clip(); c.strokeStyle = '#b9aab0'; c.lineWidth = 0.5; c.font = '700 ' + g.H * 0.36 + 'px "Montserrat", sans-serif'; c.textAlign = 'center'; c.strokeText(y.slice(0, 2), g.cx + 10, g.H * 0.4); c.strokeText(y.slice(2), g.cx + 10, g.H * 0.8); c.restore(); g.tx('year', y, g.cx, g.H * 0.93, g.H * 0.022, 80, 'Montserrat', '#8b7b83', '400', 'center', 0.4, 'as'); }
+        if (y) { c.save(); c.beginPath(); c.rect(g.x0, 0, g.W - g.x0, g.H); c.clip(); var ol = { stroke: '#b9aab0', lw: 0.5 }; g.fx('yearbg', y.slice(0, 2), g.cx + 10, g.H * 0.4, g.H * 0.36, g.W - g.x0, 'Montserrat', ol, '700', 'center', 0, 'as'); g.fx('yearbg', y.slice(2), g.cx + 10, g.H * 0.8, g.H * 0.36, g.W - g.x0, 'Montserrat', ol, '700', 'center', 0, 'as'); c.restore(); g.tx('year', y, g.cx, g.H * 0.93, g.H * 0.022, 80, 'Montserrat', '#8b7b83', '400', 'center', 0.4, 'as'); }
         std(g, { title: g.t('Випуск'), ty: g.H * 0.62, tsize: g.H * 0.15, tfont: 'Marck Script', tcol: '#2d2428', tsp: 0, tcase: 'as', ny: g.H * 0.85, nsize: g.H * 0.024, ncol: '#4a3e44', nfont: 'Montserrat', nsp: 0.2, iy: g.H * 0.885, icol: '#8b7b83' }); }
     }
     ,{

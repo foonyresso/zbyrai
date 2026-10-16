@@ -20,12 +20,30 @@
     c.save(); c.beginPath(); c.rect(rect.x, rect.y, rect.w, rect.h); c.clip(); drawIn(); c.restore();
     c.save(); c.beginPath(); c.rect(0, 0, g.W, g.H); c.rect(rect.x, rect.y, rect.w, rect.h); c.clip('evenodd'); drawOut(); c.restore();
   }
-  // Текст по дузі кола (центр дуги вгорі): cx, cy центр кола, r радіус, sp додатковий інтервал у мм
-  function arcText(c, text, cx, cy, r, size, font, col, weight, sp) {
-    c.save(); c.font = (weight || '400') + ' ' + size + 'px ' + font; c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  // Текст по дузі кола (центр дуги вгорі): cx, cy центр кола, r радіус, sp додатковий інтервал у мм.
+  // box (g.box, мм) — жорстка межа безпечної зони: дуга зсувається по вертикалі, а за потреби зменшується, щоб жодна літера не вийшла за неї.
+  function arcLayout(c, text, cx, cy, r, size, font, weight, sp) {
+    c.font = (weight || '400') + ' ' + size + 'px ' + font;
     var ws = [], tot = 0, i; for (i = 0; i < text.length; i++) { var w = c.measureText(text[i]).width + (sp || 0); ws.push(w); tot += w; }
-    var a = -Math.PI / 2 - (tot / r) / 2;
-    for (i = 0; i < text.length; i++) { var da = ws[i] / r, am = a + da / 2; c.save(); c.translate(cx + Math.cos(am) * r, cy + Math.sin(am) * r); c.rotate(am + Math.PI / 2); c.fillText(text[i], 0, 0); c.restore(); a += da; }
+    var a = -Math.PI / 2 - (tot / r) / 2, out = [], x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (i = 0; i < text.length; i++) {
+      var da = ws[i] / r, am = a + da / 2, px = cx + Math.cos(am) * r, py = cy + Math.sin(am) * r, hw = ws[i] / 2;
+      var th = am + Math.PI / 2, ct = Math.cos(th), st = Math.sin(th);
+      [[-hw, 0], [hw, 0], [-hw, -size * 0.8], [hw, -size * 0.8]].forEach(function (q) { var X = px + q[0] * ct - q[1] * st, Y = py + q[0] * st + q[1] * ct; x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); });
+      out.push({ ch: text[i], x: px, y: py, a: am }); a += da;
+    }
+    return { chars: out, box: { x0: x0, x1: x1, y0: y0, y1: y1 } };
+  }
+  function arcText(c, text, cx, cy, r, size, font, col, weight, sp, box) {
+    c.save(); c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    var L = arcLayout(c, text, cx, cy, r, size, font, weight, sp), it = 0;
+    while (box && it++ < 40 && (L.box.x0 < box.x0 || L.box.x1 > box.x1 || L.box.y0 < box.y0 || L.box.y1 > box.y1)) {
+      if (L.box.x0 < box.x0 || L.box.x1 > box.x1) { size *= 0.95; sp = (sp || 0) * 0.95; }
+      else cy += L.box.y0 < box.y0 ? box.y0 - L.box.y0 : box.y1 - L.box.y1;
+      L = arcLayout(c, text, cx, cy, r, size, font, weight, sp);
+    }
+    c.font = (weight || '400') + ' ' + size + 'px ' + font;
+    L.chars.forEach(function (q) { c.save(); c.translate(q.x, q.y); c.rotate(q.a + Math.PI / 2); c.fillText(q.ch, 0, 0); c.restore(); });
     c.restore();
   }
   // Золотий градієнт у локальних координатах напису (його малює fitText з переносом у точку напису)

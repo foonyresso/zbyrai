@@ -530,6 +530,8 @@
   function coverVariantsUI(box) {
     var CV = AlbumCoverVariants, cat = DS.CATEGORIES.filter(function (x) { return x.id === st.catId; })[0];
     box.appendChild(el('h4', '', 'Варіант обкладинки'));
+    var curV = CV.byId(st.coverVar || 'classic');
+    box.appendChild(el('p', 'hint cvcur', 'Зараз: № ' + curV.num + ' «' + curV.name + '». Номер на мініатюрі не змінюється: його можна називати, коли пишеш про проблему.', 'Стабільний номер варіанта обкладинки'));
     var lf = el('label', 'chk', null, 'Показати варіанти лише для категорії «' + (cat ? cat.name : '') + '» і універсальні'), cf = document.createElement('input'); cf.type = 'checkbox'; cf.checked = !cvAll;
     cf.onchange = function () { cvAll = !cf.checked; buildObjPanel(); }; lf.appendChild(cf); lf.appendChild(document.createTextNode(' Лише для моєї категорії')); box.appendChild(lf);
     var catList = (cvAll ? CV.VARIANTS : CV.forCat(st.catId)), gl = el('label', '', 'Група: '), gs = document.createElement('select'); gs.title = 'Показати лише варіанти однієї групи (стилю)';
@@ -545,8 +547,8 @@
     list = list.slice().sort(function (a, b) { return CV.GROUPS.indexOf(CV.groupOf(a)) - CV.GROUPS.indexOf(CV.groupOf(b)); });
     list.forEach(function (v) {
       if (!cvGrp && CV.groupOf(v) !== lastG) { lastG = CV.groupOf(v); grid.appendChild(el('div', 'cvgh', lastG)); }
-      var b = el('button', 'cvbtn' + ((st.coverVar || 'classic') === v.id ? ' on' : ''), null, v.name + ': ' + v.note), c = document.createElement('canvas'), cw = Math.round(z.W * k / 2);
-      c.width = cw; c.height = Math.round(z.H * k); b.appendChild(c); b.appendChild(el('span', '', v.name)); b.appendChild(el('small', '', v.photo ? 'з фото' : 'без фото'));
+      var b = el('button', 'cvbtn' + ((st.coverVar || 'classic') === v.id ? ' on' : ''), null, '№ ' + v.num + ' ' + v.name + ': ' + v.note), c = document.createElement('canvas'), cw = Math.round(z.W * k / 2);
+      c.width = cw; c.height = Math.round(z.H * k); b.appendChild(c); b.appendChild(el('i', 'cvnum', String(v.num))); b.appendChild(el('span', '', v.name)); b.appendChild(el('small', '', v.photo ? 'з фото' : 'без фото'));
       b.onclick = function () { st.coverVar = v.id; st.coverIndividual = v.general ? false : null; cur = 0; refresh(); };
       grid.appendChild(b);
       var draw = function () {

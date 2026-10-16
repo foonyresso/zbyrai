@@ -49,7 +49,7 @@
       text: function (g) { g = K.safe(g);
         var T = g.get('ctitle', 'Випуск'), S = g.get('csub', 'на порозі нового'), c = g.ctx; if (!c) return;
         c.save(); c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = 6;
-        if (S) K.arcText(c, S.toUpperCase(), g.cx, g.H * 0.17 + g.H * 1.1, g.H * 1.1, g.H * 0.032, '"Cormorant Garamond", serif', '#ffffff', '600', g.H * 0.012);
+        if (S) K.arcText(c, S.toUpperCase(), g.cx, g.H * 0.17 + g.H * 1.1, g.H * 1.1, g.H * 0.032, '"Cormorant Garamond", serif', '#ffffff', '600', g.H * 0.012, g.box);
         g.tx('ctitle', T, g.cx, g.H * 0.4, g.H * 0.27, cat(g) * 0.96, 'Great Vibes', '#ffffff', '400', 'center', 0, 'as');
         g.tx('year', g.year, g.cx, g.H * 0.875, g.H * 0.034, cat(g) * 0.6, 'Cormorant Garamond', '#ffffff', '600', 'center', 0.4, 'as');
         g.tx('name', g.owner, g.cx, g.H * 0.925, g.H * 0.036, cat(g) * 0.85, 'Cormorant Garamond', '#ffffff', '600', 'center', 0.32, 'upper');

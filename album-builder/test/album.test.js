@@ -345,5 +345,45 @@ test('обкладинки за зразками: групи, шрифти, мі
   });
   assert.ok(Object.keys(groups).length >= 6);
 });
+test('номери обкладинок: стабільні, унікальні, без пропусків; нові варіанти лише в кінець', () => {
+  const CV = require('../data/cover-variants.js'); require('../data/cover-ref-kit.js'); require('../data/cover-ref-photo.js'); require('../data/cover-ref-extra.js'); require('../data/cover-numbers.js');
+  // Знімок номерів 1–60: цей список НЕ змінювати (номери вже названо користувачем); новий варіант дописується в кінець NUMBERED, тут — теж у кінець
+  const frozen = 'classic frame grad-photo kg-sun kg-confetti kg-stars p-pencils p-bubbles g9-geo g9-wave g11-gold g11-class u-alumni abstract botanic lines arch oval-flowers circle-sun diamond hexagon heart watercolor black-gold splash big-year marble doodles letters clouds noir silver script-year only-year gp-frame gp-full gp-oval gp-3 gp-5 gp-strips cal-taupe cal-virtual cal-fullphoto cal-brush cal-peach cal-gold cal-sparkle cal-black typ-vert-year typ-grad-tall typ-numerals typ-year-geo min-wordmark min-dark min-lookbook soft-botanic soft-monogram sch-chalk sch-class kid-balloon'.split(' ');
+  assert.strictEqual(frozen.length, 60);
+  frozen.forEach((id, i) => assert.strictEqual(CV.numOf(id), i + 1, 'номер змінився: ' + id));
+  const nums = CV.VARIANTS.map(v => v.num).sort((a, b) => a - b); nums.forEach((n, i) => assert.strictEqual(n, i + 1, 'пропуск або дубль номера'));
+  CV.VARIANTS.forEach(v => assert.ok(CV.NUMBERED.includes(v.id), v.id + ': додай у NUMBERED (data/cover-numbers.js)'));
+});
+// Імітація canvas з матрицею перетворення й виміром тексту (ширина літери 0,55 розміру, як у реальному canvas інтервал додається і після останньої літери)
+function textMock() {
+  let m = [1, 0, 0, 1, 0, 0]; const stack = [], rec = [];
+  const ctx = {
+    font: '400 10px x', letterSpacing: '0px', textAlign: 'start', save() { stack.push(m.slice()); }, restore() { m = stack.pop(); },
+    translate(x, y) { m = [m[0], m[1], m[2], m[3], m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]; },
+    scale(sx, sy) { m = [m[0] * sx, m[1] * sx, m[2] * sy, m[3] * sy, m[4], m[5]]; },
+    rotate(a) { const c = Math.cos(a), s = Math.sin(a); m = [m[0] * c + m[2] * s, m[1] * c + m[3] * s, -m[0] * s + m[2] * c, -m[1] * s + m[3] * c, m[4], m[5]]; },
+    getTransform() { return { a: m[0], b: m[1], c: m[2], d: m[3], e: m[4], f: m[5] }; },
+    measureText(t) {
+      const px = parseFloat(/(\d+(\.\d+)?)px/.exec(this.font)[1]), ls = parseFloat(this.letterSpacing) || 0, w = t.length * (px * 0.55 + ls), a = this.textAlign, l = a === 'center' ? w / 2 : a === 'right' || a === 'end' ? w : 0;
+      return { width: w, actualBoundingBoxLeft: l, actualBoundingBoxRight: w - l - ls, actualBoundingBoxAscent: px * 0.75, actualBoundingBoxDescent: px * 0.2 };
+    },
+    fillText(t, x, y) { const q = this.measureText(t), pts = [[x - q.actualBoundingBoxLeft, y - q.actualBoundingBoxAscent], [x + q.actualBoundingBoxRight, y + q.actualBoundingBoxDescent]].map(p => [m[0] * p[0] + m[2] * p[1] + m[4], m[1] * p[0] + m[3] * p[1] + m[5]]); rec.push({ x0: Math.min(pts[0][0], pts[1][0]), x1: Math.max(pts[0][0], pts[1][0]), y0: Math.min(pts[0][1], pts[1][1]), y1: Math.max(pts[0][1], pts[1][1]) }); }
+  };
+  return { ctx, rec };
+}
+test('напис на обкладинці не виходить за безпечну межу (будь-яке місце, розмір, вирівнювання, поворот), у межі не рухається', () => {
+  const { fitText } = require('../render.js').AlbumRender, box = { x0: 18, y0: 18, x1: 448, y1: 218, k: 1 };
+  const inside = r => r.x0 >= box.x0 - 0.01 && r.y0 >= box.y0 - 0.01 && r.x1 <= box.x1 + 0.01 && r.y1 <= box.y1 + 0.01;
+  [['center', 348], ['left', 300], ['right', 400], ['center', 460], ['left', 5], ['center', 2]].forEach(([al, x]) => [2, 120, 232, 240, 300].forEach(y => [12, 60, 200].forEach(size => [0, 0.3].forEach(sp => [0, -Math.PI / 2].forEach(rot => {
+    // повернутий напис (як вертикальний рік): центр у точці (x, y), система координат повернута на -90°
+    if (rot) { const c2 = textMock(); c2.ctx.translate(Math.min(x, 440), y); c2.ctx.rotate(rot); fitText(c2.ctx, 'ІВАНЕНКО ОЛЕНА ПЕТРІВНА', 0, 0, size, 400, 'x', '#000', '400', 'center', sp, box); assert.ok(inside(c2.rec[0]), 'поворот ' + JSON.stringify(c2.rec[0])); return; }
+    const { ctx, rec } = textMock();
+    fitText(ctx, 'ІВАНЕНКО ОЛЕНА ПЕТРІВНА', x, y, size, 400, 'x', '#000', '400', al, sp, box); assert.strictEqual(rec.length, 1);
+    assert.ok(inside(rec[0]), al + ' x=' + x + ' y=' + y + ' s=' + size + ' sp=' + sp + ' ' + JSON.stringify(rec[0]));
+  })))));
+  // у межі: положення не змінюється; міжбуквений інтервал не зсуває напис з центру
+  const a = textMock(); fitText(a.ctx, 'Рік', 348, 118, 20, 400, 'x', '#000', '400', 'center', 0.3, box); const cx = (a.rec[0].x0 + a.rec[0].x1) / 2; assert.ok(Math.abs(cx - 348) < 0.01, 'центр ' + cx);
+  const b = textMock(); fitText(b.ctx, 'Рік', 348, 118, 20, 400, 'x', '#000', '400', 'center', 0, box); assert.ok(Math.abs((b.rec[0].y0 + b.rec[0].y1) / 2 - (a.rec[0].y0 + a.rec[0].y1) / 2) < 0.01);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

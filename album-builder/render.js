@@ -13,15 +13,46 @@
     ctx.drawImage(img, r.x - (dw - r.w) * c.fx, r.y - (dh - r.h) * c.fy, dw, dh); ctx.restore();
   }
   // Текст, що вміщується в maxW: спершу менший міжбуквений інтервал, потім стиснення по ширині до 85%, і лише тоді менший розмір.
-  function fitText(ctx, text, x, y, size, maxW, font, color, weight, align, spacing) {
-    ctx.save(); ctx.fillStyle = color; ctx.textAlign = align || 'center'; ctx.textBaseline = 'alphabetic';
-    var s = size, sx = 1, ls = 'letterSpacing' in ctx; ctx.font = (weight || '400') + ' ' + s + 'px ' + font;
-    if (ls) ctx.letterSpacing = (spacing || 0) * s + 'px';
-    var w = ctx.measureText(text).width;
-    if (w > maxW && ls && spacing) { ctx.letterSpacing = '0px'; w = ctx.measureText(text).width; }
+  // box ({x0,y0,x1,y1,k} у мм, k = пікселів на мм) — жорстка межа (оранжева лінія): чорнило напису ніколи за неї не виходить. Уздовж рядка напис зменшується від точки прив'язки (центр лишається на місці),
+  // впоперек (вгору/вниз) зсувається; працює й для повернутих написів (враховується поточне перетворення canvas). Після виклику fitText.w — ширина, fitText.x/.y — точка напису (після можливого зсуву).
+  function fitText(ctx, text, x, y, size, maxW, font, color, weight, align, spacing, box) {
+    var stroke = color && typeof color === 'object' ? color : null; // color = { stroke: колір, lw: товщина мм } — контурний напис замість заливки
+    ctx.save(); if (stroke) { ctx.strokeStyle = stroke.stroke; ctx.lineWidth = stroke.lw || 0.4; } else ctx.fillStyle = color; ctx.textAlign = align = align || 'center'; ctx.textBaseline = 'alphabetic';
+    var s = size, sx = 1, ls = 'letterSpacing' in ctx, sp = spacing || 0, fnt = function () { ctx.font = (weight || '400') + ' ' + s + 'px ' + font; if (ls) ctx.letterSpacing = sp * s + 'px'; };
+    fnt(); var w = ctx.measureText(text).width;
+    if (w > maxW && ls && sp) { sp = 0; fnt(); w = ctx.measureText(text).width; }
     if (w > maxW) { sx = Math.max(0.85, maxW / w); w *= sx; }
-    if (w > maxW) { s = s * maxW / w; ctx.font = (weight || '400') + ' ' + s + 'px ' + font; if (ls) ctx.letterSpacing = '0px'; w = maxW; }
-    ctx.translate(x, y); ctx.scale(sx, 1); ctx.fillText(text, 0, 0); fitText.w = w; ctx.restore(); return s;
+    if (w > maxW) { s = s * maxW / w; sp = 0; fnt(); w = maxW; }
+    // canvas додає міжбуквений інтервал і після останньої літери, тому чорнило зміщується від точки вирівнювання: компенсуємо, щоб напис стояв точно по центру (або по правому краю)
+    var off = function () { return ls && sp ? (align === 'center' ? sp * s / 2 : align === 'right' || align === 'end' ? sp * s : 0) : 0; };
+    if (box) {
+      var M = ctx.getTransform ? ctx.getTransform() : null, kk = box.k || 1, lo = [box.x0, box.y0], hi = [box.x1, box.y1];
+      var W = function (px, py) { return M ? [(M.a * px + M.c * py + M.e) / kk, (M.b * px + M.d * py + M.f) / kk] : [px, py]; };
+      var ink = function () {
+        var m = ctx.measureText(text), u0, u1;
+        if (typeof m.actualBoundingBoxLeft === 'number') { u0 = -m.actualBoundingBoxLeft; u1 = m.actualBoundingBoxRight; return [u0, u1, -m.actualBoundingBoxAscent, m.actualBoundingBoxDescent]; }
+        u0 = align === 'left' || align === 'start' ? 0 : align === 'right' || align === 'end' ? -m.width : -m.width / 2; return [u0, u0 + m.width, -0.8 * s, 0.22 * s];
+      };
+      for (var it = 0; it < 3; it++) {
+        var b = ink(), ox = x + off(), pts = [[b[0] * sx, b[2]], [b[1] * sx, b[2]], [b[0] * sx, b[3]], [b[1] * sx, b[3]]].map(function (p) { return W(ox + p[0], y + p[1]); }), mn = [1e9, 1e9], mx = [-1e9, -1e9], i, j;
+        for (i = 0; i < 4; i++) for (j = 0; j < 2; j++) { mn[j] = Math.min(mn[j], pts[i][j]); mx[j] = Math.max(mx[j], pts[i][j]); }
+        if (mn[0] >= lo[0] - 0.01 && mn[1] >= lo[1] - 0.01 && mx[0] <= hi[0] + 0.01 && mx[1] <= hi[1] + 0.01) break;
+        var A = W(ox, y), ax = M && Math.abs(M.b) > Math.abs(M.a) ? 1 : 0, cr = 1 - ax, d = [0, 0], f = 1, e0 = A[ax] - mn[ax], e1 = mx[ax] - A[ax];
+        // уздовж рядка: точка прив'язки має бути всередині межі, далі напис стискається від неї
+        d[ax] = Math.max(lo[ax] + 1, Math.min(hi[ax] - 1, A[ax])) - A[ax];
+        var a0 = A[ax] + d[ax] - lo[ax], a1 = hi[ax] - A[ax] - d[ax];
+        if (e0 > a0) f = Math.min(f, a0 / e0); if (e1 > a1) f = Math.min(f, a1 / e1);
+        // впоперек: розмір зменшується, лише якщо не вміщується взагалі, інакше напис зсувається
+        var c0 = A[cr] - mn[cr], c1 = mx[cr] - A[cr], cs = Math.min(1, (hi[cr] - lo[cr]) / (c0 + c1));
+        f = Math.min(f, cs); var n0 = A[cr] - c0 * f, n1 = A[cr] + c1 * f;
+        d[cr] = n0 < lo[cr] ? lo[cr] - n0 : n1 > hi[cr] ? hi[cr] - n1 : 0;
+        if (f < 1) { s *= f; fnt(); w *= f; }
+        // зсув у світових мм → у поточні координати canvas
+        var ma = M ? M.a / kk : 1, mb = M ? M.b / kk : 0, mc = M ? M.c / kk : 0, md = M ? M.d / kk : 1, det = ma * md - mb * mc || 1;
+        x += (md * d[0] - mc * d[1]) / det; y += (-mb * d[0] + ma * d[1]) / det;
+      }
+    }
+    ctx.translate(x + off(), y); ctx.scale(sx, 1); if (stroke) ctx.strokeText(text, 0, 0); else ctx.fillText(text, 0, 0); fitText.w = w; fitText.x = x; fitText.y = y; ctx.restore(); return s;
   }
   // Регістр напису: upper | title (Перша Велика в Слові) | lower | null (як є / типовий)
   function applyCase(t, mode, def) {
@@ -56,14 +87,16 @@
     ctx.fillStyle = '#e4b697'; ctx.beginPath(); ctx.ellipse(cx, r.y + r.h * 0.5, u * 0.14, u * 0.18, 0, 0, 7); ctx.fill();
     ctx.fillStyle = '#5a3b26'; ctx.beginPath(); ctx.ellipse(cx, r.y + r.h * 0.44, u * 0.16, u * 0.12, 0, Math.PI, 0); ctx.fill(); ctx.restore();
   }
-  // Текст зі своїм шрифтом (st.tf[key]) і областю для клацання (hits)
+    // На обкладинці всі написи тримаються всередині безпечної зони (оранжева лінія): жорстка межа в fitText
+    var tbox = sp.type === 'cover' ? { x0: sb + 0.2, y0: sb + 0.2, x1: W - sb - 0.2, y1: H - sb - 0.2, k: o.pxPerMm } : null;
+    // Текст зі своїм шрифтом (st.tf[key]) і областю для клацання (hits)
     var fx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase) {
       var ov = st.ts && st.ts[key] || {}, f = st.tf && st.tf[key] && FT && FT.stack(st.tf[key]) || d[kind || 'font'] || FT && FT.stack(kind) || d.font, k = ov.scale || 1;
-      return fitText(ctx, applyCase(text, defCase === 'as' ? null : ov.case, defCase), x, y, size * k, maxW * Math.max(1, k), f, ov.color || color, weight, align, spacing);
+      return fitText(ctx, applyCase(text, defCase === 'as' ? null : ov.case, defCase), x, y, size * k, maxW * Math.max(1, k), f, ov.color || color, weight, align, spacing, tbox);
     };
     var tx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase) {
-      var s = fx(key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase), w = fitText.w || maxW;
-      hits.push({ key: key, rect: { x: x - w / 2 - 1, y: y - s * 1.05, w: w + 2, h: s * 1.4 } }); return s;
+      var s = fx(key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase), w = fitText.w || maxW, hx = fitText.x, hy = fitText.y;
+      hits.push({ key: key, rect: { x: hx - w / 2 - 1, y: hy - s * 1.05, w: w + 2, h: s * 1.4 } }); return s;
     };
     ctx.save(); ctx.setTransform(o.pxPerMm, 0, 0, o.pxPerMm, 0, 0);
     paintBg(ctx, W, H, sp.bg || st.bg, imgs, d.bg);
@@ -71,7 +104,7 @@
     if (cvv && !cvv.builtin) {
       var cl = root.AlbumLayout.coverLayout(W, H, sb, info.z, cvv);
       cg = { ctx: ctx, W: W, H: H, sb: sb, cx: cl.cx, x0: W / 2 + (info.z.spine || 0) / 2, x1: W - info.z.bleed, bx0: 0, bx1: W, tx: function (key, text) { var ov = st.cvText && st.cvText[cvv.id + ':' + key]; if (ov != null) text = ov; if (!text) return 0; arguments[1] = text; return tx.apply(null, arguments); }, fx: fx,
-        ph: cl.photo, year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', get: function (key, def) { var ov = st.cvText && st.cvText[cvv.id + ':' + key]; return ov != null ? ov : def; }, t: function (s) { return s; }, t2: function (s) { return s; } };
+        box: tbox, ph: cl.photo, year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', get: function (key, def) { var ov = st.cvText && st.cvText[cvv.id + ':' + key]; return ov != null ? ov : def; }, t: function (s) { return s; }, t2: function (s) { return s; } };
       if (!sp.bg) { var vb = cvv.bg; if (Array.isArray(vb)) { var vg = ctx.createLinearGradient(0, 0, 0, H); vg.addColorStop(0, vb[0]); vg.addColorStop(1, vb[1]); ctx.fillStyle = vg; } else ctx.fillStyle = vb || '#ffffff'; ctx.fillRect(0, 0, W, H); }
       if (cvv.deco) { ctx.save(); cvv.deco(cg); ctx.restore(); }
     }
@@ -201,5 +234,5 @@
     ctx.restore();
   }
   function require_cover(W, H, sb, z) { return root.AlbumLayout.coverLayout(W, H, sb, z); }
-  root.AlbumRender = { draw: draw, crop: crop };
+  root.AlbumRender = { draw: draw, crop: crop, fitText: fitText };
 })(typeof self !== 'undefined' ? self : this);
