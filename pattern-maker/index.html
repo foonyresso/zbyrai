@@ -50,36 +50,42 @@
       <h3>Як користуватися</h3>
       <ol>
         <li><b>Завантаж зображення</b>: «Обрати файл», перетягни файл у вікно, Ctrl+V або «Демо».</li>
-        <li><b>Обери режим</b> і перетягни рамку виділення по зображенню: це «зерно» візерунка.</li>
-        <li><b>Крути повзунки</b> і ефекти справа, дивись результат у превʼю.</li>
+        <li><b>Обери режим</b> (іконка «Режим») і перетягни рамку виділення по зображенню в «Джерелі»: це «зерно» візерунка.</li>
+        <li><b>Крути повзунки</b> і ефекти в меню-іконках зліва, результат видно на весь екран.</li>
         <li><b>Збережи</b> кнопками угорі: тайл PNG, полотно PNG, копіювання або посилання.</li>
       </ol>
     </div>
   </div>
 </details>
 
-<main class="panes">
-  <!-- ЛІВА ПАНЕЛЬ: джерело -->
-  <section class="pane" id="paneSrc">
-    <div class="pane-h">
-      <h2>Джерело</h2>
-      <span class="spacer"></span>
-      <button id="btnPick" title="Обрати зображення з вашого пристрою">Обрати файл…</button>
-      <button id="btnPaste" title="Вставити зображення з буфера обміну (Ctrl+V)">Вставити</button>
-      <button id="btnDemo" title="Завантажити вбудоване демонстраційне зображення">Демо</button>
-      <button id="btnRandom" title="Випадкове зображення з інтернету (picsum.photos або Вікісховище). Єдина дія, що звертається до мережі">Випадкове</button>
-      <input type="file" id="file" accept="image/*" hidden>
-    </div>
-    <div class="pane-b">
+<div class="work" id="work">
+  <div class="prevwrap" id="prevWrap"><canvas id="prev" aria-label="Превʼю візерунка"></canvas></div>
+  <div class="dropmask">Відпустіть, щоб завантажити</div>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="src" title="Зображення-джерело: завантажити й вибрати шматок для візерунка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg><span>Джерело</span></button>
+    <button data-panel="mode" title="Режим візерунка та його параметри: розмір виділення, поворот, пропорції, промені"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M12 2.5v9M3.5 7 12 11.5 20.5 7"/></svg><span>Режим</span></button>
+    <button data-panel="view" title="Масштаб візерунка, розкладка клітинок, межі клітинки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
+    <button data-panel="fx" title="Ефекти кінцевого результату й збережені рецепти ефектів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span>Ефекти</span></button>
+    <button data-panel="export" title="Розмір тайла й полотна для збереження"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></svg><span>Експорт</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="src"><h2>Джерело</h2>
+      <div class="row2">
+        <button id="btnPick" title="Обрати зображення з вашого пристрою">Обрати файл…</button>
+        <button id="btnPaste" title="Вставити зображення з буфера обміну (Ctrl+V)">Вставити</button>
+        <button id="btnDemo" title="Завантажити вбудоване демонстраційне зображення">Демо</button>
+        <button id="btnRandom" title="Випадкове зображення з інтернету (picsum.photos або Вікісховище). Єдина дія, що звертається до мережі">Випадкове</button>
+        <input type="file" id="file" accept="image/*" hidden>
+      </div>
       <div class="srcwrap" id="srcWrap">
         <canvas id="src" aria-label="Зображення з виділенням"></canvas>
-        <div class="dropmask">Відпустіть, щоб завантажити</div>
       </div>
       <p class="hint" id="srcInfo">Перетягніть виділення по зображенню, колесо миші змінює розмір. Файл можна перетягнути сюди або вставити через Ctrl+V.</p>
-
-      <h3 class="sec-t eyebrow">Режим</h3>
+    </section>
+    <section data-panel="mode"><h2>Режим</h2>
       <div class="modes" id="modes" title="Спосіб розкладання вирізаного шматка" role="group" aria-label="Режим візерунка"></div>
-
       <div class="ctls">
         <label class="ctl" title="Розмір рамки на зображенні: чим менша, тим дрібніший візерунок"><span>Розмір виділення</span><output id="oSize"></output><input type="range" id="rSize" min="3" max="100" step="1"></label>
         <label class="ctl" data-for="pmm p4m p6m p3m1 tex" title="Повертає вирізаний шматок перед розкладанням"><span>Поворот</span><output id="oRot"></output><input type="range" id="rRot" min="-180" max="180" step="1"></label>
@@ -88,33 +94,20 @@
         <label class="ctl" data-for="ros" title="Повертає всю розетку"><span>Поворот розетки</span><output id="oSpin"></output><input type="range" id="rSpin" min="-180" max="180" step="1"></label>
         <label class="ctl" data-for="tex" title="Наскільки плавно сусідні шматки переходять один в одного"><span>Ширина змішування</span><output id="oBlend"></output><input type="range" id="rBlend" min="5" max="100" step="1"></label>
       </div>
-    </div>
-  </section>
-
-  <!-- ПРАВА ПАНЕЛЬ: візерунок і експорт -->
-  <section class="pane" id="panePrev">
-    <div class="pane-h">
-      <h2>Візерунок</h2>
-      <span class="spacer"></span>
-      <button id="btnUndo" title="Скасувати останню зміну (Ctrl+Z)">Скасувати</button>
-      <button id="btnSurprise" title="Випадкові повзунки й ефекти (зображення й режим лишаються)">Сюрприз</button>
-      <button id="btnResetAll" title="Повернути всі повзунки й ефекти до початкових значень (режим і зображення лишаються)">Скинути все</button>
-      <button id="btnReset" title="Повернути масштаб і зсув превʼю">Скинути вигляд</button>
-    </div>
-    <div class="pane-b">
-      <div class="prevwrap" id="prevWrap"><canvas id="prev" aria-label="Превʼю візерунка"></canvas></div>
+    </section>
+    <section data-panel="view"><h2>Вигляд</h2>
       <div class="ctls">
         <label class="ctl" title="Масштаб візерунка в превʼю і в полотні"><span>Масштаб</span><output id="oZoom"></output><input type="range" id="rZoom" min="10" max="300" step="1"></label>
         <label class="ctl" data-for="pmm p4m p6m p3m1 tex" title="Як клітинки лягають одна до одної: рівна сітка, цегла чи зсув стовпчиків"><span>Розкладка клітинок</span><select id="selLayout" aria-label="Розкладка клітинок"><option value="grid">Сітка</option><option value="brick">Цегла (зсув рядків)</option><option value="drop">Півкрок (зсув стовпчиків)</option></select></label>
         <label class="chk" title="Показує на превʼю межі однієї клітинки візерунка"><input type="checkbox" id="cOutline"><span>Показати межі клітинки</span></label>
       </div>
-
-      <h3 class="sec-t eyebrow">Ефекти кінцевого результату</h3>
+    </section>
+    <section data-panel="fx"><h2>Ефекти кінцевого результату</h2>
       <div class="recipes"><select id="selRecipe" title="Збережені набори ефектів" aria-label="Збережені рецепти ефектів"></select><button id="btnRecipeSave" title="Зберегти поточні ефекти як рецепт у цьому браузері">Зберегти рецепт</button><button id="btnRecipeDel" title="Видалити вибраний рецепт">Видалити</button></div>
       <div class="ctls" id="fxCtls"></div>
       <p class="hint">Ефекти діють на готовий візерунок, а не на текстуру: піксель-арт видно за будь-якого масштабу. Піксель-арт, хвиля, сканлінії, зерно й нахил потрапляють лише в експорт полотна; у PNG-тайл йдуть тільки колірні ефекти, щоб він лишався безшовним.</p>
-
-      <h3 class="sec-t eyebrow">Розмір експорту</h3>
+    </section>
+    <section data-panel="export"><h2>Розмір експорту</h2>
       <div class="export">
         <div class="exp-row">
           <span class="lbl">Тайл</span>
@@ -128,9 +121,16 @@
         </div>
         <p class="hint">Тайл стикується сам із собою без швів: кладіть його поряд скільки завгодно. Полотно береться з масштабом із превʼю. Кнопки збереження — у верхній панелі.</p>
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+  </aside>
+
+  <div class="bar">
+    <button id="btnUndo" title="Скасувати останню зміну (Ctrl+Z)">Скасувати</button>
+    <button id="btnSurprise" class="btn-primary" title="Випадкові повзунки й ефекти (зображення й режим лишаються)">Сюрприз</button>
+    <button id="btnResetAll" title="Повернути всі повзунки й ефекти до початкових значень (режим і зображення лишаються)">Скинути все</button>
+    <button id="btnReset" title="Повернути масштаб і зсув превʼю">Скинути вигляд</button>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

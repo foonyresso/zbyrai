@@ -664,6 +664,18 @@
   };
   if (/^#s=/.test(location.hash)) { try { applySnap(decodeURIComponent(escape(atob(location.hash.slice(3))))); hist[0] = snap(); } catch {} }
 
+  /* ---------- меню-іконки ---------- */
+  const drawer = $('drawer'); let panel = 'src'; try { panel = localStorage.getItem('pm_panel') ?? 'src'; } catch {}
+  function showPanel(n) {
+    panel = n; try { localStorage.setItem('pm_panel', n || ''); } catch {}
+    drawer.hidden = !n; $('work').classList.toggle('shift', !!n);
+    document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
+    drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
+  }
+  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); });
+  $('drawerX').onclick = () => showPanel('');
+  showPanel(panel);
+
   /* ---------- розміри й запуск ---------- */
   const relayout = () => { layoutSource(); drawSource(); sizePreview(); drawPreview(); };
   if (window.ResizeObserver) { const ro = new ResizeObserver(relayout); ro.observe($('srcWrap')); ro.observe($('prevWrap')); }
