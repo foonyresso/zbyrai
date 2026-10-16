@@ -3,7 +3,7 @@
   var S = AlbumState, R = AlbumRender, PR = AlbumPrint, DS = AlbumDesigns, X = AlbumExport;
   var $ = function (id) { return document.getElementById(id); };
   var st = S.newState(), files = new Map(), imgs = new Map(), numMap = new Map();
-  var cur = 0, sel = null, step = 1, dragMode = 'swap', guides = true, drag = null, pickRef = null, lastInfo = null, panel = null;
+  var cur = 0, sel = null, step = 1, dragMode = 'swap', guides = true, centers = true, drag = null, pickRef = null, lastInfo = null, panel = null;
   var cv = $('cv'), ctx = cv.getContext('2d');
   function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('on'); }, 2600); }
   function el(tag, cls, text, title) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (title) e.title = title; return e; }
@@ -76,14 +76,14 @@
   function redraw() {
     if ($('work').hidden) return;
     var ppm = sizeCanvas();
-    lastInfo = R.draw(ctx, st, cur, numMap, imgs, { pxPerMm: ppm, preview: true, sel: sel, guides: guides });
+    lastInfo = R.draw(ctx, st, cur, numMap, imgs, { pxPerMm: ppm, preview: true, sel: sel, guides: guides, centers: centers });
     if (AlbumFonts.used(st).length) AlbumFonts.ensure(st).then(function (w) { if (w) { redraw(); thumbs(); } });
   }
   function label(i) { var t = st.spreads[i].type, n = String(i).padStart(2, '0'); return t === 'cover' ? 'Обкладинка' : n + (t === 'first' ? ' індивід.' : t === 'portrait' ? ' портрети' : ' групові'); }
   // Стрічка дітей: фіксована ширина кнопок (довгі ПІБ обрізаються), видно лише коли поточний розворот індивідуальний.
   function buildKidStrip() {
-    var strip = $('kidStrip'), on = S.isIndividual(st, cur); strip.hidden = !on; if (!on) return;
-    st.seen = st.seen || {}; var curOwn = S.ownerOf(st); if (curOwn && !st.seen[st.spreads[cur].id + '|' + curOwn.id]) { st.seen[st.spreads[cur].id + '|' + curOwn.id] = 1; save(); }
+    var strip = $('kidStrip'), ind = S.isIndividual(st, cur); strip.hidden = false;
+    st.seen = st.seen || {}; var curOwn = S.ownerOf(st); if (ind && curOwn && !st.seen[st.spreads[cur].id + '|' + curOwn.id]) { st.seen[st.spreads[cur].id + '|' + curOwn.id] = 1; save(); }
     var indiv = []; st.spreads.forEach(function (x, i) { if (S.isIndividual(st, i)) indiv.push(i); });
     strip.textContent = ''; var kids = S.albumKids(st), own = S.ownerOf(st), keep = st.owner;
     kids.forEach(function (p, i) {
@@ -206,13 +206,17 @@
   }
   function selFor(p, it) { if (it) return it.ref; var k = hitText(p); return k ? { t: 'text', key: k } : { t: 'bg' }; }
   cv.addEventListener('pointerdown', function (e) {
-    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it); if (panel === 'obj') buildObjPanel();
-    drag = it ? { it: it, x: e.clientX, y: e.clientY, p: p, crop: !!(e.altKey || dragMode === 'crop'), moved: false } : null;
+    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it); if (!it && !panel) openPanel('obj'); else if (panel === 'obj') buildObjPanel();
+    drag = it ? { it: it, x: e.clientX, y: e.clientY, p: p, crop: !!(e.altKey || dragMode === 'crop'), moved: false, move: !(e.altKey || dragMode === 'crop') && st.spreads[cur].type === 'group' && st.spreads[cur].style === 'scrap' } : null;
     if (drag) cv.setPointerCapture(e.pointerId); redraw();
   });
   cv.addEventListener('pointermove', function (e) {
     if (!drag) return;
     if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 4) drag.moved = true;
+    if (drag.moved && drag.move) {
+      var pm = mmAt(e), spm = st.spreads[cur]; spm.off = spm.off || {}; var ix = drag.it.ref.i, o0 = spm.off[ix] || { dx: 0, dy: 0 };
+      spm.off[ix] = { dx: o0.dx + pm.x - drag.p.x, dy: o0.dy + pm.y - drag.p.y }; drag.p = pm; redraw(); return;
+    }
     if (drag.moved && drag.crop && drag.it.name) {
       var p = mmAt(e), img = imgs.get(drag.it.name), c = R.crop(st, drag.it.name), r = drag.it.rect;
       if (img) {
@@ -226,11 +230,13 @@
   });
   cv.addEventListener('pointerup', function (e) {
     if (!drag) return; var d = drag; drag = null; cv.style.cursor = '';
+    if (!d.moved && !panel) openPanel('obj');
+    if (d.moved && d.move) { refresh(); return; }
     if (d.moved && !d.crop) {
       var t = hit(mmAt(e));
       if (t && t !== d.it) { if (d.it.span || t.span) toast('Об\'єднані вікна не міняються місцями: спершу роз\'єднай (правий клік)'); else if (S.swapRefs(st, cur, d.it.ref, t.ref)) { sel = t.ref; refresh(); } else toast('Ці вікна не можна поміняти місцями'); }
     } else if (!d.moved && d.it.kind === 'teacher' || !d.moved && d.it.kind === 'group' && st.spreads[cur].type === 'first') {
-      if (panel !== 'obj') openPanel('obj'); else buildObjPanel();
+      if (panel !== 'obj') openPanel('obj');
       if (!d.it.name) { pickRef = d.it.ref; pickSide = 'left'; $('fileImg').click(); }
     } else if (!d.moved && d.it.kind === 'cell' && !d.it.name && !d.it.text) {
       openMenu(d.it, e);
@@ -310,23 +316,9 @@
 
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
-  // Пункти вибору шрифту для напису: get/set працюють з рядком шрифту (null = шрифт альбому)
-  function fontItems(get, set) {
-    var items = [['Як у альбомі' + (get() ? '' : ' ✓'), 'Прибрати окремий шрифт цього напису', function () { set(null); }]];
-    AlbumFonts.LIST.forEach(function (f) { items.push([f.n + (get() === f.n ? ' ✓' : ''), 'Шрифт «' + f.n + '» лише для цього напису', function () { set(f.n); }]); });
-    return items;
-  }
   var TEXTNAME = { year: 'Рік', name: 'Прізвище на обкладинці', inst: 'Назва закладу', title: 'Напис «Випуск»', cap: 'Підписи під портретами', teach: 'Підписи вчителів' };
   function menuFor(it) {
     var secs = [], j = it && it.ref.j, sp = st.spreads[cur];
-    function tfSec(key) { secs.push({ h: 'Шрифт: ' + TEXTNAME[key], items: fontItems(function () { return (st.tf || {})[key] || null; }, function (v) { st.tf = st.tf || {}; if (v) st.tf[key] = v; else delete st.tf[key]; }) }); }
-    if (!it && sel && sel.t === 'text') {
-      tfSec(sel.key); secs.push({ h: 'Альбом', items: [['Шрифт усього альбому…', 'Відкрити вибір шрифту для всього альбому', function () { if (panel !== 'font') openPanel('font'); }]] });
-    } else if (!it) {
-      secs.push({ h: 'Фон', items: [['Фон розвороту й альбому…', 'Відкрити налаштування фону: колір, градієнт, картинка', function () { if (panel !== 'bg') openPanel('bg'); }]] });
-    } else if (it.caption && it.kind === 'cell') tfSec('cap');
-    else if (it.kind === 'teacher') tfSec('teach');
-    if (it && it.kind === 'cell' && it.text) secs.push({ h: 'Шрифт тексту', items: fontItems(function () { return it.text.f || null; }, function (v) { if (v) it.text.f = v; else delete it.text.f; sp.text[j] = it.text; }) });
     if (it) {
       var c = [];
       if (it.kind === 'cell' || it.kind === 'group' || it.kind === 'cover' || it.kind === 'portrait1' || it.kind === 'teacher') c.push(['Додати/замінити фото…', 'Вибрати файл для цього вікна', function () { pickRef = it.ref; pickSide = it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click(); }]);
@@ -355,7 +347,7 @@
     }
     var sc = [];
     if (sp.type === 'group') sc.push(['Стиль розкладки: ' + ({ mosaic: 'мозаїка', rows: 'рівні ряди', scrap: 'вклеєні в альбом', tpl: 'готова розкладка' }[sp.style || 'mosaic']) + ' → далі', 'Змінити стиль групових фото: мозаїка, рівні ряди, вклеєні в альбом (з нахилами й накладанням)', function () { var ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); }]);
-    if (sp.type === 'group') sc.push(['🎲 Розкласти інакше', 'Нова випадкова розкладка групових фото', function () { sp.seed = 1 + Math.floor(Math.random() * 99999); }]);
+    if (sp.type === 'group') sc.push(['🎲 Розкласти інакше', 'Нова випадкова розкладка групових фото', function () { sp.seed = 1 + Math.floor(Math.random() * 99999); sp.off = {}; }]);
     if (sp.type === 'cover') sc.push([S.coverIndividual(st) ? 'Обкладинка одна для всіх (cover.jpg)' : 'Обкладинка індивідуальна (cover_01…)', 'Індивідуальна: окрема для кожної дитини; одна: один файл cover.jpg', function () { st.coverIndividual = !S.coverIndividual(st); }]);
     if (cur >= 1 && (sp.type === 'group' || sp.type === 'portrait')) sc.push(['Зробити розворот індивідуальним', 'Розворот стане як перший: ліворуч вчителі чи загальне фото, праворуч портрет кожної дитини; файли NN_01, NN_02…', function () {
       var has = sp.type === 'portrait' ? Object.keys(sp.extra).length : sp.slots.length;
@@ -383,7 +375,7 @@
   }
   function openMenu(it, e) { showMenu(menuFor(it), e); }
   cv.addEventListener('contextmenu', function (e) {
-    e.preventDefault(); var p = lastInfo ? mmAt(e) : null, it = p ? hit(p) : null; sel = p ? selFor(p, it) : null; redraw(); openMenu(it, e);
+    e.preventDefault(); var p = lastInfo ? mmAt(e) : null, it = p ? hit(p) : null; sel = p ? selFor(p, it) : null; redraw(); if (panel === 'obj') buildObjPanel(); openMenu(it, e);
   });
   document.addEventListener('pointerdown', function (e) { if (!$('cellMenu').hidden && !$('cellMenu').contains(e.target) && e.target !== cv) closeMenu(); });
   function removeSel() {
@@ -456,29 +448,89 @@
     box.appendChild(slider('Висота, %', 30, 100, 1, function () { return g.h == null ? 100 : g.h; }, function (v) { g.h = v; }, 'Нижче чи вище'));
     var b = el('button', '', 'Скинути розмір', 'Повернути типовий розмір'); b.onclick = function () { st.gp = null; refresh(); buildObjPanel(); }; box.appendChild(b);
   }
+  // Налаштування тексту: шрифт, регістр, колір, розмір. ad — адаптер (get/set для шрифту, регістру, кольору, масштабу)
+  function textCtl(box, ad, title) {
+    if (title) box.appendChild(el('p', 'hint', title));
+    var fb = el('button', '', ad.font() || 'Шрифт: як в альбомі', 'Відкрити вікно шрифтів'); fb.type = 'button'; if (ad.font()) fb.style.fontFamily = AlbumFonts.stack(ad.font());
+    fb.onclick = function () { pickFont(ad.font(), function (v) { ad.setFont(v); refresh(); }); }; box.appendChild(fb);
+    var cl = el('label', '', 'Регістр: '), cs = el('select', '', null, 'ВЕЛИКІ, Перша Велика в Слові або малі');
+    [['', 'Як типово'], ['upper', 'ВЕЛИКІ'], ['title', 'Перша Велика В Слові'], ['lower', 'малі']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; cs.appendChild(op); }); cs.value = ad.case() || '';
+    cs.onchange = function () { ad.setCase(cs.value || null); refresh(); }; cl.appendChild(cs); box.appendChild(cl);
+    var kl = el('label', '', 'Колір: '), ki = document.createElement('input'); ki.type = 'color'; ki.value = ad.color() || '#6b6b6b'; ki.title = 'Колір тексту';
+    ki.oninput = function () { ad.setColor(ki.value); redraw(); thumbs(); save(); }; kl.appendChild(ki);
+    var kr = el('button', '', 'Типовий колір', 'Прибрати власний колір'); kr.type = 'button'; kr.onclick = function () { ad.setColor(null); refresh(); buildObjPanel(); }; kl.appendChild(kr); box.appendChild(kl);
+    box.appendChild(slider('Розмір, ×', 0.5, 2, 0.05, function () { return ad.scale() || 1; }, function (v) { ad.setScale(v === 1 ? null : v); }, 'Збільшити чи зменшити текст'));
+  }
+  function tsAdapter(key) {
+    function g() { st.ts = st.ts || {}; return st.ts[key] || (st.ts[key] = {}); }
+    function clean(k, v) { var o = g(); if (v == null || v === '') delete o[k]; else o[k] = v; }
+    return { font: function () { return (st.tf || {})[key] || null; }, setFont: function (v) { st.tf = st.tf || {}; if (v) st.tf[key] = v; else delete st.tf[key]; },
+      case: function () { return g().case; }, setCase: function (v) { clean('case', v); }, color: function () { return g().color; }, setColor: function (v) { clean('color', v); }, scale: function () { return g().scale; }, setScale: function (v) { clean('scale', v); } };
+  }
+  function cellTextAdapter(o) {
+    function clean(k, v) { if (v == null || v === '') delete o[k]; else o[k] = v; }
+    return { font: function () { return o.f || null; }, setFont: function (v) { clean('f', v); }, case: function () { return o.case; }, setCase: function (v) { clean('case', v); },
+      color: function () { return o.c; }, setColor: function (v) { clean('c', v); }, scale: function () { return o.k; }, setScale: function (v) { clean('k', v); } };
+  }
+  function selItem() { if (!sel || !lastInfo) return null; var k = JSON.stringify(sel); return lastInfo.items.filter(function (x) { return JSON.stringify(x.ref) === k; })[0] || null; }
+  // Мініатюри інших портретних розворотів: клік по фото міняє його місцями з вибраним (разом з підписом)
+  function swapPicker(box, it) {
+    var cands = []; st.spreads.forEach(function (x, i) { if (i !== cur && x.type === 'portrait') cands.push(i); });
+    cands.sort(function (a, b) { return Math.abs(a - cur) - Math.abs(b - cur) || a - b; }); cands = cands.slice(0, 4);
+    if (!cands.length) return;
+    box.appendChild(el('p', 'hint', 'Поміняти місцями з фото з іншого розвороту: клікни на фото в мініатюрі.'));
+    cands.forEach(function (si) {
+      var z = S.zoneOf(st, si), w = 300, k = w / z.W, c = document.createElement('canvas'); c.width = w; c.height = Math.round(z.H * k); c.className = 'swapthumb'; c.title = label(si) + ': клік по фото міняє його місцями з вибраним';
+      var info = R.draw(c.getContext('2d'), st, si, numMap, imgs, { pxPerMm: k, preview: true }); box.appendChild(el('div', 'hint', label(si))); box.appendChild(c);
+      c.onclick = function (e) {
+        var r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * z.W, py = (e.clientY - r.top) / r.height * z.H;
+        var t = info.items.filter(function (q) { return q.ref.t === 'extra' && px >= q.rect.x && px <= q.rect.x + q.rect.w && py >= q.rect.y && py <= q.rect.y + q.rect.h; })[0];
+        if (!t) return; if (S.swapAcross(st, cur, it.ref.j, si, t.ref.j)) { toast('Фото помінялися місцями'); refresh(); } else toast('Об\'єднані комірки не міняються: спершу роз\'єднай');
+      };
+    });
+  }
   function buildObjPanel() {
     var box = $('objBody'); if (!box) return; box.textContent = ''; var sp = st.spreads[cur]; if (!sp) return;
-    if (sel && sel.t === 'text') {
-      box.appendChild(el('p', 'hint', 'Вибрано напис: ' + (TEXTNAME[sel.key] || '') + '. Шрифт: правий клік по ньому.'));
-      var s = el('select', '', null, 'Шрифт цього напису'); s.appendChild(el('option', '', 'Як у альбомі')).value = '';
-      AlbumFonts.LIST.forEach(function (f) { var o = el('option', '', f.n); o.value = f.n; s.appendChild(o); }); s.value = (st.tf || {})[sel.key] || '';
-      s.onchange = function () { st.tf = st.tf || {}; if (s.value) st.tf[sel.key] = s.value; else delete st.tf[sel.key]; refresh(); }; box.appendChild(s); return;
-    }
+    var it = selItem();
+    if (sel && sel.t === 'text') { textCtl(box, tsAdapter(sel.key), 'Напис: ' + (TEXTNAME[sel.key] || '')); return; }
     if (sel && sel.t === 'bg') {
-      box.appendChild(el('p', 'hint', 'Вибрано фон розвороту. Колір, градієнт, картинка й візерунки: вкладка «Фон».'));
+      box.appendChild(el('p', 'hint', 'Вибрано фон. Колір, градієнт, картинка: вкладка «Фон».'));
       var bb = el('button', '', 'Відкрити «Фон»', 'Перейти до налаштувань фону'); bb.onclick = function () { openPanel('bg'); }; box.appendChild(bb); return;
+    }
+    if (it && it.kind === 'cell') {
+      if (it.name) {
+        box.appendChild(el('p', 'hint', 'Портрет: ' + it.name));
+        var rb = el('button', '', 'Замінити фото…', 'Вибрати інший файл для цього портрета'); rb.onclick = function () { pickRef = it.ref; pickSide = 'right'; $('fileImg').click(); }; box.appendChild(rb);
+        var pe = S.personByName(st, it.name);
+        if (pe) {
+          var nl = el('label', '', 'Підпис (виправ помилку тут): '), ni = document.createElement('input'); ni.type = 'text'; ni.value = pe.name; ni.title = 'Текст підпису цієї дитини; виправлення збережеться без повернення до списку';
+          ni.oninput = function () { st.names = st.names || {}; st.names[pe.id] = ni.value; redraw(); thumbs(); save(); }; nl.appendChild(ni); box.appendChild(nl);
+        }
+        textCtl(box, tsAdapter('cap'), 'Вигляд усіх підписів під портретами (довгі імена самі звужуються):');
+        swapPicker(box, it);
+      } else if (it.text) {
+        var tl = el('label', '', 'Текст: '), ta = document.createElement('textarea'); ta.rows = 3; ta.value = it.text.t; ta.title = 'Текст у клітинці';
+        ta.oninput = function () { it.text.t = ta.value; sp.text[it.ref.j] = it.text; redraw(); thumbs(); save(); }; tl.appendChild(ta); box.appendChild(tl);
+        textCtl(box, cellTextAdapter(it.text));
+      } else box.appendChild(el('p', 'hint', 'Порожня клітинка: клік додає фото чи текст, правий клік дає візерунки й об\'єднання.'));
+      return;
     }
     if (sp.type === 'cover') {
       var lc = el('label', 'chk', null, 'Прибрати фото з обкладинки: лишається лише дизайн, рік і назва'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!st.coverNoPhoto;
-      cb.onchange = function () { st.coverNoPhoto = cb.checked; refresh(); }; lc.appendChild(cb); lc.appendChild(document.createTextNode(' Обкладинка без фото')); box.appendChild(lc); return;
+      cb.onchange = function () { st.coverNoPhoto = cb.checked; refresh(); }; lc.appendChild(cb); lc.appendChild(document.createTextNode(' Обкладинка без фото')); box.appendChild(lc);
+      box.appendChild(el('p', 'hint', 'Рік, прізвище й назву закладу клікни на макеті: тут з\'являться шрифт, регістр, колір і розмір.')); return;
     }
-    if (sp.type === 'first') { if (S.teachers(st).length) buildTeacherUI(box); else buildGeneralUI(box); return; }
+    if (sp.type === 'first') {
+      if (S.teachers(st).length) { buildTeacherUI(box); textCtl(box, tsAdapter('teach'), 'Підписи вчителів:'); } else buildGeneralUI(box);
+      box.appendChild(el('p', 'hint', 'Напис «Випуск» і назву закладу клікни на макеті.')); return;
+    }
     if (sp.type === 'group') {
       box.appendChild(slider('Скруглення кутів, мм', 0, 15, 0.5, function () { return sp.round != null ? sp.round : st.round || 0; }, function (v) { sp.round = v; }, 'Скруглення кутів групових фото цього розвороту'));
       var ra = el('button', '', 'На всі групові розвороти', 'Те саме скруглення в усіх групових розворотах'); ra.onclick = function () { var v = sp.round != null ? sp.round : st.round || 0; st.round = v; st.spreads.forEach(function (s) { if (s.type === 'group') s.round = v; }); refresh(); toast('Скруглення застосовано до всіх групових розворотів'); }; box.appendChild(ra);
+      if (sp.style === 'scrap') box.appendChild(el('p', 'hint', 'Вклеєні: перетягни фото разом з рамкою; режим «Кадр» (або Alt) рухає зображення всередині рамки.'));
       return;
     }
-    box.appendChild(el('p', 'hint', 'Клікни по фото, напису чи фону. На першому розвороті тут конструктор вчителів або розмір загального фото, на груповому скруглення кутів.'));
+    box.appendChild(el('p', 'hint', 'Клікни по фото, напису чи фону: тут з\'являться їхні налаштування.'));
   }
   // ---------- Візерунки для порожніх клітинок ----------
   var patTarget = null, patDraft = { id: 'dots', c: '#c9c9c9', s: 6 };
@@ -514,14 +566,25 @@
     $('patColor').value = patDraft.c || '#c9c9c9'; $('patSize').value = patDraft.s || 6; patGrid(); $('patDlg').hidden = false;
   }
   // ---------- Шрифти ----------
-  (function () {
-    var s = $('fontSel'), g = '';
-    s.appendChild(el('option', '', 'Як у дизайні (системний)')).value = '';
-    AlbumFonts.LIST.forEach(function (f) { var o = el('option', '', f.n + ' · ' + f.g); o.value = f.n; o.style.fontFamily = AlbumFonts.stack(f.n); s.appendChild(o); });
-    s.onchange = function () { st.font = s.value || null; fontSample(); refresh(); };
-    $('fontResetText').onclick = function () { st.tf = {}; st.spreads.forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { if (sp.text[j]) delete sp.text[j].f; }); }); refresh(); };
-  })();
-  function fontSample() { $('fontSample').style.fontFamily = (st.font && AlbumFonts.stack(st.font)) || 'inherit'; $('fontSel').value = st.font || ''; }
+  // Вікно вибору шрифту: групи за стилями, кожен шрифт із прикладом (з українськими літерами); файли завантажуються браузером лише при показі
+  var fontCb = null;
+  function pickFont(current, cb) {
+    fontCb = cb; var g = $('fontGrid'); g.textContent = '';
+    AlbumFonts.GROUPS.forEach(function (gr) {
+      g.appendChild(el('h4', '', gr)); var box = el('div', 'fg');
+      AlbumFonts.LIST.filter(function (f) { return f.g === gr; }).forEach(function (f) {
+        var b = el('button', current === f.n ? 'on' : '', null, f.n), sp = el('span', '', 'Іваненко Ґанна їєі'); sp.style.fontFamily = AlbumFonts.stack(f.n);
+        b.appendChild(sp); b.appendChild(el('small', '', f.n)); b.onclick = function () { $('fontDlg').hidden = true; cb(f.n); }; box.appendChild(b);
+      });
+      g.appendChild(box);
+    });
+    $('fontDlg').hidden = false;
+  }
+  $('fontDefault').onclick = function () { $('fontDlg').hidden = true; if (fontCb) fontCb(null); };
+  $('fontClose').onclick = function () { $('fontDlg').hidden = true; };
+  $('fontSel').onclick = function () { pickFont(st.font, function (v) { st.font = v; fontSample(); refresh(); }); };
+  $('fontResetText').onclick = function () { st.tf = {}; st.ts = {}; st.spreads.forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { var o = sp.text[j]; if (o) { delete o.f; delete o.case; delete o.c; delete o.k; } }); }); refresh(); };
+  function fontSample() { $('fontSample').style.fontFamily = (st.font && AlbumFonts.stack(st.font)) || 'inherit'; $('fontSel').textContent = st.font || 'Як у дизайні (системний)'; $('fontSel').style.fontFamily = (st.font && AlbumFonts.stack(st.font)) || 'inherit'; if (st.font) AlbumFonts.ensure(st); }
   // ---------- Меню й кнопки ----------
   function openPanel(name) {
     panel = panel === name ? null : name;
@@ -537,12 +600,13 @@
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
   $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
-  $('btnShuffle').onclick = function () { st.spreads[cur].seed = 1 + Math.floor(Math.random() * 99999); refresh(); };
+  $('btnShuffle').onclick = function () { st.spreads[cur].seed = 1 + Math.floor(Math.random() * 99999); st.spreads[cur].off = {}; refresh(); };
   $('btnStyle').onclick = function () { var sp = st.spreads[cur], ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); refresh(); };
   $('spineIn').onchange = function () { var v = parseFloat($('spineIn').value); st.spine = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };
   $('safeIn').onchange = function () { var v = parseFloat($('safeIn').value); st.safe = isNaN(v) ? null : Math.max(0, Math.min(40, v)); refresh(); };
   $('coverSafeIn').onchange = function () { var v = parseFloat($('coverSafeIn').value); st.coverSafe = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };
   $('guides').onchange = function () { guides = $('guides').checked; redraw(); };
+  $('centersIn').onchange = function () { centers = $('centersIn').checked; redraw(); };
   $('btnPlus').onclick = function () { $('addMenu').hidden = !$('addMenu').hidden; };
   document.querySelectorAll('[data-add]').forEach(function (b) {
     b.onclick = function () { $('addMenu').hidden = true; st.spreads.splice(cur < 1 ? 2 : cur + 1, 0, S.mkSpread(b.dataset.add)); cur = cur < 1 ? 2 : cur + 1; sel = null; refresh(); };

@@ -111,6 +111,7 @@
     cfg = cfg || {};
     var area = { x: W * TEACHER_AREA.x, y: H * TEACHER_AREA.y, w: W * TEACHER_AREA.w, h: H * TEACHER_AREA.h }, capH = Math.max(10, H * 0.07), gap = cfg.gap != null ? cfg.gap : 10, asp = cfg.asp || 1.1;
     if (n <= 0) return [];
+    if (cfg.cx != null) area.x = cfg.cx - area.w / 2;
     var rows = cfg.rows && cfg.rows.length ? normRows(cfg.rows, n) : teacherRows(n), nr = rows.length, mc = Math.max.apply(0, rows.map(function (r) { return r.length; }));
     var cw = Math.min((area.w - gap * (mc - 1)) / mc, (area.h - (nr - 1) * gap - nr * capH) / (nr * asp));
     cw = Math.max(4, cw) * Math.min(1, Math.max(0.3, (cfg.size == null ? 100 : cfg.size) / 100));
@@ -129,10 +130,12 @@
     var cx = ((W / 2 + spine / 2) + (W - bleed)) / 2, ph = Math.min(H * 0.7, H - sb - 40), pw = ph * 0.85;
     return { cx: cx, photo: { x: cx - pw / 2, y: 0, w: pw, h: ph }, year: { x: cx, y: ph + H * 0.012, size: H * 0.2 }, name: { x: cx, y: Math.min(H * 0.915, H - sb - 3), line: ph + H * 0.1 } };
   }
-  function firstLayout(W, H, sb) {
+  function firstLayout(W, H, sb, cx, cxr) {
     sb = sb || 8;
-    return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: Math.min(H * 0.865, H - sb - H * 0.058) } };
+    return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: (cxr != null ? cxr : W * 0.74) - W * 0.18, y: 0, w: W * 0.36, h: H }, text: { x: cx != null ? cx : W * 0.245, y: Math.min(H * 0.865, H - sb - H * 0.058) } };
   }
-  var api = { rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, teacherRows: teacherRows, teacherPresets: teacherPresets, normRows: normRows, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
+  // Край зображення = середина між лінією обрізу й безпечною межею; центр сторінки рахується від цього краю до осі розвороту.
+  function pageCenters(W, bleed, safe) { var e = bleed + safe / 2; return { edge: e, left: (e + W / 2) / 2, right: (W / 2 + W - e) / 2 }; }
+  var api = { pageCenters: pageCenters, rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, teacherRows: teacherRows, teacherPresets: teacherPresets, normRows: normRows, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumLayout = api;
 })(typeof self !== 'undefined' ? self : this);

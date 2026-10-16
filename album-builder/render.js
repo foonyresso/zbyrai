@@ -97,7 +97,7 @@
       if (inst) tx('inst', inst, cv.name.x, ny + H * 0.055, H * 0.021, W * 0.34, 'font', '#9a9a9a', '400', 'center', 0.08, 'upper');
     }
     if (sp.type === 'first') {
-      var fl = root.AlbumLayout.firstLayout(W, H, sb);
+      var fl = root.AlbumLayout.firstLayout(W, H, sb, root.AlbumLayout.pageCenters(W, info.z.bleed, info.z.safe).left);
       tx('title', 'Випуск ' + yr, fl.text.x, fl.text.y, H * 0.036, W * 0.4, 'font', d.text, '500', 'center', 0.12, 'upper');
       if (inst) tx('inst', inst, fl.text.x, fl.text.y + H * 0.048, H * 0.026, W * 0.42, 'font', '#9a9a9a', '400', 'center', 0.04);
       ctx.strokeStyle = '#cfcfcf'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(fl.text.x - W * 0.04, fl.text.y + H * 0.018); ctx.lineTo(fl.text.x + W * 0.04, fl.text.y + H * 0.018); ctx.stroke();
@@ -113,6 +113,13 @@
         ctx.strokeStyle = 'rgba(224,70,70,.95)'; ctx.strokeRect(bl, bl, W - 2 * bl, H - 2 * bl);
         ctx.strokeStyle = 'rgba(240,160,40,.95)'; ctx.strokeRect(sf, sf, W - 2 * sf, H - 2 * sf);
         ctx.strokeStyle = 'rgba(70,120,224,.9)'; ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+        if (o.centers) {
+          var pcn = root.AlbumLayout.pageCenters(W, z.bleed, z.safe);
+          ctx.strokeStyle = 'rgba(70,180,120,.85)'; ctx.setLineDash([1.5, 2]);
+          [pcn.left, pcn.right].forEach(function (x) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); });
+          ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+          ctx.setLineDash([3, 2]); ctx.strokeStyle = 'rgba(70,120,224,.9)';
+        }
         if (z.spine > 0 && sp.type === 'cover') { ctx.beginPath(); ctx.moveTo(W / 2 - z.spine / 2, 0); ctx.lineTo(W / 2 - z.spine / 2, H); ctx.moveTo(W / 2 + z.spine / 2, 0); ctx.lineTo(W / 2 + z.spine / 2, H); ctx.stroke(); }
         ctx.setLineDash([]);
       }

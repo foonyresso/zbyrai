@@ -102,3 +102,9 @@ details.how { margin: 12px 18px 0; }
 .pairf { position: relative; } .pairf textarea { width: 100%; } .x2 { position: absolute; right: 4px; top: 0; width: 26px; height: 26px; padding: 0; line-height: 1; }
 input[type=color] { width: 64px; height: 36px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev); cursor: pointer; }
 input[type=color]::-webkit-color-swatch-wrapper { padding: 0; } input[type=color]::-webkit-color-swatch { border: 0; border-radius: 6px; }
+#fontGrid h4 { margin: 10px 0 6px; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .1em; }
+#fontGrid .fg { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+#fontGrid button { text-align: left; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; } #fontGrid button.on { border-color: var(--accent); background: var(--accent-glow); }
+#fontGrid button small { font-family: var(--ff-ui); font-size: 10px; color: var(--faint); } #fontGrid button span { font-size: 18px; line-height: 1.15; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#fontSel { width: 100%; text-align: left; }
+.swapthumb { width: 100%; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; background: #fff; display: block; }

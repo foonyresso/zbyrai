@@ -86,7 +86,7 @@
     <button data-panel="bg" title="Фон розворотів: колір, градієнт або картинка; для всього альбому чи окремого розвороту"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg><span>Фон</span></button>
     <button data-panel="font" title="Шрифт усього альбому; окремий текст можна змінити правим кліком по ньому"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19L12 5l7 14M8 14h8"/></svg><span>Шрифт</span></button>
     <button data-panel="view" title="Вигляд: лінії обрізу й згину, режим перетягування"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
-      <div class="seg vseg" id="dragMode" title="Що робить перетягування фото"><button data-dm="swap" class="on" title="Перетягни фото на інше, і вони поміняються місцями. Alt перемикає на «Кадр»">Обмін<br>місцями</button><button data-dm="crop" title="Перетягування зсуває кадр усередині вікна">Кадр</button></div>
+      <div class="seg vseg" id="dragMode" title="Що робить перетягування фото"><button data-dm="swap" class="on" title="Перетягни фото на інше, і вони поміняються місцями (на «вклеєних» фото рухається разом з рамкою). Alt перемикає на «Кадр»">Обмін<br>місцями</button><button data-dm="crop" title="Перетягування зсуває кадр усередині вікна">Кадр</button></div>
 </nav>
   <aside class="drawer" id="drawer" hidden>
     <button class="x" id="drawerX" title="Закрити меню">×</button>
@@ -106,11 +106,12 @@
       <button id="bgResetAll" title="Прибрати фон альбому (буде колір дизайну)">Скинути для альбому</button>
       <p class="hint">Окремий фон розвороту має перевагу над фоном альбому.</p></section>
     <section data-panel="font"><h2>Шрифт альбому</h2>
-      <label title="Один вибір змінює шрифт усіх підписів і написів в альбомі">Шрифт усього альбому <select id="fontSel" title="Вільні шрифти з кирилицею, лежать у самому макетнику"></select></label>
+      <label title="Один вибір змінює шрифт усіх підписів і написів в альбомі">Шрифт усього альбому <button id="fontSel" type="button" title="Відкрити вікно з усіма шрифтами за стилями, кожен із прикладом"></button></label>
       <p class="hint" id="fontSample" style="font-size:22px;color:var(--text)">Випускники 2026 · Іваненко Оксана</p>
       <button id="fontResetText" title="Прибрати окремі шрифти в написах, щоб усюди діяв шрифт альбому">Скинути окремі шрифти текстів</button>
       <p class="hint">Окремий напис: правий клік по ньому й «Шрифт». Шрифти SIL OFL, без інтернету.</p></section>
     <section data-panel="view"><h2>Вигляд</h2>
+      <label class="chk" title="Зелені пунктирні: центр кожної сторінки й горизонтальна лінія через весь розворот. Центр рахується від середини між обрізом і безпечною межею до осі розвороту"><input type="checkbox" id="centersIn" checked> Лінії центру сторінок</label>
       <label class="chk" title="Червоне: виліт, що точно обріжеться; червона лінія: обріз; жовта: безпечна межа, за яку не можна заходити текстом; синя: згин. У файл не потрапляють"><input type="checkbox" id="guides" checked> Виліт, обріз і безпечна зона</label>
       <div class="two"><label title="Безпечна межа від лінії обрізу для внутрішніх розворотів, мм">Безпечна межа, мм <input type="number" id="safeIn" min="0" max="40" step="0.5" title="Скільки мм від обрізу не заходити текстом (внутрішні розвороти)"></label>
         <label title="Безпечна межа для обкладинки (зазвичай більша), мм">Для обкладинки, мм <input type="number" id="coverSafeIn" min="0" max="60" step="0.5" title="Скільки мм від обрізу не заходити текстом на обкладинці"></label></div>
@@ -131,6 +132,8 @@
   <p class="hint">Свій візерунок: файл з прозорим тлом (PNG), він повториться плиткою по клітинці. Файл не зберігається в макеті, як і фото.</p>
   <div class="pbtns"><button id="patFile" title="Вибрати з комп'ютера свій візерунок (PNG із прозорим тлом)">Свій файл…</button><input type="file" id="patFileIn" accept="image/*" hidden>
     <button id="patNone" title="Прибрати візерунок з клітинки">Без візерунка</button><button id="patAll" title="Той самий візерунок у всі порожні клітинки цього розвороту">На всі порожні</button><button id="patClose" class="btn-main" title="Закрити вікно">Готово</button></div></div></div>
+<div class="dlg" id="fontDlg" hidden><div class="dlgbox patbox"><h3 style="margin:0">Шрифт</h3><div id="fontGrid"></div>
+  <div class="pbtns"><button id="fontDefault" title="Прибрати окремий шрифт: діятиме шрифт альбому або дизайну">Як у дизайні / альбомі</button><button id="fontClose" class="btn-main" title="Закрити вікно без змін">Закрити</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script src="./data/print-types.js"></script>
 <script src="./data/designs.js"></script>

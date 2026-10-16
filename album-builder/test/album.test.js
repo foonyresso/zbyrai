@@ -98,6 +98,14 @@ test('подвійні альбоми: пара = один альбом, пор�
 test('номери в списках нормалізуються до 4 цифр', () => {
   const P2 = require('../core/parse.js'); assert.strictEqual(P2.pad4('1 22 Іваненко Іван\n005 Б Б'), '0001 0022 Іваненко Іван\n0005 Б Б');
 });
+test('обмін фото між портретними розворотами і виправлення імені', () => {
+  const st = S.newState(); st.children = Array.from({ length: 30 }, (_, i) => (i + 1) + ' А' + i + ' Б').join('\n'); st.kOverride = 8; S.buildSpreads(st);
+  const ps = st.spreads.map((s, i) => s.type === 'portrait' ? i : -1).filter(i => i >= 0);
+  st.spreads[ps[0]].extra = { 2: 'a.jpg' }; st.spreads[ps[1]].extra = { 5: 'b.jpg' };
+  assert.ok(S.swapAcross(st, ps[0], 2, ps[1], 5)); assert.strictEqual(st.spreads[ps[0]].extra[2], 'b.jpg'); assert.strictEqual(st.spreads[ps[1]].extra[5], 'a.jpg');
+  assert.ok(S.swapAcross(st, ps[0], 2, ps[1], 6)); assert.ok(!st.spreads[ps[0]].extra[2] && st.spreads[ps[1]].extra[6] === 'b.jpg');
+  const p = S.people(st)[0]; st.names = { [p.id]: 'Виправлене Ім\'я' }; assert.strictEqual(S.people(st)[0].name, 'Виправлене Ім\'я');
+});
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
   S.placePortrait(st, 2, '1.jpg'); S.placePortrait(st, 2, '2.jpg');
