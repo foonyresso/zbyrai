@@ -137,7 +137,9 @@ function briefSections(t) {
 function buildFlux(t) {
   const sty = currentStyle().nl;
   const parts = [t.fluxPre + (sty ? ' Style: ' + sty + '.' : '')];
-  briefSections(t).forEach(sec => parts.push(sec.e + ': ' + sec.lines.map(([k, v]) => `${k.toLowerCase()} — ${v}`).join('; ') + '.'));
+  // жива мова: по реченню на групу параметрів (flux-grammar.js); немає тегів, то шматок пропускається
+  const get = id => { const sl = SLOTS[id]; if (!sl || !visible(sl)) return []; const s = ss(id); return s.mode === 'off' ? [] : s.value; };
+  parts.push(...FluxLang.paragraphs(st.type, get, THEMES[curTheme()].nl));
   return parts.join('\n\n');
 }
 function buildGemini(t) {
@@ -401,7 +403,7 @@ function renderSettings() {
     addField('Інструкція для Gemini (плейсхолдери: {TASK} {OUT} {STYLE} {BRIEF})', st.custom[key] ?? GEM_TPL[st.type], v => (st.custom[key] = v), true);
     addReset(() => delete st.custom[key]);
   } else {
-    box.innerHTML = '<div class="hint">Для Flux налаштувань немає: промпт збирається як описова проза зі вступного речення типу, стилю та параметрів.</div>';
+    box.innerHTML = '<div class="hint">Для Flux налаштувань немає: промпт збирається живою мовою, по реченню на групу параметрів (волосся, очі, шкіра, одяг, поза, фон). Порожню групу пропущено.</div>';
   }
 }
 function setRtab(name) {

@@ -176,7 +176,7 @@ for (const [k, v] of Object.entries(PXL_TYPES)) {
 }
 const MODELS = {
   sdxl: { icon: '🏷️', name: 'Stable Diffusion XL', desc: 'Теги Danbooru, 4 групи в рядках + негативний промпт' },
-  flux: { icon: '🌀', name: 'Flux', desc: 'Описова проза без тегів і без негативного промпта' },
+  flux: { icon: '🌀', name: 'Flux', desc: 'Жива мова: по реченню на групу параметрів, без тегів і без негативного промпта' },
   gemini: { icon: '💎', name: 'Gemini', desc: 'Інструкція для Gemini: написати промпт або одразу намалювати' },
 };
 
