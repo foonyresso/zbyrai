@@ -10,10 +10,21 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', pairs: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+  }
+  // Подвійні альбоми: рядок «5 Іваненко Іван + 6 Коваль Марія» дає двох людей (кожен зі своїм портретом у сітці) з ознакою pair = номер рядка.
+  function pairMembers(st) {
+    var out = [];
+    String(st.pairs || '').split(/\r?\n/).forEach(function (line) {
+      var halves = line.split(/\s*[+\/]\s*/).map(function (x) { return P.parseChildren(x)[0]; }).filter(Boolean);
+      if (halves.length < 2) return;
+      var k = out.length / 2; halves.slice(0, 2).forEach(function (m, h) { m.kind = 'child'; m.pair = k; m.half = h; out.push(m); });
+    });
+    return out;
   }
   function people(st) {
     var list = P.parseChildren(st.children).map(function (p) { p.kind = 'child'; return p; })
+      .concat(pairMembers(st))
       .concat(P.parseChildren(st.noAlbum).map(function (p) { p.kind = 'noalbum'; return p; }));
     list.forEach(function (p, i) { p.id = i; });
     if (!Array.isArray(st.order) || st.order.length !== list.length) st.order = list.map(function (_, i) { return i; });
@@ -143,7 +154,18 @@
     return null;
   }
   // Діти, які беруть альбом (у порядку списку): для них окремі обкладинка й перший розворот.
-  function albumKids(st) { return people(st).filter(function (p) { return p.kind === 'child'; }).sort(function (a, b) { return a.id - b.id; }); }
+  // Власники альбомів у порядку списку: пара (двоє дітей, один альбом) — один власник з members і спільним підписом «А і Б».
+  function albumKids(st) {
+    var all = people(st), kids = all.filter(function (p) { return p.kind === 'child'; }).sort(function (a, b) { return a.id - b.id; }), out = [];
+    kids.forEach(function (p) {
+      if (p.pair == null) { out.push(p); return; }
+      if (p.half !== 0) return;
+      var m2 = kids.filter(function (q) { return q.pair === p.pair && q.half === 1; })[0];
+      out.push(m2 ? Object.assign({}, p, { name: p.name + ' і ' + m2.name, members: [p, m2] }) : p);
+    });
+    return out;
+  }
+  function memberOf(ow, ref) { return ow && ow.members ? ow.members[ref.m || 0] : ow; }
   function ownerOf(st) {
     var ps = albumKids(st);
     return ps.filter(function (p) { return p.id === st.owner; })[0] || ps[0] || null;
@@ -166,7 +188,7 @@
   function assignUnmatched(st, kind, names, numMap, si) {
     var map = kind === 'cover' ? st.coverPhotos : st.spreads[si].kidPhotos, kids = albumKids(st), n = 0;
     var un = names.filter(function (nm) { return !personByName(st, nm); }).sort();
-    var need = kids.filter(function (p) { return !map[p.id] && !photoFor(p, numMap, true); });
+    var need = []; kids.forEach(function (o) { (o.members || [o]).forEach(function (p) { if (!map[p.id] && !photoFor(p, numMap, true)) need.push(p); }); });
     un.forEach(function (nm) { var p = need.shift(); if (p) { map[p.id] = nm; n++; } });
     return n;
   }
@@ -210,14 +232,14 @@
     if (sp.type === 'cover') {
       var c = L.coverLayout(W, H, z.sb, z), ow = ownerOf(st);
       ownerName = ow ? ow.name : '';
-      if (!st.coverNoPhoto) items.push({ rect: c.photo, ref: { t: 'cover' }, name: (ow && st.coverPhotos[ow.id]) || (ow ? photoFor(ow, numMap, true) : null), caption: '', kind: 'cover' });
+      if (!st.coverNoPhoto) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap, true) : null), caption: '', kind: 'cover' }); });
     } else if (sp.type === 'first') {
       var f = L.firstLayout(W, H, z.sb), tl = teachers(st);
       if (tl.length) {
         L.teacherSlots(tl.length, W, H, st.tl || undefined).forEach(function (q, i) { items.push({ rect: q.photo, capRect: q.cap, ref: { t: 'teacher', i: i }, name: (sp.teacherPhotos && sp.teacherPhotos[i]) || photoFor(tl[i], numMap), caption: tl[i].name, post: tl[i].post, kind: 'teacher' }); });
       } else items.push({ rect: generalRect(st, f.group), ref: { t: 'slot', i: 0 }, name: sp.slots[0] || null, caption: '', kind: 'group' });
       var ow1 = ownerOf(st);
-      items.push({ rect: f.portrait, ref: { t: 'fright' }, name: (ow1 && sp.kidPhotos && sp.kidPhotos[ow1.id]) || (ow1 ? photoFor(ow1, numMap, true) : null), caption: '', kind: 'portrait1' });
+      halves(f.portrait, ow1).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'fright' } : { t: 'fright', m: q.m }, name: (q.p && sp.kidPhotos && sp.kidPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap, true) : null), caption: '', kind: 'portrait1' }); });
     } else if (sp.type === 'portrait') {
       var k = portraitK(st), rs = L.portraitSlots(k, W, H, d.gap), cols = L.gridFor(k, W, H, 0.8).cols, covered = {};
       rs.forEach(function (r, j) {
@@ -236,6 +258,13 @@
     }
     return { W: W, H: H, items: items, design: d, ownerName: ownerName, z: z };
   }
+  // Місце портрета власника: одне, а для пари ділиться навпіл (по одному вікну на дитину).
+  function halves(r, ow) {
+    if (!ow) return [{ rect: r, p: null }];
+    if (!ow.members) return [{ rect: r, p: ow }];
+    var g = 1.2, w = (r.w - g) / 2;
+    return [{ rect: { x: r.x, y: r.y, w: w, h: r.h }, p: ow.members[0], m: 0 }, { rect: { x: r.x + w + g, y: r.y, w: w, h: r.h }, p: ow.members[1], m: 1 }];
+  }
   function swapRefs(st, si, a, b) {
     var sp = st.spreads[si];
     if (a.t === 'person' && b.t === 'person') { var o = st.order; var t = o[a.pos]; o[a.pos] = o[b.pos]; o[b.pos] = t; return true; }
@@ -249,8 +278,9 @@
   function setPhoto(st, si, ref, name) {
     var sp = st.spreads[si];
     var ow = ownerOf(st);
-    if (ref.t === 'cover') { if (ow) st.coverPhotos[ow.id] = name; }
-    else if (ref.t === 'fright') { if (ow) sp.kidPhotos[ow.id] = name; }
+    var mo = memberOf(ow, ref);
+    if (ref.t === 'cover') { if (mo) st.coverPhotos[mo.id] = name; }
+    else if (ref.t === 'fright') { if (mo) sp.kidPhotos[mo.id] = name; }
     else if (ref.t === 'teacher') sp.teacherPhotos[ref.i] = name;
     else if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') { sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j]; } else return false;
     return true;
@@ -274,8 +304,9 @@
   }
   function removePhoto(st, si, ref) {
     var sp = st.spreads[si], ow = ownerOf(st);
-    if (ref.t === 'cover') { if (ow) delete st.coverPhotos[ow.id]; return true; }
-    if (ref.t === 'fright') { if (ow) delete sp.kidPhotos[ow.id]; return true; }
+    var mo = memberOf(ow, ref);
+    if (ref.t === 'cover') { if (mo) delete st.coverPhotos[mo.id]; return true; }
+    if (ref.t === 'fright') { if (mo) delete sp.kidPhotos[mo.id]; return true; }
     if (ref.t === 'teacher') { delete sp.teacherPhotos[ref.i]; return true; }
     if (ref.t === 'slot') { if (sp.type === 'group' && sp.style !== 'tpl') sp.slots.splice(ref.i, 1); else sp.slots[ref.i] = null; return true; }
     if (ref.t === 'extra') { delete sp.extra[ref.j]; if (sp.text) delete sp.text[ref.j]; return true; }

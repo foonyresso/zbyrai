@@ -38,12 +38,13 @@
   }
   function fillForm() {
     $('instFull').value = st.inst.full; $('instShort').value = st.inst.short; $('year').value = st.year;
-    $('children').value = st.children; $('noAlbum').value = st.noAlbum; $('teachers').value = st.teachers;
+    $('children').value = st.children; $('noAlbum').value = st.noAlbum; $('pairs').value = st.pairs || ''; $('teachers').value = st.teachers;
   }
   document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { showStep(+b.dataset.back); }; });
+  $('btnPair').onclick = function () { var t = $('pairs'); t.value = t.value.replace(/\s+$/, '') + (t.value.trim() ? '\n' : '') + ' + '; t.focus(); };
   $('btnOk').onclick = function () {
     st.inst.full = $('instFull').value.trim(); st.inst.short = $('instShort').value.trim(); st.year = $('year').value.trim();
-    st.children = $('children').value; st.noAlbum = $('noAlbum').value; st.teachers = $('teachers').value;
+    st.children = $('children').value; st.noAlbum = $('noAlbum').value; st.pairs = $('pairs').value; st.teachers = $('teachers').value;
     st.order = []; S.people(st);
     if (!st.spreads.length) S.buildSpreads(st); else S.resizePortrait(st);
     cur = Math.min(cur, st.spreads.length - 1); sel = null; showEditor();
