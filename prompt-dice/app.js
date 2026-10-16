@@ -25,10 +25,14 @@ const st = {
   history: store.get('history', []),
   presets: store.get('presets', []),
   rtab: 'out',
+  zone: typeof saved.zone === 'string' ? saved.zone : '',
+  view: saved.view === 'head' ? 'head' : 'body',
+  whole: !!saved.whole,
+  wtab: saved.wtab || 'zone',
 };
 function save() {
-  const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed } = st;
-  store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed });
+  const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab } = st;
+  store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab });
 }
 const splitTags = s => (s || '').split(',').map(x => x.trim()).filter(Boolean);
 const T = () => TYPES[st.type];
@@ -41,7 +45,8 @@ const curTheme = () => {
   return st.themeRolled;
 };
 const ctx = () => ({ g: st.slots.gender && st.slots.gender.value[0] === '1boy' ? 'm' : 'f', theme: curTheme() });
-function ss(id) { return st.slots[id] || (st.slots[id] = { mode: 'random', locked: false, value: [], rolled: false }); }
+// Параметри манекена (manual) за замовчуванням вимкнені: з'являються в промпті, лише коли їх вибрали чи кинули кубиком на ділянці
+function ss(id) { return st.slots[id] || (st.slots[id] = SLOTS[id] && SLOTS[id].manual ? { mode: 'off', locked: false, value: [], rolled: true } : { mode: 'random', locked: false, value: [], rolled: false }); }
 function currentStyle() {
   const list = styleList(), f = familyKey();
   let i = st.styleSel[f];
@@ -140,6 +145,8 @@ function buildFlux(t) {
   // жива мова: по реченню на групу параметрів (flux-grammar.js); немає тегів, то шматок пропускається
   const get = id => { const sl = SLOTS[id]; if (!sl || !visible(sl)) return []; const s = ss(id); return s.mode === 'off' ? [] : s.value; };
   parts.push(...FluxLang.paragraphs(st.type, get, THEMES[curTheme()].nl));
+  const extra = mkFluxParagraph(typeSlotIds(), get);
+  if (extra) parts.push(extra);
   return parts.join('\n\n');
 }
 function buildGemini(t) {
@@ -222,45 +229,7 @@ $('tabTheme').onclick = () => {
   });
 };
 
-/* ---- вибір значень параметра ---- */
-function openPicker(id) {
-  const sl = SLOTS[id], s = ss(id), opts = sl.opts(ctx());
-  const multi = sl.kind === 'multi';
-  openModal(`<div class="dlg-h"><h3>${esc(sl.label)} <small style="color:var(--muted);font-weight:400">· ${opts.length} варіантів</small></h3><button id="gx" title="Закрити вікно (Esc)">✕ Закрити</button></div>
-    <div class="picker-top"><input id="psearch" placeholder="Пошук…" autocomplete="off">
-      <button id="prand">🎲 Випадково</button><button id="poff">∅ Не вказувати</button>${multi ? '<button id="pclear">Очистити вибір</button><button id="pdone" class="btn-copy">Готово</button>' : ''}</div>
-    <div class="chips" id="chips"></div>`);
-  const sel = new Set(s.mode === 'manual' ? s.value : []);
-  const chips = $('chips');
-  const draw = () => {
-    const q = $('psearch').value.trim().toLowerCase();
-    chips.innerHTML = '';
-    opts.filter(o => !q || o.toLowerCase().includes(q)).forEach(o => {
-      const b = document.createElement('button');
-      b.className = 'chip' + (sel.has(o) ? ' on' : '');
-      b.textContent = hum(o);
-      b.title = o;
-      b.onclick = () => {
-        if (!multi) { s.mode = 'manual'; s.value = [o]; s.rolled = true; afterChange(id); closeModal(); return; }
-        sel.has(o) ? sel.delete(o) : sel.add(o);
-        s.mode = sel.size ? 'manual' : 'random'; s.value = [...sel]; s.rolled = true;
-        draw();
-      };
-      chips.appendChild(b);
-    });
-  };
-  draw();
-  $('psearch').oninput = draw;
-  $('psearch').focus();
-  $('gx').onclick = () => { afterChange(id); closeModal(); };
-  $('prand').onclick = () => { s.mode = 'random'; s.locked = false; genSlot(sl); afterChange(id); closeModal(); };
-  $('poff').onclick = () => { s.mode = 'off'; s.value = []; afterChange(id); closeModal(); };
-  if (multi) {
-    $('pclear').onclick = () => { sel.clear(); s.mode = 'random'; s.value = []; s.rolled = false; draw(); };
-    $('pdone').onclick = () => { if (s.mode === 'random') genSlot(sl); afterChange(id); closeModal(); };
-  }
-}
-function afterChange(id) { if (id === 'gender') regenDependent(); save(); }
+function afterChange(id) { if (id === 'gender') { regenDependent(); renderWork(); } save(); }
 
 /* ---- ліва панель ---- */
 function logCount(sl) {
@@ -270,46 +239,6 @@ function logCount(sl) {
   if (sl.kind === 'multi') { const k = Math.round((sl.n[0] + sl.n[1]) / 2); let r = 0; for (let i = 1; i <= k; i++) r += Math.log10(Math.max(1, (n - i + 1) / i)); return r; }
   return Math.log10(n);
 }
-function renderParams() {
-  const t = T(), box = $('params'); box.innerHTML = '';
-  let total = 0;
-  t.sections.forEach((sec, si) => {
-    if (sec.models && !isPixel() && !sec.models.includes(st.model)) return;
-    const ids = sec.s.filter(id => visible(SLOTS[id]));
-    if (!ids.length) return;
-    const d = document.createElement('details');
-    d.className = 'sec';
-    const key = st.type + ':' + si;
-    d.open = !st.closed[key];
-    d.innerHTML = `<summary>${esc(sec.t)}</summary><div class="rows"></div>`;
-    d.ontoggle = () => { st.closed[key] = !d.open; save(); };
-    const rows = d.querySelector('.rows');
-    ids.forEach(id => {
-      const sl = SLOTS[id], s = ss(id);
-      const n = sl.opts(ctx()).length;
-      if (s.mode !== 'off') total += logCount(sl);
-      const row = document.createElement('div');
-      row.className = 'row' + (s.locked ? ' locked' : '') + (s.mode === 'manual' ? ' manual' : '');
-      let valHtml, empty = false;
-      if (s.mode === 'off') { valHtml = '<span class="tag off">не вказується</span>'; empty = true; }
-      else if (!s.value.length) { valHtml = '— (цього разу нічого) —'; empty = true; }
-      else valHtml = (s.mode === 'manual' ? '<span class="tag">вибір</span>' : '') + esc(sl.fmt ? sl.fmt(s.value) : s.value.map(x => (sl.nl ? sl.nl(x) : hum(x))).join(', '));
-      row.innerHTML = `<button class="lock" title="${s.locked ? 'Розблокувати' : 'Заблокувати (не перекидати)'}">${s.locked ? '🔒' : '🔓'}</button>
-        <div class="lbl">${esc(sl.label)}<small>${n ? n.toLocaleString('uk') + ' варіантів' : 'генерується'}</small></div>
-        <div class="val${empty ? ' empty' : ''}" tabindex="0" title="Клік — вибрати вручну">${valHtml}</div>
-        <button class="one" title="Перекинути тільки цей">🎲</button>`;
-      row.querySelector('.lock').onclick = () => { if (s.mode === 'manual') { s.mode = 'random'; s.locked = true; } else s.locked = !s.locked; save(); render(); };
-      const v = row.querySelector('.val');
-      v.onclick = () => openPicker(id);
-      v.onkeydown = e => { if (e.key === 'Enter') openPicker(id); };
-      row.querySelector('.one').onclick = () => { s.mode = 'random'; genSlot(sl); afterChange(id); render(); };
-      rows.appendChild(row);
-    });
-    box.appendChild(d);
-  });
-  $('stat').textContent = `Комбінацій для цієї конфігурації: ≈ 10^${Math.round(total)}`;
-}
-
 /* ---- права панель ---- */
 function renderOut() {
   const t = T();
@@ -430,7 +359,7 @@ function updateHeader() {
 function render() {
   ensureRolled();
   updateHeader();
-  renderParams();
+  renderWorkspace();
   renderOut();
   if (st.rtab === 'set') renderSettings();
   save();
@@ -441,11 +370,11 @@ $('copy').onclick = () => copyText($('out').value, $('out'));
 $('copyNeg').onclick = () => copyText($('neg').value, $('neg'));
 $('neg').oninput = () => { st.settings.neg[st.type] = $('neg').value; save(); };
 $('unlockAll').onclick = () => {
-  typeSlotIds().forEach(id => { const s = ss(id); s.locked = false; s.mode = 'random'; s.rolled = false; });
+  typeSlotIds().forEach(id => { const s = ss(id), m = SLOTS[id].manual; s.locked = false; s.mode = m ? 'off' : 'random'; s.rolled = !!m; if (m) s.value = []; });
   render();
 };
 /* ---- збереження й обмін (верхня панель) ---- */
-function exportData() { return { tool: 'prompt-dice', version: 1, snapshot: snapshot(), presets: st.presets, prompt: $('out').value }; }
+function exportData() { return { tool: 'prompt-dice', version: 2, snapshot: snapshot(), presets: st.presets, prompt: $('out').value }; }
 function downloadFile(blob, name) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);

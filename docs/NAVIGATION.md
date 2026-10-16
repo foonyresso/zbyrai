@@ -28,6 +28,7 @@ shared/theme.css        єдина тема (джерело); shared/tool-chrome
 tools/                   sync-theme.mjs, ui-rules.test.js, build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
 image-converter/         Конвертер зображень (convert-core, zip-core, convert-render, воркер і пул, app.js)
 <інструмент>/            index.html, app.js, *-core.js, style.css, theme.css, README.md, test/
+prompt-dice/             Кубик промптів: pools/styles/types (параметри), flux-*.js (Flux), mk-*.js (манекен: фігура, категорії, слоти), ui-mannequin.js і ui-workspace.js (інтерфейс), app.js (стан і збирання промптів)
 medieval-world/          «Проект Атлас»: src/ (нескінченний світ, місто, core/atlas.js реєстр), worlds/<id>/world.js (по світу на файл; continent/ має власний код), biomes/<id>.js (по біому на файл), monsters/<id>.js (по монстру), dungeons/<id>.js (по типу підземелля), registry.js (генерується)
 taste/                   закрита довідка про смаки автора (не інструмент)
 docs/                    ця документація; docs/edits/ — стиснуті правки автора по інструментах; docs/plans/ — плани розвитку; docs/atlas/ — документація Атласу
