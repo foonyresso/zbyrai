@@ -109,3 +109,4 @@ input[type=color]::-webkit-color-swatch-wrapper { padding: 0; } input[type=color
 #fontSel { width: 100%; text-align: left; }
 .swapthumb { width: 100%; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; background: #fff; display: block; }
 .gridopts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .gopt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px; font-size: 12px; } .gopt.on { border-color: var(--accent); background: var(--accent-glow); } .gopt canvas { width: 100%; border: 1px solid var(--line); } .gopt small { color: var(--faint); font-size: 10px; }
+.tapegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 120px; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; } .tapegrid button { padding: 6px; font-size: 16px; } .tapegrid button.on { border-color: var(--accent); background: var(--accent-glow); }

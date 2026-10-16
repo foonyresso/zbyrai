@@ -55,7 +55,7 @@
       hits.push({ key: key, rect: { x: x - w / 2 - 1, y: y - s * 1.05, w: w + 2, h: s * 1.4 } }); return s;
     };
     ctx.save(); ctx.setTransform(o.pxPerMm, 0, 0, o.pxPerMm, 0, 0);
-    paintBg(ctx, W, H, sp.bg || st.bg, imgs, sp.type === 'group' && sp.style === 'scrap' ? '#efe9e0' : d.bg);
+    paintBg(ctx, W, H, sp.bg || st.bg, imgs, d.bg);
     var yr = st.year || '', inst = st.inst.full || st.inst.short || '';
     var drawItem = function (it) {
       var r = it.rect, img = it.name && imgs.get(it.name);
@@ -115,7 +115,7 @@
         ctx.strokeStyle = 'rgba(70,120,224,.9)'; ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
         if (o.centers) {
           var pcn = root.AlbumLayout.pageCenters(W, z.bleed, z.safe);
-          ctx.strokeStyle = 'rgba(70,180,120,.85)'; ctx.setLineDash([1.5, 2]);
+          ctx.strokeStyle = 'rgba(70,180,120,.28)'; ctx.lineWidth = Math.max(0.2, 0.7 / o.pxPerMm); ctx.setLineDash([3, 2]);
           [pcn.left, pcn.right].forEach(function (x) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); });
           ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
           ctx.setLineDash([3, 2]); ctx.strokeStyle = 'rgba(70,120,224,.9)';
@@ -163,7 +163,9 @@
     var inner = { x: -r.w / 2 + b, y: -r.h / 2 + b, w: r.w - 2 * b, h: r.h - 2 * b }, ir = Math.max(0, (rad || 0) - b);
     if (img) drawImg(ctx, img, inner, crop(st, it.name), ir); else { ctx.fillStyle = '#f1eeea'; rrect(ctx, inner, ir); ctx.fill(); }
     var tl = Math.max(7, Math.min(15, Math.min(r.w, r.h) * 0.3));
-    tape(ctx, -r.w / 2 + tl * 0.2, -r.h / 2 + tl * 0.1, -0.75, tl); tape(ctx, r.w / 2 - tl * 0.2, r.h / 2 - tl * 0.1, -0.75, tl);
+    var tp = it.tape || ['tl', 'br'], hw = r.w / 2, hh = r.h / 2, e = tl * 0.2, f = tl * 0.1;
+    if (tp.indexOf('tl') >= 0) tape(ctx, -hw + e, -hh + f, -0.75, tl); if (tp.indexOf('br') >= 0) tape(ctx, hw - e, hh - f, -0.75, tl);
+    if (tp.indexOf('tr') >= 0) tape(ctx, hw - e, -hh + f, 0.75, tl); if (tp.indexOf('bl') >= 0) tape(ctx, -hw + e, hh - f, 0.75, tl);
     ctx.restore();
   }
   function require_cover(W, H, sb, z) { return root.AlbumLayout.coverLayout(W, H, sb, z); }

@@ -206,7 +206,8 @@
   }
   function selFor(p, it) { if (it) return it.ref; var k = hitText(p); return k ? { t: 'text', key: k } : { t: 'bg' }; }
   cv.addEventListener('pointerdown', function (e) {
-    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it); if (!it && !panel) openPanel('obj'); else if (panel === 'obj') buildObjPanel();
+    closeMenu(); var p = mmAt(e), it = hit(p); sel = selFor(p, it);
+    if (it && it.tape && st.spreads[cur].type === 'group') { var spz = st.spreads[cur], zi = it.ref.i; spz.zs = (spz.zs || []).filter(function (k) { return k !== zi; }).concat([zi]); } if (!it && !panel) openPanel('obj'); else if (panel === 'obj') buildObjPanel();
     drag = it ? { it: it, x: e.clientX, y: e.clientY, p: p, crop: !!(e.altKey || dragMode === 'crop'), moved: false, move: !(e.altKey || dragMode === 'crop') && st.spreads[cur].type === 'group' && st.spreads[cur].style === 'scrap' } : null;
     if (drag) cv.setPointerCapture(e.pointerId); redraw();
   });
@@ -311,8 +312,8 @@
   $('bgScope').onchange = function () { if ($('bgScope').value === 'all') bgApply(); };
   $('bgImgBtn').onclick = function () { $('fileBg').click(); };
   $('fileBg').onchange = async function (e) { var f = e.target.files[0]; e.target.value = ''; if (!f) return; var im = await loadImage(f); if (!im) return toast('Не вдалося прочитати картинку'); var key = 'bg::' + f.name; imgs.set(key, im); bgDraft.image = key; $('bgImgName').textContent = f.name; bgApply(); };
-  $('bgResetOne').onclick = function () { st.spreads[cur].bg = null; refresh(); };
-  $('bgResetAll').onclick = function () { st.bg = null; refresh(); };
+  $('bgResetOne').onclick = function () { st.spreads[cur].bg = null; refresh(); bgLoad(); };
+  $('bgResetAll').onclick = function () { st.bg = null; st.spreads.forEach(function (s) { s.bg = null; }); refresh(); toast('Фон альбому скинуто, усі розвороти за кольором дизайну'); };
 
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
@@ -454,7 +455,7 @@
     var fb = el('button', '', ad.font() || 'Шрифт: як в альбомі', 'Відкрити вікно шрифтів'); fb.type = 'button'; if (ad.font()) fb.style.fontFamily = AlbumFonts.stack(ad.font());
     fb.onclick = function () { pickFont(ad.font(), function (v) { ad.setFont(v); refresh(); }); }; box.appendChild(fb);
     var cl = el('label', '', 'Регістр: '), cs = el('select', '', null, 'ВЕЛИКІ, Перша Велика в Слові або малі');
-    [['', 'Як типово'], ['upper', 'ВЕЛИКІ'], ['title', 'Перша Велика В Слові'], ['lower', 'малі']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; cs.appendChild(op); }); cs.value = ad.case() || '';
+    [['', 'Як типово'], ['upper', 'ПРІЗВИЩЕ ІМ\'Я'], ['title', 'Прізвище Ім\'я'], ['lower', 'прізвище ім\'я']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; cs.appendChild(op); }); cs.value = ad.case() || '';
     cs.onchange = function () { ad.setCase(cs.value || null); refresh(); }; cl.appendChild(cs); box.appendChild(cl);
     var kl = el('label', '', 'Колір: '), ki = document.createElement('input'); ki.type = 'color'; ki.value = ad.color() || '#6b6b6b'; ki.title = 'Колір тексту';
     ki.oninput = function () { ad.setColor(ki.value); redraw(); thumbs(); save(); }; kl.appendChild(ki);
@@ -542,6 +543,16 @@
     if (sp.type === 'first') {
       if (S.teachers(st).length) { buildTeacherUI(box); textCtl(box, tsAdapter('teach'), 'Підписи вчителів:'); } else buildGeneralUI(box);
       box.appendChild(el('p', 'hint', 'Напис «Випуск» і назву закладу клікни на макеті.')); return;
+    }
+    if (sp.type === 'group' && it && it.kind === 'group' && sp.style === 'scrap') {
+      var cur0 = (sp.tape && sp.tape[it.ref.i]) || ['tl', 'br'];
+      box.appendChild(el('p', 'hint', 'Скотч: познач кутки, де фото приклеєне.'));
+      var cg = el('div', 'tapegrid');
+      [['tl', '↖'], ['tr', '↗'], ['bl', '↙'], ['br', '↘']].forEach(function (c) {
+        var b = el('button', cur0.indexOf(c[0]) >= 0 ? 'on' : '', c[1], 'Скотч на цьому кутку'); b.type = 'button';
+        b.onclick = function () { sp.tape = sp.tape || {}; var l = ((sp.tape[it.ref.i]) || ['tl', 'br']).slice(), k = l.indexOf(c[0]); if (k >= 0) l.splice(k, 1); else l.push(c[0]); sp.tape[it.ref.i] = l; refresh(); };
+        cg.appendChild(b);
+      }); box.appendChild(cg);
     }
     if (sp.type === 'group') {
       box.appendChild(slider('Скруглення кутів, мм', 0, 15, 0.5, function () { return sp.round != null ? sp.round : st.round || 0; }, function (v) { sp.round = v; }, 'Скруглення кутів групових фото цього розвороту'));

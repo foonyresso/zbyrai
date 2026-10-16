@@ -119,6 +119,17 @@ test('сітки портретів: будь-яка кількість, пар�
   assert.strictEqual(S.portraitK(st), 30); assert.strictEqual(st.spreads.filter(s => s.type === 'portrait').length, 1);
   assert.strictEqual(S.slotsFor(st, 2, new Map()).items.length, 30);
 });
+test('заміна фото через панель зберігає дитину; вклеєні: шар зверху й скотч', () => {
+  const st = S.newState(); st.children = '1 Іваненко Іван\n2 Коваль Марія'; S.buildSpreads(st);
+  S.placePortrait(st, 2, '1.jpg'); const j = Object.keys(st.spreads[2].extra)[0];
+  S.setPhoto(st, 2, { t: 'extra', j: +j }, 'IMG_9999.jpg');
+  const it = S.slotsFor(st, 2, new Map()).items.filter(x => x.ref.j === +j)[0];
+  assert.strictEqual(it.name, 'IMG_9999.jpg'); assert.strictEqual(it.caption, 'Іваненко Іван'); assert.strictEqual(S.portraitStats(st).placed, 1);
+  const gi = st.spreads.findIndex(s => s.type === 'group'), sp = st.spreads[gi]; sp.style = 'scrap'; sp.slots = ['a', 'b', 'c'];
+  const ord = () => S.slotsFor(st, gi, new Map()).items.map(x => x.ref.i);
+  sp.zs = [ord()[0]]; assert.strictEqual(ord()[2], sp.zs[0]);
+  sp.tape = { 0: ['tr'] }; assert.deepStrictEqual(S.slotsFor(st, gi, new Map()).items.filter(x => x.ref.i === 0)[0].tape, ['tr']);
+});
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
   S.placePortrait(st, 2, '1.jpg'); S.placePortrait(st, 2, '2.jpg');

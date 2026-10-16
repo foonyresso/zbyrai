@@ -10,7 +10,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', names: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
   // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.
@@ -65,6 +65,7 @@
   // Портретне фото: підпис із списку за номером у назві файлу (лише люди зі списку дітей і «без альбому»).
   function personByName(st, name) {
     var runs = P.fileRuns(name), all = people(st);
+    if (st.alias && st.alias[name] != null) { for (var a = 0; a < all.length; a++) if (all[a].id === st.alias[name]) return all[a]; }
     for (var i = 0; i < all.length; i++) for (var j = 0; j < runs.length; j++) if (all[i].nums.indexOf(runs[j]) >= 0) return all[i];
     return null;
   }
@@ -278,7 +279,13 @@
         TP.rects(tpl, W, H, sp.frame ? d.groupGap : d.gap, mg).forEach(function (r) { items.push({ rect: r, rot: r.pivot ? 0 : 0, tilt: r.rot, pivot: r.pivot, ref: { t: 'slot', i: r.i }, name: sp.slots[r.i] || null, caption: '', kind: 'group', dark: true }); });
         return { W: W, H: H, items: items, design: d, ownerName: '', z: z };
       }
+      var g0 = items.length;
       L.groupSlots(sp.slots.length, W, H, d.groupGap, d.groupMargin, sp.seed, sp.style || 'mosaic').forEach(function (r, i) { var ofs = sp.style === 'scrap' && sp.off && sp.off[r.i != null ? r.i : i]; if (ofs) r = Object.assign({}, r, { x: r.x + ofs.dx, y: r.y + ofs.dy }); items.push({ rect: r, rot: r.rot || 0, ref: { t: 'slot', i: r.i != null ? r.i : i }, name: sp.slots[r.i != null ? r.i : i], caption: '', kind: 'group' }); });
+      if (sp.style === 'scrap') {
+        var grp = items.splice(g0); grp.forEach(function (q) { q.tape = (sp.tape && sp.tape[q.ref.i]) || ['tl', 'br']; });
+        var zs = sp.zs || [], base = grp.filter(function (q) { return zs.indexOf(q.ref.i) < 0; }), top = zs.map(function (k) { return grp.filter(function (q) { return q.ref.i === k; })[0]; }).filter(Boolean);
+        base.concat(top).forEach(function (q) { items.push(q); });
+      }
     }
     return { W: W, H: H, items: items, design: d, ownerName: ownerName, z: z };
   }
@@ -306,7 +313,10 @@
     if (ref.t === 'cover') { if (mo) st.coverPhotos[mo.id] = name; }
     else if (ref.t === 'fright') { if (mo) sp.kidPhotos[mo.id] = name; }
     else if (ref.t === 'teacher') sp.teacherPhotos[ref.i] = name;
-    else if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') { sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j]; } else return false;
+    else if (ref.t === 'slot') sp.slots[ref.i] = name; else if (ref.t === 'extra') {
+      var oldp = sp.extra[ref.j] && personByName(st, sp.extra[ref.j]); sp.extra[ref.j] = name; if (sp.text) delete sp.text[ref.j];
+      if (oldp && personByName(st, name) !== oldp) { st.alias = st.alias || {}; st.alias[name] = oldp.id; }
+    } else return false;
     return true;
   }
   function setText(st, si, j, obj) { var sp = st.spreads[si]; sp.text = sp.text || {}; delete sp.extra[j]; if (obj && obj.t) { var old = sp.text[j]; if (old && old.p && !obj.p) obj.p = old.p; if (old && old.f && !obj.f) obj.f = old.f; sp.text[j] = obj; } else delete sp.text[j]; }
