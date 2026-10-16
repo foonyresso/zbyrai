@@ -85,15 +85,15 @@ test('візерунок клітинки: ставиться без текст�
   const AP = require('../data/patterns.js'); assert.ok(AP.LIST.length >= 30); assert.ok(AP.LIST.every(p => typeof p.draw === 'function'));
 });
 test('подвійні альбоми: пара = один альбом, портрет навпіл, один підпис, одна позиція в експорті', () => {
-  const st = S.newState(); st.children = '1 А А\n2 Б Б'; st.pairs = '5 Іваненко Іван + 6 Коваль Марія\n9 Мельник Ольга + 10 Бондар Тарас'; S.buildSpreads(st);
-  assert.strictEqual(S.people(st).length, 6); assert.strictEqual(S.albumKids(st).length, 4);
+  const st = S.newState(); st.children = '1 А А\n2 Б Б\n5 Іваненко Іван\n7 В В\n6 Коваль Марія\n9 Мельник Ольга\n10 Бондар Тарас'; st.pairs = '6 + 5\nМельник + 10'; S.buildSpreads(st);
+  assert.strictEqual(S.people(st).length, 7); assert.strictEqual(S.albumKids(st).length, 5);
   const o = S.albumKids(st)[2]; assert.strictEqual(o.name, 'Іваненко Іван і Коваль Марія');
   st.owner = o.id; const nm = S.numMapOf(['5.jpg', '6.jpg']);
   const it = S.slotsFor(st, 0, nm).items.filter(x => x.kind === 'cover'); assert.strictEqual(it.length, 2);
   assert.deepStrictEqual(it.map(x => x.name), ['5.jpg', '6.jpg']); assert.ok(it[0].rect.x + it[0].rect.w <= it[1].rect.x);
   assert.strictEqual(S.slotsFor(st, 0, nm).ownerName, 'Іваненко Іван і Коваль Марія');
   S.setPhoto(st, 1, { t: 'fright', m: 1 }, 'x.jpg'); assert.strictEqual(S.slotsFor(st, 1, new Map()).items.filter(x => x.kind === 'portrait1')[1].name, 'x.jpg');
-  assert.strictEqual(S.exportPlan(st).filter(p => p.si === 0).length, 4);
+  assert.strictEqual(S.exportPlan(st).filter(p => p.si === 0).length, 5);
 });
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);

@@ -12,20 +12,29 @@
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
       children: '', pairs: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
-  // Подвійні альбоми: рядок «5 Іваненко Іван + 6 Коваль Марія» дає двох людей (кожен зі своїм портретом у сітці) з ознакою pair = номер рядка.
-  function pairMembers(st) {
-    var out = [];
+  // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
+  // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.
+  function norm(x) { return String(x || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function findIn(list, h) {
+    for (var i = 0; i < list.length; i++) if (list[i].pair == null && h.nums.some(function (n) { return list[i].nums.indexOf(n) >= 0; })) return i;
+    var nm = norm(h.name); if (!nm) return -1;
+    for (var k = 0; k < list.length; k++) if (list[k].pair == null && (norm(list[k].name) === nm || norm(list[k].name).split(' ').indexOf(nm) >= 0)) return k;
+    return -1;
+  }
+  function applyPairs(st, list) {
+    var k = 0;
     String(st.pairs || '').split(/\r?\n/).forEach(function (line) {
-      var halves = line.split(/\s*[+\/]\s*/).map(function (x) { return P.parseChildren(x)[0]; }).filter(Boolean);
-      if (halves.length < 2) return;
-      var k = out.length / 2; halves.slice(0, 2).forEach(function (m, h) { m.kind = 'child'; m.pair = k; m.half = h; out.push(m); });
+      var hs = line.split(/\s*[+\/]\s*/).map(function (x) { return P.parseChildren(x)[0]; }).filter(Boolean).slice(0, 2);
+      if (hs.length < 2) return;
+      var idx = hs.map(function (h) { var f = findIn(list, h); if (f < 0) { h.kind = 'child'; list.push(h); f = list.length - 1; } return f; });
+      if (idx[0] === idx[1]) return;
+      idx.sort(function (a, b) { return a - b; }); idx.forEach(function (ix, half) { list[ix].pair = k; list[ix].half = half; }); k++;
     });
-    return out;
   }
   function people(st) {
     var list = P.parseChildren(st.children).map(function (p) { p.kind = 'child'; return p; })
-      .concat(pairMembers(st))
       .concat(P.parseChildren(st.noAlbum).map(function (p) { p.kind = 'noalbum'; return p; }));
+    applyPairs(st, list);
     list.forEach(function (p, i) { p.id = i; });
     if (!Array.isArray(st.order) || st.order.length !== list.length) st.order = list.map(function (_, i) { return i; });
     return st.order.map(function (i) { return list[i]; });
