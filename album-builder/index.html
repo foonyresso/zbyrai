@@ -67,6 +67,16 @@
 <div class="work" id="work" hidden>
   <div class="stagebox" id="drop">
     <canvas id="cv" title="Клік вибирає фото. Перетягування: поміняти фото місцями (з Alt: зсунути кадр). Колесо: наблизити кадр. Подвійний клік: скинути кадр. Правий клік: меню (видалити, перемістити, текст, об'єднати)"></canvas>
+  <div class="bar">
+    <button class="btn-main" id="btnAdd" title="Вибрати фото з комп'ютера: портрети підтягнуться за номерами, на груповий розворот лягуть по порядку">＋ Додати фото</button>
+    <input type="file" id="fileImg" accept="image/*" multiple hidden>
+    <button id="btnLeftPhotos" hidden title="Додати фото на ліву сторінку першого розвороту: вчителі (за номерами або по порядку), а якщо вчителів нема, загальне фото">＋ Загальне фото</button>
+    <button id="btnFolder" title="Вибрати цілу папку з фото">Папка</button>
+    <input type="file" id="fileDir" webkitdirectory multiple hidden>
+    <button id="btnPlus" title="Додати розворот: портретний або груповий">＋ Розворот</button>
+    <span class="hint" id="count"></span>
+    <div class="menu" id="addMenu" hidden><button data-add="portrait" title="Додати ще один розворот із портретами">Портрети</button><button data-add="group" title="Додати розворот із груповими фото">Групові фото</button></div>
+  </div>
   </div>
   <nav class="rail" id="rail" aria-label="Меню">
     <button data-go="list" title="Повернутися до заповнення закладу та списків дітей і вчителів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Списки</span></button>
@@ -82,8 +92,6 @@
         <select id="kSel" title="Авто або 8 / 12 / 16 / 32 портретів на розворот"><option value="">Авто</option><option>8</option><option>12</option><option>16</option><option>32</option></select></label>
       <p class="hint" id="kInfo"></p></section>
     <section data-panel="spread"><h2>Розворот</h2><p class="hint" id="spInfo"></p>
-      <label title="Яку дитину зараз показано на обкладинці й першому розвороті. У експорті будуть усі діти за порядком списку: cover_01…, 01_01…">Показана дитина
-        <select id="ownerSel" title="Дитина, чиє фото й ім'я на обкладинці та першому розвороті"></select></label>
       <label class="chk" title="Прибрати фото з обкладинки: лишається лише дизайн, рік і назва"><input type="checkbox" id="coverNoPhoto"> Обкладинка без фото</label></section>
     <section data-panel="view"><h2>Вигляд</h2>
       <div class="seg" id="dragMode" title="Що робить перетягування фото"><button data-dm="swap" class="on" title="Перетягни фото на інше, і вони поміняються місцями. Alt перемикає на «Кадр»">Обмін місцями</button><button data-dm="crop" title="Перетягування зсуває кадр усередині вікна">Кадр</button></div>
@@ -92,17 +100,7 @@
         <label title="Безпечна межа для обкладинки (зазвичай більша), мм">Для обкладинки, мм <input type="number" id="coverSafeIn" min="0" max="60" step="0.5" title="Скільки мм від обрізу не заходити текстом на обкладинці"></label></div>
       <p class="hint" id="safeInfo"></p><p class="hint" id="sizeInfo"></p></section>
   </aside>
-  <div class="bar">
-    <button class="btn-main" id="btnAdd" title="Вибрати фото з комп'ютера: портрети підтягнуться за номерами, на груповий розворот лягуть по порядку">＋ Додати фото</button>
-    <input type="file" id="fileImg" accept="image/*" multiple hidden>
-    <button id="btnLeftPhotos" hidden title="Додати фото на ліву сторінку першого розвороту: вчителі (за номерами або по порядку), а якщо вчителів нема, загальне фото">＋ Загальне фото</button>
-    <span class="kidnav" id="kidNav" hidden title="Обкладинка й перший розворот окремі для кожної дитини; перемикай, щоб подивитись"><button id="kidPrev" title="Попередня дитина зі списку">◀</button><span id="kidLabel"></span><button id="kidNext" title="Наступна дитина зі списку">▶</button></span>
-    <button id="btnFolder" title="Вибрати цілу папку з фото">Папка</button>
-    <input type="file" id="fileDir" webkitdirectory multiple hidden>
-    <button id="btnPlus" title="Додати розворот: портретний або груповий">＋ Розворот</button>
-    <span class="hint" id="count"></span>
-    <div class="menu" id="addMenu" hidden><button data-add="portrait" title="Додати ще один розворот із портретами">Портрети</button><button data-add="group" title="Додати розворот із груповими фото">Групові фото</button></div>
-  </div>
+  <div class="kids" id="kidStrip" hidden title="Діти зі списку: клік показує обкладинку й індивідуальні розвороти саме цієї дитини"></div>
   <div class="strip" id="strip" title="Розвороти: клік вибирає, перетягування змінює порядок"></div>
 </div>
 

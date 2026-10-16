@@ -46,10 +46,37 @@
       split({ x: r.x, y: r.y + h1 + gap, w: r.w, h: r.h - h1 - gap }, n - k, gap, rand, out);
     }
   }
-  function groupSlots(n, W, H, gap, margin, seed) {
-    var out = [];
-    if (n > 0) split({ x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, n, gap, rng(seed || 1), out);
+  // Рівні ряди: кожен ряд однієї висоти, у ряду фото однакової ширини.
+  function rowSlots(n, W, H, gap, margin) {
+    var area = { x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, rows = Math.max(1, Math.min(n, Math.round(Math.sqrt(n * area.h / area.w * 1.6)))), out = [], idx = 0;
+    var rh = (area.h - gap * (rows - 1)) / rows;
+    for (var r = 0; r < rows; r++) {
+      var cnt = Math.floor(n / rows) + (r < n % rows ? 1 : 0), cw = (area.w - gap * (cnt - 1)) / cnt;
+      for (var c = 0; c < cnt; c++) { out.push({ x: area.x + c * (cw + gap), y: area.y + r * (rh + gap), w: cw, h: rh, i: idx++ }); }
+    }
     return out;
+  }
+  // «Вклеєні в альбом»: фото з білими полями, трохи нахилені, місцями накладаються. rot у радіанах; порядок масиву = порядок малювання.
+  function scrapSlots(n, W, H, margin, seed) {
+    if (n <= 0) return [];
+    var rand = rng((seed || 1) * 7919), area = { x: margin + 6, y: margin + 6, w: W - 2 * margin - 12, h: H - 2 * margin - 12 }, out = [];
+    var cols = Math.max(1, Math.min(n, Math.round(Math.sqrt(n * area.w / area.h * 0.8)))), rows = Math.ceil(n / cols), cw = area.w / cols, ch = area.h / rows;
+    for (var i = 0; i < n; i++) {
+      var r = Math.floor(i / cols), c = i % cols, cnt = r === rows - 1 ? n - r * cols : cols, off = (cols - cnt) * cw / 2;
+      var w = cw * (n === 1 ? 0.8 : 1.06), h = ch * (n === 1 ? 0.8 : 1.06);
+      var cx = area.x + off + (c + 0.5) * cw + (rand() - 0.5) * cw * 0.12, cy = area.y + (r + 0.5) * ch + (rand() - 0.5) * ch * 0.12;
+      out.push({ x: Math.max(2, cx - w / 2), y: Math.max(2, cy - h / 2), w: w, h: h, rot: n === 1 ? 0 : (rand() - 0.5) * 0.13, i: i, z: rand() });
+    }
+    out.sort(function (a, b) { return a.z - b.z; });
+    return out;
+  }
+  // Групові фото: style = mosaic (за замовчуванням), rows, scrap. Кожен елемент має i — номер фото в списку розвороту.
+  function groupSlots(n, W, H, gap, margin, seed, style) {
+    if (n <= 0) return [];
+    if (style === 'rows') return rowSlots(n, W, H, gap, margin);
+    if (style === 'scrap') return scrapSlots(n, W, H, margin, seed);
+    var out = []; split({ x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, n, gap, rng(seed || 1), out);
+    return out.map(function (r, i) { r.i = i; return r; });
   }
   // Вчителі: невеликі прямокутні вікна фото (висота 1.15 ширини) зі смугою під підпис (capH мм), блок по центру лівої сторінки першого розвороту.
   function teacherSlots(n, W, H) {
@@ -72,14 +99,15 @@
     return out;
   }
   // sb = відстань від краю полотна до безпечної межі (виліт + безпечна зона): текст не заходить далі.
+  // Обкладинка: портрет майже квадратний (трохи витягнутий) на ~70% висоти, зверху до краю, по центру правої частини; рік перекриває його низ; підпис під ним.
   function coverLayout(W, H, sb) {
-    sb = sb || 8;
-    return { photo: { x: W * 0.64, y: 0, w: W * 0.28, h: Math.min(H * 0.94, H - sb) }, year: { x: Math.min(W * 0.93, W - sb - 4), y: H * 0.8, size: H * 0.24 }, name: { x: W * 0.78, y: Math.min(H * 0.925, H - sb - 3) } };
+    sb = sb || 8; var ph = Math.min(H * 0.7, H - sb - 40), pw = ph * 0.85, cx = W * 0.78;
+    return { photo: { x: cx - pw / 2, y: 0, w: pw, h: ph }, year: { x: Math.min(cx + pw / 2 + W * 0.02, W - sb - 4), y: ph + H * 0.015, size: H * 0.2 }, name: { x: cx, y: Math.min(H * 0.915, H - sb - 3), line: ph + H * 0.1 } };
   }
   function firstLayout(W, H, sb) {
     sb = sb || 8;
     return { group: { x: 0, y: H * 0.07, w: W * 0.49, h: H * 0.74 }, portrait: { x: W * 0.56, y: 0, w: W * 0.36, h: H }, text: { x: W * 0.245, y: Math.min(H * 0.865, H - sb - H * 0.058) } };
   }
-  var api = { rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
+  var api = { rowSlots: rowSlots, scrapSlots: scrapSlots, rng: rng, autoK: autoK, gridFor: gridFor, portraitSlots: portraitSlots, groupSlots: groupSlots, teacherSlots: teacherSlots, coverLayout: coverLayout, firstLayout: firstLayout, KS: KS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumLayout = api;
 })(typeof self !== 'undefined' ? self : this);

@@ -138,6 +138,49 @@ test('безпечна зона обкладинки більша; можна з
   st.coverSafe = 25; const z = S.zoneOf(st, 0), c = L.coverLayout(z.W, z.H, z.sb);
   assert.strictEqual(z.safe, 25); assert.ok(c.name.y <= z.H - z.sb && c.year.x <= z.W - z.sb);
 });
+test('індивідуальні розвороти: перетворення, експорт NN_KK, обкладинка без індивідуальності дає cover', () => {
+  const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
+  const g = st.spreads.findIndex(x => x.type === 'group');
+  assert.ok(S.makeIndividual(st, g)); assert.strictEqual(st.spreads[g].type, 'first');
+  let names = S.exportPlan(st).map(p => p.name);
+  assert.ok(names.includes('01_01') && names.includes('01_02') && names.includes(String(g).padStart(2, '0') + '_02'), names.join());
+  st.coverIndividual = false; names = S.exportPlan(st).map(p => p.name);
+  assert.ok(names.includes('cover') && !names.includes('cover_01'));
+  assert.ok(S.makeGeneral(st, g)); assert.strictEqual(st.spreads[g].type, 'group');
+  assert.ok(!S.makeIndividual(st, 0));
+});
+test('індивідуальні фото першого розвороту окремі для кожного розвороту й дитини', () => {
+  const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
+  const g = st.spreads.findIndex(x => x.type === 'group'); S.makeIndividual(st, g);
+  const m = S.numMapOf(['1.jpg', '2.jpg', 'z.jpg']); S.setOwnerIndex(st, 1);
+  S.setPhoto(st, g, { t: 'fright' }, 'z.jpg');
+  const last = i => S.slotsFor(st, i, m).items.slice(-1)[0].name;
+  assert.strictEqual(last(g), 'z.jpg'); assert.strictEqual(last(1), '2.jpg');
+  S.setOwnerIndex(st, 0); assert.strictEqual(last(g), '1.jpg');
+});
+test('стилі групових розкладок: потрібна кількість, у межах розвороту; вклеєні мають нахил', () => {
+  for (const style of ['mosaic', 'rows', 'scrap']) for (let n = 1; n <= 9; n++) {
+    const r = L.groupSlots(n, 466, 236, 3, 11, 5, style);
+    assert.strictEqual(r.length, n); assert.deepStrictEqual(r.map(x => x.i).sort((a, b) => a - b), Array.from({ length: n }, (_, i) => i));
+    r.forEach(a => { assert.ok(a.x > -1 && a.y > -1 && a.x + a.w < 467 && a.y + a.h < 237, style + n); });
+    if (style !== 'scrap') r.forEach((a, i) => r.forEach((b, j) => i < j && assert.ok(!overlap(a, b), style + n)));
+  }
+  assert.ok(L.groupSlots(6, 466, 236, 3, 11, 5, 'scrap').some(x => Math.abs(x.rot) > 0.005));
+});
+test('обкладинка: портрет ~70% висоти, майже квадратний, у безпечній зоні', () => {
+  const z = S.zoneOf((() => { const st = S.newState(); S.buildSpreads(st); return st; })(), 0), c = L.coverLayout(z.W, z.H, z.sb);
+  assert.ok(Math.abs(c.photo.h / z.H - 0.7) < 0.02); assert.ok(c.photo.h / c.photo.w > 1 && c.photo.h / c.photo.w < 1.4);
+});
+test('вибіркове завантаження портретів: фото, що вже є на розворотах, пропускаються', () => {
+  const st = S.newState(); st.children = Array.from({ length: 12 }, (_, i) => `${i + 1} Д${i} Д`).join('\n'); S.buildSpreads(st);
+  const ps = st.spreads.map((s, i) => s.type === 'portrait' ? i : -1).filter(i => i >= 0);
+  ['1.jpg', '5.jpg'].forEach(n => S.placePortrait(st, ps[0], n));
+  const has = n => st.spreads.some(s => s.type === 'portrait' && Object.values(s.extra).includes(n));
+  const all = Array.from({ length: 12 }, (_, i) => (i + 1) + '.jpg').filter(n => !has(n));
+  S.sortForPortrait(st, all).forEach(n => S.placePortrait(st, ps[1] || ps[0], n));
+  assert.strictEqual(S.portraitStats(st).placed, 12);
+  assert.strictEqual(Object.values(st.spreads[ps[0]].extra).filter(n => n === '1.jpg').length, 1);
+});
 test('JSON туди й назад', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   assert.strictEqual(S.fromJSON(S.toJSON(st)).spreads.length, st.spreads.length);

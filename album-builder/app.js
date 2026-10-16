@@ -63,7 +63,21 @@
     var ppm = sizeCanvas();
     lastInfo = R.draw(ctx, st, cur, numMap, imgs, { pxPerMm: ppm, preview: true, sel: sel, guides: guides });
   }
-  function label(i) { var t = st.spreads[i].type; return t === 'cover' ? 'Обкладинка' : t === 'first' ? 'Перший' : (i - 1) + (t === 'portrait' ? ' портрети' : ' групові'); }
+  function label(i) { var t = st.spreads[i].type, n = String(i).padStart(2, '0'); return t === 'cover' ? 'Обкладинка' : n + (t === 'first' ? ' індивід.' : t === 'portrait' ? ' портрети' : ' групові'); }
+  // Стрічка дітей: фіксована ширина кнопок (довгі ПІБ обрізаються), видно лише коли поточний розворот індивідуальний.
+  function buildKidStrip() {
+    var strip = $('kidStrip'), on = S.isIndividual(st, cur); strip.hidden = !on; if (!on) return;
+    strip.textContent = ''; var kids = S.albumKids(st), own = S.ownerOf(st), keep = st.owner;
+    kids.forEach(function (p, i) {
+      var b = el('button', 'kid' + (own && own.id === p.id ? ' on' : ''), String(i + 1).padStart(2, '0') + ' ' + p.name, 'Показати цю дитину: ' + p.name);
+      st.owner = p.id; var it = S.slotsFor(st, cur, numMap).items, ph = it.filter(function (x) { return x.kind === 'cover' || x.kind === 'portrait1'; })[0];
+      if (!ph || !ph.name) b.classList.add('miss'); if (!ph) b.classList.remove('miss');
+      b.onclick = function () { S.setOwnerIndex(st, i); refresh(); };
+      strip.appendChild(b);
+    });
+    st.owner = keep; if (!kids.length) strip.appendChild(el('span', 'hint', 'У списку немає дітей'));
+    var on2 = strip.querySelector('.on'); if (on2 && on2.scrollIntoView) on2.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
   var thTimer;
   function thumbs() { clearTimeout(thTimer); thTimer = setTimeout(buildThumbs, 60); }
   function buildThumbs() {
@@ -95,19 +109,14 @@
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
     $('kSel').value = st.kOverride ? String(st.kOverride) : '';
     $('spInfo').textContent = 'Розворот: ' + label(cur) + '.';
-    var os = $('ownerSel'), own = S.ownerOf(st), z = S.zoneOf(st, cur), t = st.spreads[cur].type, kids = S.albumKids(st), ki = S.ownerIndex(st);
-    $('kidNav').hidden = !(t === 'cover' || t === 'first'); $('btnLeftPhotos').hidden = t !== 'first';
+    var z = S.zoneOf(st, cur), t = st.spreads[cur].type;
+    $('btnLeftPhotos').hidden = t !== 'first';
     $('btnAdd').textContent = t === 'cover' || t === 'first' ? '＋ Портрети' : '＋ Додати фото';
     $('btnLeftPhotos').textContent = S.teachers(st).length ? '＋ Вчителі' : '＋ Загальне фото';
-    $('kidLabel').textContent = kids.length ? (ki + 1) + '/' + kids.length + ' ' + (own ? own.name : '') : 'немає дітей у списку';
+    buildKidStrip();
+    $('coverNoPhoto').checked = !!st.coverNoPhoto;
     $('safeIn').value = st.safe == null ? PR.spreadSize(st.fmtId).safe : st.safe; $('coverSafeIn').value = st.coverSafe == null ? 15 : st.coverSafe;
     $('sizeInfo').textContent = 'Файл розвороту: ' + Math.round(z.W * 300 / 25.4) + '×' + Math.round(z.H * 300 / 25.4) + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
-    if (os.dataset.sig !== kids.map(function (p) { return p.id + p.name; }).join('|')) {
-      os.dataset.sig = kids.map(function (p) { return p.id + p.name; }).join('|'); os.textContent = '';
-      kids.forEach(function (p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.name || ('№' + p.nums[0]); os.appendChild(o); });
-    }
-    if (own) os.value = own.id;
-    $('coverNoPhoto').checked = !!st.coverNoPhoto;
     $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться); безпечна межа ' + z.safe + ' мм від обрізу' + (t === 'cover' ? ' (для обкладинки)' : '') + ': текст і підписи тримаємо всередині. Значення типові, не з сайту друкарні; вводь свої.';
   }
 
@@ -136,11 +145,11 @@
     else if (sp.type === 'cover' || sp.type === 'first') {
       var rest2 = names.slice(), tl = S.teachers(st);
       if (targetRef && rest2.length) { S.setPhoto(st, cur, targetRef, rest2.shift()); placed++; }
-      if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap);
+      if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap, cur);
       else if (side === 'left') {
         if (tl.length) placed += S.assignTeachers(st, cur, rest2, numMap);
         else if (rest2.length) { sp.slots[0] = rest2[0]; placed++; }
-      } else placed += S.assignUnmatched(st, 'fright', rest2, numMap);
+      } else placed += S.assignUnmatched(st, 'fright', rest2, numMap, cur);
     }
     refresh();
     var auto = (sp.type === 'cover' || sp.type === 'first') && !placed && names.length ? ' (фото за номерами з назв підхоплено автоматично)' : '';
@@ -235,7 +244,14 @@
       }
     }
     var sc = [];
+    if (sp.type === 'group') sc.push(['Стиль розкладки: ' + ({ mosaic: 'мозаїка', rows: 'рівні ряди', scrap: 'вклеєні в альбом' }[sp.style || 'mosaic']) + ' → далі', 'Змінити стиль групових фото: мозаїка, рівні ряди, вклеєні в альбом (з нахилами й накладанням)', function () { var ss = ['mosaic', 'rows', 'scrap']; sp.style = ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]; }]);
     if (sp.type === 'group') sc.push(['🎲 Розкласти інакше', 'Нова випадкова розкладка групових фото', function () { sp.seed = 1 + Math.floor(Math.random() * 99999); }]);
+    if (sp.type === 'cover') sc.push([S.coverIndividual(st) ? 'Обкладинка одна для всіх (cover.jpg)' : 'Обкладинка індивідуальна (cover_01…)', 'Індивідуальна: окрема для кожної дитини; одна: один файл cover.jpg', function () { st.coverIndividual = !S.coverIndividual(st); }]);
+    if (cur >= 1 && (sp.type === 'group' || sp.type === 'portrait')) sc.push(['Зробити розворот індивідуальним', 'Розворот стане як перший: ліворуч вчителі чи загальне фото, праворуч портрет кожної дитини; файли NN_01, NN_02…', function () {
+      var has = sp.type === 'portrait' ? Object.keys(sp.extra).length : sp.slots.length;
+      if (!has || confirm('Поточний вміст розвороту буде очищено. Продовжити?')) S.makeIndividual(st, cur);
+    }]);
+    if (cur >= 2 && sp.type === 'first') sc.push(['Зробити розворот загальним', 'Повернути звичайний груповий розворот (індивідуальні фото скинуться)', function () { if (confirm('Індивідуальні фото цього розвороту буде скинуто. Продовжити?')) S.makeGeneral(st, cur); }]);
     if (cur >= 2) {
       sc.push(['← Розворот раніше', 'Пересунути розворот ближче до початку', function () { if (S.moveSpread(st, cur, -1)) cur--; }]);
       sc.push(['Розворот пізніше →', 'Пересунути розворот ближче до кінця', function () { if (S.moveSpread(st, cur, 1)) cur++; }]);
@@ -260,7 +276,6 @@
     e.preventDefault(); var it = lastInfo ? hit(mmAt(e)) : null; sel = it ? it.ref : null; redraw(); openMenu(it, e);
   });
   document.addEventListener('pointerdown', function (e) { if (!$('cellMenu').hidden && !$('cellMenu').contains(e.target) && e.target !== cv) closeMenu(); });
-  $('ownerSel').onchange = function () { st.owner = +$('ownerSel').value; refresh(); };
   $('coverNoPhoto').onchange = function () { st.coverNoPhoto = $('coverNoPhoto').checked; refresh(); };
   function removeSel() {
     if (!sel) return toast('Спершу вибери фото'); 
@@ -288,8 +303,6 @@
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
   $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
-  function stepKid(d) { var kids = S.albumKids(st); if (!kids.length) return; S.setOwnerIndex(st, (S.ownerIndex(st) + d + kids.length) % kids.length); refresh(); }
-  $('kidPrev').onclick = function () { stepKid(-1); }; $('kidNext').onclick = function () { stepKid(1); };
   $('safeIn').onchange = function () { var v = parseFloat($('safeIn').value); st.safe = isNaN(v) ? null : Math.max(0, Math.min(40, v)); refresh(); };
   $('coverSafeIn').onchange = function () { var v = parseFloat($('coverSafeIn').value); st.coverSafe = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };
   $('guides').onchange = function () { guides = $('guides').checked; redraw(); };
@@ -321,7 +334,11 @@
   $('btnJpg').onclick = function () { one('image/jpeg', '.jpg'); };
   function missingPhotos(plan) {
     var n = 0, keep = st.owner;
-    plan.forEach(function (p) { if (p.owner == null) return; st.owner = p.owner; var it = S.slotsFor(st, p.si, numMap).items; if (p.si === 0 && !st.coverNoPhoto && !it[0].name) n++; if (p.si === 1 && !it[it.length - 1].name) n++; });
+    plan.forEach(function (p) {
+      if (p.owner == null) return; st.owner = p.owner;
+      var it = S.slotsFor(st, p.si, numMap).items, ph = it.filter(function (x) { return x.kind === 'cover' || x.kind === 'portrait1'; })[0];
+      if (ph && !ph.name) n++;
+    });
     st.owner = keep; return n;
   }
   async function renderAll(mime) {

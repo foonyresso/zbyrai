@@ -19,10 +19,11 @@
   function draw(ctx, st, si, numMap, imgs, o) {
     var info = S.slotsFor(st, si, numMap), d = info.design, W = info.W, H = info.H, sp = st.spreads[si], sb = info.z.sb;
     ctx.save(); ctx.setTransform(o.pxPerMm, 0, 0, o.pxPerMm, 0, 0);
-    ctx.fillStyle = d.bg; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = sp.type === 'group' && sp.style === 'scrap' ? '#efe9e0' : d.bg; ctx.fillRect(0, 0, W, H);
     var yr = st.year || '', inst = st.inst.full || st.inst.short || '';
     info.items.forEach(function (it) {
       var r = it.rect, img = it.name && imgs.get(it.name);
+      if (it.rot) { drawPaper(ctx, img, it, st, o, d); return; }
       if (img) drawImg(ctx, img, r, crop(st, it.name));
       else if (it.kind === 'teacher') { ctx.fillStyle = d.ph; ctx.fillRect(r.x, r.y, r.w, r.h); }
       else if (o.preview && !it.text) {
@@ -46,8 +47,9 @@
     if (sp.type === 'cover') {
       var cv = require_cover(W, H, sb);
       if (yr) fitText(ctx, yr, cv.year.x, cv.year.y, cv.year.size, W * 0.5, d.fontLight, d.title, '200', 'right', 0.02);
-      if (info.ownerName) fitText(ctx, info.ownerName.toUpperCase(), cv.name.x, cv.name.y - H * 0.03, H * 0.034, W * 0.3, d.font, d.text, '400', 'center', 0.1);
-      if (inst) fitText(ctx, inst.toUpperCase(), cv.name.x, cv.name.y, H * 0.02, W * 0.3, d.font, '#9a9a9a', '400', 'center', 0.08);
+      var ny = Math.min(cv.name.line, cv.name.y - H * 0.06);
+      if (info.ownerName) fitText(ctx, info.ownerName.toUpperCase(), cv.name.x, ny, H * 0.036, W * 0.34, d.font, d.text, '400', 'center', 0.1);
+      if (inst) fitText(ctx, inst.toUpperCase(), cv.name.x, ny + H * 0.055, H * 0.021, W * 0.34, d.font, '#9a9a9a', '400', 'center', 0.08);
     }
     if (sp.type === 'first') {
       var fl = root.AlbumLayout.firstLayout(W, H, sb);
@@ -83,6 +85,16 @@
     if (o.s === 'ornament') { [-1, 1].forEach(function (sg) { var yy = cy + sg * (lines.length * size * 0.75 + h * 0.08); ctx.beginPath(); ctx.moveTo(cx - w * 0.22, yy); ctx.lineTo(cx + w * 0.22, yy); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, yy, 0.9, 0, 6.3); ctx.stroke(); }); }
     ctx.restore();
     lines.forEach(function (ln, i) { fitText(ctx, ln, cx, cy + (i - (lines.length - 1) / 2) * size * 1.5 + size * 0.35, size, w * 0.8, d.font, d.text, i ? '300' : '500', 'center', 0.1); });
+  }
+  // Фото «вклеєне в альбом»: біла рамка, тінь, невеликий нахил.
+  function drawPaper(ctx, img, it, st, o, d) {
+    var r = it.rect, b = Math.min(r.w, r.h) * 0.035, cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(it.rot);
+    ctx.shadowColor = 'rgba(0,0,0,.32)'; ctx.shadowBlur = 2.2 * o.pxPerMm; ctx.shadowOffsetX = 0.6 * o.pxPerMm; ctx.shadowOffsetY = 1 * o.pxPerMm;
+    ctx.fillStyle = '#fff'; ctx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h); ctx.shadowColor = 'transparent';
+    var inner = { x: -r.w / 2 + b, y: -r.h / 2 + b, w: r.w - 2 * b, h: r.h - 2 * b };
+    if (img) drawImg(ctx, img, inner, crop(st, it.name)); else { ctx.fillStyle = '#f1eeea'; ctx.fillRect(inner.x, inner.y, inner.w, inner.h); }
+    ctx.restore();
   }
   function require_cover(W, H, sb) { return root.AlbumLayout.coverLayout(W, H, sb); }
   root.AlbumRender = { draw: draw, crop: crop };
