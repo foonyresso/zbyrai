@@ -67,6 +67,14 @@ test('переповнення: зайві фото йдуть на наступ
   for (let i = 100; i < 100 + 2 * k; i++) S.placePortrait(st, ps[0], i + '.jpg');
   assert.ok(st.spreads.filter(s => s.type === 'portrait').length >= 3);
 });
+test('перенесення на портретний розворот міняє місцями з першим фото, без дірки', () => {
+  const st = S.newState(); st.children = Array.from({length: 30}, (_, i) => (i + 1) + ' А А').join('\n'); st.kOverride = 8; S.buildSpreads(st);
+  const ps = st.spreads.map((s, i) => s.type === 'portrait' ? i : -1).filter(i => i >= 0);
+  st.spreads[ps[0]].extra = { 0: 'a.jpg', 3: 'b.jpg' }; st.spreads[ps[1]].extra = { 0: 'c.jpg', 1: 'd.jpg' };
+  assert.ok(S.movePhoto(st, ps[0], { t: 'extra', j: 3 }, ps[1]));
+  assert.deepStrictEqual(st.spreads[ps[1]].extra, { 0: 'b.jpg', 1: 'd.jpg' });
+  assert.deepStrictEqual(st.spreads[ps[0]].extra, { 0: 'a.jpg', 3: 'c.jpg' });
+});
 test('видалення і переміщення фото на інший розворот; зміна k переносить фото', () => {
   const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st);
   S.placePortrait(st, 2, '1.jpg'); S.placePortrait(st, 2, '2.jpg');

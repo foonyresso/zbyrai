@@ -118,7 +118,11 @@
   function movePhoto(st, si, ref, to) {
     var sp = st.spreads[si], name = ref.t === 'extra' ? sp.extra[ref.j] : sp.slots[ref.i], dst = st.spreads[to];
     if (!name || !dst || to === si) return false;
-    if (dst.type === 'portrait') { if (!freeCells(st, to).length) return false; dst.extra[freeCells(st, to)[0]] = name; }
+    if (dst.type === 'portrait') {
+      var occ = Object.keys(dst.extra).map(Number).filter(function (j) { return dst.extra[j]; }).sort(function (a, b) { return a - b; });
+      if (occ.length && ref.t === 'extra') { var back = dst.extra[occ[0]]; dst.extra[occ[0]] = name; sp.extra[ref.j] = back; if (sp.text) delete sp.text[ref.j]; if (dst.text) delete dst.text[occ[0]]; return true; }
+      if (!freeCells(st, to).length) return false; dst.extra[freeCells(st, to)[0]] = name;
+    }
     else if (dst.type === 'group') { if (dst.style === 'tpl') { var fi = freeGroup(dst); if (fi < 0) return false; dst.slots[fi] = name; } else dst.slots.push(name); } else return false;
     removePhoto(st, si, ref); return true;
   }
