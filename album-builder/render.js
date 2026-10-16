@@ -59,8 +59,8 @@
     var cvv = sp.type === 'cover' ? S.coverVar(st) : null, cg = null;
     if (cvv && !cvv.builtin) {
       var cl = root.AlbumLayout.coverLayout(W, H, sb, info.z, cvv);
-      cg = { ctx: ctx, W: W, H: H, sb: sb, cx: cl.cx, x0: W / 2 + (info.z.spine || 0) / 2, x1: W - info.z.bleed, bx0: 0, bx1: W, tx: tx, fx: fx,
-        year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', t: function (s) { return st.coverTitle || s; }, t2: function (s) { return s; } };
+      cg = { ctx: ctx, W: W, H: H, sb: sb, cx: cl.cx, x0: W / 2 + (info.z.spine || 0) / 2, x1: W - info.z.bleed, bx0: 0, bx1: W, tx: function (key, text) { var ov = st.cvText && st.cvText[cvv.id + ':' + key]; if (ov != null) text = ov; if (!text) return 0; arguments[1] = text; return tx.apply(null, arguments); }, fx: fx,
+        year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', t: function (s) { return s; }, t2: function (s) { return s; } };
       if (!sp.bg) { var vb = cvv.bg; if (Array.isArray(vb)) { var vg = ctx.createLinearGradient(0, 0, 0, H); vg.addColorStop(0, vb[0]); vg.addColorStop(1, vb[1]); ctx.fillStyle = vg; } else ctx.fillStyle = vb || '#ffffff'; ctx.fillRect(0, 0, W, H); }
       if (cvv.deco) { ctx.save(); cvv.deco(cg); ctx.restore(); }
     }

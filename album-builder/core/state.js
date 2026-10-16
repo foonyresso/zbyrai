@@ -11,7 +11,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverVar: 'classic', coverTitle: '', coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverVar: 'classic', cvText: {}, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
   // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.

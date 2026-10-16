@@ -191,6 +191,12 @@
   function forCat(catId) { return V.filter(function (v) { return !v.cats || v.cats.indexOf(catId) >= 0; }); }
   // Шрифти всіх написів варіанта (для завантаження перед малюванням)
   function fontsOf(id) { var v = byId(id), out = {}, src = String(v.text || ''); (src.match(/'[A-Z][A-Za-z0-9 ]+'/g) || []).forEach(function (s) { out[s.slice(1, -1)] = 1; }); return Object.keys(out); }
-  var api = { VARIANTS: V, byId: byId, forCat: forCat, fontsOf: fontsOf, std: std };
+  // Стандартні тексти варіанта (для полів редагування): { ctitle, csub }
+  function defaults(id) {
+    var v = byId(id), out = {}, cap = function (key, text) { if (key === 'ctitle' || key === 'csub') out[key] = text; return 0; };
+    if (v.text) try { v.text({ H: 100, W: 200, cx: 150, x0: 100, x1: 200, sb: 8, year: '', owner: '', inst: '', t: function (x) { return x; }, t2: function (x) { return x; }, tx: cap, fx: cap }); } catch (e) {}
+    return out;
+  }
+  var api = { defaults: defaults, VARIANTS: V, byId: byId, forCat: forCat, fontsOf: fontsOf, std: std };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumCoverVariants = api;
 })(typeof self !== 'undefined' ? self : this);

@@ -296,5 +296,10 @@ test('варіанти обкладинок: унікальні id, катего
   assert.ok(S.slotsFor(st, 0, new Map()).items.every(i => i.kind === 'cover'));
   st.coverVar = 'abstract'; assert.strictEqual(S.slotsFor(st, 0, new Map()).items.length, 0);
 });
+test('тексти варіантів обкладинок: стандартні значення відомі, зберігаються в JSON', () => {
+  const CV = require('../data/cover-variants.js');
+  assert.strictEqual(CV.defaults('g11-gold').ctitle, 'Graduation'); assert.strictEqual(CV.defaults('g11-gold').csub, 'class of'); assert.ok(!('ctitle' in CV.defaults('classic')));
+  const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st); st.cvText['g11-gold:ctitle'] = ''; assert.strictEqual(S.fromJSON(S.toJSON(st)).cvText['g11-gold:ctitle'], '');
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

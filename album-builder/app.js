@@ -317,7 +317,7 @@
 
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
-  var TEXTNAME = { year: 'Рік', name: 'Прізвище на обкладинці', inst: 'Назва закладу', title: 'Напис «Випуск»', cap: 'Підписи під портретами', teach: 'Підписи вчителів' };
+  var TEXTNAME = { year: 'Рік', name: 'Прізвище на обкладинці', inst: 'Назва закладу', title: 'Напис «Випуск»', ctitle: 'Головний напис обкладинки', csub: 'Другий напис обкладинки', cap: 'Підписи під портретами', teach: 'Підписи вчителів' };
   function menuFor(it) {
     var secs = [], j = it && it.ref.j, sp = st.spreads[cur];
     if (it) {
@@ -510,14 +510,25 @@
     box.appendChild(wrap);
   }
   // Варіанти обкладинки дизайну «Класичний»: фільтр за категорією закладу, мініатюри, свій заголовок
+  var CVNAME = { ctitle: 'Головний напис', csub: 'Другий напис' };
+  // Поле тексту напису варіанта обкладинки: змінити, стерти зовсім (нічого не малюється) або повернути стандартний
+  function cvTextField(box, key) {
+    var def = AlbumCoverVariants.defaults(st.coverVar || 'classic')[key]; if (def == null) return;
+    var id = (st.coverVar || 'classic') + ':' + key; st.cvText = st.cvText || {};
+    var l = el('label', '', (CVNAME[key] || key) + ': '), inp = document.createElement('input'); inp.type = 'text'; inp.value = st.cvText[id] != null ? st.cvText[id] : def; inp.title = 'Текст напису; порожнє поле означає, що напису не буде';
+    inp.oninput = function () { st.cvText[id] = inp.value; redraw(); save(); }; inp.onchange = function () { thumbs(); };
+    var b1 = el('button', '', 'Стерти', 'Прибрати цей напис з обкладинки'), b2 = el('button', '', 'Скинути', 'Повернути стандартний текст варіанта');
+    b1.onclick = function () { st.cvText[id] = ''; refresh(); }; b2.onclick = function () { delete st.cvText[id]; refresh(); };
+    l.appendChild(inp); l.appendChild(b1); l.appendChild(b2); box.appendChild(l);
+  }
+  function cvTextFields(box) { ['ctitle', 'csub'].forEach(function (k) { cvTextField(box, k); }); }
   var cvAll = false;
   function coverVariantsUI(box) {
     var CV = AlbumCoverVariants, cat = DS.CATEGORIES.filter(function (x) { return x.id === st.catId; })[0];
     box.appendChild(el('h4', '', 'Варіант обкладинки'));
     var lf = el('label', 'chk', null, 'Показати варіанти лише для категорії «' + (cat ? cat.name : '') + '» і універсальні'), cf = document.createElement('input'); cf.type = 'checkbox'; cf.checked = !cvAll;
     cf.onchange = function () { cvAll = !cf.checked; buildObjPanel(); }; lf.appendChild(cf); lf.appendChild(document.createTextNode(' Лише для моєї категорії')); box.appendChild(lf);
-    var tl = el('label', '', 'Свій заголовок: '), ti = document.createElement('input'); ti.type = 'text'; ti.value = st.coverTitle || ''; ti.placeholder = 'за замовчуванням з варіанта'; ti.title = 'Замінює головний напис варіанта (порожньо = стандартний)';
-    ti.oninput = function () { st.coverTitle = ti.value; redraw(); save(); }; ti.onchange = function () { thumbs(); }; tl.appendChild(ti); box.appendChild(tl);
+    cvTextFields(box);
     var list = (cvAll ? CV.VARIANTS : CV.forCat(st.catId)), grid = el('div', 'cvgrid'), z = PR.spreadSize(st.fmtId), k = 0.45;
     box.appendChild(grid);
     var fonts = {}; list.forEach(function (v) { CV.fontsOf(v.id).forEach(function (n) { fonts[n] = n; }); });
@@ -538,7 +549,7 @@
   function buildObjPanel() {
     var box = $('objBody'); if (!box) return; box.textContent = ''; var sp = st.spreads[cur]; if (!sp) return;
     var it = selItem();
-    if (sel && sel.t === 'text') { textCtl(box, tsAdapter(sel.key), 'Напис: ' + (TEXTNAME[sel.key] || '')); return; }
+    if (sel && sel.t === 'text') { if (sel.key === 'ctitle' || sel.key === 'csub') cvTextField(box, sel.key); textCtl(box, tsAdapter(sel.key), 'Напис: ' + (TEXTNAME[sel.key] || '')); return; }
     if (sel && sel.t === 'bg') {
       box.appendChild(el('p', 'hint', 'Вибрано фон. Колір, градієнт, картинка: вкладка «Фон».'));
       var bb = el('button', '', 'Відкрити «Фон»', 'Перейти до налаштувань фону'); bb.onclick = function () { openPanel('bg'); }; box.appendChild(bb); return;
