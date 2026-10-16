@@ -60,7 +60,7 @@
     if (cvv && !cvv.builtin) {
       var cl = root.AlbumLayout.coverLayout(W, H, sb, info.z, cvv);
       cg = { ctx: ctx, W: W, H: H, sb: sb, cx: cl.cx, x0: W / 2 + (info.z.spine || 0) / 2, x1: W - info.z.bleed, bx0: 0, bx1: W, tx: function (key, text) { var ov = st.cvText && st.cvText[cvv.id + ':' + key]; if (ov != null) text = ov; if (!text) return 0; arguments[1] = text; return tx.apply(null, arguments); }, fx: fx,
-        year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', t: function (s) { return s; }, t2: function (s) { return s; } };
+        ph: cl.photo, year: st.year || '', owner: info.ownerName, inst: st.inst.full || st.inst.short || '', get: function (key, def) { var ov = st.cvText && st.cvText[cvv.id + ':' + key]; return ov != null ? ov : def; }, t: function (s) { return s; }, t2: function (s) { return s; } };
       if (!sp.bg) { var vb = cvv.bg; if (Array.isArray(vb)) { var vg = ctx.createLinearGradient(0, 0, 0, H); vg.addColorStop(0, vb[0]); vg.addColorStop(1, vb[1]); ctx.fillStyle = vg; } else ctx.fillStyle = vb || '#ffffff'; ctx.fillRect(0, 0, W, H); }
       if (cvv.deco) { ctx.save(); cvv.deco(cg); ctx.restore(); }
     }
@@ -69,6 +69,7 @@
       var r = it.rect, img = it.name && imgs.get(it.name);
       var rad = sp.type === 'group' && it.kind === 'group' ? (sp.round != null ? sp.round : st.round || 0) : 0;
       if (it.rot) { drawPaper(ctx, img, it, st, o, d, rad); return; }
+      if (it.shape) { ctx.save(); root.AlbumCoverVariants.shapePath(ctx, r, it.shape); ctx.clip(); }
       if (img) drawImg(ctx, img, r, crop(st, it.name), rad);
       else if (it.dark) { ctx.fillStyle = '#1f1f23'; rrect(ctx, r, rad); ctx.fill(); if (o.preview) fitText(ctx, 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.1, r.w * 0.8, d.font, '#55555c'); }
       else if (it.kind === 'teacher') { ctx.fillStyle = d.ph; ctx.fillRect(r.x, r.y, r.w, r.h); }
@@ -76,6 +77,7 @@
         ctx.fillStyle = '#f4f2f0'; ctx.fillRect(r.x, r.y, r.w, r.h); ctx.strokeStyle = '#c9c4be'; ctx.setLineDash([2, 2]); ctx.lineWidth = 0.4; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1); ctx.setLineDash([]);
         fitText(ctx, it.kind === 'cell' ? 'клік: фото чи текст' : 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.12, r.w * 0.8, d.font, '#b5aea6');
       }
+      if (it.shape) ctx.restore();
       if (it.kind === 'cell' && it.text && it.text.p && root.AlbumPatterns) root.AlbumPatterns.draw(ctx, r, it.text.p, imgs);
       if (it.pivot) { ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineWidth = 0.8; ctx.strokeRect(r.x, r.y, r.w, r.h); }
       if (it.kind === 'cell' && it.caption) {
@@ -105,6 +107,7 @@
       drawItem(it);
       if (it.pivot) ctx.restore();
     });
+    if (cg && cvv.over) { ctx.save(); cvv.over(cg); ctx.restore(); }
     if (cg && cvv.text) { ctx.save(); cvv.text(cg); ctx.restore(); }
     else if (sp.type === 'cover') {
       var cv = require_cover(W, H, sb, info.z);

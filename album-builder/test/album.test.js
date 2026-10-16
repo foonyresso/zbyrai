@@ -318,5 +318,15 @@ test('обкладинка: перемикач прізвища й імені', 
   assert.strictEqual(S.slotsFor(st, 0, new Map()).ownerName, '');
   assert.deepStrictEqual(S.exportPlan(st).filter(x => /^cover/.test(x.name)).map(x => x.name), ['cover']);
 });
+test('обкладинки: колажі й фігури', () => {
+  const CV = require('../data/cover-variants.js'), L = require('../core/layout.js');
+  const n = {}; CV.VARIANTS.filter(v => v.cells).forEach(v => { assert.ok(v.general && v.photo === false); const cs = v.cells({ x0: 233, x1: 463, cx: 348, W: 466, H: 236, sb: 8 }); n[cs.length] = 1; cs.forEach(q => assert.ok(q.x >= 233 && q.x + q.w <= 466.01 && q.y >= 0 && q.y + q.h <= 236)); });
+  assert.ok(n[1] && n[3] && n[5]);
+  const st = S.newState(); st.children = '1 А А\n2 Б Б'; S.buildSpreads(st); st.coverVar = 'gp-3'; st.spreads[0].slots = ['a.jpg'];
+  assert.strictEqual(S.coverIndividual(st), false); const it = S.slotsFor(st, 0, new Map()).items; assert.strictEqual(it.length, 3); assert.strictEqual(it[0].name, 'a.jpg');
+  assert.deepStrictEqual(S.exportPlan(st).filter(x => /^cover/.test(x.name)).map(x => x.name), ['cover']);
+  st.coverVar = 'arch'; assert.strictEqual(S.slotsFor(st, 0, new Map()).items[0].shape, 'arch');
+  assert.ok(CV.VARIANTS.filter(v => v.photo).length >= 7);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

@@ -212,7 +212,7 @@
   }
   function ownerIndex(st) { var o = ownerOf(st), ks = albumKids(st); for (var i = 0; o && i < ks.length; i++) if (ks[i].id === o.id) return i; return -1; }
   function setOwnerIndex(st, i) { var ps = albumKids(st); if (ps[i]) st.owner = ps[i].id; }
-  function coverIndividual(st) { var d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic; return st.coverIndividual == null ? !!d.individualCover : !!st.coverIndividual; }
+  function coverIndividual(st) { var d = DS.DESIGNS[st.designId] || DS.DESIGNS.classic; return st.coverIndividual == null ? !!d.individualCover && !CV.byId(st.coverVar || 'classic').general : !!st.coverIndividual; }
   // Індивідуальний розворот (окремий варіант для кожної дитини): обкладинка (якщо дизайн індивідуальний) і всі розвороти типу 'first'.
   function isIndividual(st, si) { var t = st.spreads[si].type; return t === 'first' || (t === 'cover' && coverIndividual(st)); }
   function makeIndividual(st, si) { var sp = st.spreads[si]; if (si < 1 || sp.type === 'first' || sp.type === 'cover') return false; sp.type = 'first'; sp.slots = [null, null]; sp.extra = {}; sp.text = {}; sp.span = {}; sp.teacherPhotos = {}; sp.kidPhotos = {}; return true; }
@@ -272,7 +272,9 @@
     if (sp.type === 'cover') {
       var cvv = coverVar(st), c = L.coverLayout(W, H, z.sb, z, cvv), ow = ownerOf(st);
       ownerName = ow && coverIndividual(st) ? ow.name : '';
-      if (!st.coverNoPhoto && cvv.photo !== false) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap) : null), caption: '', kind: 'cover' }); });
+      if (!st.coverNoPhoto && cvv.photo !== false) halves(c.photo, ow).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'cover' } : { t: 'cover', m: q.m }, name: (q.p && st.coverPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap) : null), caption: '', kind: 'cover', shape: cvv.shape }); });
+      if (cvv.cells) cvv.cells({ x0: W / 2 + (z.spine || 0) / 2, x1: W - z.bleed, cx: c.cx, W: W, H: H, sb: z.sb }).forEach(function (q, i) { items.push({ rect: q, ref: { t: 'slot', i: i }, name: sp.slots[i] || null, caption: '', kind: 'group', shape: cvv.cellShape }); });
+
     } else if (sp.type === 'first') {
       var pc = L.pageCenters(W, z.bleed, z.safe), f = L.firstLayout(W, H, z.sb, pc.left, pc.right), tl = teachers(st);
       if (tl.length) {

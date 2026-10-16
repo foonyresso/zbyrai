@@ -174,7 +174,8 @@
     else if (sp.type === 'cover' || sp.type === 'first') {
       var rest2 = names.slice(), tl = S.teachers(st);
       if (targetRef && rest2.length) { S.setPhoto(st, cur, targetRef, rest2.shift()); placed++; }
-      if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap, cur);
+      if (sp.type === 'cover' && S.coverVar(st).cells) { rest2.forEach(function (n) { var i = 0; while (sp.slots[i]) i++; if (i < S.coverVar(st).cells({ x0: 0, x1: 1, cx: 0, W: 1, H: 1, sb: 0 }).length) { sp.slots[i] = n; placed++; } }); }
+      else if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap, cur);
       else if (side === 'left') {
         if (tl.length) placed += S.assignTeachers(st, cur, rest2, numMap);
         else if (rest2.length) { sp.slots[0] = rest2[0]; placed++; }
@@ -539,7 +540,7 @@
     list.forEach(function (v) {
       var b = el('button', 'cvbtn' + ((st.coverVar || 'classic') === v.id ? ' on' : ''), null, v.name + ': ' + v.note), c = document.createElement('canvas'), cw = Math.round(z.W * k / 2);
       c.width = cw; c.height = Math.round(z.H * k); b.appendChild(c); b.appendChild(el('span', '', v.name)); b.appendChild(el('small', '', v.photo ? 'з фото' : 'без фото'));
-      b.onclick = function () { st.coverVar = v.id; cur = 0; refresh(); };
+      b.onclick = function () { st.coverVar = v.id; st.coverIndividual = v.general ? false : null; cur = 0; refresh(); };
       grid.appendChild(b);
       var draw = function () {
         var full = document.createElement('canvas'); full.width = Math.round(z.W * k); full.height = c.height;
