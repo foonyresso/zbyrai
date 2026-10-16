@@ -3,13 +3,14 @@
   var P = typeof require !== 'undefined' ? require('./parse.js') : root.AlbumParse;
   var L = typeof require !== 'undefined' ? require('./layout.js') : root.AlbumLayout;
   var PR = typeof require !== 'undefined' ? require('../data/print-types.js') : root.AlbumPrint;
+  var TP = typeof require !== 'undefined' ? require('./templates.js') : root.AlbumTemplates;
   var DS = typeof require !== 'undefined' ? require('../data/designs.js') : root.AlbumDesigns;
   var uid = 0;
   function newId() { return 's' + (++uid) + Math.floor(Math.random() * 1e6).toString(36); }
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', noAlbum: '', teachers: '', kOverride: null, order: [], crops: {}, owner: 0, coverNoPhoto: false, coverPhotos: {}, coverIndividual: null, bg: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   function people(st) {
     var list = P.parseChildren(st.children).map(function (p) { p.kind = 'child'; return p; })
@@ -21,7 +22,7 @@
   function teachers(st) { return P.parseTeachers(st.teachers); }
   function portraitK(st) { return st.kOverride || L.autoK(people(st).length); }
   function portraitCount(st) { return Math.max(1, Math.ceil(people(st).length / portraitK(st))); }
-  function mkSpread(type) { return { id: newId(), type: type, seed: 1 + Math.floor(Math.random() * 9999), slots: type === 'cover' ? [null] : type === 'first' ? [null, null] : [], extra: {}, text: {}, span: {}, teacherPhotos: {}, kidPhotos: {}, style: 'mosaic' }; }
+  function mkSpread(type) { return { id: newId(), type: type, seed: 1 + Math.floor(Math.random() * 9999), slots: type === 'cover' ? [null] : type === 'first' ? [null, null] : [], extra: {}, text: {}, span: {}, teacherPhotos: {}, kidPhotos: {}, style: 'mosaic', template: null, frame: false, bg: null }; }
   function buildSpreads(st) {
     var s = [mkSpread('cover'), mkSpread('first')];
     for (var i = 0; i < portraitCount(st); i++) { s.push(mkSpread('portrait')); s.push(mkSpread('group')); }
@@ -76,12 +77,49 @@
     st.spreads.forEach(function (s) { if (s.type === 'portrait') Object.keys(s.extra).forEach(function (j) { var p = s.extra[j] && personByName(st, s.extra[j]); if (p) seen[p.id] = 1; }); });
     return { placed: Object.keys(seen).length, total: total };
   }
+  // ---- групові розкладки за шаблонами ----
+  function freeGroup(sp) { var t = TP.byId(sp.template); for (var i = 0; t && i < t.n; i++) if (!sp.slots[i]) return i; return -1; }
+  function freeCount(sp) { var t = TP.byId(sp.template), n = 0; for (var i = 0; t && i < t.n; i++) if (!sp.slots[i]) n++; return n; }
+  function groupPhotos(sp) { return sp.slots.filter(Boolean); }
+  function setStyle(st, si, style) { var sp = st.spreads[si]; sp.slots = groupPhotos(sp); sp.style = style; sp.template = null; }
+  // Обрати шаблон: якщо фото більше за вікна, повертає {overflow:true}, нічого не змінюючи.
+  function setTemplate(st, si, id) {
+    var sp = st.spreads[si], t = TP.byId(id), ph = groupPhotos(sp);
+    if (!t) return { ok: false };
+    if (ph.length > t.n) return { overflow: true, photos: ph, tpl: t };
+    sp.style = 'tpl'; sp.template = id; sp.slots = ph.concat(Array(t.n - ph.length).fill(null)); return { ok: true };
+  }
+  // Додати фото на груповий розворот: у вільні вікна шаблону або в кінець. Повертає {placed, rest}: rest не вмістилось.
+  function addGroupPhotos(st, si, names) {
+    var sp = st.spreads[si], fresh = names.filter(function (n) { return sp.slots.indexOf(n) < 0; });
+    if (sp.style !== 'tpl') { fresh.forEach(function (n) { sp.slots.push(n); }); return { placed: fresh.length, rest: [] }; }
+    var placed = 0, rest = [];
+    fresh.forEach(function (n) { var i = freeGroup(sp); if (i < 0) rest.push(n); else { sp.slots[i] = n; placed++; } });
+    return { placed: placed, rest: rest };
+  }
+  function areaOf(st, si) { var z = zoneOf(st, si); return { W: z.W, H: z.H, d: DS.DESIGNS[st.designId] || DS.DESIGNS.classic }; }
+  // «Пропустити зайві»: у вільні вікна шаблону йдуть фото, найближчі за пропорціями; решта ігнорується. aspectOf(name) -> ширина/висота.
+  function fillBest(st, si, names, aspectOf) {
+    var sp = st.spreads[si], t = TP.byId(sp.template), a = areaOf(st, si), rs = TP.rects(t, a.W, a.H, sp.frame ? a.d.groupGap : a.d.gap, sp.frame ? a.d.groupMargin : 0);
+    var free = rs.filter(function (r) { return !sp.slots[r.i]; }), asp = names.map(aspectOf), res = TP.assign(free, asp), n = 0;
+    res.forEach(function (pi, k) { if (pi >= 0) { sp.slots[free[k].i] = names[pi]; n++; } });
+    return n;
+  }
+  // «Підібрати іншу розкладку»: шаблон під усі фото (поточні й нові) за кількістю й пропорціями; якщо вікон ніде не вистачає, авто-мозаїка.
+  function fitAll(st, si, extra, aspectOf) {
+    var sp = st.spreads[si], all = groupPhotos(sp).concat(extra.filter(function (n) { return sp.slots.indexOf(n) < 0; })), a = areaOf(st, si);
+    var t = TP.pick(all.map(aspectOf), a.W, a.H, a.d.gap);
+    if (!t) { sp.slots = all; sp.style = 'mosaic'; sp.template = null; return { n: all.length, tpl: null }; }
+    var rs = TP.rects(t, a.W, a.H, a.d.gap, 0), res = TP.assign(rs, all.map(aspectOf)); sp.style = 'tpl'; sp.template = t.id; sp.slots = Array(t.n).fill(null);
+    res.forEach(function (pi, k) { if (pi >= 0) sp.slots[k] = all[pi]; });
+    return { n: all.length, tpl: t };
+  }
   // Переносить фото з комірки (ref) розвороту si на розворот to: портретний бере вільну комірку, груповий додає в кінець.
   function movePhoto(st, si, ref, to) {
     var sp = st.spreads[si], name = ref.t === 'extra' ? sp.extra[ref.j] : sp.slots[ref.i], dst = st.spreads[to];
     if (!name || !dst || to === si) return false;
     if (dst.type === 'portrait') { if (!freeCells(st, to).length) return false; dst.extra[freeCells(st, to)[0]] = name; }
-    else if (dst.type === 'group') dst.slots.push(name); else return false;
+    else if (dst.type === 'group') { if (dst.style === 'tpl') { var fi = freeGroup(dst); if (fi < 0) return false; dst.slots[fi] = name; } else dst.slots.push(name); } else return false;
     removePhoto(st, si, ref); return true;
   }
   function numMapOf(names) {
@@ -180,6 +218,11 @@
         items.push({ rect: rect, ref: { t: 'extra', j: j }, name: name, text: (sp.text && sp.text[j]) || null, span: span ? sp.span[j] : null, caption: pe ? pe.name : '', kind: 'cell' });
       });
     } else {
+      if (sp.style === 'tpl' && TP.byId(sp.template)) {
+        var tpl = TP.byId(sp.template), mg = sp.frame ? d.groupMargin : 0;
+        TP.rects(tpl, W, H, sp.frame ? d.groupGap : d.gap, mg).forEach(function (r) { items.push({ rect: r, rot: r.pivot ? 0 : 0, tilt: r.rot, pivot: r.pivot, ref: { t: 'slot', i: r.i }, name: sp.slots[r.i] || null, caption: '', kind: 'group', dark: true }); });
+        return { W: W, H: H, items: items, design: d, ownerName: '', z: z };
+      }
       L.groupSlots(sp.slots.length, W, H, d.groupGap, d.groupMargin, sp.seed, sp.style || 'mosaic').forEach(function (r, i) { items.push({ rect: r, rot: r.rot || 0, ref: { t: 'slot', i: r.i != null ? r.i : i }, name: sp.slots[r.i != null ? r.i : i], caption: '', kind: 'group' }); });
     }
     return { W: W, H: H, items: items, design: d, ownerName: ownerName, z: z };
@@ -219,7 +262,7 @@
     if (ref.t === 'cover') { if (ow) delete st.coverPhotos[ow.id]; return true; }
     if (ref.t === 'fright') { if (ow) delete sp.kidPhotos[ow.id]; return true; }
     if (ref.t === 'teacher') { delete sp.teacherPhotos[ref.i]; return true; }
-    if (ref.t === 'slot') { if (sp.type === 'group') sp.slots.splice(ref.i, 1); else sp.slots[ref.i] = null; return true; }
+    if (ref.t === 'slot') { if (sp.type === 'group' && sp.style !== 'tpl') sp.slots.splice(ref.i, 1); else sp.slots[ref.i] = null; return true; }
     if (ref.t === 'extra') { delete sp.extra[ref.j]; if (sp.text) delete sp.text[ref.j]; return true; }
     return false;
   }
@@ -256,6 +299,6 @@
   }
   var api = { newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
-    moveSpread: moveSpread, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
+    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;
 })(typeof self !== 'undefined' ? self : this);

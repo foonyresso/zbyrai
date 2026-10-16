@@ -114,8 +114,9 @@
     $('btnAdd').textContent = t === 'cover' || t === 'first' ? '＋ Портрети' : '＋ Додати фото';
     $('btnLeftPhotos').textContent = S.teachers(st).length ? '＋ Вчителі' : '＋ Загальне фото';
     buildKidStrip();
-    $('btnShuffle').hidden = $('btnStyle').hidden = t !== 'group';
-    $('btnStyle').textContent = 'Стиль: ' + ({ mosaic: 'мозаїка', rows: 'ряди', scrap: 'вклеєні' }[st.spreads[cur].style || 'mosaic']);
+    $('btnShuffle').hidden = $('btnStyle').hidden = $('btnLayouts').hidden = t !== 'group';
+    if (t !== 'group') $('layoutStrip').hidden = true; else if (!$('layoutStrip').hidden) buildLayoutStrip();
+    $('btnStyle').textContent = 'Стиль: ' + ({ mosaic: 'мозаїка', rows: 'ряди', scrap: 'вклеєні', tpl: 'готова' }[st.spreads[cur].style || 'mosaic']);
     $('spineIn').value = st.spine == null ? PR.spreadSize(st.fmtId).spine : st.spine;
     $('coverNoPhoto').checked = !!st.coverNoPhoto;
     $('safeIn').value = st.safe == null ? PR.spreadSize(st.fmtId).safe : st.safe; $('coverSafeIn').value = st.coverSafe == null ? 15 : st.coverSafe;
@@ -139,7 +140,11 @@
     }
     numMap = S.numMapOf(Array.from(files.keys()));
     var sp = st.spreads[cur], placed = 0;
-    if (sp.type === 'group') names.forEach(function (n) { if (sp.slots.indexOf(n) < 0) { sp.slots.push(n); placed++; } });
+    if (sp.type === 'group') {
+      var fresh = names.filter(function (n) { return sp.slots.indexOf(n) < 0; });
+      if (sp.style === 'tpl' && fresh.length > S.freeCount(sp)) { refresh(); tooMany(fresh); return; }
+      placed = S.addGroupPhotos(st, cur, fresh).placed;
+    }
     else if (sp.type === 'portrait') {
       var rest = names.slice();
       if (targetRef && targetRef.t === 'extra' && rest.length) { S.setPhoto(st, cur, targetRef, rest.shift()); placed++; }
@@ -217,6 +222,52 @@
     if (!e.dataTransfer.files.length) return; e.preventDefault(); box.classList.remove('over');
     var mm = lastInfo ? mmAt(e) : null, it = mm ? hit(mm) : null; addFiles(e.dataTransfer.files, it ? it.ref : null, mm && lastInfo && mm.x < lastInfo.W / 2 ? 'left' : 'right');
   });
+  // ---------- Розкладки групових фото, діалог «фото забагато», фон ----------
+  function aspectOf(n) { var im = imgs.get(n); return im ? im.naturalWidth / im.naturalHeight : 1.4; }
+  function dialog(text, buttons) {
+    $('dlgText').textContent = text; var b = $('dlgBtns'); b.textContent = '';
+    buttons.forEach(function (x) { var e = el('button', x.cls || '', x.t, x.title); e.onclick = function () { $('dlg').hidden = true; x.fn(); refresh(); }; b.appendChild(e); });
+    $('dlg').hidden = false;
+  }
+  // Фото більше, ніж вікон у розкладці: три варіанти дій.
+  function tooMany(extra, tpl) {
+    var sp = st.spreads[cur], t = tpl || (sp.template && AlbumTemplates.byId(sp.template)), total = S.groupPhotos(sp).length + extra.length;
+    dialog('Фото забагато: ' + total + ' фото, а в розкладці ' + (t ? t.n : '?') + ' вікон.', [
+      { t: 'Обрати інші фото', title: 'Ці фото ігноруються, конструктор чекає наступних', fn: function () { toast('Фото пропущено, чекаю інші'); }, cls: '' },
+      { t: 'Підібрати іншу розкладку', title: 'Розкладка підбирається під кількість фото та їх пропорції', fn: function () { var r = S.fitAll(st, cur, extra, aspectOf); toast(r.tpl ? 'Розкладка: ' + r.tpl.name : 'Підходящого шаблону немає, зроблено авто-мозаїку'); } },
+      { t: 'Пропустити ті, що не вміщаються', title: 'У вікна кладуться фото, найближчі за пропорціями; решта ігнорується', fn: function () { if (tpl) { var ph = S.groupPhotos(sp); sp.style = 'tpl'; sp.template = tpl.id; sp.slots = Array(tpl.n).fill(null); S.fillBest(st, cur, ph.concat(extra), aspectOf); } else S.fillBest(st, cur, extra, aspectOf); } }
+    ]);
+  }
+  function pickLayout(id) {
+    var r = S.setTemplate(st, cur, id);
+    if (r.overflow) tooMany([], r.tpl); else refresh();
+  }
+  function buildLayoutStrip() {
+    var strip = $('layoutStrip'), sp = st.spreads[cur], z = S.zoneOf(st, cur), th = 50, tw = Math.round(th * z.W / z.H); strip.textContent = '';
+    var opt = el('div', 'lopt'), lab = el('label', '', '', 'Біла рамка навколо фото'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!sp.frame; cb.onchange = function () { sp.frame = cb.checked; refresh(); };
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(' Біла рамка')); opt.appendChild(lab); strip.appendChild(opt);
+    [['mosaic', 'Мозаїка (авто)'], ['rows', 'Ряди (авто)'], ['scrap', 'Вклеєні (авто)']].forEach(function (a) {
+      var b = el('button', 'lt txt' + (sp.style === a[0] ? ' on' : ''), a[1], 'Авто-розкладка під будь-яку кількість фото'); b.onclick = function () { S.setStyle(st, cur, a[0]); refresh(); }; strip.appendChild(b);
+    });
+    AlbumTemplates.LIST.forEach(function (t) {
+      var b = el('button', 'lt' + (sp.style === 'tpl' && sp.template === t.id ? ' on' : ''), null, t.name + ' (' + t.n + ' фото)'), c = document.createElement('canvas'); c.width = tw * 2; c.height = th * 2;
+      var g = c.getContext('2d'), k = c.width / z.W; g.fillStyle = '#e9e5df'; g.fillRect(0, 0, c.width, c.height); g.setTransform(k, 0, 0, k, 0, 0);
+      AlbumTemplates.rects(t, z.W, z.H, 3, 0).forEach(function (r) { g.save(); if (r.pivot) { g.translate(r.pivot.x, r.pivot.y); g.rotate(r.rot); g.translate(-r.pivot.x, -r.pivot.y); } g.fillStyle = '#3a3a42'; g.fillRect(r.x, r.y, r.w, r.h); g.restore(); });
+      c.style.width = tw + 'px'; b.appendChild(c); b.appendChild(el('span', '', String(t.n))); b.onclick = function () { pickLayout(t.id); }; strip.appendChild(b);
+    });
+  }
+  $('btnLayouts').onclick = function () { var s2 = $('layoutStrip'); s2.hidden = !s2.hidden; if (!s2.hidden) buildLayoutStrip(); setTimeout(redraw, 30); };
+  var bgDraft = { type: 'color', color: '#ffffff', color2: '#cfd8ff', angle: 90, image: null };
+  function bgSync() { bgDraft.type = $('bgType').value; bgDraft.color = $('bgC1').value; bgDraft.color2 = $('bgC2').value; bgDraft.angle = +$('bgAngle').value; $('bgC2L').hidden = $('bgAngL').hidden = bgDraft.type !== 'gradient'; $('bgImgRow').hidden = bgDraft.type !== 'image'; $('bgC1').parentNode.hidden = bgDraft.type === 'image' && false; }
+  ['bgType', 'bgC1', 'bgC2', 'bgAngle'].forEach(function (id) { $(id).oninput = $(id).onchange = bgSync; }); bgSync();
+  $('bgImgBtn').onclick = function () { $('fileBg').click(); };
+  $('fileBg').onchange = async function (e) { var f = e.target.files[0]; e.target.value = ''; if (!f) return; var im = await loadImage(f); if (!im) return toast('Не вдалося прочитати картинку'); var key = 'bg::' + f.name; imgs.set(key, im); bgDraft.image = key; $('bgImgName').textContent = f.name; };
+  function bgCopy() { if (bgDraft.type === 'image' && !bgDraft.image) { toast('Спершу вибери картинку'); return null; } return JSON.parse(JSON.stringify(bgDraft)); }
+  $('bgAll').onclick = function () { var b = bgCopy(); if (!b) return; st.bg = b; refresh(); };
+  $('bgOne').onclick = function () { var b = bgCopy(); if (!b) return; st.spreads[cur].bg = b; refresh(); };
+  $('bgResetOne').onclick = function () { st.spreads[cur].bg = null; refresh(); };
+  $('bgResetAll').onclick = function () { st.bg = null; refresh(); };
+
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
   function menuFor(it) {
@@ -247,7 +298,7 @@
       }
     }
     var sc = [];
-    if (sp.type === 'group') sc.push(['Стиль розкладки: ' + ({ mosaic: 'мозаїка', rows: 'рівні ряди', scrap: 'вклеєні в альбом' }[sp.style || 'mosaic']) + ' → далі', 'Змінити стиль групових фото: мозаїка, рівні ряди, вклеєні в альбом (з нахилами й накладанням)', function () { var ss = ['mosaic', 'rows', 'scrap']; sp.style = ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]; }]);
+    if (sp.type === 'group') sc.push(['Стиль розкладки: ' + ({ mosaic: 'мозаїка', rows: 'рівні ряди', scrap: 'вклеєні в альбом', tpl: 'готова розкладка' }[sp.style || 'mosaic']) + ' → далі', 'Змінити стиль групових фото: мозаїка, рівні ряди, вклеєні в альбом (з нахилами й накладанням)', function () { var ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); }]);
     if (sp.type === 'group') sc.push(['🎲 Розкласти інакше', 'Нова випадкова розкладка групових фото', function () { sp.seed = 1 + Math.floor(Math.random() * 99999); }]);
     if (sp.type === 'cover') sc.push([S.coverIndividual(st) ? 'Обкладинка одна для всіх (cover.jpg)' : 'Обкладинка індивідуальна (cover_01…)', 'Індивідуальна: окрема для кожної дитини; одна: один файл cover.jpg', function () { st.coverIndividual = !S.coverIndividual(st); }]);
     if (cur >= 1 && (sp.type === 'group' || sp.type === 'portrait')) sc.push(['Зробити розворот індивідуальним', 'Розворот стане як перший: ліворуч вчителі чи загальне фото, праворуч портрет кожної дитини; файли NN_01, NN_02…', function () {
@@ -307,7 +358,7 @@
   $('kSel').onchange = function () { st.kOverride = +$('kSel').value || null; S.resizePortrait(st); S.reflowPortrait(st); if (cur >= st.spreads.length) cur = st.spreads.length - 1; sel = null; refresh(); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   $('btnShuffle').onclick = function () { st.spreads[cur].seed = 1 + Math.floor(Math.random() * 99999); refresh(); };
-  $('btnStyle').onclick = function () { var sp = st.spreads[cur], ss = ['mosaic', 'rows', 'scrap']; sp.style = ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]; refresh(); };
+  $('btnStyle').onclick = function () { var sp = st.spreads[cur], ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); refresh(); };
   $('spineIn').onchange = function () { var v = parseFloat($('spineIn').value); st.spine = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };
   $('safeIn').onchange = function () { var v = parseFloat($('safeIn').value); st.safe = isNaN(v) ? null : Math.max(0, Math.min(40, v)); refresh(); };
   $('coverSafeIn').onchange = function () { var v = parseFloat($('coverSafeIn').value); st.coverSafe = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };

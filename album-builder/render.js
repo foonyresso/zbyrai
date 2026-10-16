@@ -16,20 +16,32 @@
     if (w > maxW) { s = s * maxW / w; ctx.font = (weight || '400') + ' ' + s + 'px ' + font; if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) * s + 'px'; }
     ctx.fillText(text, x, y); ctx.restore(); return s;
   }
+  // Фон розвороту: однотонний, градієнт або картинка (bg.type: color | gradient | image); без bg колір дизайну.
+  function paintBg(ctx, W, H, bg, imgs, fallback) {
+    ctx.fillStyle = fallback; ctx.fillRect(0, 0, W, H);
+    if (!bg) return;
+    if (bg.type === 'color') { ctx.fillStyle = bg.color || fallback; ctx.fillRect(0, 0, W, H); }
+    else if (bg.type === 'gradient') {
+      var a = (bg.angle || 0) * Math.PI / 180, dx = Math.cos(a), dy = Math.sin(a), half = (Math.abs(W * dx) + Math.abs(H * dy)) / 2, g = ctx.createLinearGradient(W / 2 - dx * half, H / 2 - dy * half, W / 2 + dx * half, H / 2 + dy * half);
+      g.addColorStop(0, bg.color || '#ffffff'); g.addColorStop(1, bg.color2 || '#000000'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    } else if (bg.type === 'image') { var im = bg.image && imgs.get(bg.image); if (im) drawImg(ctx, im, { x: 0, y: 0, w: W, h: H }, { z: 1, fx: 0.5, fy: 0.5 }); }
+  }
   function draw(ctx, st, si, numMap, imgs, o) {
     var info = S.slotsFor(st, si, numMap), d = info.design, W = info.W, H = info.H, sp = st.spreads[si], sb = info.z.sb;
     ctx.save(); ctx.setTransform(o.pxPerMm, 0, 0, o.pxPerMm, 0, 0);
-    ctx.fillStyle = sp.type === 'group' && sp.style === 'scrap' ? '#efe9e0' : d.bg; ctx.fillRect(0, 0, W, H);
+    paintBg(ctx, W, H, sp.bg || st.bg, imgs, sp.type === 'group' && sp.style === 'scrap' ? '#efe9e0' : d.bg);
     var yr = st.year || '', inst = st.inst.full || st.inst.short || '';
-    info.items.forEach(function (it) {
+    var drawItem = function (it) {
       var r = it.rect, img = it.name && imgs.get(it.name);
       if (it.rot) { drawPaper(ctx, img, it, st, o, d); return; }
       if (img) drawImg(ctx, img, r, crop(st, it.name));
+      else if (it.dark) { ctx.fillStyle = '#1f1f23'; ctx.fillRect(r.x, r.y, r.w, r.h); if (o.preview) fitText(ctx, 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.1, r.w * 0.8, d.font, '#55555c'); }
       else if (it.kind === 'teacher') { ctx.fillStyle = d.ph; ctx.fillRect(r.x, r.y, r.w, r.h); }
       else if (o.preview && !it.text) {
         ctx.fillStyle = '#f4f2f0'; ctx.fillRect(r.x, r.y, r.w, r.h); ctx.strokeStyle = '#c9c4be'; ctx.setLineDash([2, 2]); ctx.lineWidth = 0.4; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1); ctx.setLineDash([]);
         fitText(ctx, it.kind === 'cell' ? 'клік: фото чи текст' : 'фото', r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) * 0.12, r.w * 0.8, d.font, '#b5aea6');
       }
+      if (it.pivot) { ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineWidth = 0.8; ctx.strokeRect(r.x, r.y, r.w, r.h); }
       if (it.kind === 'cell' && it.caption) {
         // підпис не заходить у безпечну зону: біля країв розвороту смуга довша, а текст зсунутий всередину
         var bh = Math.min(r.h * 0.15, 11), bot = Math.min(r.y + r.h, H - sb), by = bot - bh;
@@ -43,6 +55,11 @@
         fitText(ctx, nm, c.x + c.w / 2, c.y + c.h * (it.post ? 0.46 : 0.62), c.h * 0.36, c.w * 0.96, d.font, d.text, '600', 'center', 0.03);
         if (it.post) fitText(ctx, it.post, c.x + c.w / 2, c.y + c.h * 0.84, c.h * 0.24, c.w * 0.96, d.font, d.text, '400', 'center', 0.02);
       }
+    };
+    info.items.forEach(function (it) {
+      if (it.pivot) { ctx.save(); ctx.translate(it.pivot.x, it.pivot.y); ctx.rotate(it.tilt); ctx.translate(-it.pivot.x, -it.pivot.y); }
+      drawItem(it);
+      if (it.pivot) ctx.restore();
     });
     if (sp.type === 'cover') {
       var cv = require_cover(W, H, sb, info.z);

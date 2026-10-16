@@ -71,6 +71,7 @@
     <button class="btn-main" id="btnAdd" title="Вибрати фото з комп'ютера: портрети підтягнуться за номерами, на груповий розворот лягуть по порядку">＋ Додати фото</button>
     <input type="file" id="fileImg" accept="image/*" multiple hidden>
     <button id="btnLeftPhotos" hidden title="Додати фото на ліву сторінку першого розвороту: вчителі (за номерами або по порядку), а якщо вчителів нема, загальне фото">＋ Загальне фото</button>
+    <button id="btnLayouts" hidden title="Готові розкладки групових фото: відкриває рядок з варіантами під розворотом">▦ Розкладка</button>
     <button id="btnShuffle" hidden title="Нова випадкова розкладка групових фото на цьому розвороті">🎲 Розкласти інакше</button>
     <button id="btnStyle" hidden title="Змінити стиль розкладки групових фото: мозаїка, рівні ряди, вклеєні в альбом">Стиль</button>
     <button id="btnFolder" title="Вибрати цілу папку з фото">Папка</button>
@@ -85,6 +86,7 @@
     <button data-go="album" title="Повернутися до вибору типу друку, формату й дизайну"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h8.5v14H3zM12.5 5H21v14h-8.5z"/></svg><span>Альбом</span></button>
     <button data-panel="layout" title="Розкладка портретів: 8, 12, 16 або 32 на розворот"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5h7v7h-7zM13.5 3.5h7v7h-7zM3.5 13.5h7v7h-7zM13.5 13.5h7v7h-7z"/></svg><span>Розкладка</span></button>
     <button data-panel="spread" title="Для кого обкладинка й перший розворот, обкладинка без фото. Решта дій над вікнами й розворотами: правий клік мишкою"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M12 6v12"/></svg><span>Розворот</span></button>
+    <button data-panel="bg" title="Фон розворотів: колір, градієнт або картинка; для всього альбому чи окремого розвороту"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg><span>Фон</span></button>
     <button data-panel="view" title="Вигляд: лінії обрізу й згину, режим перетягування"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
   </nav>
   <aside class="drawer" id="drawer" hidden>
@@ -95,6 +97,17 @@
       <p class="hint" id="kInfo"></p></section>
     <section data-panel="spread"><h2>Розворот</h2><p class="hint" id="spInfo"></p>
       <label class="chk" title="Прибрати фото з обкладинки: лишається лише дизайн, рік і назва"><input type="checkbox" id="coverNoPhoto"> Обкладинка без фото</label></section>
+    <section data-panel="bg"><h2>Фон</h2>
+      <label title="Тип фону">Тип <select id="bgType" title="Однотонний, градієнт чи картинка"><option value="color">Колір</option><option value="gradient">Градієнт</option><option value="image">Картинка</option></select></label>
+      <div class="two"><label title="Колір (для градієнта: початковий)">Колір <input type="color" id="bgC1" value="#ffffff" title="Колір з палітри"></label>
+        <label id="bgC2L" title="Другий колір градієнта">Колір 2 <input type="color" id="bgC2" value="#cfd8ff" title="Кінцевий колір градієнта"></label></div>
+      <label id="bgAngL" title="Напрямок градієнта в градусах">Кут градієнта <input type="range" id="bgAngle" min="0" max="360" step="5" value="90" title="0 вправо, 90 вниз"></label>
+      <div id="bgImgRow"><button id="bgImgBtn" title="Вибрати картинку для фону з комп'ютера">Вибрати картинку…</button> <span class="hint" id="bgImgName"></span><input type="file" id="fileBg" accept="image/*" hidden></div>
+      <button id="bgAll" title="Застосувати цей фон до всіх розворотів, що не мають свого фону">На весь альбом</button>
+      <button id="bgOne" title="Застосувати цей фон лише до поточного розвороту">Тільки цей розворот</button>
+      <button id="bgResetOne" title="Прибрати окремий фон поточного розвороту (буде фон альбому)">Скинути для розвороту</button>
+      <button id="bgResetAll" title="Прибрати фон альбому (буде колір дизайну)">Скинути для альбому</button>
+      <p class="hint">Окремий фон розвороту має перевагу над фоном альбому.</p></section>
     <section data-panel="view"><h2>Вигляд</h2>
       <div class="seg" id="dragMode" title="Що робить перетягування фото"><button data-dm="swap" class="on" title="Перетягни фото на інше, і вони поміняються місцями. Alt перемикає на «Кадр»">Обмін місцями</button><button data-dm="crop" title="Перетягування зсуває кадр усередині вікна">Кадр</button></div>
       <label class="chk" title="Червоне: виліт, що точно обріжеться; червона лінія: обріз; жовта: безпечна межа, за яку не можна заходити текстом; синя: згин. У файл не потрапляють"><input type="checkbox" id="guides" checked> Виліт, обріз і безпечна зона</label>
@@ -103,16 +116,20 @@
       <label title="Ширина корінця (зазор між задньою й передньою частинами обкладинки), мм. Від неї залежить центр передньої сторони"><span>Корінець обкладинки, мм</span> <input type="number" id="spineIn" min="0" max="60" step="0.5" title="Ширина корінця в мм; поки 0 (невідомо)"></label>
       <p class="hint" id="safeInfo"></p><p class="hint" id="sizeInfo"></p></section>
   </aside>
+  <div class="layouts" id="layoutStrip" hidden></div>
   <div class="kids" id="kidStrip" hidden title="Діти зі списку: клік показує обкладинку й індивідуальні розвороти саме цієї дитини"></div>
   <div class="strip" id="strip" title="Розвороти: клік вибирає, перетягування змінює порядок"></div>
 </div>
 
 <div class="menu" id="cellMenu" hidden></div>
+<div class="dlg" id="dlg" hidden><div class="dlgbox"><p id="dlgText"></p><div id="dlgBtns"></div></div></div>
 <div class="toast" id="toast"></div>
 <script src="./data/print-types.js"></script>
 <script src="./data/designs.js"></script>
 <script src="./core/parse.js"></script>
+<script src="./data/group-layouts.js"></script>
 <script src="./core/layout.js"></script>
+<script src="./core/templates.js"></script>
 <script src="./core/state.js"></script>
 <script src="./render.js"></script>
 <script src="./export.js"></script>

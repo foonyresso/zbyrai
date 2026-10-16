@@ -183,6 +183,34 @@ test('вибіркове завантаження портретів: фото, 
   assert.strictEqual(S.portraitStats(st).placed, 12);
   assert.strictEqual(Object.values(st.spreads[ps[0]].extra).filter(n => n === '1.jpg').length, 1);
 });
+test('шаблони групових розкладок: усі валідні, вікна в межах розвороту без перекриття', () => {
+  const TP = require('../core/templates.js');
+  assert.ok(TP.LIST.length >= 30);
+  for (const t of TP.LIST) {
+    const r = TP.rects(t, 466, 236, 1.2, 0); assert.strictEqual(r.length, t.n, t.id);
+    if (!t.tilt) r.forEach((a, i) => { assert.ok(a.x > -1e-6 && a.y > -1e-6 && a.x + a.w < 466 + 1e-6 && a.y + a.h < 236 + 1e-6, t.id); r.forEach((b, j) => i < j && assert.ok(!overlap(a, b), t.id)); });
+    else assert.ok(r.every(x => x.pivot && x.rot !== 0), t.id);
+  }
+  ['g4', 'g12', 'g6c', 'g8a', 'g7'].forEach(id => assert.ok(TP.byId(id)));
+});
+test('вибір розкладки, забагато фото: інша розкладка, пропуск зайвих, авто-підбір', () => {
+  const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
+  const g = st.spreads.findIndex(x => x.type === 'group'), sp = st.spreads[g], asp = n => (n.startsWith('p') ? 0.75 : 1.5);
+  sp.slots = ['a1', 'a2', 'a3', 'a4', 'a5'];
+  const r = S.setTemplate(st, g, 'g4'); assert.ok(r.overflow); assert.strictEqual(sp.style, 'mosaic');
+  assert.ok(S.setTemplate(st, g, 'g6').ok); assert.strictEqual(sp.slots.length, 6); assert.strictEqual(S.freeCount(sp), 1);
+  const add = S.addGroupPhotos(st, g, ['b1', 'b2']); assert.strictEqual(add.placed, 1); assert.deepStrictEqual(add.rest, ['b2']);
+  sp.slots = ['x1', 'x2', null, null]; S.setTemplate(st, g, 'g4'); assert.strictEqual(S.freeCount(sp), 2);
+  const n = S.fillBest(st, g, ['q1', 'q2', 'q3'], asp); assert.strictEqual(n, 2); assert.strictEqual(S.freeCount(sp), 0);
+  const f = S.fitAll(st, g, ['n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7'], asp); assert.ok(f.tpl && f.tpl.n >= 11); assert.ok(S.groupPhotos(sp).length >= 11);
+  const big = S.fitAll(st, g, Array.from({ length: 30 }, (_, i) => 'z' + i), asp); assert.strictEqual(big.tpl, null); assert.strictEqual(sp.style, 'mosaic');
+});
+test('видалення фото з шаблону лишає вікно порожнім', () => {
+  const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
+  const g = st.spreads.findIndex(x => x.type === 'group'); st.spreads[g].slots = ['a', 'b']; S.setTemplate(st, g, 'g4');
+  S.removePhoto(st, g, { t: 'slot', i: 0 }); const it = S.slotsFor(st, g, new Map()).items;
+  assert.strictEqual(it.length, 4); assert.strictEqual(it[0].name, null); assert.strictEqual(it[1].name, 'b'); assert.ok(it[0].dark);
+});
 test('JSON туди й назад', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   assert.strictEqual(S.fromJSON(S.toJSON(st)).spreads.length, st.spreads.length);

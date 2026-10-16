@@ -65,3 +65,12 @@ details.how { margin: 12px 18px 0; }
 .kid.miss::after { content: ''; position: absolute; right: 5px; top: 5px; width: 7px; height: 7px; border-radius: 50%; background: #e0605a; }
 .kidnav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; } #kidLabel { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .drawer input[type=number] { width: 100%; }
+
+.layouts { flex: none; display: flex; gap: 8px; align-items: flex-start; overflow-x: auto; padding: 8px 12px; background: var(--bg-elev); border-top: 1px solid var(--line); }
+.layouts .lt { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--muted); cursor: pointer; border: 2px solid transparent; border-radius: 6px; padding: 2px; background: none; }
+.layouts .lt canvas { height: 50px; display: block; border-radius: 2px; } .layouts .lt.on { border-color: var(--accent); color: var(--accent-hi); }
+.layouts .lt.txt { width: 84px; height: 50px; justify-content: center; text-align: center; }
+.layouts .lopt { flex: none; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.dlg { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; }
+.dlgbox { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px; max-width: 460px; display: flex; flex-direction: column; gap: 14px; }
+.dlgbox p { margin: 0; } #dlgBtns { display: flex; flex-direction: column; gap: 8px; }
