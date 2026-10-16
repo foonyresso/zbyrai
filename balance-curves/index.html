@@ -35,7 +35,7 @@
 </header>
 
 
-<details class="about" open>
+<details class="about">
   <summary title="Згорнути або розгорнути довідку">Що це, для чого, як користуватися</summary>
   <div class="about-body">
     <p><b>Що це.</b> Інструмент для балансу гри. Він малює, як ростуть числа з рівнем або номером хвилі (здоров'я ворогів, шкода гравця, досвід, ціни), і вміє складати хвилі ворогів так, щоб кожна наступна була трохи важчою.</p>
@@ -52,64 +52,79 @@
   </div>
 </details>
 
-<main class="wrap" id="viewCurves">
-  <section class="chartcard">
-    <div class="chart-h">
-      <label class="ctl-inline" title="З якого рівня (кроку) починати графік">Від <input type="number" id="nFrom" min="0" max="999" step="1" title="З якого рівня (кроку) починати графік"></label>
-      <label class="ctl-inline" title="На якому рівні (кроці) закінчити графік, максимум 1000">До <input type="number" id="nTo" min="2" max="1000" step="1" title="На якому рівні (кроці) закінчити графік, максимум 1000"></label>
-      <label class="ctl-inline" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок">Вигляд <select id="selView" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок"><option value="val">Значення</option><option value="cum">Накопичено</option><option value="gr">Приріст за крок, %</option></select></label>
-      <label class="chk" title="Логарифмічна шкала: зручна, коли числа зростають у сотні разів"><input type="checkbox" id="cLog"><span>Лог. шкала</span></label>
-    </div>
-    <div class="plot" id="plot"></div>
-    <div class="legend" id="legend"></div>
-    <div class="cardrow" id="ratioBox">
+<div class="work" id="viewCurves">
+  <div class="plot" id="plot"></div>
+  <div class="legend" id="legend"></div>
+
+  <nav class="rail" aria-label="Меню кривих">
+    <button data-panel="curves" title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри й формули, бібліотека формул"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg><span>Криві</span></button>
+    <button data-panel="ratio" title="Співвідношення двох кривих: у скільки разів одна більша за іншу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg><span>Відношення</span></button>
+    <button data-panel="table" title="Таблиця значень усіх видимих кривих на кожному рівні"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M3.5 14h17M10 4v16"/></svg><span>Таблиця</span></button>
+  </nav>
+  <aside class="drawer" id="drawerC" hidden>
+    <button class="dx" data-close title="Закрити меню">×</button>
+    <section data-panel="curves">
+      <div class="side-h"><h2 title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри">Криві</h2><span class="spacer"></span><button id="btnReset" title="Повернути приклад за замовчуванням і прибрати свої зміни">Скинути</button><button id="btnAdd" class="btn-primary" title="Додати нову криву">+ Крива</button></div>
+      <div class="presetrow" id="presetSlot"></div>
+      <div id="curves"></div>
+      <div id="formulaHelp"></div>
+      <p class="hint">Підібрати під точки: задайте, що хочете бачити на двох рівнях (наприклад, 100 HP на 1-му й 9000 на 30-му), і параметри лінійної, степеневої чи експоненційної кривої розрахуються самі.</p>
+    </section>
+    <section data-panel="ratio" id="ratioBox">
       <h2 title="У скільки разів перша крива більша за другу на кожному рівні, наприклад HP ворога ÷ шкода гравця = скільки ударів">Співвідношення двох кривих</h2>
       <div class="row2"><select id="selA" aria-label="Крива A" title="Крива, яку ділимо (чисельник)"></select><span class="op">÷</span><select id="selB" aria-label="Крива B" title="Крива, на яку ділимо (знаменник)"></select></div>
       <div class="plot small" id="rplot"></div>
       <p class="hint" id="ratioInfo"></p>
-    </div>
-    <div class="cardrow">
+    </section>
+    <section data-panel="table">
       <h2 title="Значення всіх видимих кривих на кожному рівні. Завантажити: кнопки «Таблиця CSV/JSON» угорі">Таблиця</h2>
       <div class="tablewrap"><table id="tbl"></table></div>
-    </div>
-  </section>
-  <aside class="side">
-    <div class="side-h"><h2 title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри">Криві</h2><span class="spacer"></span><button id="btnReset" title="Повернути приклад за замовчуванням і прибрати свої зміни">Скинути</button><button id="btnAdd" class="btn-primary" title="Додати нову криву">+ Крива</button></div>
-    <div class="presetrow" id="presetSlot"></div>
-    <div id="curves"></div>
-    <div id="formulaHelp"></div>
-    <p class="hint">Підібрати під точки: задайте, що хочете бачити на двох рівнях (наприклад, 100 HP на 1-му й 9000 на 30-му), і параметри лінійної, степеневої чи експоненційної кривої розрахуються самі.</p>
+    </section>
   </aside>
-</main>
+  <div class="bar">
+    <label class="ctl-inline" title="З якого рівня (кроку) починати графік">Від <input type="number" id="nFrom" min="0" max="999" step="1" title="З якого рівня (кроку) починати графік"></label>
+    <label class="ctl-inline" title="На якому рівні (кроці) закінчити графік, максимум 1000">До <input type="number" id="nTo" min="2" max="1000" step="1" title="На якому рівні (кроці) закінчити графік, максимум 1000"></label>
+    <label class="ctl-inline" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок">Вигляд <select id="selView" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок"><option value="val">Значення</option><option value="cum">Накопичено</option><option value="gr">Приріст за крок, %</option></select></label>
+    <label class="chk" title="Логарифмічна шкала: зручна, коли числа зростають у сотні разів"><input type="checkbox" id="cLog"><span>Лог. шкала</span></label>
+  </div>
+</div>
 
-<main class="wrap" id="viewWaves" hidden>
-  <section class="chartcard">
-    <div class="chart-h">
-      <label class="ctl-inline" title="Скільки хвиль згенерувати (до 200)">Хвиль <input type="number" id="wTo" min="1" max="200" step="1" title="Скільки хвиль згенерувати (до 200)"></label>
-      <label class="ctl-inline" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі">Зерно <input type="number" id="wSeed" min="1" max="99999" step="1" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі"></label>
-      <button id="btnWReroll" title="Випадково змінити зерно й отримати іншу розкладку ворогів">Інше зерно</button>
-    </div>
-    <div class="plot" id="wplot"></div>
-    <div class="legend" id="wlegend"></div>
-    <div class="cardrow"><h2 title="Скільки яких ворогів у кожній хвилі; рядки з ▲ — хвилі з босом">Склад хвиль</h2><div class="tablewrap"><table id="wtbl"></table></div></div>
-  </section>
-  <aside class="side">
-    <div class="card">
+<div class="work" id="viewWaves" hidden>
+  <div class="plot" id="wplot"></div>
+  <div class="legend" id="wlegend"></div>
+
+  <nav class="rail" aria-label="Меню хвиль">
+    <button data-panel="budget" title="Бюджет складності хвилі, бос кожні N хвиль і його частка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg><span>Бюджет</span></button>
+    <button data-panel="hp" title="Множник здоров'я ворогів за номером хвилі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.600-7 10-7 10z"/></svg><span>HP</span></button>
+    <button data-panel="types" title="Типи ворогів: вартість, здоров'я, з якої хвилі, вага"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg><span>Вороги</span></button>
+    <button data-panel="wtable" title="Склад кожної хвилі: скільки яких ворогів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M3.5 14h17M10 4v16"/></svg><span>Склад</span></button>
+  </nav>
+  <aside class="drawer" id="drawerW" hidden>
+    <button class="dx" data-close title="Закрити меню">×</button>
+    <section data-panel="budget">
       <h2 title="Скільки «очок складності» має кожна хвиля. Чим вищий бюджет, тим більше й сильніші вороги">Бюджет складності хвилі</h2>
       <div id="wBudget"></div>
       <div class="row2"><label class="num" title="Кожна N-та хвиля отримує боса. 0 означає без босів">Бос кожні (0 = без) <input type="number" id="wBoss" min="0" max="100" title="Кожна N-та хвиля отримує боса. 0 означає без босів"></label><label class="num" title="Яку частину бюджету хвилі забирає бос">Частка бюджету боса, % <input type="number" id="wShare" min="5" max="90" title="Яку частину бюджету хвилі забирає бос"></label></div>
-    </div>
-    <div class="card">
+    </section>
+    <section data-panel="hp">
       <h2 title="Множник здоров'я всіх ворогів за номером хвилі: 1 означає без змін. Наприклад, власна формула 1 + 0.03*x">Зростання HP ворогів із хвилею</h2>
       <div id="wHp"></div>
-    </div>
-    <div class="card">
+    </section>
+    <section data-panel="types">
       <h2 title="Які вороги бувають: вартість, здоров'я, з якої хвилі з'являються">Типи ворогів <button id="btnWType" title="Додати новий тип ворога">+ Тип</button></h2>
       <div id="wTypes"></div>
       <p class="hint">Вартість: скільки бюджету забирає один ворог. «З хвилі»: коли тип з'являється. Вага: як часто його беруть, коли вибір є. Бос: найдорожчий доступний тип.</p>
-    </div>
+    </section>
+    <section data-panel="wtable">
+      <h2 title="Скільки яких ворогів у кожній хвилі; рядки з ▲ — хвилі з босом">Склад хвиль</h2><div class="tablewrap"><table id="wtbl"></table></div>
+    </section>
   </aside>
-</main>
+  <div class="bar">
+    <label class="ctl-inline" title="Скільки хвиль згенерувати (до 200)">Хвиль <input type="number" id="wTo" min="1" max="200" step="1" title="Скільки хвиль згенерувати (до 200)"></label>
+    <label class="ctl-inline" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі">Зерно <input type="number" id="wSeed" min="1" max="99999" step="1" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі"></label>
+    <button id="btnWReroll" title="Випадково змінити зерно й отримати іншу розкладку ворогів">Інше зерно</button>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
