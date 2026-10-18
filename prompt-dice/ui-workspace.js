@@ -45,7 +45,7 @@ function setColorSlot(id, c) {
 }
 function swatchRow(title, active, onPick, onClear) {
   const row = document.createElement('div'); row.className = 'colorrow';
-  const h = document.createElement('span'); h.className = 'cr-t'; h.textContent = title; row.appendChild(h);
+  if (title) { const h = document.createElement('span'); h.className = 'cr-t'; h.textContent = title; row.appendChild(h); }
   COLORS.forEach(([en, ua, hex]) => {
     const b = document.createElement('button'); b.className = 'sw' + (active === en ? ' on' : ''); b.style.background = hex; b.title = ua; b.setAttribute('aria-label', ua);
     b.onclick = () => onPick(en); row.appendChild(b);
@@ -59,9 +59,8 @@ function swatchRow(title, active, onPick, onClear) {
 // Палітри для вибраних тегів підгрупи (items — теги цієї підгрупи); два кольори — дві палітри
 function colorRowsFor(sl, targets, items, into) {
   targets.filter(t => items.includes(t.base)).forEach(t => {
-    const name = mkLabel(sl, t.base);
     for (let i = 0; i < t.sp.n; i++) {
-      const title = t.sp.n > 1 ? `${name}: колір ${i + 1}` : `${name}: колір`;
+      const title = t.sp.n > 1 ? `Колір ${i + 1}` : '';   // назву тегу не повторюємо: він виділений вище
       into.appendChild(swatchRow(title, t.cs[i], c => { const cs = t.cs.slice(); cs[i] = c; setTagColors(sl.id, t, cs); }, i === 0 && t.cs.length ? () => setTagColors(sl.id, t, []) : null));
     }
   });
@@ -183,7 +182,7 @@ function buildChips(sl, s, box, q, scope) {
     const wrap = document.createElement('div'); wrap.className = 'cgroup';
     const h = document.createElement('div'); h.className = 'cg-h'; h.textContent = 'Будь-який колір (палітра)'; wrap.appendChild(h);
     const cur = s.mode === 'manual' ? s.value[0] : '';
-    wrap.appendChild(swatchRow(cs.name + ':', (COLORS.find(c => cs.fmt(c[0]) === cur) || [])[0], c => setColorSlot(sl.id, c)));
+    wrap.appendChild(swatchRow('', (COLORS.find(c => cs.fmt(c[0]) === cur) || [])[0], c => setColorSlot(sl.id, c)));
     box.appendChild(wrap);
   }
   if (!box.querySelector('.chip')) box.innerHTML = '<div class="hint">Нічого не знайдено.</div>';
