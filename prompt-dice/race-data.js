@@ -9,9 +9,9 @@ const RC = {
   paws: 'paw_hands|claw_hands',
 };
 const RACE_MENU = {
-  angel: [['Крила', 'angel_wings|feathered_wings|white_wings|black_wings|large_wings|small_wings|huge_wings|multiple_wings|six_wings|folded wings|spread wings|tattered wings|broken_wings|glowing_wings|mechanical_wings|head_wings'], ['Німб', 'halo|glowing_halo|double_halo|broken_halo|mechanical_halo'], ['Пір’я', 'feathers']],
-  fallen_angel: [['Крила', 'black_wings|angel_wings|bat_wings|feathered_wings|large_wings|huge_wings|folded wings|spread wings|tattered wings|broken_wings|glowing_wings'], ['Німб', 'broken_halo|dark_halo|halo'], ['Роги', 'small horns|broken_horn|demon_horns']],
-  valkyrie: [['Крила', 'feathered_wings|angel_wings|white_wings|large_wings|folded wings|spread wings'], ['Німб', 'halo|glowing_halo']],
+  angel: [['Крила', 'angel_wings|feathered_wings|large_wings|small_wings|huge_wings|multiple_wings|six_wings|folded wings|spread wings|tattered wings|broken_wings|glowing_wings|mechanical_wings|head_wings'], ['Німб', 'halo|glowing_halo|double_halo|broken_halo|mechanical_halo'], ['Пір’я', 'feathers']],
+  fallen_angel: [['Крила', 'angel_wings|bat_wings|feathered_wings|large_wings|huge_wings|folded wings|spread wings|tattered wings|broken_wings|glowing_wings'], ['Німб', 'broken_halo|dark_halo|halo'], ['Роги', 'small horns|broken_horn|demon_horns']],
+  valkyrie: [['Крила', 'feathered_wings|angel_wings|large_wings|folded wings|spread wings'], ['Німб', 'halo|glowing_halo']],
   demon: [['Роги', RC.hornsAll], ['Крила', 'demon_wings|bat_wings|leathery_wings|small_wings|large_wings|huge_wings|tattered wings|folded wings|spread wings'], ['Хвіст', 'demon_tail|spade_tail|long_tail|curled_tail|short_tail|fluffy_tail'], ['Ікла', RC.fangs]],
   succubus: [['Роги', RC.hornsAll], ['Крила', 'demon_wings|bat_wings|leathery_wings|small_wings|large_wings|tattered wings|folded wings|spread wings'], ['Хвіст', 'demon_tail|spade_tail|long_tail|curled_tail|short_tail'], ['Ікла', RC.fangs]],
   vampire: [['Ікла', RC.fangs], ['Крила', 'bat_wings|leathery_wings|small_wings|large_wings|folded wings|spread wings'], ['Вуха', 'pointy_ears']],
@@ -28,8 +28,8 @@ const RACE_MENU = {
   dragonborn: [['Роги', 'dragon_horns|horns|large_horns|backswept_horns|small horns|twisted_horns|curled_horns|broken_horn'], ['Крила', 'dragon_wings|large_wings|small_wings|huge_wings|folded wings|spread wings|tattered wings'], ['Хвіст', 'dragon_tail|long_tail|spade_tail'], ['Луска й гребені', 'scales|dragon_frills']],
   snakefolk: [['Зміїне тіло', 'snake_body|snake_tail'], ['Луска', 'scales'], ['Волосся-змії', 'snake_hair']],
   lamia: [['Зміїне тіло', 'snake_body|snake_tail'], ['Луска', 'scales'], ['Волосся-змії', 'snake_hair']],
-  birdfolk: [['Крила', 'bird_wings|feathered_wings|wing_arms|large_wings|folded wings|spread wings|white_wings|black_wings'], ['Пір’я', 'feathers|tail_feathers'], ['Пазурі', 'talons']],
-  harpy: [['Крила', 'bird_wings|feathered_wings|wing_arms|large_wings|folded wings|spread wings|white_wings|black_wings'], ['Пір’я', 'feathers|tail_feathers'], ['Пазурі', 'talons']],
+  birdfolk: [['Крила', 'bird_wings|feathered_wings|wing_arms|large_wings|folded wings|spread wings'], ['Пір’я', 'feathers|tail_feathers'], ['Пазурі', 'talons']],
+  harpy: [['Крила', 'bird_wings|feathered_wings|wing_arms|large_wings|folded wings|spread wings'], ['Пір’я', 'feathers|tail_feathers'], ['Пазурі', 'talons']],
   mermaid: [['Хвіст', 'mermaid_tail|fish_tail|long_tail'], ['Плавці', 'fins|head_fins|fin ears'], ['Луска й зябра', 'scales|gills']],
   fairy: [['Крила', 'fairy_wings|butterfly_wings|dragonfly_wings|insect_wings|translucent_wings|glowing_wings|small_wings|large_wings|multiple_wings'], ['Вуха', 'pointy_ears|long_pointy_ears']],
   elf: [['Вуха', 'pointy_ears|long_pointy_ears|long elf ears']],

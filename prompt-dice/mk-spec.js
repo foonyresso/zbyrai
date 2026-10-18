@@ -8,7 +8,6 @@ const MKM_ALIAS = {
 };
 const MKM_SPEC = {
   // стать задається лише параметром «Стать»: у решті тегів тіла слів «жіночий/чоловічий» немає
-  age: { drop: 'mature_female|onee-san|mature_male' },
   // сусідні старі параметри з повторами: «дім» тегу в іншому місці
   action: { drop: 'laughing|shouting|blowing_kiss|jumping|leaping|stretching|walking|running' },
   legPos: { drop: 'standing_on_one_leg|walking' },
@@ -30,10 +29,10 @@ const MKM_SPEC = {
   },
   raceFeat: {
     label: 'Расові особливості (роги, крила, хвости…)',
-    drop: 'claws|slit_pupils|colored_sclera|black_sclera|glowing_veins|facial_mark|forehead_jewel|gem_on_forehead',
+    drop: 'claws|slit_pupils|colored_sclera|black_sclera|glowing_veins|facial_mark|forehead_jewel|gem_on_forehead|black_wings|white_wings',
     groups: [
       ['Роги', 'm', 'horns|demon_horns|curled_horns|long_horns|single_horn|oni_horns|goat_horns|antlers|dragon_horns|broken_horn|horns_through_hair|@pl_horns', 'hair'],
-      ['Крила', 'm', 'angel_wings|demon_wings|bat_wings|dragon_wings|feathered_wings|butterfly_wings|fairy_wings|mechanical_wings|large_wings|multiple_wings|black_wings|white_wings|head_wings|folded wings|spread wings|tattered wings', 'torso'],
+      ['Крила', 'm', 'angel_wings|demon_wings|bat_wings|dragon_wings|feathered_wings|butterfly_wings|fairy_wings|mechanical_wings|large_wings|multiple_wings|head_wings|folded wings|spread wings|tattered wings', 'torso'],
       ['Хвости', 'm', 'demon_tail|dragon_tail|fox_tail|multiple_tails|cat_tail|wolf_tail|lizard_tail|fluffy_tail|scorpion_tail|@pl_tail', 'pelvis'],
       ['Вуха', 'm', 'pointy_ears|long_pointy_ears|animal_ears|fox_ears|cat_ears|wolf_ears|fake_animal_ears|@x_ears2', 'ears'],
       ['Німб', 'm', 'halo|mechanical_halo|broken_halo', 'hat'],
@@ -44,10 +43,9 @@ const MKM_SPEC = {
       ['Незвичайне волосся', 'm', 'tentacle_hair|snake_hair|crystal_hair|flame_hair', 'hair'],
     ],
   },
-  skin: { drop: 'dark-skinned_female|dark-skinned_male|dark-skinned_female, shiny_skin|dark-skinned_male, scar', groups: [
+  skin: { drop: 'dark-skinned_female|dark-skinned_male|dark-skinned_female, shiny_skin|dark-skinned_male, scar|colored_skin, blue_skin|colored_skin, red_skin|colored_skin, purple_skin|colored_skin, green_skin|colored_skin, grey_skin|colored_skin, white_skin', groups: [
     ['Відтінок шкіри', 'm', 'pale_skin|tan|dark_skin'],
     ['Особливості шкіри', 'm', 'shiny_skin|freckles|tan, tanlines|pale_skin, freckles|dark_skin, shiny_skin|dark_skin, scar'],
-    ['Кольорова шкіра', 'm', 'colored_skin, blue_skin|colored_skin, red_skin|colored_skin, purple_skin|colored_skin, green_skin|colored_skin, grey_skin|colored_skin, white_skin'],
   ] },
   build: {
     label: 'Комплекція: зріст, статура, м’язи',
@@ -74,10 +72,8 @@ const MKM_SPEC = {
       ['Родимки й розмальовка обличчя', 'm', 'mole_under_eye|mole_under_mouth|beauty_mark|@pl_face_marks', 'face'],
     ],
   },
-  hairColor: { groups: [
-    ['Природні відтінки', 'm', 'black_hair|brown_hair|blonde_hair|white_hair|silver_hair|grey_hair|light_brown_hair|platinum_blonde_hair'],
-    ['Яскраві кольори', 'm', 'red_hair|blue_hair|pink_hair|purple_hair|green_hair|orange_hair|aqua_hair|light_blue_hair|dark_blue_hair|light_purple_hair|dark_green_hair'],
-    ['Багатокольорове', 'm', 'multicolored_hair|two-tone_hair|gradient_hair|streaked_hair|colored_inner_hair|colored_tips|split-color_hair|rainbow_hair|white_hair, blue_streaks|black_hair, red_inner_hair|pink_hair, gradient_hair|silver_hair, colored_tips'],
+  hairColor: { opts: 'multicolored_hair|two-tone_hair|gradient_hair|streaked_hair|colored_inner_hair|colored_tips|split-color_hair|rainbow_hair', groups: [
+    ['Різнокольорове (два кольори з палітри)', 'm', 'multicolored_hair|two-tone_hair|gradient_hair|streaked_hair|colored_inner_hair|colored_tips|split-color_hair|rainbow_hair'],
   ] },
   hairStyle: {
     label: 'Зачіска і текстура волосся',
@@ -104,19 +100,18 @@ const MKM_SPEC = {
     ],
   },
   eyeColor: {
-    drop: 'glowing_eyes',
+    opts: 'heterochromia|multicolored_eyes|gradient_eyes',
     groups: [
-      ['Колір очей', 'm', 'red_eyes|blue_eyes|golden_eyes|yellow_eyes|green_eyes|purple_eyes|pink_eyes|orange_eyes|aqua_eyes|brown_eyes|grey_eyes|black_eyes|white_eyes|light_blue_eyes|dark_blue_eyes|dark_red_eyes|silver_eyes|amber_eyes'],
-      ['Незвичайні кольори', 'm', 'heterochromia|multicolored_eyes|gradient_eyes'],
+      ['Різнокольорові очі (два кольори з палітри)', 'm', 'heterochromia|multicolored_eyes|gradient_eyes'],
     ],
   },
   eyeDetail: {
     label: 'Очі: форма, зіниці, склера, вії',
-    drop: 'empty_eyes|sparkling_eyes|gradient_eyes|eyeshadow|colored_eyelashes',
+    drop: 'empty_eyes|sparkling_eyes|gradient_eyes|eyeshadow|colored_eyelashes|colored_sclera|black_sclera|red_sclera',
     groups: [
       ['Розріз і форма очей', 's', 'tareme|tsurime|jitome|sanpaku|@pl_eye_shape|@x_eyesize'],
       ['Зіниці', 's', 'slit_pupils|diamond-shaped_pupils|star-shaped_pupils|heart-shaped_pupils|symbol-shaped_pupils|ringed_eyes|bright_pupils|constricted_pupils|dot_pupils|mismatched_pupils|horizontal_pupils|cross-shaped_pupils|flower-shaped_pupils|@pl_pupils'],
-      ['Склера', 's', 'colored_sclera|black_sclera|red_sclera|@pl_sclera'],
+      ['Склера', 's', 'sclera'],
       ['Вії', 'm', 'long_eyelashes|thick_eyelashes|@x_lashes'],
       ['Сяйво й деталі очей', 'm', 'glowing_eyes|glowing_eye|shiny_eyes|detailed_eyes|beautiful_detailed_eyes|eyes_visible_through_hair|@pl_eye_special'],
     ],
@@ -150,11 +145,18 @@ const MKM_SPEC = {
   },
   makeup: {
     label: 'Макіяж (обличчя, очі, губи)',
-    drop: 'facial_mark|forehead_mark|mole_under_eye|mole_under_mouth|beauty_mark|scar_on_face',
+    drop: 'facial_mark|forehead_mark|mole_under_eye|mole_under_mouth|beauty_mark|scar_on_face|red_lips|black_lipstick|purple_lips|pink_lips|red_eyeshadow|purple_eyeshadow|blue_eyeshadow|gold_eyeshadow|black_eyeliner|colored_eyelashes',
     groups: [
       ['Макіяж і розмальовка обличчя', 'm', 'makeup|facepaint|glitter_makeup|war_paint', 'face'],
-      ['Макіяж очей', 'm', 'eyeshadow|red_eyeshadow|purple_eyeshadow|blue_eyeshadow|gold_eyeshadow|eyeshadow, smoky_eyes|eyeliner|winged_eyeliner|black_eyeliner|mascara|colored_eyelashes|@pl_eye_makeup', 'eyes'],
-      ['Помада й губи', 'm', 'lipstick|red_lips|black_lipstick|purple_lips|pink_lips|lip_gloss|glossy_lips|shiny_lips|@pl_lip_color', 'mouth'],
+      ['Макіяж очей', 'm', 'eyeshadow|eyeshadow, smoky_eyes|eyeliner|winged_eyeliner|mascara|@pl_eye_makeup', 'eyes'],
+      ['Помада й губи', 'm', 'lipstick|lip_gloss|glossy_lips|shiny_lips', 'mouth'],
+    ],
+  },
+  nails: {
+    kind: 'multi', n: [1, 2], opts: 'long_fingernails|sharp_fingernails|short_nails|nail_polish|claws',
+    groups: [
+      ['Форма нігтів', 's', 'long_fingernails|sharp_fingernails|short_nails'],
+      ['Лак і кігті (колір — з палітри)', 'm', 'nail_polish|claws'],
     ],
   },
   breasts: { groups: [
@@ -196,29 +198,28 @@ const MKM_SPEC = {
   },
   legwear: {
     label: 'Панчохи, штани, взуття для ніг',
-    drop: 'cargo_pants|leather_pants',
+    drop: 'cargo_pants|leather_pants|black_thighhighs|white_thighhighs|black_pantyhose|red_thighhighs|purple_thighhighs|black_pants',
     groups: [
-      ['Панчохи й колготки', 'm', 'thighhighs|black_thighhighs|white_thighhighs|red_thighhighs|purple_thighhighs|striped_thighhighs|fishnet_thighhighs|single_thighhigh|over-kneehighs|stockings|pantyhose|black_pantyhose|torn_pantyhose|fishnets|toeless_legwear|lace-trimmed_legwear|asymmetrical_legwear|mismatched_legwear'],
+      ['Панчохи й колготки', 'm', 'thighhighs|striped_thighhighs|fishnet_thighhighs|single_thighhigh|over-kneehighs|stockings|pantyhose|torn_pantyhose|fishnets|toeless_legwear|lace-trimmed_legwear|asymmetrical_legwear|mismatched_legwear'],
       ['Шкарпетки й гетри', 'm', 'knee_socks|leg_warmers|@pl_legwear', 'foot'],
       ['Оголені ноги й підв’язки', 'm', 'bare_legs|zettai_ryouiki|garter_straps|garter_belt|thigh_strap'],
-      ['Штани й шорти', 'm', 'pants|black_pants|baggy_pants|loose_pants|shorts', 'pelvis'],
+      ['Штани й шорти', 'm', 'pants|baggy_pants|loose_pants|shorts', 'pelvis'],
       ['Захист ніг', 'm', 'armored_leggings|greaves|knee_pads'],
     ],
   },
   footwear: {
-    drop: 'greaves',
+    drop: 'greaves|black_footwear|brown_footwear|red_footwear|white_footwear',
     groups: [
       ['Каблуки й платформа', 'm', 'high_heels|stiletto_heels|wedge_heels|platform_footwear|high_heel_boots'],
       ['Чоботи й черевики', 'm', 'thigh_boots|knee_boots|ankle_boots|combat_boots|boots|armored_boots|lace-up_boots|buckled_boots|cross-laced_footwear|fur-trimmed_boots'],
       ['Інше взуття', 'm', 'sneakers|loafers|sandals|geta|barefoot'],
-      ['Колір взуття', 'm', 'black_footwear|brown_footwear|red_footwear|white_footwear'],
     ],
   },
   gloves: {
-    drop: 'detached_sleeves',
+    drop: 'detached_sleeves|black_gloves|white_gloves|red_gloves|fingerless_gloves, black_gloves|gold_gauntlets',
     groups: [
-      ['Рукавички', 'm', 'black_gloves|white_gloves|red_gloves|fingerless_gloves|elbow_gloves|leather_gloves|fingerless_gloves, black_gloves|lace_gloves|fur-trimmed_gloves|single_glove|claw_gloves'],
-      ['Рукавиці й наручі', 'm', 'gauntlets|armored_gloves|bridal_gauntlets|gold_gauntlets|bracers|spiked_bracers'],
+      ['Рукавички', 'm', 'gloves|fingerless_gloves|elbow_gloves|leather_gloves|lace_gloves|fur-trimmed_gloves|single_glove|claw_gloves'],
+      ['Рукавиці й наручі', 'm', 'gauntlets|armored_gloves|bridal_gauntlets|bracers|spiked_bracers'],
       ['Рукави', 'm', 'long_sleeves|wide_sleeves'],
     ],
   },
@@ -232,9 +233,9 @@ const MKM_SPEC = {
     ],
   },
   accessories: {
-    drop: 'thigh_strap|hair_ornament|circlet|hip_vent',
+    drop: 'thigh_strap|hair_ornament|circlet|hip_vent|gold_trim|gold_chain',
     groups: [
-      ['Шия й намисто', 'm', 'choker|necklace|pendant|amulet|pearl_necklace|crystal_necklace|collar|spiked_collar|gold_chain|rosary|@pl_neck_acc', 'neck'],
+      ['Шия й намисто', 'm', 'choker|necklace|pendant|amulet|pearl_necklace|crystal_necklace|collar|spiked_collar|rosary|@pl_neck_acc', 'neck'],
       ['Сережки й вуха', 'm', 'earrings|ear_piercing|single_earring|@pl_ear_acc', 'ears'],
       ['Окуляри й маски', 'm', 'glasses|sunglasses|monocle|mask|@pl_eyewear', 'eyes'],
       ['Руки й зап’ястя', 'm', 'bracelet|armlet|ring|arm_guards', 'wrist'],
@@ -242,7 +243,7 @@ const MKM_SPEC = {
       ['Пояс', 'm', 'belt|sash|belt_pouch|harness|bandolier|waist_cape|@pl_waist_acc', 'waist'],
       ['Спина й накидки', 'm', 'cape|cloak|scarf|backpack|quiver|@pl_back_acc', 'torso'],
       ['Щиколотка', 'm', 'anklet', 'ankle'],
-      ['Загальні оздоблення', 'm', 'ribbon|fur_trim|gold_trim|chain|bell|tassel|feather_ornament|gem|jewelry|pocket_watch'],
+      ['Загальні оздоблення', 'm', 'ribbon|fur_trim|trim|chain|bell|tassel|feather_ornament|gem|jewelry|pocket_watch'],
     ],
   },
 };
@@ -260,3 +261,9 @@ const MKM_SPEC = {
   });
   groups.push(['Інше за расами', 'm', rest.join('|')]);
 })();
+
+// Категорії манекена з одних кольорів: колір — це палітра (colors.js), тож такі теги прибрано або зведено до одного тегу
+const MKM_CATS = {
+  pl_fur_color: null, pl_teeth_color: null, pl_tongue_color: null, pl_sclera: null, pl_lip_color: null,
+  pl_bg_color: [['Колір', [['Однотонний фон: колір', 'background']]]],
+};

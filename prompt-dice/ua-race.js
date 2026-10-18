@@ -101,3 +101,8 @@ moss covered=Вкритий мохом
 ice crystals=Крижані кристали
 frost breath=Морозне дихання
 `);
+uaAdd(`
+sclera=Склера (білок ока)
+trim=Оздоблення
+background=Колір фону
+`);

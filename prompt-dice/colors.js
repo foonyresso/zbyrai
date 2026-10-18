@@ -2,7 +2,7 @@
 // У промпті колір іде англійським словом перед тегом («white_angel_wings»), у вибірі — українською.
 const COLORS = [
   ['black', 'Чорний', '#151515'], ['white', 'Білий', '#f4f4f4'], ['grey', 'Сірий', '#8a8a8a'], ['silver', 'Срібний', '#c3c7cc'],
-  ['gold', 'Золотий', '#d9ae2f'], ['brown', 'Коричневий', '#7a4a2b'], ['beige', 'Бежевий', '#dcc7a2'], ['orange', 'Помаранчевий', '#f28a1b'],
+  ['gold', 'Золотий', '#d9ae2f'], ['blonde', 'Світло-русявий', '#e6c88a'], ['brown', 'Коричневий', '#7a4a2b'], ['beige', 'Бежевий', '#dcc7a2'], ['orange', 'Помаранчевий', '#f28a1b'],
   ['yellow', 'Жовтий', '#f6d835'], ['lime', 'Салатовий', '#a4d63b'], ['green', 'Зелений', '#2f9e44'], ['teal', 'Бірюзовий', '#12988c'],
   ['light_blue', 'Блакитний', '#5bc0eb'], ['blue', 'Синій', '#2860d8'], ['dark_blue', 'Темно-синій', '#16256b'], ['purple', 'Фіолетовий', '#7a3fb8'],
   ['lavender', 'Лавандовий', '#b7a2e0'], ['pink', 'Рожевий', '#f58fb5'], ['hot_pink', 'Яскраво-рожевий', '#e6218b'], ['red', 'Червоний', '#d62828'],
@@ -28,7 +28,7 @@ function nearestColor(hex) {
   return best[0];
 }
 // Що можна фарбувати: іменники, до яких додається колір
-const COLORABLE_RE = /(wing|horn|tail|ears?\b|halo|fur\b|scales|feathers|ribbon|\bbow\b|bowtie|hairband|hairclip|scrunchie|dress|skirt|shirt|\btop\b|\bbra\b|bikini|swimsuit|gloves|mittens|boots|shoes|sneakers|heels|sandals|socks|stockings|thighhighs|pantyhose|tights|leggings|legwear|\bhat\b|beret|crown|tiara|circlet|cape|cloak|scarf|jacket|coat|hoodie|sweater|cardigan|blazer|vest|armor|kimono|panties|thong|shorts|pants|jeans|belt|choker|necklace|collar|bracelet|bangles|earrings|glasses|sunglasses|mask|lipstick|eyeshadow|eyeliner|bodysuit|leotard|uniform|\brobe\b|gown|apron|necktie|\btie\b|sash|bandana|headband|veil|corset|helmet|tabard|capelet|jumpsuit|camisole|blouse|qipao|\bleaf|petals|vines|fins|antenna|tentacles|halo|wreath|scarf|nails|nail polish|headphones|\bring\b|rings|backpack|strap|garter|cuffs|wristband|armlet|anklet|bell)/i;
+const COLORABLE_RE = /(wing|horn|tail|ears?\b|halo|fur\b|scales|feathers|ribbon|\bbow\b|bowtie|hairband|hairclip|scrunchie|dress|skirt|shirt|\btop\b|\bbra\b|bikini|swimsuit|gloves|mittens|boots|shoes|sneakers|heels|sandals|socks|stockings|thighhighs|pantyhose|tights|leggings|legwear|\bhat\b|beret|crown|tiara|circlet|cape|cloak|scarf|jacket|coat|hoodie|sweater|cardigan|blazer|vest|armor|kimono|panties|thong|shorts|pants|jeans|belt|choker|necklace|collar|bracelet|bangles|earrings|glasses|sunglasses|mask|lipstick|eyeshadow|eyeliner|bodysuit|leotard|uniform|\brobe\b|gown|apron|necktie|\btie\b|sash|bandana|headband|veil|corset|helmet|tabard|capelet|jumpsuit|camisole|blouse|qipao|\bleaf|petals|vines|sclera|trim|tongue|^teeth$|^background$|fins|antenna|tentacles|halo|wreath|scarf|nails|nail.polish|headphones|\bring\b|rings|backpack|strap|garter|cuffs|wristband|armlet|anklet|bell)/i;
 const COLOR_SLOTS = new Set(['raceFeat', 'hairDetail', 'headwear', 'accessories', 'gloves', 'footwear', 'legwear', 'makeup', 'nails']);
 // Параметри, де колір обирається самим значенням (колір волосся, очей, нігтів, шкіри)
 const COLOR_SLOT_FMT = {
@@ -49,7 +49,7 @@ function colorSpec(sl, tag) {
   if (HAIR2.has(tag) && sl.id === 'hairColor') return { n: 2, kind: 'hair' };
   if (EYES2.has(tag) && sl.id === 'eyeColor') return { n: 2, kind: 'eyes' };
   if (own) return null;
-  if (!(COLOR_SLOTS.has(sl.id) || (sl.mk && !['pose', 'frame', 'bg'].includes(sl.part)))) return null;
+  if (!(COLOR_SLOTS.has(sl.id) || (sl.mk && !['pose', 'frame', 'bg'].includes(sl.part)) || tag === 'background')) return null;
   if (uncolor(tag) || !COLORABLE_RE.test(tag)) return null;
   return { n: PAIR_RE.test(tag) ? 2 : 1, kind: PAIR_RE.test(tag) ? 'pair' : 'one' };
 }

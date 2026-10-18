@@ -76,12 +76,20 @@ function mkRefreshCat(sl, c) {
   // 1. Теги, чий «дім» в іншому місці, прибираються зі старого параметра
   Object.entries(spec).forEach(([id, s]) => {
     const sl = SLOTS[id]; if (!sl) throw new Error('mk-spec: немає параметра ' + id);
+    if (s.opts) { const list = L(s.opts); sl.opts = () => list.slice(); }
     const drop = new Set(L(s.drop || '').map(mkNorm));
     if (drop.size) { const orig = sl.opts; sl.opts = c => orig(c).filter(v => !drop.has(mkNorm(v))); }
     if (s.label) sl.label = s.label;
     if (s.kind) sl.kind = s.kind;
     if (s.n) sl.n = s.n;
     if (s.p !== undefined) sl.p = s.p;
+  });
+
+  // 1б. Категорії манекена, де були лише кольори, прибираються або замінюються (колір — це палітра)
+  Object.entries(typeof MKM_CATS === 'object' ? MKM_CATS : {}).forEach(([id, groups]) => {
+    if (!MK.cats[id]) return;
+    if (!groups) { mkRemoveCat(id); return; }
+    MK.cats[id].groups = groups; mkRefreshCat(SLOTS[id], MK.cats[id]);
   });
 
   // 2. Власники атомарних тегів: старі параметри й теги, названі в групах
@@ -138,3 +146,9 @@ function mkRefreshCat(sl, c) {
     zones.forEach(z => { const arr = MK.partSlots[z]; if (arr && !arr.includes(id)) arr.splice(arr.length - 1, 0, id); });
   });
 })();
+
+// Волосся й очі: випадково майже завжди колір із палітри (колір — це не окремі теги), зрідка — двоколірний варіант
+['hairColor', 'eyeColor'].forEach(id => {
+  const sl = SLOTS[id], cs = COLOR_SLOT_FMT[id];
+  sl.gen = c => { const o = sl.opts(c); return Math.random() < 0.82 || !o.length ? [cs.fmt(COLORS[Math.floor(Math.random() * COLORS.length)][0])] : [o[Math.floor(Math.random() * o.length)]]; };
+});

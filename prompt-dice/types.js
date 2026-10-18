@@ -12,7 +12,6 @@ const wpick = arr => { const t = arr.reduce((a, x) => a + x[1], 0); let r = Math
 
 /* ---- Персонаж ---- */
 def('gender', 'Стать', 'Gender', { opts: () => ['1girl', '1boy'], gen: () => [Math.random() < 0.72 ? '1girl' : '1boy'], sd: v => v + ', solo', nl: v => (v === '1boy' ? 'male, one man' : 'female, one woman') });
-def('age', 'Вік (дорослі)', 'Age', { opts: byG(G.age_f, G.age_m) });
 def('race', 'Раса / тип', 'Race', { opts: byG(G.race_f, G.race_m) });
 def('raceFeat', 'Расові особливості', 'Racial features', { kind: 'multi', n: [1, 2], p: 0.6, opts: () => G.raceFeat });
 def('skin', 'Шкіра', 'Skin', { opts: byG(G.skin_f, G.skin_m) });
@@ -45,7 +44,6 @@ def('headwear', 'Головний убір', 'Headwear', { p: 0.5, opts: () => G
 def('accessories', 'Аксесуари / прикраси', 'Accessories', { kind: 'multi', n: [1, 3], p: 0.9, opts: () => G.accessories });
 
 /* ---- Поза / камера ---- */
-def('gFormat', 'Формат кадру', 'Image format', { models: ['flux', 'gemini'], opts: () => NLP.gFormat });
 def('gFraming', 'Кадрування (місце над головою)', 'Framing', { models: ['flux', 'gemini'], opts: () => NLP.gFraming });
 def('cameraAngle', 'Ракурс камери', 'Camera angle', { opts: () => G.cameraAngle });
 def('framing', 'Кадр', 'Shot', { models: ['sdxl'], opts: () => G.framing });
@@ -94,7 +92,6 @@ def('sprParts', 'Частини для розбірки (на кожен рак�
   sdAll: vals => ['separated_body_parts?'.replace('?', ''), 'reference_sheet', ...vals.map(v => v.replace(/[^a-z]+/gi, '_').replace(/^_|_$/g, '').toLowerCase())],
 });
 def('sprLayout', 'Розкладка листа', 'Sheet layout', { opts: () => SPR.layout, sd: () => '' });
-def('sprFormat', 'Формат аркуша', 'Sheet format', { models: ['flux', 'gemini'], opts: () => ['16:9 wide landscape', '3:2 landscape', '4:3 landscape', '1:1 square'] });
 def('sprBg', 'Фон листа', 'Sheet background', { opts: () => SPR.bg, sd: v => (/green/.test(v) ? 'green_background' : /magenta/.test(v) ? 'pink_background' : /grey/.test(v) ? 'grey_background' : 'white_background') });
 
 /* ---- Піксель-арт ігрові типи ---- */
@@ -121,7 +118,7 @@ const PX = ids => ids.map(i => 'px_' + i);
 /* =====================================================================
    ТИПИ (що створюємо)
    ===================================================================== */
-const S1 = ['gender', 'age', 'race', 'raceFeat', 'skin', 'hairLen', 'hairColor', 'hairStyle', 'hairDetail', 'eyeColor', 'eyeDetail', 'emotion', 'expression', 'eyeExpr', 'makeup', 'nails', 'breasts', 'hips', 'limbs', 'build', 'permFeat'];
+const S1 = ['gender', 'race', 'raceFeat', 'skin', 'hairLen', 'hairColor', 'hairStyle', 'hairDetail', 'eyeColor', 'eyeDetail', 'emotion', 'expression', 'eyeExpr', 'makeup', 'nails', 'breasts', 'hips', 'limbs', 'build', 'permFeat'];
 const S2 = ['weapon', 'outfit', 'outState', 'legwear', 'footwear', 'bareParts', 'gloves', 'headwear', 'accessories'];
 const GEMSEC = { t: '⚙ Запит до Gemini', e: '', s: ['gTask'], models: ['gemini'], meta: true };
 const themeLine = () => [['Theme / genre', THEMES[curTheme()].nl]];
@@ -132,7 +129,7 @@ const TYPES = {
     sections: [
       { t: '1 · Персонаж', e: 'Character', s: S1, nlPre: themeLine },
       { t: '2 · Одяг, зброя, аксесуари', e: 'Outfit, weapon and accessories', s: S2 },
-      { t: '3 · Поза, ракурс, дія', e: 'Pose, camera and framing', s: ['gFormat', 'gFraming', 'cameraAngle', 'framing', 'gaze', 'pose', 'armPos', 'legPos', 'action', 'interaction'] },
+      { t: '3 · Поза, ракурс, дія', e: 'Pose, camera and framing', s: ['gFraming', 'cameraAngle', 'framing', 'gaze', 'pose', 'armPos', 'legPos', 'action', 'interaction'] },
       { t: '4 · Фон, ефекти, світло', e: 'Setting, effects and lighting', s: ['io', 'background', 'fgObjects', 'effects', 'timeOfDay', 'weather', 'lighting', 'shadows'] },
       { t: '5 · Атмосфера і деталі (Flux / Gemini)', e: 'Mood and finishing details', s: ['atmosphere', 'colorScheme', 'materials', 'details', 'finalAccent'] },
       GEMSEC,
@@ -145,7 +142,7 @@ const TYPES = {
     sections: [
       { t: '1 · Персонаж', e: 'Character', s: S1, nlPre: themeLine },
       { t: '2 · Одяг, зброя, аксесуари', e: 'Outfit, weapon and accessories', s: S2 },
-      { t: '3 · Спрайт: ракурси, камера, частини', e: 'Sprite sheet specification', s: ['sprViews', 'sprElev', 'sprPose', 'sprParts', 'sprLayout', 'sprBg', 'sprFormat'] },
+      { t: '3 · Спрайт: ракурси, камера, частини', e: 'Sprite sheet specification', s: ['sprViews', 'sprElev', 'sprPose', 'sprParts', 'sprLayout', 'sprBg'] },
       GEMSEC,
     ],
     sdGroups: [{ sec: 0 }, { sec: 1, pre: () => [THEMES[curTheme()].tag] }, { sec: 2, pre: () => splitTags(st.settings.always.sprite) }],
@@ -155,7 +152,7 @@ const TYPES = {
     kind: 'multi', icon: '🏞️', name: 'Локація / фон (без персонажа)', desc: 'Пейзаж, інтер’єр чи природа: тема, світло, погода, ефекти',
     sections: [
       { t: '1 · Локація', e: 'Location', s: ['io', 'background', 'fgObjects'], nlPre: themeLine },
-      { t: '2 · Камера і світло', e: 'Camera and lighting', s: ['gFormat', 'cameraAngle', 'timeOfDay', 'weather', 'lighting', 'shadows'] },
+      { t: '2 · Камера і світло', e: 'Camera and lighting', s: ['cameraAngle', 'timeOfDay', 'weather', 'lighting', 'shadows'] },
       { t: '3 · Ефекти і настрій', e: 'Effects and mood', s: ['effects', 'atmosphere', 'colorScheme', 'materials', 'details', 'finalAccent'] },
       GEMSEC,
     ],
