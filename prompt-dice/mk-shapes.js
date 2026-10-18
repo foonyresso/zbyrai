@@ -76,3 +76,10 @@ const MK_PART_UA = {
   head: 'Голова', hair: 'Волосся', fringe: 'Чубчик', forehead: 'Лоб', brows: 'Брови', eyes: 'Очі', nose: 'Ніс', cheeks: 'Щоки', ears: 'Вуха', mouth: 'Рот і губи', chin: 'Підборіддя', jaw: 'Щелепа',
   face: 'Обличчя', hat: 'Головний убір', pose: 'Пози (розширено)', bg: 'Фони (розширено)', frame: 'Кадр (розширено)',
 };
+const mkGroup = id => MK_GROUPS.find(g => g.id === id);
+// Ділянки, чиї параметри змінює вибір у групі (сама група й усі її частини)
+function mkMembers(id) {
+  const g = mkGroup(id);
+  if (!g) return [id];
+  return [id, ...g.parts.flatMap(p => (mkGroup(p) ? mkMembers(p) : [p]))].filter((v, i, a) => a.indexOf(v) === i);
+}

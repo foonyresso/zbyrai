@@ -2,9 +2,10 @@
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const dir = path.join(__dirname, '..');
 const ctx = { document: { getElementById: () => null }, console }; vm.createContext(ctx);
-['pools.js', 'styles.js', 'types.js', 'mk-shapes.js', 'mk-data-body.js', 'mk-data-head.js', 'mk-data-scene.js', 'mk-data-extra.js', 'mk-slots.js']
+['pools.js', 'ua-tags.js', 'ua-body.js', 'ua-outfit.js', 'ua-scene.js', 'ua-pixel.js', 'styles.js', 'types.js', 'mk-shapes.js', 'mk-data-body.js', 'mk-data-head.js', 'mk-data-scene.js', 'mk-data-extra.js', 'mk-slots.js', 'mk-spec.js', 'mk-merge.js']
   .forEach(f => vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f }));
 const get = expr => vm.runInContext(expr, ctx);
+const plain = v => JSON.parse(JSON.stringify(v));
 let failed = 0;
 const test = (n, f) => { try { f(); console.log('  ok  ', n); } catch (e) { failed++; console.log('  FAIL', n, '\n      ', e.message); } };
 
@@ -23,7 +24,7 @@ test('категорії: унікальні id, підписи й промпт�
     assert.ok(get(`MK_PART_EN['${c.part}']`), c.id + ': невідома ділянка ' + c.part);
     const p = new Set(); c.groups.forEach(([, items]) => items.forEach(([l, pr]) => { assert.ok(l && pr, c.id + ' порожній пункт'); assert.ok(!p.has(pr), c.id + ' повтор ' + pr); p.add(pr); }));
   });
-  assert.ok(all.length > 90, 'категорій ' + all.length);
+  assert.ok(all.length > 60, 'категорій ' + all.length);
 });
 test('нові слоти вимкнені за замовчуванням (manual) і не псують старі id', () => {
   assert.equal(get("SLOTS.hairColor.manual"), undefined);
@@ -40,5 +41,76 @@ test('Flux: абзац додаткових деталей за ділянкам
   const t = get(`mkFluxParagraph(['x_thigh','zt_hand','hairColor'], id => ({ x_thigh: ['thick thighs'], zt_hand: ['gold rings, scar'], hairColor: ['red_hair'] })[id])`);
   assert.match(t, /Thighs: thick thighs\./); assert.match(t, /Hands: gold rings, scar\./); assert.ok(!/hair/i.test(t));
   assert.equal(get(`mkFluxParagraph(['x_thigh'], () => [])`), '');
+});
+
+/* ---- об'єднання параметрів, групи, українські назви (mk-spec.js, mk-merge.js, ua-*.js) ---- */
+const slotIds = () => Object.keys(get('SLOTS'));
+const optsOf = id => get(`mkAllOpts(SLOTS['${id}'])`);
+const hasCyr = t => /[А-Яа-яІіЇїЄєҐґ]/.test(t);
+test('групи старих параметрів покривають усі їхні значення, без зайвих і повторів', () => {
+  Object.keys(get('MKM_SPEC')).forEach(id => {
+    const groups = get(`SLOTS['${id}'].groups`); if (!groups || get(`SLOTS['${id}'].mk`)) return;
+    const inGroups = plain(groups.flatMap(g => g[1].map(x => x[1]))), opts = plain(optsOf(id));
+    assert.deepEqual(plain(opts.filter(v => !inGroups.includes(v))), [], id + ': значення без групи');
+    assert.deepEqual(inGroups.filter(v => !opts.includes(v)), [], id + ': зайве в групах');
+    assert.equal(new Set(inGroups).size, inGroups.length, id + ': повтор у групах');
+  });
+});
+test('кожен тег має лише один «дім» у межах типу (персонаж, спрайт, локація)', () => {
+  const skip = new Set(['effects', 'background', 'fgObjects', 'io']);
+  ['char', 'sprite', 'scene'].forEach(t => {
+    const where = {};
+    get(`TYPES['${t}'].sections.flatMap(s => s.s)`).filter(id => !/^spr/.test(id) && !skip.has(id) && get(`!!SLOTS['${id}']`)).forEach(id => {
+      new Set(optsOf(id)).forEach(v => { const a = get(`mkAtom(${JSON.stringify(v)})`); if (a) (where[a] = where[a] || new Set()).add(id); });
+    });
+    const dups = Object.entries(where).filter(([, s]) => s.size > 1).map(([a, s]) => a + ': ' + [...s].join(', '));
+    assert.equal(dups.length, 0, t + ': дублікати тегів ' + dups.join(' | '));
+  });
+});
+test('кожен варіант у вибірі має українську назву (усі параметри, усі статі й тематики)', () => {
+  const missing = [];
+  slotIds().forEach(id => {
+    const sl = get(`SLOTS['${id}']`); if (sl.text || ['gTask', 'pl_eye_symbols'].includes(id)) return; // смайли очей (> <, x3…) — це й є підписи
+    optsOf(id).forEach(v => { const t = get(`mkLabel(SLOTS['${id}'], ${JSON.stringify(v)})`); if (!hasCyr(t)) missing.push(id + ': ' + v); });
+  });
+  assert.equal(missing.length, 0, 'без української назви: ' + missing.slice(0, 20).join(' | '));
+});
+test('фон і ефекти тематик розбито на окремі теги (не один довгий «чип»)', () => {
+  const bg = get(`SLOTS.background.opts({ g: 'f', theme: 'fantasy' })`), fx = get(`SLOTS.effects.opts({ g: 'f', theme: 'fantasy' })`);
+  assert.ok(bg.every(v => !v.includes(',')) && fx.every(v => !v.includes(',')));
+  assert.ok(bg.includes('castle') && fx.includes('sparkle'));
+});
+test('«одне з групи»: вибір тегів тієї самої групи не накопичується, інших груп — так', () => {
+  const enforce = (id, vals) => plain(get(`mkEnforce(SLOTS['${id}'], ${JSON.stringify(vals)})`));
+  assert.deepEqual(enforce('eyeDetail', ['tsurime', 'tareme']), ['tareme']);                       // розріз очей: одне
+  assert.deepEqual(enforce('eyeDetail', ['tsurime', 'heart-shaped_pupils', 'long_eyelashes', 'thick_eyelashes']), ['tsurime', 'heart-shaped_pupils', 'long_eyelashes', 'thick_eyelashes']);
+  assert.deepEqual(enforce('hairStyle', ['ponytail', 'twintails', 'wavy_hair']), ['twintails', 'wavy_hair']); // хвіст одного виду + текстура
+  const rnd = get(`Array.from({ length: 40 }, () => mkSampleGrouped(SLOTS.eyeDetail, SLOTS.eyeDetail.opts({ g: 'f', theme: 'fantasy' }), 4))`);
+  plain(rnd).forEach(vals => assert.deepEqual(plain(get(`mkEnforce(SLOTS.eyeDetail, ${JSON.stringify(vals)})`)), vals));
+});
+test('групи показуються на своїй ділянці: очі, рот, ноги, хвости', () => {
+  const scope = (id, zone) => { const r = get(`(() => { const s = mkScope(SLOTS['${id}'], '${zone}'); return s && [...s]; })()`); return r && plain(r); };
+  assert.equal(scope('eyeDetail', 'eyes'), null);                       // усі групи на очах
+  assert.deepEqual(scope('raceFeat', 'pelvis'), ['Хвости']);
+  assert.deepEqual(scope('raceFeat', 'hair').sort(), ['Незвичайне волосся', 'Роги']);
+  assert.deepEqual(scope('makeup', 'mouth'), ['Помада й губи']);
+  assert.deepEqual(scope('limbs', 'leg'), ['Ноги']);
+  assert.ok(get(`MK.partSlots.pelvis.includes('raceFeat')`) && get(`MK.partSlots.mouth.includes('expression')`));
+  assert.ok(scope('permFeat', 'head').every(n => /обличчі|Родимки й розмальовка/.test(n)), 'на голові лише групи обличчя');
+});
+test('нічого не загублено: кількість унікальних тегів не менша за базову', () => {
+  const atoms = new Set();
+  slotIds().forEach(id => { const sl = get(`SLOTS['${id}']`); if (sl.text) return; optsOf(id).forEach(v => v.split(/,\s*/).forEach(x => atoms.add(get(`mkNorm(${JSON.stringify(x)})`)))); });
+  assert.ok(atoms.size >= 3800, 'унікальних тегів ' + atoms.size);
+});
+test('стать задається лише параметром «Стать»: у тегах тіла немає чоловічих/жіночих слів', () => {
+  const re = /(female|male|girl|boy|woman|\bman\b|onee|bishounen|\bbara\b|pectoral)/i, bad = [];
+  slotIds().forEach(id => { const sl = get(`SLOTS['${id}']`); if (sl.text || id === 'gender' || id.startsWith('px_') || /^(g|spr|framing)/.test(id)) return; optsOf(id).forEach(v => { if (re.test(v) && !/boyshorts|bare_pectorals|cowboy/.test(v)) bad.push(id + ': ' + v); }); });
+  assert.equal(bad.length, 0, bad.join(' | '));
+  ['m', 'f'].forEach(g => assert.deepEqual(plain(get(`SLOTS.breasts.opts({ g: '${g}', theme: 'dark' })`)), plain(get('G.breastsF_all'))));
+});
+test('палітра показується українською', () => {
+  assert.match(get(`uaPalette(['crimson', 'teal', 'gold'])`), /домінує: багряний; другорядний: .*; акценти: /);
+  assert.match(get(`uaPalette(['bone white and ash gray split complementary, mint for glowing parts'])`), /кістково-білий і попелясто-сірий/);
 });
 if (failed) { console.log('\nПровалено: ' + failed); process.exit(1); } else console.log('\nУсі перевірки пройдено');

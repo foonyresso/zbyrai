@@ -10,7 +10,7 @@ function pickValue(id, o) {
   const sl = SLOTS[id], s = ss(id), multi = sl.kind === 'multi';
   const cur = s.mode === 'manual' ? s.value : [];
   let next;
-  if (multi) next = cur.includes(o) ? cur.filter(x => x !== o) : [...cur, o];
+  if (multi) next = cur.includes(o) ? cur.filter(x => x !== o) : mkEnforce(sl, [...cur, o]);
   else next = cur.includes(o) ? [] : [o];
   s.rolled = true;
   if (next.length) { s.mode = 'manual'; s.value = next; }
@@ -22,23 +22,41 @@ function setText(id, text) {
   s.mode = t ? 'manual' : 'off'; s.value = t ? [t] : []; s.rolled = true;
   afterChange(id); refreshStates();
 }
-function rollSlot(id) { const s = ss(id); s.mode = 'random'; s.locked = false; genSlot(SLOTS[id]); afterChange(id); refreshCard(id); }
-function offSlot(id) { const s = ss(id); s.mode = 'off'; s.value = []; s.locked = false; s.rolled = true; afterChange(id); refreshCard(id); }
+function rollSlot(id, zone) { scopedUpdate(id, zone, (s, sl) => { s.mode = 'random'; s.locked = false; genSlot(sl); }); afterChange(id); refreshCard(id); }
+function offSlot(id, zone) { scopedUpdate(id, zone, s => { s.mode = 'off'; s.value = []; s.locked = false; s.rolled = true; }); afterChange(id); refreshCard(id); }
 function lockSlot(id) {
   const s = ss(id);
   if (s.mode === 'manual') { s.mode = 'random'; s.locked = true; } else s.locked = !s.locked;
   save(); refreshCard(id);
 }
-function zoneSlotIds(zone) { return mkMembers(zone).flatMap(m => MK.partSlots[m] || []).filter((v, i, a) => a.indexOf(v) === i).filter(id => visible(SLOTS[id])); }
+// Параметри ділянки; для параметрів із групами — лише ті, де на цій ділянці є що вибрати
+function zoneSlotIds(zone) {
+  return mkMembers(zone).flatMap(m => MK.partSlots[m] || []).filter((v, i, a) => a.indexOf(v) === i).filter(id => visible(SLOTS[id]) && slotHasZoneOpts(SLOTS[id], zone));
+}
+function slotHasZoneOpts(sl, zone) {
+  if (!sl.groups || sl.mk) return true;
+  const scope = mkScope(sl, zone);
+  return sl.opts(ctx()).some(o => mkInScope(sl, o, scope));
+}
+// Змінює лише ту частину значення параметра, що належить до ділянки (решту групи лишає)
+function scopedUpdate(id, zone, fn) {
+  const sl = SLOTS[id], s = ss(id), scope = mkScope(sl, zone);
+  const prev = s.mode === 'off' ? [] : s.value.slice(), prevMode = s.mode;
+  fn(s, sl);
+  if (!scope) return;
+  s.value = mkEnforce(sl, [...prev.filter(v => !mkInScope(sl, v, scope)), ...s.value.filter(v => mkInScope(sl, v, scope))]);
+  if (s.value.length && s.mode === 'off') s.mode = prevMode === 'off' ? 'manual' : prevMode;
+  if (!s.value.length && s.mode !== 'off') { s.mode = fallbackMode(sl); s.rolled = s.mode === 'off'; }
+}
 function rollZone(zone) {
-  zoneSlotIds(zone).forEach(id => { if (SLOTS[id].text) return; const s = ss(id); s.mode = 'random'; s.locked = false; genSlot(SLOTS[id]); });
+  zoneSlotIds(zone).forEach(id => { if (SLOTS[id].text) return; scopedUpdate(id, zone, (s, sl) => { s.mode = 'random'; s.locked = false; genSlot(sl); }); });
   save(); render();
 }
 function clearZone(zone) {
-  zoneSlotIds(zone).forEach(id => { const s = ss(id), sl = SLOTS[id]; s.mode = fallbackMode(sl); s.value = []; s.locked = false; s.rolled = s.mode === 'off'; });
+  zoneSlotIds(zone).forEach(id => scopedUpdate(id, zone, (s, sl) => { s.mode = fallbackMode(sl); s.value = []; s.locked = false; s.rolled = s.mode === 'off'; }));
   save(); render();
 }
-function offZone(zone) { zoneSlotIds(zone).forEach(id => { const s = ss(id); s.mode = 'off'; s.value = []; s.locked = false; s.rolled = true; }); save(); render(); }
+function offZone(zone) { zoneSlotIds(zone).forEach(id => scopedUpdate(id, zone, s => { s.mode = 'off'; s.value = []; s.locked = false; s.rolled = true; })); save(); render(); }
 
 /* ---------- картка параметра ---------- */
 function stateBadge(sl, s) {
@@ -47,30 +65,35 @@ function stateBadge(sl, s) {
   if (sl.manual) return '<span class="bd rnd">кубик</span>';
   return s.locked ? '<span class="bd lck">замок</span>' : '<span class="bd rnd">кубик</span>';
 }
-function cardValueText(sl, s) {
+function cardValueText(sl, s, scope) {
   if (s.mode === 'off') return '';
-  if (!s.value.length) return '— цього разу нічого —';
-  return sl.text ? s.value.join(', ') : (sl.fmt ? sl.fmt(s.value) : s.value.map(x => mkLabel(sl, x)).join(', '));
+  const vals = scope ? s.value.filter(v => mkInScope(sl, v, scope)) : s.value;
+  if (!vals.length) return scope && s.value.length ? '— тут нічого —' : '— цього разу нічого —';
+  return sl.text ? vals.join(', ') : (sl.uaFmt && sl.uaFmt(vals)) || (sl.fmt ? sl.fmt(vals) : vals.map(x => mkLabel(sl, x)).join(', '));
 }
-function buildChips(sl, s, box, q) {
+function buildChips(sl, s, box, q, scope) {
   box.innerHTML = '';
   const sel = new Set(s.mode === 'manual' ? s.value : []);
   const ql = q.toLowerCase();
+  const avail = sl.groups ? new Set(sl.opts(ctx())) : null;
   const mk = (o, parent) => {
     const t = mkLabel(sl, o);
     if (ql && !t.toLowerCase().includes(ql) && !o.toLowerCase().includes(ql)) return false;
     const b = document.createElement('button');
     b.className = 'chip' + (sel.has(o) ? ' on' : '');
-    b.textContent = t; b.title = sl.lab && sl.lab[o] ? o : (sl.kind === 'multi' ? 'Клік — додати чи прибрати' : 'Клік — вибрати, ще раз — скасувати');
+    b.textContent = t; b.title = o + (sl.kind === 'multi' ? ' · клік — додати чи прибрати' : ' · клік — вибрати, ще раз — скасувати');
     b.onclick = () => pickValue(sl.id, o);
     parent.appendChild(b); return true;
   };
   if (sl.groups) {
     sl.groups.forEach(([name, items]) => {
+      if (scope && !scope.has(name)) return;
       const wrap = document.createElement('div'); wrap.className = 'cgroup';
-      const h = document.createElement('div'); h.className = 'cg-h'; h.textContent = name; wrap.appendChild(h);
+      const h = document.createElement('div'); h.className = 'cg-h'; h.textContent = name;
+      if (sl.gsingle && sl.gsingle.has(name) && items.length > 1) { const hint = document.createElement('i'); hint.textContent = 'одне з групи'; h.appendChild(hint); }
+      wrap.appendChild(h);
       const row = document.createElement('div'); row.className = 'crow'; wrap.appendChild(row);
-      let any = false; items.forEach(([, p]) => { if (mk(p, row)) any = true; });
+      let any = false; items.forEach(([, p]) => { if (avail.has(p) && mk(p, row)) any = true; });
       if (any) box.appendChild(wrap);
     });
   } else {
@@ -79,11 +102,11 @@ function buildChips(sl, s, box, q) {
   }
   if (!box.children.length) box.innerHTML = '<div class="hint">Нічого не знайдено.</div>';
 }
-function slotCard(id) {
-  const sl = SLOTS[id], s = ss(id);
+function slotCard(id, zone) {
+  const sl = SLOTS[id], s = ss(id), scope = mkScope(sl, zone);
   const el = document.createElement('div');
   el.className = 'card' + (s.locked ? ' locked' : '') + (s.mode === 'manual' ? ' manual' : '') + (s.mode === 'off' ? ' off' : '');
-  el.dataset.id = id;
+  el.dataset.id = id; el.dataset.zone = zone || '';
   if (sl.text) {
     el.innerHTML = `<div class="card-h"><b>${esc(sl.label)}</b>${stateBadge(sl, s)}<span class="grow"></span></div>
       <textarea rows="2" spellcheck="false" placeholder="Свій опис англійськими тегами через кому, напр.: tattoo of a dragon, scar" title="Вільний текст для цієї ділянки: потрапляє в промпт як є"></textarea>
@@ -92,7 +115,7 @@ function slotCard(id) {
     ta.oninput = () => setText(id, ta.value);
     return el;
   }
-  const opts = sl.opts(ctx()), n = opts.length;
+  const opts = sl.opts(ctx()), n = scope ? opts.filter(o => mkInScope(sl, o, scope)).length : opts.length;
   el.innerHTML = `<div class="card-h"><b>${esc(sl.label)}</b><small>${n ? n.toLocaleString('uk') + ' варіантів' : 'генерується'}</small>${stateBadge(sl, s)}<span class="grow"></span>
       <button class="ib lk" title="${s.locked ? 'Зняти замок' : 'Замкнути: кубик не змінюватиме це значення'}">${s.locked ? '🔒' : '🔓'}</button>
       <button class="ib rl" title="Перекинути тільки цей параметр">🎲</button>
@@ -100,15 +123,15 @@ function slotCard(id) {
     <div class="card-v${s.mode === 'off' || !s.value.length ? ' empty' : ''}"></div>
     ${n > 14 ? '<input class="csearch" placeholder="Пошук у списку…" autocomplete="off" title="Відфільтрувати варіанти за словом">' : ''}
     ${n ? '<div class="chips"></div>' : ''}`;
-  el.querySelector('.card-v').textContent = cardValueText(sl, s);
+  el.querySelector('.card-v').textContent = cardValueText(sl, s, scope);
   el.querySelector('.lk').onclick = () => lockSlot(id);
-  el.querySelector('.rl').onclick = () => rollSlot(id);
-  el.querySelector('.of').onclick = () => offSlot(id);
+  el.querySelector('.rl').onclick = () => rollSlot(id, zone);
+  el.querySelector('.of').onclick = () => offSlot(id, zone);
   const search = el.querySelector('.csearch');
   if (n) {
     const box = el.querySelector('.chips');
-    buildChips(sl, s, box, cardQ[id] || '');
-    if (search) { search.value = cardQ[id] || ''; search.oninput = () => { cardQ[id] = search.value; buildChips(sl, s, box, search.value); }; }
+    buildChips(sl, s, box, cardQ[id] || '', scope);
+    if (search) { search.value = cardQ[id] || ''; search.oninput = () => { cardQ[id] = search.value; buildChips(sl, s, box, search.value, scope); }; }
   }
   return el;
 }
@@ -116,7 +139,7 @@ function refreshCard(id) {
   if (id === 'gender') { renderWork(); refreshStates(); return; }
   document.querySelectorAll('.card[data-id="' + id + '"]').forEach(old => {
     const chipsScroll = old.querySelector('.chips') ? old.querySelector('.chips').scrollTop : 0;
-    const neu = slotCard(id); old.replaceWith(neu);
+    const neu = slotCard(id, old.dataset.zone); old.replaceWith(neu);
     if (neu.querySelector('.chips')) neu.querySelector('.chips').scrollTop = chipsScroll;
   });
   refreshStates();
@@ -154,14 +177,14 @@ function renderTabs() {
 }
 
 /* ---------- вміст вкладок ---------- */
-function groupBlock(title, ids, openByDefault, key) {
+function groupBlock(title, ids, openByDefault, key, zone) {
   const d = document.createElement('details'); d.className = 'grp';
   d.open = key in st.closed ? !st.closed[key] : openByDefault;
   d.ontoggle = () => { st.closed[key] = !d.open; save(); };
   const filled = ids.filter(id => { const s = ss(id); return s.mode !== 'off' && s.value.length && (SLOTS[id].mk || s.mode === 'manual'); }).length;
   d.innerHTML = `<summary>${esc(title)}<small>${ids.length}</small>${filled ? '<i class="dot"></i>' : ''}</summary><div class="cards"></div>`;
   const cards = d.querySelector('.cards');
-  ids.forEach(id => cards.appendChild(slotCard(id)));
+  ids.forEach(id => cards.appendChild(slotCard(id, zone)));
   return d;
 }
 function matchQ(id) { if (!wQuery) return true; const sl = SLOTS[id], q = wQuery.toLowerCase(); return sl.label.toLowerCase().includes(q) || (MK_PART_UA[slotParts(sl)[0]] || '').toLowerCase().includes(q); }
@@ -208,15 +231,15 @@ function renderZone(box) {
     });
     box.appendChild(sib);
   }
-  const own = (MK.partSlots[z] || []).filter(id => visible(SLOTS[id]) && matchQ(id));
+  const own = (MK.partSlots[z] || []).filter(id => visible(SLOTS[id]) && matchQ(id) && slotHasZoneOpts(SLOTS[id], z));
   if (g) {
-    const cards = document.createElement('div'); cards.className = 'cards'; own.forEach(id => cards.appendChild(slotCard(id))); box.appendChild(cards);
+    const cards = document.createElement('div'); cards.className = 'cards'; own.forEach(id => cards.appendChild(slotCard(id, z))); box.appendChild(cards);
     g.parts.forEach(p => {
-      const ids = (MK.partSlots[p] || []).filter(id => visible(SLOTS[id]) && matchQ(id));
-      if (ids.length && !mkGroup(p)) box.appendChild(groupBlock(mkZoneLabel(p), ids, false, 'z:' + st.type + ':' + p));
+      const ids = (MK.partSlots[p] || []).filter(id => visible(SLOTS[id]) && matchQ(id) && slotHasZoneOpts(SLOTS[id], p));
+      if (ids.length && !mkGroup(p)) box.appendChild(groupBlock(mkZoneLabel(p), ids, false, 'z:' + st.type + ':' + p, p));
     });
   } else {
-    const cards = document.createElement('div'); cards.className = 'cards'; own.forEach(id => cards.appendChild(slotCard(id))); box.appendChild(cards);
+    const cards = document.createElement('div'); cards.className = 'cards'; own.forEach(id => cards.appendChild(slotCard(id, z))); box.appendChild(cards);
     if (!own.length) box.insertAdjacentHTML('beforeend', '<div class="hint">Для цієї ділянки поки немає параметрів.</div>');
   }
 }

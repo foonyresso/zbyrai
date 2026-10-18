@@ -68,7 +68,7 @@ function genSlot(sl) {
   const o = sl.opts(c);
   const p = typeof sl.p === 'function' ? sl.p(c) : sl.p;
   if (!o.length || Math.random() > p) { s.value = []; return; }
-  if (sl.kind === 'multi') { s.value = sample(o, sl.n[0] + rnd(sl.n[1] - sl.n[0] + 1)); return; }
+  if (sl.kind === 'multi') { s.value = mkSampleGrouped(sl, o, sl.n[0] + rnd(sl.n[1] - sl.n[0] + 1)); return; }
   const recent = recentSet(sl.id);
   let v;
   for (let i = 0; i < 8; i++) { v = pick(o); if (!recent.has(v)) break; }

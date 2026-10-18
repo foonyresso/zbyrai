@@ -1,5 +1,6 @@
 // Пули слів: допоміжні функції, шаблони піксель-арту, загальні пули, тематики, пули Flux/Gemini і спрайтів.
 const L = s => s.split('|').map(x => x.trim()).filter(Boolean);
+const LC = s => s.split(',').map(x => x.trim()).filter(Boolean);
 const rnd = n => Math.floor(Math.random() * n);
 const pick = a => a[rnd(a.length)];
 const sample = (a, k) => { const c = [...a], r = []; while (r.length < k && c.length) r.push(c.splice(rnd(c.length), 1)[0]); return r; };
@@ -93,7 +94,7 @@ lootMod: L(`ancient|cursed|blessed|broken|repaired|rusted|pristine|royal|peasant
 /* ===== ТЕМАТИКИ: у кожної свої набори одягу (жін/чол), зброя, фон, ефекти ===== */
 const THEMES = {};
 function theme(key, name, icon, tag, nl, o) {
-  THEMES[key] = { name, icon, tag, nl, outF: L(o.outF), outM: L(o.outM), weapon: L(o.weapon), bg: L(o.bg), fx: L(o.fx) };
+  THEMES[key] = { name, icon, tag, nl, outF: L(o.outF), outM: L(o.outM), weapon: L(o.weapon), bg: LC(o.bg), fx: LC(o.fx) };
 }
 
 theme('fantasy', 'Високе фентезі', '🏰', 'fantasy', 'high fantasy', {

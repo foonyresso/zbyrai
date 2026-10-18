@@ -27,7 +27,7 @@ def('expression', 'Вираз обличчя', 'Facial expression', { opts: () =
 def('eyeExpr', 'Вираз очей', 'Eye expression', { opts: () => G.eyeExpr });
 def('makeup', 'Макіяж', 'Makeup', { kind: 'multi', n: [1, 3], p: c => (c.g === 'm' ? 0.25 : 0.75), opts: byG(G.makeup_f, G.makeup_m) });
 def('nails', 'Нігті', 'Nails', { p: c => (c.g === 'm' ? 0.3 : 0.6), opts: byG(G.nails_f, G.nails_m) });
-def('breasts', 'Груди / торс', 'Chest', { opts: byG(G.breastsF_all, G.chestM), gen: c => [c.g === 'm' ? pick(G.chestM) : wpick(G.breastsF)] });
+def('breasts', 'Груди / торс', 'Chest', { opts: () => G.breastsF_all, gen: c => (c.g === 'm' ? [] : [wpick(G.breastsF)]) });
 def('hips', 'Стегна / сідниці', 'Hips', { opts: byG(G.hips_f, G.hips_m) });
 def('limbs', 'Руки та ноги', 'Arms and legs', { opts: byG(G.limbs_f, G.limbs_m) });
 def('build', 'Комплекція', 'Body build', { kind: 'multi', n: [2, 3], opts: byG(G.build_f, G.build_m) });
@@ -114,6 +114,7 @@ def('px_palette', 'Палітра', 'Palette', {
   kind: 'multi', n: [3, 3], opts: () => POOL.color,
   gen: () => { const c = sample(POOL.color, 3); return [pick(POOL.palPattern).replace('{a}', c[0]).replace('{b}', c[1]).replace('{c}', c[2])]; },
   fmt: v => (v.length === 3 ? `dominant ${v[0]}, secondary ${v[1]}, small ${v[2]} accents` : v.join(', ')),
+  uaFmt: v => (typeof uaPalette === 'function' ? uaPalette(v) : null),
 });
 const PX = ids => ids.map(i => 'px_' + i);
 

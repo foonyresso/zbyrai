@@ -72,7 +72,8 @@ const isScenePart = s => s.part === 'pose' || s.part === 'frame' || s.part === '
 })();
 
 // Дрібні помічники для інтерфейсу й промптів
-const mkLabel = (sl, v) => (sl.lab && sl.lab[v]) || hum(v);
+// Підпис варіанта: свій (категорії манекена й групи) → словник ua-*.js → сирий тег
+const mkLabel = (sl, v) => (sl.lab && sl.lab[v]) || (typeof uaLabel === 'function' && uaLabel(v)) || hum(v);
 // Flux/Gemini: абзац «додаткові деталі за ділянками» для нових слотів; get(id) → значення
 function mkFluxParagraph(slotIds, get) {
   const byPart = {};

@@ -2,20 +2,15 @@
 // Стан вибору живе в st.zone / st.view / st.whole (див. app.js). Подання вкладок і карток: ui-workspace.js.
 const MK_NS = 'http://www.w3.org/2000/svg';
 const mkEl = (tag, attrs, parent) => { const e = document.createElementNS(MK_NS, tag); Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v)); if (parent) parent.appendChild(e); return e; };
-const mkGroup = id => MK_GROUPS.find(g => g.id === id);
 const mkZoneLabel = id => (mkGroup(id) ? mkGroup(id).label : (MK_ZONES.find(z => z.id === id) || {}).label || id);
-// Ділянки, чиї параметри змінює вибір у групі (сама група й усі її частини)
-function mkMembers(id) {
-  const g = mkGroup(id);
-  if (!g) return [id];
-  return [id, ...g.parts.flatMap(p => (mkGroup(p) ? mkMembers(p) : [p]))].filter((v, i, a) => a.indexOf(v) === i);
-}
 // Стан ділянки для підсвітки: 'user' = щось вибрано вручну чи введено текст, 'has' = є значення (випадкові теж), '' = порожньо
 function mkZoneState(id) {
   let state = '';
   mkMembers(id).forEach(m => (MK.partSlots[m] || []).forEach(sid => {
     const sl = SLOTS[sid], s = st.slots[sid];
     if (!sl || !s || !visible(sl) || s.mode === 'off' || !s.value.length) return;
+    const scope = mkScope(sl, m);
+    if (scope && !s.value.some(v => mkInScope(sl, v, scope))) return;
     if (s.mode === 'manual' || s.locked) state = 'user';
     else if (!state) state = 'has';
   }));
