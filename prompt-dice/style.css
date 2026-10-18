@@ -173,3 +173,15 @@ textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5
 .toast.show { opacity: 1; transform: translateX(-50%); }
 
 
+.colorrow { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--line, #333); }
+.cr-t { font-size: 11px; color: var(--faint); margin-right: 4px; }
+.sw { width: 20px; height: 20px; padding: 0; border-radius: 5px; border: 1px solid rgba(255, 255, 255, .25); cursor: pointer; position: relative; }
+.sw.on { outline: 2px solid var(--gold-hi, #e6c36a); outline-offset: 1px; }
+.sw.custom { background: conic-gradient(#e33, #ee3, #3e3, #3ee, #33e, #e3e, #e33); overflow: hidden; }
+.sw.custom input { opacity: 0; position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+.sw.clear { background: transparent; color: var(--faint); font-size: 11px; line-height: 1; }
+.card.race-active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-glow), 0 0 18px var(--gold-glow); }
+.cgroup.race .cg-h { color: var(--gold-hi, #e6c36a); }
+.race-hint { margin-bottom: 6px; }
+details.univ { margin-top: 8px; border-top: 1px solid var(--line, #333); padding-top: 6px; }
+details.univ > summary { cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin-bottom: 6px; }

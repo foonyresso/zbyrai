@@ -72,8 +72,16 @@ const isScenePart = s => s.part === 'pose' || s.part === 'frame' || s.part === '
 })();
 
 // Дрібні помічники для інтерфейсу й промптів
-// Підпис варіанта: свій (категорії манекена й групи) → словник ua-*.js → сирий тег
-const mkLabel = (sl, v) => (sl.lab && sl.lab[v]) || (typeof uaLabel === 'function' && uaLabel(v)) || hum(v);
+// Підпис варіанта: свій (категорії манекена й групи) → словник ua-*.js → колір + тег → сирий тег
+function mkLabel(sl, v) {
+  const direct = (sl.lab && sl.lab[v]) || (typeof uaLabel === 'function' && uaLabel(v));
+  if (direct) return direct;
+  const cs = typeof COLOR_SLOT_FMT === 'object' && COLOR_SLOT_FMT[sl.id];
+  if (cs) { const c = COLORS.find(x => cs.fmt(x[0]) === v); if (c) return cs.label(c[0]); }
+  const u = typeof uncolor === 'function' && uncolor(v);
+  if (u) return mkLabel(sl, u.base) + ', колір: ' + colorUa(u.c).toLowerCase();
+  return hum(v);
+}
 // Flux/Gemini: абзац «додаткові деталі за ділянками» для нових слотів; get(id) → значення
 function mkFluxParagraph(slotIds, get) {
   const byPart = {};

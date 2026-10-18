@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const dir = path.join(__dirname, '..');
 const ctx = { document: { getElementById: () => null }, console }; vm.createContext(ctx);
-['pools.js', 'ua-tags.js', 'ua-body.js', 'ua-outfit.js', 'ua-scene.js', 'ua-pixel.js', 'styles.js', 'types.js', 'mk-shapes.js', 'mk-data-body.js', 'mk-data-head.js', 'mk-data-scene.js', 'mk-data-extra.js', 'mk-slots.js', 'mk-spec.js', 'mk-merge.js']
+['pools.js', 'ua-tags.js', 'ua-body.js', 'ua-outfit.js', 'ua-scene.js', 'ua-pixel.js', 'ua-race.js', 'colors.js', 'race-data.js', 'styles.js', 'types.js', 'mk-shapes.js', 'mk-data-body.js', 'mk-data-head.js', 'mk-data-scene.js', 'mk-data-extra.js', 'mk-slots.js', 'mk-spec.js', 'mk-merge.js']
   .forEach(f => vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f }));
 const get = expr => vm.runInContext(expr, ctx);
 const plain = v => JSON.parse(JSON.stringify(v));
@@ -108,6 +108,31 @@ test('стать задається лише параметром «Стать»
   slotIds().forEach(id => { const sl = get(`SLOTS['${id}']`); if (sl.text || id === 'gender' || id.startsWith('px_') || /^(g|spr|framing)/.test(id)) return; optsOf(id).forEach(v => { if (re.test(v) && !/boyshorts|bare_pectorals|cowboy/.test(v)) bad.push(id + ': ' + v); }); });
   assert.equal(bad.length, 0, bad.join(' | '));
   ['m', 'f'].forEach(g => assert.deepEqual(plain(get(`SLOTS.breasts.opts({ g: '${g}', theme: 'dark' })`)), plain(get('G.breastsF_all'))));
+});
+test('кольори: складання тегу, розбір, найближча назва, підписи', () => {
+  assert.equal(get(`colorize('wings', 'white')`), 'white wings');
+  assert.equal(get(`colorize('angel_wings', 'dark_red')`), 'dark_red_angel_wings');
+  assert.equal(get(`colorize('thighhighs', 'red', true)`), 'red_thighhighs');
+  assert.deepEqual(plain(get(`uncolor('hot_pink_hair_ribbon')`)), { c: 'hot_pink', base: 'hair_ribbon' });
+  assert.deepEqual(plain(get(`uncolor('pink bunny ears')`)), { c: 'pink', base: 'bunny ears' });
+  assert.equal(get(`uncolor('wings')`), null);
+  assert.equal(get(`nearestColor('#d00000')`), 'red');
+  assert.equal(get(`nearestColor('#101010')`), 'black');
+  assert.match(get(`mkLabel(SLOTS.raceFeat, 'pink_bunny_ears')`), /колір: рожевий/);
+  assert.match(get(`mkLabel(SLOTS.hairColor, 'lavender_hair')`), /Волосся|лаванд/i);
+  assert.match(get(`mkLabel(SLOTS.eyeColor, 'hot_pink_eyes')`), /Очі: яскраво-рожевий/);
+  assert.ok(get(`COLORS.length`) >= 20 && get(`COLORS.every(c => /^#[0-9a-f]{6}$/.test(c[2]))`));
+});
+test('меню рас: кожна раса з меню є в параметрі «Раса», усі теги меню є в «Расових особливостях»', () => {
+  const races = new Set(plain(optsOf('race'))), feats = new Set(plain(optsOf('raceFeat')));
+  const menu = plain(get('RACE_MENU'));
+  Object.entries(menu).forEach(([k, groups]) => {
+    assert.ok(races.has(k), 'раси немає в параметрі race: ' + k);
+    assert.ok(groups.length, k);
+    groups.forEach(([name, tags]) => tags.split('|').forEach(t => assert.ok(feats.has(t), k + ' / ' + name + ': немає тегу ' + t)));
+  });
+  ['catfolk', 'foxfolk', 'wolffolk', 'rabbitfolk', 'dragonkin', 'monster', 'angel', 'demon', 'vampire', 'oni', 'kitsune'].forEach(k => assert.ok(menu[k], 'немає меню для ' + k));
+  assert.ok(menu.rabbitfolk.some(g => g[1].includes('pom_pom_tail')) && menu.angel.some(g => g[1].includes('halo')));
 });
 test('палітра показується українською', () => {
   assert.match(get(`uaPalette(['crimson', 'teal', 'gold'])`), /домінує: багряний; другорядний: .*; акценти: /);

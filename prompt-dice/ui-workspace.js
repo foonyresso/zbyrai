@@ -6,16 +6,65 @@ const slotParts = sl => sl.parts || (sl.part ? [sl.part] : []);
 const hasMannequin = () => st.type === 'char' || st.type === 'sprite';
 
 /* ---------- зміни стану параметра ---------- */
+// Значення, що відповідає варіанту o: сам o або o з кольором («white_wings» для «wings»)
+function valueOf(sl, vals, o) {
+  const opts = new Set(sl.opts(ctx()));
+  return vals.find(v => v === o || (!opts.has(v) && uncolor(v) && uncolor(v).base === o));
+}
 function pickValue(id, o) {
   const sl = SLOTS[id], s = ss(id), multi = sl.kind === 'multi';
   const cur = s.mode === 'manual' ? s.value : [];
+  const had = valueOf(sl, cur, o);
   let next;
-  if (multi) next = cur.includes(o) ? cur.filter(x => x !== o) : mkEnforce(sl, [...cur, o]);
-  else next = cur.includes(o) ? [] : [o];
+  if (multi) next = had !== undefined ? cur.filter(x => x !== had) : mkEnforce(sl, [...cur, o]);
+  else next = had !== undefined ? [] : [o];
   s.rolled = true;
   if (next.length) { s.mode = 'manual'; s.value = next; }
   else { s.mode = fallbackMode(sl); s.value = []; s.rolled = s.mode === 'off'; }
   afterChange(id); refreshCard(id);
+}
+// Вибір кольору: параметр, де колір і є значенням (волосся, очі, нігті, шкіра)
+function setColorSlot(id, c) {
+  const s = ss(id); s.mode = 'manual'; s.value = [COLOR_SLOT_FMT[id].fmt(c)]; s.rolled = true;
+  afterChange(id); refreshCard(id);
+}
+// Колір для вибраного тегу (крила, роги, одяг…); c = null знімає колір
+function setTagColor(id, v, base, c) {
+  const s = ss(id); s.value = s.value.map(x => (x === v ? (c ? colorize(base, c, !SLOTS[id].mk) : base) : x)); s.rolled = true;
+  afterChange(id); refreshCard(id);
+}
+// Теги вибраного значення параметра, які можна фарбувати
+function colorTargets(sl, s) {
+  if (s.mode !== 'manual' || !s.value.length || COLOR_SLOT_FMT[sl.id] || sl.text) return [];
+  if (!(COLOR_SLOTS.has(sl.id) || (sl.mk && !['pose', 'frame', 'bg'].includes(sl.part)))) return [];
+  const opts = new Set(sl.opts(ctx()));
+  return s.value.flatMap(v => {
+    if (opts.has(v)) return !uncolor(v) && !v.includes(',') && COLORABLE_RE.test(v) ? [{ v, base: v, c: null }] : [];
+    const u = uncolor(v); return u && opts.has(u.base) ? [{ v, base: u.base, c: u.c }] : [];
+  });
+}
+function swatchRow(title, active, onPick, onClear) {
+  const row = document.createElement('div'); row.className = 'colorrow';
+  const h = document.createElement('span'); h.className = 'cr-t'; h.textContent = title; row.appendChild(h);
+  COLORS.forEach(([en, ua, hex]) => {
+    const b = document.createElement('button'); b.className = 'sw' + (active === en ? ' on' : ''); b.style.background = hex; b.title = ua; b.setAttribute('aria-label', ua);
+    b.onclick = () => onPick(en); row.appendChild(b);
+  });
+  const lab = document.createElement('label'); lab.className = 'sw custom'; lab.title = 'Свій колір: підбирається найближча назва кольору';
+  const inp = document.createElement('input'); inp.type = 'color'; inp.value = (COLORS.find(c => c[0] === active) || COLORS[0])[2];
+  inp.onchange = () => onPick(nearestColor(inp.value)); lab.appendChild(inp); row.appendChild(lab);
+  if (onClear) { const x = document.createElement('button'); x.className = 'sw clear'; x.textContent = '✕'; x.title = 'Без кольору'; x.onclick = onClear; row.appendChild(x); }
+  return row;
+}
+function renderColors(el, sl, s) {
+  const box = el.querySelector('.colors'); if (!box) return;
+  box.innerHTML = '';
+  const cs = COLOR_SLOT_FMT[sl.id];
+  if (cs) {
+    const cur = s.mode === 'manual' ? s.value[0] : '';
+    box.appendChild(swatchRow(cs.name + ':', (COLORS.find(c => cs.fmt(c[0]) === cur) || [])[0], c => setColorSlot(sl.id, c)));
+  }
+  colorTargets(sl, s).forEach(t => box.appendChild(swatchRow('Колір: ' + mkLabel(sl, t.base), t.c, c => setTagColor(sl.id, t.v, t.base, c), t.c ? () => setTagColor(sl.id, t.v, t.base, null) : null)));
 }
 function setText(id, text) {
   const s = ss(id), t = text.trim();
@@ -71,42 +120,71 @@ function cardValueText(sl, s, scope) {
   if (!vals.length) return scope && s.value.length ? '— тут нічого —' : '— цього разу нічого —';
   return sl.text ? vals.join(', ') : (sl.uaFmt && sl.uaFmt(vals)) || (sl.fmt ? sl.fmt(vals) : vals.map(x => mkLabel(sl, x)).join(', '));
 }
+// Раса з окремим меню особливостей (race-data.js); null, якщо расу не вибрано чи меню немає
+function raceKey() {
+  const r = st.slots.race;
+  const v = r && r.mode !== 'off' && r.value ? r.value[0] : null;
+  return v && RACE_MENU[v] ? v : null;
+}
+const univOpen = {};
 function buildChips(sl, s, box, q, scope) {
   box.innerHTML = '';
   const sel = new Set(s.mode === 'manual' ? s.value : []);
   const ql = q.toLowerCase();
-  const avail = sl.groups ? new Set(sl.opts(ctx())) : null;
+  const optSet = new Set(sl.opts(ctx()));
+  const colored = new Set([...sel].filter(v => !optSet.has(v) && uncolor(v) && optSet.has(uncolor(v).base)).map(v => uncolor(v).base));
+  const avail = sl.groups ? optSet : null;
   const mk = (o, parent) => {
     const t = mkLabel(sl, o);
     if (ql && !t.toLowerCase().includes(ql) && !o.toLowerCase().includes(ql)) return false;
     const b = document.createElement('button');
-    b.className = 'chip' + (sel.has(o) ? ' on' : '');
+    b.className = 'chip' + (sel.has(o) || colored.has(o) ? ' on' : '');
     b.textContent = t; b.title = o + (sl.kind === 'multi' ? ' · клік — додати чи прибрати' : ' · клік — вибрати, ще раз — скасувати');
     b.onclick = () => pickValue(sl.id, o);
     parent.appendChild(b); return true;
   };
+  const addGroup = (name, items, into, cls, single) => {
+    const wrap = document.createElement('div'); wrap.className = 'cgroup' + (cls ? ' ' + cls : '');
+    const h = document.createElement('div'); h.className = 'cg-h'; h.textContent = name;
+    if (single && items.length > 1) { const hint = document.createElement('i'); hint.textContent = 'одне з групи'; h.appendChild(hint); }
+    wrap.appendChild(h);
+    const row = document.createElement('div'); row.className = 'crow'; wrap.appendChild(row);
+    let any = false; items.forEach(p => { if (mk(p, row)) any = true; });
+    if (any) into.appendChild(wrap);
+  };
+  const rk = sl.id === 'raceFeat' && !scope ? raceKey() : null;
+  const shown = new Set();
+  if (rk) {
+    RACE_MENU[rk].forEach(([name, tags]) => { const items = tags.split('|').filter(t => optSet.has(t)); items.forEach(t => shown.add(t)); addGroup(name, items, box, 'race'); });
+  } else if (sl.id === 'raceFeat' && !scope) {
+    const hint = document.createElement('div'); hint.className = 'hint race-hint'; hint.textContent = 'Вибери расу вище: тут з’являться її особливості (крила, роги, вушка, хвости…). Нижче — універсальні, для будь-якої раси.'; box.appendChild(hint);
+  }
   if (sl.groups) {
+    const target = rk ? document.createElement('details') : box;
+    if (rk) {
+      target.className = 'univ'; target.open = !!univOpen[sl.id] || !!ql;
+      target.ontoggle = () => { univOpen[sl.id] = target.open; };
+      target.innerHTML = '<summary>Універсальні особливості (будь-яка раса)</summary>';
+    }
     sl.groups.forEach(([name, items]) => {
       if (scope && !scope.has(name)) return;
-      const wrap = document.createElement('div'); wrap.className = 'cgroup';
-      const h = document.createElement('div'); h.className = 'cg-h'; h.textContent = name;
-      if (sl.gsingle && sl.gsingle.has(name) && items.length > 1) { const hint = document.createElement('i'); hint.textContent = 'одне з групи'; h.appendChild(hint); }
-      wrap.appendChild(h);
-      const row = document.createElement('div'); row.className = 'crow'; wrap.appendChild(row);
-      let any = false; items.forEach(([, p]) => { if (avail.has(p) && mk(p, row)) any = true; });
-      if (any) box.appendChild(wrap);
+      addGroup(name, items.map(x => x[1]).filter(p => avail.has(p) && !shown.has(p)), target, '', sl.gsingle && sl.gsingle.has(name));
     });
+    if (rk && target.children.length > 1) box.appendChild(target);
   } else {
     const row = document.createElement('div'); row.className = 'crow'; box.appendChild(row);
     sl.opts(ctx()).forEach(o => mk(o, row));
   }
-  if (!box.children.length) box.innerHTML = '<div class="hint">Нічого не знайдено.</div>';
+  if (!box.querySelector('.chip')) box.innerHTML = '<div class="hint">Нічого не знайдено.</div>';
 }
 function slotCard(id, zone) {
   const sl = SLOTS[id], s = ss(id), scope = mkScope(sl, zone);
   const el = document.createElement('div');
   el.className = 'card' + (s.locked ? ' locked' : '') + (s.mode === 'manual' ? ' manual' : '') + (s.mode === 'off' ? ' off' : '');
   el.dataset.id = id; el.dataset.zone = zone || '';
+  const rk = id === 'raceFeat' && !scope ? raceKey() : null;
+  if (rk) el.classList.add('race-active');
+  const title = rk ? 'Особливості раси: ' + mkLabel(SLOTS.race, rk) : sl.label;
   if (sl.text) {
     el.innerHTML = `<div class="card-h"><b>${esc(sl.label)}</b>${stateBadge(sl, s)}<span class="grow"></span></div>
       <textarea rows="2" spellcheck="false" placeholder="Свій опис англійськими тегами через кому, напр.: tattoo of a dragon, scar" title="Вільний текст для цієї ділянки: потрапляє в промпт як є"></textarea>
@@ -116,14 +194,16 @@ function slotCard(id, zone) {
     return el;
   }
   const opts = sl.opts(ctx()), n = scope ? opts.filter(o => mkInScope(sl, o, scope)).length : opts.length;
-  el.innerHTML = `<div class="card-h"><b>${esc(sl.label)}</b><small>${n ? n.toLocaleString('uk') + ' варіантів' : 'генерується'}</small>${stateBadge(sl, s)}<span class="grow"></span>
+  el.innerHTML = `<div class="card-h"><b>${esc(title)}</b><small>${n ? n.toLocaleString('uk') + ' варіантів' : 'генерується'}</small>${stateBadge(sl, s)}<span class="grow"></span>
       <button class="ib lk" title="${s.locked ? 'Зняти замок' : 'Замкнути: кубик не змінюватиме це значення'}">${s.locked ? '🔒' : '🔓'}</button>
       <button class="ib rl" title="Перекинути тільки цей параметр">🎲</button>
       <button class="ib of" title="Не вказувати цей параметр у промпті">∅</button></div>
     <div class="card-v${s.mode === 'off' || !s.value.length ? ' empty' : ''}"></div>
     ${n > 14 ? '<input class="csearch" placeholder="Пошук у списку…" autocomplete="off" title="Відфільтрувати варіанти за словом">' : ''}
-    ${n ? '<div class="chips"></div>' : ''}`;
+    ${n ? '<div class="chips"></div>' : ''}
+    <div class="colors"></div>`;
   el.querySelector('.card-v').textContent = cardValueText(sl, s, scope);
+  renderColors(el, sl, s);
   el.querySelector('.lk').onclick = () => lockSlot(id);
   el.querySelector('.rl').onclick = () => rollSlot(id, zone);
   el.querySelector('.of').onclick = () => offSlot(id, zone);
@@ -142,7 +222,8 @@ function refreshCard(id) {
     const neu = slotCard(id, old.dataset.zone); old.replaceWith(neu);
     if (neu.querySelector('.chips')) neu.querySelector('.chips').scrollTop = chipsScroll;
   });
-  refreshStates();
+  if (id === 'race' && SLOTS.raceFeat) refreshCard('raceFeat'); // меню особливостей залежить від раси
+  else refreshStates();
 }
 function refreshStates() { renderOut(); mkRenderSvg(); renderStat(); renderTabs(); }
 function renderStat() {

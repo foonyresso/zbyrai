@@ -21,9 +21,10 @@ const MKM_SPEC = {
   race: {
     drop: 'demon_girl|demon_boy|fox_girl|fox_boy|cat_girl|cat_boy|wolf_girl|wolf_boy|dog_girl|dog_boy|rabbit_girl|horse_girl|tiger_girl|dragon_girl|dragon_boy|snake_girl|bird_girl|monster_girl|slime_girl|spider_girl|plant_girl',
     groups: [
-      ['Люди й фентезійні раси', 'm', 'human|elf|dark_elf|fairy|goblin|orc|valkyrie|witch|dullahan|yokai|yuki_onna|kitsune|oni|dragonborn'],
+      ['Люди й фентезійні раси', 'm', 'human|elf|dark_elf|fairy|goblin|orc|valkyrie|witch|dullahan|yokai|yuki_onna|kitsune|oni|dragonborn|dragonkin'],
       ['Демони й небесні', 'm', 'demon|succubus|vampire|angel|fallen_angel'],
-      ['Звіролюди й напівмонстри', 'm', 'beastfolk|werewolf|minotaur|lamia|harpy|mermaid|arachne|centaur'],
+      ['Звіролюди й напівмонстри', 'm', 'catfolk|foxfolk|wolffolk|dogfolk|rabbitfolk|horsefolk|tigerfolk|beastfolk|werewolf|minotaur|snakefolk|birdfolk|lamia|harpy|mermaid|arachne|spiderfolk|centaur'],
+      ['Монстри й рослини', 'm', 'monster|plantfolk|slimefolk'],
       ['Нежить і штучні істоти', 'm', 'ghost|undead|android|cyborg|robot|mecha_musume'],
     ],
   },
@@ -245,3 +246,17 @@ const MKM_SPEC = {
     ],
   },
 };
+
+// Теги з меню рас, яких не було серед старих особливостей, потрапляють у відповідні групи (роги до рогів, крила до крил…)
+(function raceExtras() {
+  const groups = MKM_SPEC.raceFeat.groups, rules = [[/horn/, 'Роги'], [/wing/, 'Крила'], [/tail/, 'Хвости'], [/ears?$/, 'Вуха'], [/halo/, 'Німб']];
+  const have = new Set(groups.flatMap(g => g[2].split('|')).filter(t => t[0] !== '@'));
+  const rest = [];
+  RACE_TAGS_ALL.forEach(t => {
+    if (have.has(t)) return;
+    const r = rules.find(x => x[0].test(t));
+    const g = r && groups.find(x => x[0] === r[1]);
+    if (g) g[2] += '|' + t; else rest.push(t);
+  });
+  groups.push(['Інше за расами', 'm', rest.join('|')]);
+})();
