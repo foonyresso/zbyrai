@@ -11,11 +11,13 @@ const COLORS = [
 const colorUa = en => (COLORS.find(c => c[0] === en) || [0, en])[1];
 // Колір + тег: «white_wings» (стиль старих параметрів, з підкресленнями), «white wings» (стиль категорій манекена)
 function colorize(tag, c, underscore) { const sep = tag.includes('_') || underscore ? '_' : ' '; return c.replace(/_/g, sep) + sep + tag; }
-const COLOR_RE = new RegExp('^(' + COLORS.map(c => c[0].replace(/_/g, '[_ ]')).sort((a, b) => b.length - a.length).join('|') + ')[_ ](.+)$', 'i');
+const CN = COLORS.map(c => c[0].replace(/_/g, '[_ ]')).sort((a, b) => b.length - a.length).join('|');   // назви кольорів для регулярок
+const COLOR_RE = new RegExp('^(' + CN + ')[_ ](.+)$', 'i');
+const colorKey = w => w.toLowerCase().replace(/ /g, '_');
 // «white_wings» → { c: 'white', base: 'wings' }; null, якщо кольору на початку немає
 function uncolor(v) {
   const m = COLOR_RE.exec(v); if (!m) return null;
-  const c = COLORS.find(x => x[0] === m[1].toLowerCase().replace(/ /g, '_'));
+  const c = COLORS.find(x => x[0] === colorKey(m[1]));
   return c ? { c: c[0], base: m[2] } : null;
 }
 // Довільний колір (#rrggbb) → найближча назва з набору
@@ -35,3 +37,46 @@ const COLOR_SLOT_FMT = {
   nails: { fmt: c => `nail_polish, ${c}_nails`, name: 'Колір нігтів', label: c => `Нігті: ${colorUa(c).toLowerCase()}` },
   skin: { fmt: c => `colored_skin, ${c}_skin`, name: 'Незвичний колір шкіри', label: c => `Шкіра: ${colorUa(c).toLowerCase()}` },
 };
+
+// Теги, що мають два кольори: різнокольорове волосся й очі, смугастий і градієнтний одяг
+const HAIR2 = new Set(['multicolored_hair', 'two-tone_hair', 'gradient_hair', 'streaked_hair', 'colored_inner_hair', 'colored_tips', 'split-color_hair']);
+const EYES2 = new Set(['heterochromia', 'multicolored_eyes', 'gradient_eyes']);
+const PAIR_RE = /(striped|gradient|two-tone|multicolored|mismatched|checkered|plaid|split-color)/i;
+// Що можна фарбувати в параметрі: { n: 1 | 2, kind } або null (тег без кольору)
+function colorSpec(sl, tag) {
+  if (!sl || sl.text || tag.includes(',') && !HAIR2.has(tag)) return null;
+  const own = COLOR_SLOT_FMT[sl.id];                       // волосся, очі, нігті, шкіра: лише двоколірні теги
+  if (HAIR2.has(tag) && sl.id === 'hairColor') return { n: 2, kind: 'hair' };
+  if (EYES2.has(tag) && sl.id === 'eyeColor') return { n: 2, kind: 'eyes' };
+  if (own) return null;
+  if (!(COLOR_SLOTS.has(sl.id) || (sl.mk && !['pose', 'frame', 'bg'].includes(sl.part)))) return null;
+  if (uncolor(tag) || !COLORABLE_RE.test(tag)) return null;
+  return { n: PAIR_RE.test(tag) ? 2 : 1, kind: PAIR_RE.test(tag) ? 'pair' : 'one' };
+}
+// Тег із кольорами cs (1–2 назви). Порожній cs — сам тег
+function composeColor(tag, cs, kind, underscore) {
+  const c = (cs || []).filter(Boolean);
+  if (!c.length) return tag;
+  if (kind === 'hair' || kind === 'eyes') { const w = kind; return [tag, ...c.map(x => `${x}_${w}`)].join(', '); }
+  if (kind === 'pair' && c.length === 2) { const sep = tag.includes('_') || underscore ? '_' : ' '; return `${c[0]}${sep}and${sep}${c[1]}${sep}${tag}`.replace(/_/g, sep); }
+  return colorize(tag, c[0], underscore);
+}
+// Обернено: значення → { base, cs } , якщо base проходить перевірку isBase(tag)
+function parseColored(v, isBase) {
+  let m;
+  if ((m = new RegExp(`^(.+), (${CN})_(hair|eyes), (${CN})_\\3$`, 'i').exec(v)) && isBase(m[1])) return { base: m[1], cs: [colorKey(m[2]), colorKey(m[4])] };
+  if ((m = new RegExp(`^(.+), (${CN})_(hair|eyes)$`, 'i').exec(v)) && isBase(m[1])) return { base: m[1], cs: [colorKey(m[2])] };
+  if ((m = new RegExp(`^(${CN})[_ ]and[_ ](${CN})[_ ](.+)$`, 'i').exec(v)) && isBase(m[3])) return { base: m[3], cs: [colorKey(m[1]), colorKey(m[2])] };
+  const u = uncolor(v);
+  if (u && isBase(u.base)) return { base: u.base, cs: [u.c] };
+  return null;
+}
+// Випадковий вибір кольорів із готової палітри для тегів, що можуть мати колір
+function randomColors(sl, vals, rnd) {
+  const pickC = () => COLORS[Math.floor(rnd() * COLORS.length)][0];
+  return vals.map(v => {
+    const sp = colorSpec(sl, v); if (!sp) return v;
+    const c1 = pickC(); let c2 = pickC(); while (sp.n === 2 && c2 === c1) c2 = pickC();
+    return composeColor(v, sp.n === 2 ? [c1, c2] : [c1], sp.kind, !sl.mk);
+  });
+}

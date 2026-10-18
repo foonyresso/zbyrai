@@ -6,10 +6,10 @@ const slotParts = sl => sl.parts || (sl.part ? [sl.part] : []);
 const hasMannequin = () => st.type === 'char' || st.type === 'sprite';
 
 /* ---------- зміни стану параметра ---------- */
-// Значення, що відповідає варіанту o: сам o або o з кольором («white_wings» для «wings»)
+// Значення, що відповідає варіанту o: сам o або o з кольором(-ами) («pink_bunny_ears» для «bunny ears»)
 function valueOf(sl, vals, o) {
   const opts = new Set(sl.opts(ctx()));
-  return vals.find(v => v === o || (!opts.has(v) && uncolor(v) && uncolor(v).base === o));
+  return vals.find(v => v === o || (!opts.has(v) && (parseColored(v, t => t === o) || {}).base === o));
 }
 function pickValue(id, o) {
   const sl = SLOTS[id], s = ss(id), multi = sl.kind === 'multi';
@@ -23,25 +23,25 @@ function pickValue(id, o) {
   else { s.mode = fallbackMode(sl); s.value = []; s.rolled = s.mode === 'off'; }
   afterChange(id); refreshCard(id);
 }
-// Вибір кольору: параметр, де колір і є значенням (волосся, очі, нігті, шкіра)
+// Колір вибирається в підгрупі, під її тегами: для кожного вибраного тегу, що може мати колір (одного чи двох)
+function colorTargets(sl, s) {
+  if (s.mode !== 'manual' || !s.value.length) return [];
+  const opts = new Set(sl.opts(ctx()));
+  return s.value.flatMap(v => {
+    if (opts.has(v)) { const sp = colorSpec(sl, v); return sp ? [{ v, base: v, cs: [], sp }] : []; }
+    const pc = parseColored(v, t => opts.has(t) && !!colorSpec(sl, t));
+    return pc ? [{ v, base: pc.base, cs: pc.cs, sp: colorSpec(sl, pc.base) }] : [];
+  });
+}
+function setTagColors(id, t, cs) {
+  const sl = SLOTS[id], s = ss(id), nv = composeColor(t.base, cs, t.sp.kind, !sl.mk);
+  s.value = s.value.map(x => (x === t.v ? nv : x)); s.rolled = true;
+  afterChange(id); refreshCard(id);
+}
+// Параметр, де колір і є значенням (волосся, очі, нігті, шкіра): палітра в окремій підгрупі «Будь-який колір»
 function setColorSlot(id, c) {
   const s = ss(id); s.mode = 'manual'; s.value = [COLOR_SLOT_FMT[id].fmt(c)]; s.rolled = true;
   afterChange(id); refreshCard(id);
-}
-// Колір для вибраного тегу (крила, роги, одяг…); c = null знімає колір
-function setTagColor(id, v, base, c) {
-  const s = ss(id); s.value = s.value.map(x => (x === v ? (c ? colorize(base, c, !SLOTS[id].mk) : base) : x)); s.rolled = true;
-  afterChange(id); refreshCard(id);
-}
-// Теги вибраного значення параметра, які можна фарбувати
-function colorTargets(sl, s) {
-  if (s.mode !== 'manual' || !s.value.length || COLOR_SLOT_FMT[sl.id] || sl.text) return [];
-  if (!(COLOR_SLOTS.has(sl.id) || (sl.mk && !['pose', 'frame', 'bg'].includes(sl.part)))) return [];
-  const opts = new Set(sl.opts(ctx()));
-  return s.value.flatMap(v => {
-    if (opts.has(v)) return !uncolor(v) && !v.includes(',') && COLORABLE_RE.test(v) ? [{ v, base: v, c: null }] : [];
-    const u = uncolor(v); return u && opts.has(u.base) ? [{ v, base: u.base, c: u.c }] : [];
-  });
 }
 function swatchRow(title, active, onPick, onClear) {
   const row = document.createElement('div'); row.className = 'colorrow';
@@ -56,15 +56,15 @@ function swatchRow(title, active, onPick, onClear) {
   if (onClear) { const x = document.createElement('button'); x.className = 'sw clear'; x.textContent = '✕'; x.title = 'Без кольору'; x.onclick = onClear; row.appendChild(x); }
   return row;
 }
-function renderColors(el, sl, s) {
-  const box = el.querySelector('.colors'); if (!box) return;
-  box.innerHTML = '';
-  const cs = COLOR_SLOT_FMT[sl.id];
-  if (cs) {
-    const cur = s.mode === 'manual' ? s.value[0] : '';
-    box.appendChild(swatchRow(cs.name + ':', (COLORS.find(c => cs.fmt(c[0]) === cur) || [])[0], c => setColorSlot(sl.id, c)));
-  }
-  colorTargets(sl, s).forEach(t => box.appendChild(swatchRow('Колір: ' + mkLabel(sl, t.base), t.c, c => setTagColor(sl.id, t.v, t.base, c), t.c ? () => setTagColor(sl.id, t.v, t.base, null) : null)));
+// Палітри для вибраних тегів підгрупи (items — теги цієї підгрупи); два кольори — дві палітри
+function colorRowsFor(sl, targets, items, into) {
+  targets.filter(t => items.includes(t.base)).forEach(t => {
+    const name = mkLabel(sl, t.base);
+    for (let i = 0; i < t.sp.n; i++) {
+      const title = t.sp.n > 1 ? `${name}: колір ${i + 1}` : `${name}: колір`;
+      into.appendChild(swatchRow(title, t.cs[i], c => { const cs = t.cs.slice(); cs[i] = c; setTagColors(sl.id, t, cs); }, i === 0 && t.cs.length ? () => setTagColors(sl.id, t, []) : null));
+    }
+  });
 }
 function setText(id, text) {
   const s = ss(id), t = text.trim();
@@ -132,7 +132,7 @@ function buildChips(sl, s, box, q, scope) {
   const sel = new Set(s.mode === 'manual' ? s.value : []);
   const ql = q.toLowerCase();
   const optSet = new Set(sl.opts(ctx()));
-  const colored = new Set([...sel].filter(v => !optSet.has(v) && uncolor(v) && optSet.has(uncolor(v).base)).map(v => uncolor(v).base));
+  const colored = new Set([...sel].filter(v => !optSet.has(v)).map(v => (parseColored(v, t => optSet.has(t)) || {}).base).filter(Boolean));
   const avail = sl.groups ? optSet : null;
   const mk = (o, parent) => {
     const t = mkLabel(sl, o);
@@ -150,8 +150,10 @@ function buildChips(sl, s, box, q, scope) {
     wrap.appendChild(h);
     const row = document.createElement('div'); row.className = 'crow'; wrap.appendChild(row);
     let any = false; items.forEach(p => { if (mk(p, row)) any = true; });
+    colorRowsFor(sl, targets, items, wrap);
     if (any) into.appendChild(wrap);
   };
+  const targets = colorTargets(sl, s);
   const rk = sl.id === 'raceFeat' && !scope ? raceKey() : null;
   const shown = new Set();
   if (rk) {
@@ -173,7 +175,16 @@ function buildChips(sl, s, box, q, scope) {
     if (rk && target.children.length > 1) box.appendChild(target);
   } else {
     const row = document.createElement('div'); row.className = 'crow'; box.appendChild(row);
-    sl.opts(ctx()).forEach(o => mk(o, row));
+    const all = sl.opts(ctx()); all.forEach(o => mk(o, row));
+    colorRowsFor(sl, targets, all, box);
+  }
+  const cs = COLOR_SLOT_FMT[sl.id];
+  if (cs && !scope && !ql) {
+    const wrap = document.createElement('div'); wrap.className = 'cgroup';
+    const h = document.createElement('div'); h.className = 'cg-h'; h.textContent = 'Будь-який колір (палітра)'; wrap.appendChild(h);
+    const cur = s.mode === 'manual' ? s.value[0] : '';
+    wrap.appendChild(swatchRow(cs.name + ':', (COLORS.find(c => cs.fmt(c[0]) === cur) || [])[0], c => setColorSlot(sl.id, c)));
+    box.appendChild(wrap);
   }
   if (!box.querySelector('.chip')) box.innerHTML = '<div class="hint">Нічого не знайдено.</div>';
 }
@@ -200,10 +211,8 @@ function slotCard(id, zone) {
       <button class="ib of" title="Не вказувати цей параметр у промпті">∅</button></div>
     <div class="card-v${s.mode === 'off' || !s.value.length ? ' empty' : ''}"></div>
     ${n > 14 ? '<input class="csearch" placeholder="Пошук у списку…" autocomplete="off" title="Відфільтрувати варіанти за словом">' : ''}
-    ${n ? '<div class="chips"></div>' : ''}
-    <div class="colors"></div>`;
+    ${n ? '<div class="chips"></div>' : ''}`;
   el.querySelector('.card-v').textContent = cardValueText(sl, s, scope);
-  renderColors(el, sl, s);
   el.querySelector('.lk').onclick = () => lockSlot(id);
   el.querySelector('.rl').onclick = () => rollSlot(id, zone);
   el.querySelector('.of').onclick = () => offSlot(id, zone);

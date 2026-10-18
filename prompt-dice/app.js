@@ -64,15 +64,15 @@ function recentSet(id) {
 function genSlot(sl) {
   const c = ctx(), s = ss(sl.id);
   s.rolled = true;
-  if (sl.gen) { s.value = sl.gen(c); return; }
+  if (sl.gen) { s.value = randomColors(sl, sl.gen(c), Math.random); return; }
   const o = sl.opts(c);
   const p = typeof sl.p === 'function' ? sl.p(c) : sl.p;
   if (!o.length || Math.random() > p) { s.value = []; return; }
-  if (sl.kind === 'multi') { s.value = mkSampleGrouped(sl, o, sl.n[0] + rnd(sl.n[1] - sl.n[0] + 1)); return; }
+  if (sl.kind === 'multi') { s.value = randomColors(sl, mkSampleGrouped(sl, o, sl.n[0] + rnd(sl.n[1] - sl.n[0] + 1)), Math.random); return; }
   const recent = recentSet(sl.id);
   let v;
   for (let i = 0; i < 8; i++) { v = pick(o); if (!recent.has(v)) break; }
-  s.value = [v];
+  s.value = randomColors(sl, [v], Math.random);
 }
 function ensureRolled() {
   typeSlotIds().forEach(id => { const s = ss(id); if (s.mode === 'random' && !s.rolled) genSlot(SLOTS[id]); });

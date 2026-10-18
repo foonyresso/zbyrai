@@ -29,12 +29,19 @@ function mkScope(sl, zone) {
   const names = sl.groups.map(g => g[0]).filter(name => (sl.gzone[name] ? [sl.gzone[name]] : base).some(z => members.includes(z)));
   return names.length === sl.groups.length ? null : new Set(names);
 }
-const mkInScope = (sl, v, scope) => !scope || scope.has(mkGroupIndex(sl)[v]);
+// Значення без кольору: «pink bunny ears» → «bunny ears» (щоб знайти його групу)
+function mkBaseOf(sl, v) {
+  const idx = mkGroupIndex(sl);
+  if (idx[v] !== undefined || typeof parseColored !== 'function') return v;
+  const pc = parseColored(v, t => idx[t] !== undefined);
+  return pc ? pc.base : v;
+}
+const mkInScope = (sl, v, scope) => !scope || scope.has(mkGroupIndex(sl)[mkBaseOf(sl, v)]);
 // «По одному з групи»: прибирає зайві значення тих самих груп, залишаючи останнє вибране
 function mkEnforce(sl, vals) {
   if (!sl.groups || !sl.gsingle || !sl.gsingle.size) return vals;
   const idx = mkGroupIndex(sl), seen = {}, out = [];
-  [...vals].reverse().forEach(v => { const g = idx[v]; if (g && sl.gsingle.has(g)) { if (seen[g]) return; seen[g] = 1; } out.unshift(v); });
+  [...vals].reverse().forEach(v => { const g = idx[mkBaseOf(sl, v)]; if (g && sl.gsingle.has(g)) { if (seen[g]) return; seen[g] = 1; } out.unshift(v); });
   return out;
 }
 

@@ -123,6 +123,30 @@ test('кольори: складання тегу, розбір, найближ�
   assert.match(get(`mkLabel(SLOTS.eyeColor, 'hot_pink_eyes')`), /Очі: яскраво-рожевий/);
   assert.ok(get(`COLORS.length`) >= 20 && get(`COLORS.every(c => /^#[0-9a-f]{6}$/.test(c[2]))`));
 });
+test('два кольори: складання, розбір, випадковий вибір із готової палітри', () => {
+  assert.equal(get(`composeColor('two-tone_hair', ['pink', 'hot_pink'], 'hair')`), 'two-tone_hair, pink_hair, hot_pink_hair');
+  assert.equal(get(`composeColor('heterochromia', ['blue', 'red'], 'eyes')`), 'heterochromia, blue_eyes, red_eyes');
+  assert.equal(get(`composeColor('striped_thighhighs', ['red', 'white'], 'pair', true)`), 'red_and_white_striped_thighhighs');
+  assert.deepEqual(plain(get(`parseColored('two-tone_hair, pink_hair, hot_pink_hair', t => t === 'two-tone_hair')`)), { base: 'two-tone_hair', cs: ['pink', 'hot_pink'] });
+  assert.deepEqual(plain(get(`parseColored('red_and_white_striped_thighhighs', t => t === 'striped_thighhighs')`)), { base: 'striped_thighhighs', cs: ['red', 'white'] });
+  assert.equal(get(`colorSpec(SLOTS.hairColor, 'two-tone_hair').n`), 2);
+  assert.equal(get(`colorSpec(SLOTS.hairColor, 'black_hair')`), null);          // звичайний колір — це вже готовий тег
+  assert.equal(get(`colorSpec(SLOTS.eyeColor, 'heterochromia').kind`), 'eyes');
+  assert.equal(get(`colorSpec(SLOTS.legwear, 'striped_thighhighs').n`), 2);
+  assert.equal(get(`colorSpec(SLOTS.legwear, 'thighhighs').n`), 1);
+  assert.equal(get(`colorSpec(SLOTS.pose, 'standing')`), null);                 // без кольору нічого не з’являється
+  assert.equal(get(`colorSpec(SLOTS.emotion, 'smile')`), null);
+  const names = new Set(plain(get('COLORS.map(c => c[0])')));
+  for (let i = 0; i < 50; i++) {
+    const r = plain(get(`randomColors(SLOTS.hairColor, ['two-tone_hair', 'black_hair'], Math.random)`));
+    const pc = plain(get(`parseColored(${JSON.stringify(r[0])}, t => t === 'two-tone_hair')`));
+    assert.ok(pc && pc.cs.length === 2 && pc.cs[0] !== pc.cs[1] && pc.cs.every(c => names.has(c)), r[0]);
+    assert.equal(r[1], 'black_hair');
+    const w = get(`randomColors(SLOTS.raceFeat, ['angel_wings', 'halo'], Math.random)`);
+    assert.ok(plain(w).every(x => /^[a-z_]+$/.test(x) && x !== 'angel_wings' && x !== 'halo'), plain(w).join());
+  }
+  assert.equal(plain(get(`randomColors(SLOTS.pose, ['standing'], Math.random)`))[0], 'standing');
+});
 test('меню рас: кожна раса з меню є в параметрі «Раса», усі теги меню є в «Расових особливостях»', () => {
   const races = new Set(plain(optsOf('race'))), feats = new Set(plain(optsOf('raceFeat')));
   const menu = plain(get('RACE_MENU'));

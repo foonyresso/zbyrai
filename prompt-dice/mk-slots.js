@@ -78,8 +78,9 @@ function mkLabel(sl, v) {
   if (direct) return direct;
   const cs = typeof COLOR_SLOT_FMT === 'object' && COLOR_SLOT_FMT[sl.id];
   if (cs) { const c = COLORS.find(x => cs.fmt(x[0]) === v); if (c) return cs.label(c[0]); }
-  const u = typeof uncolor === 'function' && uncolor(v);
-  if (u) return mkLabel(sl, u.base) + ', колір: ' + colorUa(u.c).toLowerCase();
+  const known = t => !!((sl.lab && sl.lab[t]) || (typeof uaLabel === 'function' && uaLabel(t)));
+  const pc = typeof parseColored === 'function' && parseColored(v, known);
+  if (pc) { const n = pc.cs.map(c => colorUa(c).toLowerCase()); return mkLabel(sl, pc.base) + ', ' + (n.length > 1 ? 'кольори: ' + n.join(' і ') : 'колір: ' + n[0]); }
   return hum(v);
 }
 // Flux/Gemini: абзац «додаткові деталі за ділянками» для нових слотів; get(id) → значення
