@@ -298,7 +298,6 @@ function renderTabs() {
     b.onclick = () => { st.wtab = x.id; save(); renderWork(); renderTabs(); };
     box.appendChild(b);
   });
-  });
   renderPrimaryNav(tabs);
 }
 
