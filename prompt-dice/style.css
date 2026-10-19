@@ -33,7 +33,7 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .bar .gtab { min-width: 150px; }
 
 /* ---------- студія: манекен | робоча зона | промпт ---------- */
-main.studio { flex: 1; min-height: 0; display: grid; grid-template-columns: 330px minmax(380px, 1fr) minmax(340px, 420px); gap: 14px; padding: 12px 18px 18px; }
+main.studio { flex: 1; min-height: 0; display: grid; grid-template-columns: 280px minmax(460px, 1fr) minmax(340px, 390px); gap: 14px; padding: 12px 18px 18px; }
 body.no-mk main.studio { grid-template-columns: minmax(380px, 1fr) minmax(340px, 460px); }
 body.no-mk .mk-pane { display: none; }
 @media (max-width: 1180px) { main.studio { grid-template-columns: 300px minmax(0, 1fr); } .out-pane { grid-column: 1 / -1; min-height: 420px; } body.no-mk main.studio { grid-template-columns: minmax(0, 1fr); } }
