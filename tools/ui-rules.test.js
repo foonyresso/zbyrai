@@ -15,6 +15,7 @@ for (const t of TOOLS) {
     for (const w of ['Що це', 'Для чого', 'Як користуватися']) assert.ok(html.includes(w), 'немає розділу «' + w + '»');
   });
   test(`${t}: збереження й обмін у верхній панелі`, () => {
+    if (t === 'prompt-dice') return; // кнопки імпорту/експорту прибрано свідомо; «Копіювати промпт» під полем промпта
     assert.ok(header.includes('class="top-actions"'), 'у шапці немає блоку top-actions');
     assert.ok(/Зберегти|Копіювати/.test(header), 'у шапці немає кнопок збереження');
     assert.ok(t === 'album-builder' || /id="(btnImport|customImport)"/.test(header), 'у шапці немає кнопки «Імпорт»');
