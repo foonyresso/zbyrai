@@ -33,6 +33,7 @@
 | Манекен: дані | `mk-data-body/head/scene/extra.js` | Категорії ділянок. Нову категорію додавати рядком у `mk-data-extra.js` |
 | Манекен: зв'язки | `mk-slots.js`, `mk-spec.js`, `mk-merge.js` | Створення слотів із даних манекена, групи для старих параметрів, усунення дублікатів тегів |
 | Інтерфейс | `ui-mannequin.js`, `ui-workspace.js` | Малювання SVG-манекена; вкладки, картки параметрів, панель ділянки |
+| Оформлення | `look.css`, `look.js` | Теми вигляду й розкладки: `data-look` (gold, neon, paper, forest, sakura, terminal, slate) і `data-layout` (classic, mirror, dock, top, wide) на `<html>`. Вибір у шапці (`#lookSel`, `#layoutSel`), зберігається в `localStorage` ключ `pd2_look`. `look.js` підключено в `<head>` синхронно, щоб тема застосовувалась до малювання. Тема «gold» нічого не перевизначає |
 | Оформлення | `style.css`, `theme.css` | `theme.css` спільна тема сайту (копіюється скриптом `tools/sync-theme.mjs`), `style.css` специфічний для інструмента |
 | Спільне | `tool-chrome.js` | Кнопка «Інфо», посилання «назад». Копія `shared/tool-chrome.js`, у папки розкладається через `node tools/sync-theme.mjs` |
 | Тести | `test/flux.test.js`, `test/mannequin.test.js` | Запуск: `node prompt-dice/test/flux.test.js` та `node prompt-dice/test/mannequin.test.js`; ще `node tools/ui-rules.test.js` для всього сайту |
@@ -70,6 +71,8 @@
 - З верхньої панелі прибрано «Імпорт», «Копіювати JSON», «Зберегти .json», «Зберегти .txt» і код експорту та імпорту. Історія й пресети працюють у самому інструменті.
 - Кнопку «📋 Копіювати промпт» перенесено під поле промпта, праворуч (`.out-actions` у `style.css`). Ctrl+Enter працює як раніше.
 - У `tools/ui-rules.test.js` для prompt-dice зроблено виняток: тест вимагав кнопку імпорту в шапці.
+
+- Додано теми й розкладки (`look.css`, `look.js`): 7 колірних тем із різним характером (форма кнопок, заголовки, вкладки) і 5 розкладок панелей. Нову тему додавати так: блок змінних `html[data-look="назва"]` у `look.css` (усі токени, див. наявні теми), пункт у `LOOKS` у `look.js`, за бажанням блок «характеру» нижче.
 
 ## Підводні камені
 
