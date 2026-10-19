@@ -1,0 +1,78 @@
+# Кубик промптів (prompt-dice): карта файлів
+
+Швидка довідка «що де лежить», щоб не перечитувати всю папку `prompt-dice/` щоразу. Це внутрішня карта для розробки; користувацький опис у `prompt-dice/README.md`, загальний список інструментів у [tools-map.md](tools-map.md).
+
+> Складено за заголовками й ключовими місцями файлів (`app.js`, `types.js`, `styles.js`, `index.html`, README). Великі словники `ua-*.js`, `pools.js`, `flux-words.js` не читалися рядок за рядком: їхній вміст описано за коментарями на початку файлів.
+
+## Що це
+
+Статичний сайт без збірки: відкривається через `prompt-dice/index.html`. Усі скрипти підключаються звичайними `<script>` у фіксованому порядку, модулів немає, спільні дані живуть у глобальних змінних. Стан зберігається в `localStorage` з ключами `pd2_state`, `pd2_history`, `pd2_presets`.
+
+## Порядок завантаження скриптів (index.html)
+
+1. Дані: `pools.js` → `ua-tags.js` → `ua-body.js` → `ua-outfit.js` → `ua-scene.js` → `ua-pixel.js` → `ua-race.js` → `colors.js` → `race-data.js`
+2. Конфіг: `styles.js` → `types.js`
+3. Манекен: `mk-shapes.js` → `mk-data-body.js` → `mk-data-head.js` → `mk-data-scene.js` → `mk-data-extra.js` → `mk-slots.js` → `mk-spec.js` → `mk-merge.js`
+4. Flux: `flux-words.js` → `flux-grammar.js`
+5. Інтерфейс: `ui-mannequin.js` → `ui-workspace.js` → `app.js` → `tool-chrome.js`
+
+Порядок важливий: наприклад, `mk-slots.js` має йти після `types.js` і перед `app.js`, `mk-merge.js` після `mk-slots.js` і `mk-spec.js`.
+
+## Файли за призначенням
+
+| Група | Файл | Що там |
+|---|---|---|
+| Ядро | `app.js` | Стан `st`, збирання промптів, історія, пресети, налаштування, `render()`, обробники кнопок, гарячі клавіші |
+| Ядро | `types.js` | Слоти параметрів `SLOTS`, типи `TYPES` (char, sprite, scene, піксель-арт), моделі, шаблони Gemini, `DEFAULTS` (префікс, `always`, негативні промпти) |
+| Ядро | `styles.js` | `PIX_STYLES` (піксель-арт, текстові) і `ART_STYLES` (`[назва, іконка, SD-теги, опис для Flux/Gemini]`) |
+| Ядро | `pools.js` | Допоміжні функції (`rnd`, `pick`, `sample`, `$`, `esc`), шаблони піксель-арту `TEMPLATES`, пули слів, `THEMES` |
+| Кольори, раси | `colors.js`, `race-data.js` | Квадратики кольорів і складання тегу з кольором; окреме меню особливостей кожної раси |
+| Назви | `ua-tags.js` | Словник «тег → українська назва» (рядки `тег=Назва`); дані в `ua-body/outfit/scene/pixel/race.js` |
+| Flux | `flux-grammar.js`, `flux-words.js` | Збирання промпта живою мовою (по реченню на групу) і словник `тег=фраза`. Працюють і в браузері, і в Node (тести) |
+| Манекен: дані | `mk-shapes.js` | Геометрія тіла й обличчя, ділянки, групи |
+| Манекен: дані | `mk-data-body/head/scene/extra.js` | Категорії ділянок. Нову категорію додавати рядком у `mk-data-extra.js` |
+| Манекен: зв'язки | `mk-slots.js`, `mk-spec.js`, `mk-merge.js` | Створення слотів із даних манекена, групи для старих параметрів, усунення дублікатів тегів |
+| Інтерфейс | `ui-mannequin.js`, `ui-workspace.js` | Малювання SVG-манекена; вкладки, картки параметрів, панель ділянки |
+| Оформлення | `style.css`, `theme.css` | `theme.css` спільна тема сайту (копіюється скриптом `tools/sync-theme.mjs`), `style.css` специфічний для інструмента |
+| Спільне | `tool-chrome.js` | Кнопка «Інфо», посилання «назад». Копія `shared/tool-chrome.js`, у папки розкладається через `node tools/sync-theme.mjs` |
+| Тести | `test/flux.test.js`, `test/mannequin.test.js` | Запуск: `node prompt-dice/test/flux.test.js` та `node prompt-dice/test/mannequin.test.js`; ще `node tools/ui-rules.test.js` для всього сайту |
+
+## Як збирається промпт (app.js)
+
+`buildPrompt()` вибирає за типом і моделлю:
+
+- піксель-арт → `buildPixel` (шаблон `TEMPLATES` + `{STYLE}` + `{SEED}`)
+- Stable Diffusion → `buildSD`: для кожної групи з `TYPES[тип].sdGroups` бере теги слотів (`sdTags`), прибирає дублікати, групи йдуть окремими рядками
+- Flux → `buildFlux`: `FluxLang.paragraphs(...)` + абзац манекена `mkFluxParagraph(...)`
+- Gemini → `buildGemini`: шаблон `GEM_TPL` з підстановкою `{TASK} {OUT} {STYLE} {BRIEF}`
+
+Негативний промпт: `st.settings.neg[тип]` (стандарт у `DEFAULTS.neg` у `types.js`), поле `#neg` показується лише для SDXL.
+
+## Де що змінювати
+
+| Задача | Де |
+|---|---|
+| Теги, що додаються завжди (`feet_out_of_frame, …`) | `DEFAULTS.always` у `types.js`, поле у налаштуваннях SDXL |
+| Негативні промпти за замовчуванням | `DEFAULTS.neg` / `SD_NEG_BASE` у `types.js` |
+| Додати або змінити стиль | `styles.js` |
+| Нова категорія на манекені | рядок у `mk-data-extra.js`, назви в `ua-*.js`, за потреби група в `mk-spec.js` |
+| Українська назва тегу | `ua-body/outfit/scene/pixel/race.js` (`тег=Назва`) |
+| Як тег звучить у Flux | `flux-words.js` (`тег=фраза`), структура речень у `flux-grammar.js` |
+| Порядок і склад груп SD | `sdGroups` і `sections` у `TYPES` (`types.js`) |
+| Верхня панель, кнопки, поле промпта | `index.html` (`header.top`, `#r-out`), обробники в кінці `app.js` |
+| Кнопки копіювання | `#copy` (позитивний, під полем `#out`), `#copyNeg` (негативний, у заголовку `.negbox`) |
+
+## Зміни за запитом власника (жовтень 2026)
+
+- З SD- і Flux-промптів прибрано префікс якості (`masterpiece, best quality…`), SD-теги стилю, вступне речення Flux (`fluxPre`) і рядок `Style: …`. Промпт містить лише теги та речення самого персонажа/сцени.
+  - **Наслідки:** `DEFAULTS.sdPrefix`, поле «Префікс якості» в налаштуваннях, `fluxPre` у `types.js` і поле `sd` у `ART_STYLES` більше ніде не впливають на промпт (код лишився). Вибір стилю діє тільки на Gemini і піксель-арт.
+- З верхньої панелі прибрано «Імпорт», «Копіювати JSON», «Зберегти .json», «Зберегти .txt» і код експорту та імпорту. Історія й пресети працюють у самому інструменті.
+- Кнопку «📋 Копіювати промпт» перенесено під поле промпта, праворуч (`.out-actions` у `style.css`). Ctrl+Enter працює як раніше.
+- У `tools/ui-rules.test.js` для prompt-dice зроблено виняток: тест вимагав кнопку імпорту в шапці.
+
+## Підводні камені
+
+- Налаштування (зокрема `sdPrefix`) зберігаються в `localStorage` у браузері користувача: зміна значення за замовчуванням у коді не змінює вже збережене. Тому правку «прибрати префікс» зроблено в коді збирання, а не у `DEFAULTS`.
+- У `app.js` два обробники `keydown` (Escape для модального вікна і гарячі клавіші). Редагуючи скриптом, шукайте текст разом із наступним рядком.
+- Файл `app.js` має ~380 рядків, `ua-pixel.js` ~1490 (понад орієнтир 800, див. [large-files.md](large-files.md)).
+- Правила репозиторію: див. [file-rules.md](file-rules.md). Робота йде прямо в `main`; при зміні структури оновлювати [NAVIGATION.md](NAVIGATION.md).

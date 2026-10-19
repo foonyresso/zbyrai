@@ -7,6 +7,7 @@
 | [tools-map.md](tools-map.md) | Кожен інструмент: папка, код, тести, ключ localStorage |
 | [shared-files.md](shared-files.md) | Спільні файли: тема, хаб, sitemap, скрипти в `tools/` |
 | [new-tool-guide.md](new-tool-guide.md) | Як додати новий інструмент за правилами сайту |
+| [prompt-dice-map.md](prompt-dice-map.md) | Кубик промптів: карта файлів, порядок скриптів, де що змінювати |
 | [file-rules.md](file-rules.md) | Правила розбиття файлів і документації, роботи з великими текстами |
 | [large-files.md](large-files.md) | Файли, що завеликі або близькі до межі (кандидати на розбиття) |
 | [atlas/world-files.md](atlas/world-files.md), [atlas/biome-files.md](atlas/biome-files.md), [atlas/monster-files.md](atlas/monster-files.md), [atlas/dungeon-files.md](atlas/dungeon-files.md), [atlas/monster-batch-2.md](atlas/monster-batch-2.md), [atlas/biomes-import.md](atlas/biomes-import.md), [atlas/people-files.md](atlas/people-files.md), [atlas/race-files.md](atlas/race-files.md), [atlas/infinite-world-features.md](atlas/infinite-world-features.md), [plans/world-generator-queue.md](plans/world-generator-queue.md) | Формат файлів світів, біомів, монстрів (версії 1 і 2, поле lore) і підземель (версія 2), народів і рас (версія 2), шаблони, вибір біомів, відстані монстрів від поселень, прив'язка підземель |
