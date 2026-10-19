@@ -251,6 +251,79 @@ function workTabs() {
   });
   return tabs;
 }
+function renderPrimaryNav(tabs) {
+  const nav = document.getElementById('forgePrimaryNav');
+  if (!nav) return;
+  const clean = x => x.t.replace(/^[^\p{L}\p{N}]+/u,'').replace(/^\d+\s*·\s*/,'').trim();
+  const classify = label => {
+    const s = label.toLocaleLowerCase('uk');
+    if (/волос|зачіс|очі|облич|ніс|рот|шкір|макіяж|вираз|голов|вух|зуб|обличч/.test(s)) return 'face';
+    if (/тіл|зовніш|анатом|стат|вік|раса|вид|персонаж|особливост|кінців|рук|ніг|пальц|нігот/.test(s)) return 'character';
+    if (/одяг|сороч|футбол|верхн|нижн|штан|спідниц|сукн|куртк|пальт|взут|черев|аксесуар|ремін|прикра|ткан|матеріал|брон|рукавич|шкарпет|головн(ий|ого) убір/.test(s)) return 'clothes';
+    if (/поз|жест|рух|дія|взаємод|контакт|емоці|вираз|стосунк/.test(s)) return 'pose';
+    if (/камер|ракурс|кадр|композиц|перспектив|план|об'єктив|обєктив|вид/.test(s)) return 'camera';
+    if (/фон|сцен|оточен|локац|інтер'єр|інтерєр|екстер'єр|екстерєр|кімнат|міст|природ|пейзаж|погода|час доби|архітект|місц/.test(s)) return 'scene';
+    if (/світл|освіт|тін|ефект|частинк|магі|аур|дим|вог|іскор|пил|атмосфер|постоброб|глибина різкості/.test(s)) return 'effects';
+    if (/стил|жанр|худож|рендер|якість|деталізац|кольор|палітр|текстур|медіа|технік|формат|розділь|співвіднош|якість/.test(s)) return 'style';
+    if (/негатив|виключ|обмежен|додатков|інш|інше|параметр|seed|служб|налаштуван/.test(s)) return 'other';
+    return 'other';
+  };
+  const groups = [
+    {id:'character', title:'Зовнішність і тіло', icon:'♙', sub:['face','character']},
+    {id:'clothes', title:'Одяг та аксесуари', icon:'♧', sub:['clothes']},
+    {id:'pose', title:'Поза та взаємодія', icon:'♟', sub:['pose']},
+    {id:'camera', title:'Камера та композиція', icon:'▣', sub:['camera']},
+    {id:'scene', title:'Сцена й оточення', icon:'▧', sub:['scene']},
+    {id:'effects', title:'Світло та ефекти', icon:'✦', sub:['effects']},
+    {id:'style', title:'Стиль і якість', icon:'◈', sub:['style']},
+    {id:'other', title:'Інші параметри', icon:'⚙', sub:['other']}
+  ];
+  const iconFor = label => {
+    const s=label.toLocaleLowerCase('uk');
+    if(/волос|зачіс/.test(s)) return '♧';
+    if(/облич|очі|ніс|рот|макіяж/.test(s)) return '◉';
+    if(/одяг|сороч|штан|сукн|спідниц|куртк/.test(s)) return '♧';
+    if(/взут|черев/.test(s)) return '⌑';
+    if(/поз|жест|рух/.test(s)) return '♙';
+    if(/камер|ракурс|кадр|композиц/.test(s)) return '▣';
+    if(/фон|сцен|локац|оточен/.test(s)) return '▧';
+    if(/світл|ефект|атмосфер/.test(s)) return '✦';
+    if(/стил|кольор|якість/.test(s)) return '◈';
+    if(/негатив|виключ/.test(s)) return '⊘';
+    return '◇';
+  };
+  nav.innerHTML='';
+  const all = tabs.map(x=>({...x, label:clean(x), group:classify(clean(x))}));
+  groups.forEach(group=>{
+    const entries=all.filter(x=>group.sub.includes(x.group));
+    if(!entries.length) return;
+    const details=document.createElement('details');
+    details.className='forge-nav-group';
+    details.open=entries.some(x=>x.id===st.wtab);
+    const summary=document.createElement('summary');
+    summary.innerHTML='<span class="forge-group-icon" aria-hidden="true">'+group.icon+'</span><span class="forge-group-label">'+group.title+'</span><small>'+entries.length+'</small><span class="forge-chevron" aria-hidden="true">⌄</span>';
+    details.appendChild(summary);
+    const children=document.createElement('div'); children.className='forge-nav-children';
+    entries.forEach(x=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='forge-nav-item'+(x.id===st.wtab?' active':'');
+      b.dataset.primaryTab=x.id;
+      b.innerHTML='<span class="forge-item-icon" aria-hidden="true">'+iconFor(x.label)+'</span><span class="forge-item-label">'+esc(x.label)+'</span><small>›</small>';
+      b.title=x.tip||x.label;
+      b.onclick=()=>{
+        st.wtab=x.id; wQuery='';
+        const search=document.getElementById('wSearch'); if(search) search.value='';
+        save(); renderTabs(); renderWork();
+      };
+      children.appendChild(b);
+    });
+    details.appendChild(children);
+    details.addEventListener('toggle',()=>{
+      if(details.open) nav.querySelectorAll('.forge-nav-group[open]').forEach(other=>{if(other!==details) other.open=false;});
+    });
+    nav.appendChild(details);
+  });
+}
 function renderTabs() {
   const tabs = workTabs(), box = $('wTabs');
   if (!tabs.find(x => x.id === st.wtab)) st.wtab = tabs[0].id;
@@ -263,6 +336,7 @@ function renderTabs() {
     b.onclick = () => { st.wtab = x.id; save(); renderWork(); renderTabs(); };
     box.appendChild(b);
   });
+  // Навігацію формує menu-structure.js; не перезаписувати її старим меню.
 }
 
 /* ---------- вміст вкладок ---------- */

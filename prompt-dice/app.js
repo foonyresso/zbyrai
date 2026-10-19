@@ -29,10 +29,11 @@ const st = {
   view: saved.view === 'head' ? 'head' : 'body',
   whole: !!saved.whole,
   wtab: saved.wtab || 'zone',
+  adult: !!saved.adult,
 };
 function save() {
-  const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab } = st;
-  store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab });
+  const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab, adult } = st;
+  store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab, adult });
 }
 const splitTags = s => (s || '').split(',').map(x => x.trim()).filter(Boolean);
 const T = () => TYPES[st.type];
@@ -53,7 +54,7 @@ function currentStyle() {
   if (i === 0) { if (!st.styleRolled[f]) st.styleRolled[f] = 1 + rnd(list.length - 1); i = st.styleRolled[f]; }
   return list[i] || list[1];
 }
-const visible = sl => isPixel() || !sl.models || sl.models.includes(st.model);
+const visible = sl => (st.adult || !NSFW_IDS.includes(sl.id)) && (isPixel() || !sl.models || sl.models.includes(st.model));
 function typeSlotIds() { return T().sections.flatMap(s => s.s); }
 
 function recentSet(id) {
@@ -240,11 +241,10 @@ function logCount(sl) {
 }
 /* ---- права панель ---- */
 function renderOut() {
-  const t = T();
   $('out').value = buildPrompt();
-  const sd = !isPixel() && st.model === 'sdxl';
-  $('negbox').hidden = !sd;
-  if (sd) $('neg').value = st.settings.neg[st.type] || '';
+  // Keep the negative prompt visible for every model, with its per-type text saved independently.
+  $('neg').value = st.settings.neg[st.type] || '';
+  $('negbox').hidden = false;
   const note = $('note');
   note.hidden = !(st.type === 'sprite' && st.model === 'sdxl');
 }
@@ -364,6 +364,16 @@ function render() {
   save();
 }
 
+const adultToggle = $('adultToggle');
+if (adultToggle) {
+  adultToggle.checked = st.adult;
+  adultToggle.addEventListener('change', () => {
+    st.adult = adultToggle.checked;
+    if (!st.adult) NSFW_IDS.forEach(id => { const s = ss(id); s.mode = 'off'; s.value = []; s.locked = false; s.rolled = true; });
+    else NSFW_IDS.forEach(id => { const s = ss(id); if (s.mode === 'off') { s.mode = 'off'; s.value = []; } });
+    save(); render();
+  });
+}
 $('roll').onclick = roll;
 $('copy').onclick = () => copyText($('out').value, $('out'));
 $('copyNeg').onclick = () => copyText($('neg').value, $('neg'));
