@@ -74,7 +74,7 @@
     const ns = needles.toLowerCase().split(/\\s+/).filter(Boolean);
     return tabs.find(t => ns.some(n => (t.t + ' ' + t.e).toLowerCase().includes(n))) || tabs[0];
   };
-  function activate(query, parent) {
+  window.matchQ = function (id) {\n    if (!wQuery) return true;\n    const sl = SLOTS[id];\n    const q = wQuery.toLowerCase().split(/\\s+/).filter(Boolean);\n    const label = (sl.label + ' ' + id + ' ' + (MK_PART_UA[slotParts(sl)[0]] || '')).toLowerCase();\n    return q.some(term => label.includes(term));\n  };\n\n  function activate(query, parent) {
     const q = query || '';
     const lower = q.toLowerCase();
     let tab;
