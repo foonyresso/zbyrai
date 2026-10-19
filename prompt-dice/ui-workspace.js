@@ -254,7 +254,7 @@ function workTabs() {
 function renderPrimaryNav(tabs) {
   const nav = document.getElementById('forgePrimaryNav');
   if (!nav) return;
-  const clean = x => x.t.replace(/^[^\\p{L}\\p{N}]+/u,'').replace(/^\\d+\\s*·\\s*/,'').trim();
+  const clean = x => x.t.replace(/^[^\p{L}\p{N}]+/u,'').replace(/^\d+\s*·\s*/,'').trim();
   const classify = label => {
     const s = label.toLocaleLowerCase('uk');
     if (/волос|зачіс|очі|облич|ніс|рот|шкір|макіяж|вираз|голов|вух|зуб|обличч/.test(s)) return 'face';
