@@ -113,8 +113,6 @@ const nlText = (sl, v) => (sl.fmt ? sl.fmt(v) : v.map(x => (sl.nl ? sl.nl(x) : h
 
 function buildSD(t) {
   const lines = [];
-  const pref = [st.settings.sdPrefix, currentStyle().sd].filter(Boolean).join(', ');
-  if (pref) lines.push(pref);
   t.sdGroups.forEach(g => {
     const tags = g.pre ? g.pre() : [];
     t.sections[g.sec].s.forEach(id => { const sl = SLOTS[id]; if (!sl.models || sl.models.includes('sdxl')) tags.push(...sdTags(sl)); });
@@ -140,8 +138,7 @@ function briefSections(t) {
   return out;
 }
 function buildFlux(t) {
-  const sty = currentStyle().nl;
-  const parts = [t.fluxPre + (sty ? ' Style: ' + sty + '.' : '')];
+  const parts = [];
   // жива мова: по реченню на групу параметрів (flux-grammar.js); немає тегів, то шматок пропускається
   const get = id => { const sl = SLOTS[id]; if (!sl || !visible(sl)) return []; const s = ss(id); return s.mode === 'off' ? [] : s.value; };
   parts.push(...FluxLang.paragraphs(st.type, get, THEMES[curTheme()].nl));
