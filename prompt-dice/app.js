@@ -240,11 +240,10 @@ function logCount(sl) {
 }
 /* ---- права панель ---- */
 function renderOut() {
-  const t = T();
   $('out').value = buildPrompt();
-  const sd = !isPixel() && st.model === 'sdxl';
-  $('negbox').hidden = !sd;
-  if (sd) $('neg').value = st.settings.neg[st.type] || '';
+  // Keep the negative prompt visible for every model, with its per-type text saved independently.
+  $('neg').value = st.settings.neg[st.type] || '';
+  $('negbox').hidden = false;
   const note = $('note');
   note.hidden = !(st.type === 'sprite' && st.model === 'sdxl');
 }
