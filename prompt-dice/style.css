@@ -132,11 +132,21 @@ details.grp > .cards { padding: 0 9px 9px; }
 .out-pane { min-width: 0; }
 .stat { font-size: 12px; color: var(--faint); padding: 10px 2px 0; }
 
-/* ---------- вихід ---------- */
-textarea.out { width: 100%; min-height: 260px; resize: vertical; font: 13px/1.6 var(--ff-mono); }
-.hint { font-size: 12px; color: var(--faint); margin: 8px 0 12px; }
-.negbox h3 { margin: 16px 0 6px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--gold); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5 var(--ff-mono); }
+/* ---------- промпти: два великі чисті поля ---------- */
+.out-pane { min-width: 0; }
+.out-head { min-height: 48px; }
+.out-head-note { color: var(--faint); font-size: 11px; }
+.out-body { display: flex; flex-direction: column; }
+.prompt-stack { display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 100%; }
+.prompt-field { display: flex; flex-direction: column; min-height: 0; flex: 1 1 50%; }
+.prompt-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.prompt-label h3 { margin: 0; color: var(--gold-hi); font-family: var(--ff-ui); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.prompt-label .btn-copy { flex: none; padding: 7px 12px; font-size: 12px; }
+textarea.out, textarea.neg { display: block; width: 100%; flex: 1 1 auto; min-height: 190px; resize: vertical; font: 13px/1.65 var(--ff-mono); color: var(--text); background: var(--bg-elev); border-color: var(--line); }
+textarea.neg { min-height: 150px; }
+.hint { font-size: 12px; color: var(--faint); margin: 0; }
+#note { padding: 7px 10px; border-left: 2px solid var(--gold-lo); background: var(--gold-glow); }
+
 
 /* ---------- історія ---------- */
 .h-item { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 12px; margin-bottom: 7px; cursor: pointer; transition: border-color .18s var(--ease), background .18s var(--ease); }
