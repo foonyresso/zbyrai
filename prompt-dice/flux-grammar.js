@@ -32,7 +32,7 @@ const FluxLang = (() => {
     if (m) return ANIMAL.has(m[1]) ? m[1] + '-eared' : hum(m[1]);
     return hum(tag);
   }
-  function ageWord(tag) { return { adult: 'adult', mature_female: 'mature', mature_male: 'mature', 'onee-san': 'mature, older-sister-type' }[tag] || hum(tag); }
+  function ageWord(tag) { return { young_adult: 'young adult', adult: 'adult', mature_female: 'mature', mature_male: 'mature', 'onee-san': 'mature, older-sister-type', mature: 'mature', 'middle-aged': 'middle-aged', elderly: 'elderly' }[tag] || hum(tag); }
   function skinPhrase(vals) {
     const ts = tags(vals), colored = ts.find(t => /^colored_skin$/.test(t)), parts = [];
     ts.forEach(t => {

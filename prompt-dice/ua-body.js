@@ -5,6 +5,10 @@ uaAdd(`
 adult=Доросла людина
 mature female=Зріла жінка
 onee-san=Онее-сан (старша сестра)
+young adult=Молода доросла людина
+middle-aged=Середнього віку
+mature=Зрілий вік
+elderly=Літній вік
 mature male=Зрілий чоловік
 human=Людина
 elf=Ельф

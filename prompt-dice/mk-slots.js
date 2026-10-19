@@ -4,7 +4,7 @@ const MK = { cats: {}, partSlots: {}, order: [] };
 
 // Старі параметри Кубика, які редагуються на відповідних ділянках манекена
 const MK_OLD = {
-  body: ['gender', 'race', 'raceFeat', 'skin', 'build', 'permFeat'],
+  body: ['gender', 'age', 'race', 'raceFeat', 'skin', 'build', 'permFeat'],
   hair: ['hairLen', 'hairColor', 'hairStyle', 'hairDetail'],
   eyes: ['eyeColor', 'eyeDetail', 'eyeExpr'],
   face: ['emotion', 'expression', 'makeup'],
