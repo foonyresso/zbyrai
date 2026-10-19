@@ -154,5 +154,5 @@
   });
   const quick = document.querySelector('.forge-quick');
   if (quick) quick.hidden = true;
-  if (typeof renderWorkspace === 'function') renderWorkspace();
+  // The workspace is already initialized by app.js; replace only its navigation.
 })();
