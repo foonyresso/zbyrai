@@ -144,6 +144,8 @@ function buildFlux(t) {
   parts.push(...FluxLang.paragraphs(st.type, get, THEMES[curTheme()].nl));
   const extra = mkFluxParagraph(typeSlotIds(), get);
   if (extra) parts.push(extra);
+  const adult = nsfwFluxParagraph(get);
+  if (adult) parts.push(adult);
   return parts.join('\n\n');
 }
 function buildGemini(t) {
