@@ -282,3 +282,13 @@ main.studio { grid-template-columns: 250px minmax(330px, 360px) minmax(430px, 1f
 @media(max-width:1500px){ main.studio{grid-template-columns:220px minmax(290px,320px) minmax(360px,1fr) 270px;} }
 @media(max-width:1200px){ main.studio{grid-template-columns:220px minmax(280px,1fr);} .forge-sidebar{grid-column:1;grid-row:1;} .mk-pane{grid-column:2;grid-row:1;} .work-pane{grid-column:1/-1;grid-row:2;} .out-pane{grid-column:1/-1;grid-row:3;} }
 @media(max-width:760px){ main.studio{display:flex;flex-direction:column;} }
+
+/* Sidebar is the primary navigation; hide legacy center tabs */
+.work-pane .pane-h.wt { display:none !important; }
+.forge-nav { display:flex;flex-direction:column;gap:3px; }
+.forge-nav .forge-nav-item.primary-section { padding:10px 10px;min-height:38px;font-size:13px; }
+.forge-nav .forge-nav-item.primary-section span { font-size:17px; }
+.forge-nav .forge-nav-item.primary-section.active { background:linear-gradient(100deg,rgba(121,47,255,.85),rgba(35,76,185,.55)); }
+.forge-nav .forge-nav-item.primary-section small { min-width:7px;text-align:center; }
+.forge-side-title { margin-top:5px; }
+.forge-nav .forge-nav-divider { height:1px;background:#1b385b;margin:7px 4px; }
