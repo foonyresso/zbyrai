@@ -254,36 +254,58 @@ function workTabs() {
 function renderPrimaryNav(tabs) {
   const nav = document.getElementById('forgePrimaryNav');
   if (!nav) return;
-  const labels = {
-    zone: ['Ділянка тіла','♙'],
-  };
-  const icons = [
-    ['персонаж','♙'],['ділянка','♙'],['одяг','♧'],['збро','⚔'],['поз','✧'],
-    ['ракурс','◉'],['дія','➤'],['фон','▧'],['ефект','✦'],['світл','☼'],
-    ['сцен','▧'],['стил','✺'],['інш','◇']
+  const groups = [
+    ['Персонаж', ['персонаж','ділянки тіла','зовнішність','голова','тіло','волосся','обличчя']],
+    ['Одяг та аксесуари', ['одяг','аксесуар','взуття','зброя']],
+    ['Поза та композиція', ['поз','ракурс','кадр','дія','взаємод']],
+    ['Сцена та оточення', ['фон','сцен','локац','предмет']],
+    ['Візуальні ефекти', ['ефект','світл','колір','стил','атмосфер','якість']],
+    ['Інше', []]
   ];
-  nav.innerHTML = '';
-  tabs.forEach((x,i) => {
-    const label = x.t.replace(/^🧍\s*/, '').trim();
-    const low = label.toLowerCase();
-    const found = icons.find(([needle]) => low.includes(needle));
-    const icon = (labels[x.id] && labels[x.id][1]) || (found && found[1]) || '✧';
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'forge-nav-item primary-section' + (x.id === st.wtab ? ' active' : '');
-    b.dataset.primaryTab = x.id;
-    b.innerHTML = '<span>' + icon + '</span>' + esc(label) + '<small>›</small>';
-    b.title = x.tip || label;
-    b.onclick = () => {
-      st.wtab = x.id;
-      wQuery = '';
-      const search = document.getElementById('wSearch');
-      if (search) search.value = '';
-      save();
-      renderTabs();
-      renderWork();
+  const iconFor = label => {
+    const s=label.toLowerCase();
+    if(s.includes('одяг')||s.includes('взут')||s.includes('аксесуар')) return '♧';
+    if(s.includes('фон')||s.includes('сцен')||s.includes('локац')) return '▧';
+    if(s.includes('світл')||s.includes('ефект')) return '✦';
+    if(s.includes('поз')||s.includes('ракурс')||s.includes('дія')) return '◉';
+    if(s.includes('збро')) return '⚔';
+    if(s.includes('тіл')||s.includes('облич')||s.includes('волос')||s.includes('персонаж')) return '♙';
+    return '◇';
+  };
+  nav.innerHTML='';
+  const used=new Set();
+  function addButton(x, parent) {
+    const label=x.t.replace(/^🧍\s*/,'').trim();
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='forge-nav-item primary-section'+(x.id===st.wtab?' active':'');
+    b.dataset.primaryTab=x.id;
+    b.innerHTML='<span>'+iconFor(label)+'</span>'+esc(label)+'<small>›</small>';
+    b.title=x.tip||label;
+    b.onclick=()=>{
+      st.wtab=x.id; wQuery='';
+      const search=document.getElementById('wSearch'); if(search) search.value='';
+      save(); renderTabs(); renderWork();
     };
-    nav.appendChild(b);
+    parent.appendChild(b);
+  }
+  groups.forEach(([title,needles])=>{
+    const matches=tabs.filter(x=>{
+      if(used.has(x.id)) return false;
+      const label=x.t.replace(/^🧍\s*/,'').trim().toLowerCase();
+      return needles.length ? needles.some(n=>label.includes(n)) : true;
+    });
+    if(!matches.length) return;
+    matches.forEach(x=>used.add(x.id));
+    const details=document.createElement('details');
+    details.className='forge-nav-group';
+    details.open=matches.some(x=>x.id===st.wtab);
+    const summary=document.createElement('summary');
+    summary.textContent=title;
+    const count=document.createElement('small'); count.textContent=matches.length; summary.appendChild(count);
+    details.appendChild(summary);
+    matches.forEach(x=>addButton(x,details));
+    nav.appendChild(details);
   });
 }
 function renderTabs() {
