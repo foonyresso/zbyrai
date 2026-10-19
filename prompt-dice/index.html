@@ -64,7 +64,31 @@
   <button class="btn-main" id="roll" title="Перекинути все, що не замкнено (Пробіл)"><span class="dice">🎲</span> Кинути кубик</button>
 </section>
 
-<main class="studio">
+<main class="studio">\n
+  <aside class="forge-sidebar pane" id="forgeSidebar">
+    <label class="forge-search"><span>⌕</span><input id="forgeNavSearch" placeholder="Пошук категорії..." aria-label="Пошук категорії"></label>
+    <div class="forge-side-title">Групи тегів <span>×</span></div>
+    <nav class="forge-nav">
+      <button class="forge-nav-item active" data-nav="Зовнішність"><span>♙</span> Зовнішність <small>842</small></button>
+      <button class="forge-nav-item" data-nav="Волосся"><span>♧</span> Волосся <small>312</small></button>
+      <button class="forge-nav-item" data-nav="Обличчя"><span>◉</span> Обличчя <small>428</small></button>
+      <button class="forge-nav-item" data-nav="Тіло"><span>♧</span> Тіло <small>376</small></button>
+      <button class="forge-nav-item selected" data-nav="Одяг"><span>♧</span> Одяг <small>1 284</small></button>
+      <div class="forge-subnav">
+        <button class="forge-nav-item" data-nav="Верхній одяг">♧ Верхній одяг <small>256</small></button>
+        <button class="forge-nav-item active" data-nav="Нижній одяг">♧ Нижній одяг <small>482</small></button>
+        <button class="forge-nav-item" data-nav="Взуття">♧ Взуття <small>198</small></button>
+        <button class="forge-nav-item" data-nav="Аксесуари одягу">♧ Аксесуари одягу <small>340</small></button>
+        <button class="forge-nav-item" data-nav="Стиль одягу">♧ Стиль одягу <small>693</small></button>
+      </div>
+      <button class="forge-nav-item" data-nav="Аксесуари"><span>◇</span> Аксесуари <small>214</small></button>
+      <button class="forge-nav-item" data-nav="Зачіски"><span>♧</span> Зачіски <small>307</small></button>
+      <button class="forge-nav-item" data-nav="Деталі"><span>✣</span> Деталі <small>412</small></button>
+      <button class="forge-nav-item" data-nav="Проче"><span>ⓘ</span> Проче <small>176</small></button>
+    </nav>
+    <section class="forge-quick"><h3>✦ Швидкий доступ</h3><p>Популярні категорії</p><div><button data-nav="Одяг">Одяг</button><button data-nav="Волосся">Волосся</button><button data-nav="Обличчя">Обличчя</button><button data-nav="Аксесуари">Аксесуари</button><button data-nav="Взуття">Взуття</button><button data-nav="Стиль">Стиль</button></div></section>
+  </aside>
+
   <section class="pane mk-pane" id="mkPane">
     <div class="pane-h"><h2>Манекен</h2><span class="spacer"></span>
       <div class="seg" id="mkView" title="Що показувати: тіло цілком чи обличчя великим планом">
@@ -140,6 +164,20 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./ui-mannequin.js"></script>
 <script src="./ui-workspace.js"></script>
 <script src="./app.js"></script>
+<script>
+(function(){
+ const search=document.getElementById('forgeNavSearch');
+ const items=[...document.querySelectorAll('.forge-nav-item')];
+ if(search) search.addEventListener('input',()=>{const q=search.value.trim().toLowerCase();items.forEach(b=>b.hidden=q&&!b.textContent.toLowerCase().includes(q));});
+ document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
+   document.querySelectorAll('.forge-nav-item').forEach(x=>x.classList.toggle('active',x.dataset.nav===b.dataset.nav));
+   const targets=[...document.querySelectorAll('.wtab')];
+   const match=targets.find(x=>x.textContent.toLowerCase().includes(b.dataset.nav.toLowerCase()));
+   if(match) match.click();
+   else { const searchBox=document.getElementById('wSearch'); if(searchBox){searchBox.value=b.dataset.nav;searchBox.dispatchEvent(new Event('input',{bubbles:true}));} }
+ }));
+})();
+</script>
 <script src="./tool-chrome.js"></script>
 </body>
 </html>
