@@ -251,6 +251,41 @@ function workTabs() {
   });
   return tabs;
 }
+function renderPrimaryNav(tabs) {
+  const nav = document.getElementById('forgePrimaryNav');
+  if (!nav) return;
+  const labels = {
+    zone: ['Ділянка тіла','♙'],
+  };
+  const icons = [
+    ['персонаж','♙'],['ділянка','♙'],['одяг','♧'],['збро','⚔'],['поз','✧'],
+    ['ракурс','◉'],['дія','➤'],['фон','▧'],['ефект','✦'],['світл','☼'],
+    ['сцен','▧'],['стил','✺'],['інш','◇']
+  ];
+  nav.innerHTML = '';
+  tabs.forEach((x,i) => {
+    const label = x.t.replace(/^🧍\s*/, '').trim();
+    const low = label.toLowerCase();
+    const found = icons.find(([needle]) => low.includes(needle));
+    const icon = (labels[x.id] && labels[x.id][1]) || (found && found[1]) || '✧';
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'forge-nav-item primary-section' + (x.id === st.wtab ? ' active' : '');
+    b.dataset.primaryTab = x.id;
+    b.innerHTML = '<span>' + icon + '</span>' + esc(label) + '<small>›</small>';
+    b.title = x.tip || label;
+    b.onclick = () => {
+      st.wtab = x.id;
+      wQuery = '';
+      const search = document.getElementById('wSearch');
+      if (search) search.value = '';
+      save();
+      renderTabs();
+      renderWork();
+    };
+    nav.appendChild(b);
+  });
+}
 function renderTabs() {
   const tabs = workTabs(), box = $('wTabs');
   if (!tabs.find(x => x.id === st.wtab)) st.wtab = tabs[0].id;
@@ -263,6 +298,8 @@ function renderTabs() {
     b.onclick = () => { st.wtab = x.id; save(); renderWork(); renderTabs(); };
     box.appendChild(b);
   });
+  });
+  renderPrimaryNav(tabs);
 }
 
 /* ---------- вміст вкладок ---------- */
