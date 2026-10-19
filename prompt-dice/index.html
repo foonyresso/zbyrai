@@ -87,25 +87,19 @@
   </section>
 
   <section class="pane out-pane">
-    <div class="pane-h">
-      <div class="rtabs">
-        <button class="rtab on" data-r="out" title="Готовий промпт, який можна правити">Промпт</button>
-        <button class="rtab" data-r="hist" title="Усі попередні кидки: клік відновлює">Історія</button>
-        <button class="rtab" data-r="pre" title="Збережені набори параметрів">Пресети</button>
-        <button class="rtab" data-r="set" title="Базовий текст і префікси промпта">Налаштування</button>
-      </div>
-    </div>
-    <div class="pane-b">
-      <div id="r-out">
-        <textarea class="out" id="out" spellcheck="false" title="Готовий промпт: можна правити вручну"></textarea>
-        <div class="out-actions"><button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button></div>
-        <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
+    <div class="pane-h out-head"><h2>Промпти</h2><span class="spacer"></span><span class="out-head-note">Редагуй текст і копіюй окремо</span></div>
+    <div class="pane-b out-body">
+      <div id="r-out" class="prompt-stack">
+        <section class="prompt-field">
+          <div class="prompt-label"><h3>Positive Prompt</h3><button class="btn-copy" id="copy" title="Скопіювати позитивний промпт">📋 Копіювати</button></div>
+          <textarea class="out" id="out" spellcheck="false" title="Позитивний промпт: можна правити вручну" aria-label="Positive Prompt"></textarea>
+        </section>
         <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
-        <div class="negbox" id="negbox" hidden>
-          <h3>Негативний промпт <button id="copyNeg" title="Скопіювати негативний промпт" style="padding:3px 10px;font-size:12px">📋 Копіювати</button></h3>
-          <textarea class="neg" id="neg" spellcheck="false" title="Що ШІ має уникати на зображенні"></textarea>
-        </div>
-        <div class="stat" id="stat" title="Скільки різних промптів можна отримати за цих налаштувань"></div>
+        <section class="prompt-field negbox" id="negbox">
+          <div class="prompt-label"><h3>Negative Prompt</h3><button class="btn-copy" id="copyNeg" title="Скопіювати негативний промпт">📋 Копіювати</button></div>
+          <textarea class="neg" id="neg" spellcheck="false" title="Негативний промпт: що ШІ має уникати на зображенні" aria-label="Negative Prompt"></textarea>
+        </section>
+        <div class="hint">Зміна параметрів або новий кидок оновлюють позитивний промпт. Обидва поля можна редагувати вручну.</div>
       </div>
       <div id="r-hist" hidden></div>
       <div id="r-pre" hidden></div>
