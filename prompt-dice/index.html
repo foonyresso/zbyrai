@@ -169,12 +169,38 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
  const search=document.getElementById('forgeNavSearch');
  const items=[...document.querySelectorAll('.forge-nav-item')];
  if(search) search.addEventListener('input',()=>{const q=search.value.trim().toLowerCase();items.forEach(b=>b.hidden=q&&!b.textContent.toLowerCase().includes(q));});
+ const navMap={
+  'Зовнішність':['Зовнішність','Персонаж','Основне','Тіло'],
+  'Волосся':['Волосся','Зовнішність'],
+  'Обличчя':['Обличчя','Голова','Зовнішність'],
+  'Тіло':['Тіло','Фігура','Зовнішність'],
+  'Одяг':['Одяг','Одяг та аксесуари','Одяг і аксесуари'],
+  'Верхній одяг':['Верхній одяг','Одяг'],
+  'Нижній одяг':['Нижній одяг','Одяг'],
+  'Взуття':['Взуття','Одяг'],
+  'Аксесуари одягу':['Аксесуари одягу','Аксесуари','Одяг'],
+  'Стиль одягу':['Стиль одягу','Стиль','Одяг'],
+  'Аксесуари':['Аксесуари','Деталі'],
+  'Зачіски':['Зачіски','Волосся','Обличчя'],
+  'Деталі':['Деталі','Інше'],
+  'Проче':['Інше','Проче','Додаткове']
+ };
  document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
-   document.querySelectorAll('.forge-nav-item').forEach(x=>x.classList.toggle('active',x.dataset.nav===b.dataset.nav));
+   const category=b.dataset.nav;
+   document.querySelectorAll('.forge-nav-item').forEach(x=>x.classList.toggle('active',x.dataset.nav===category));
    const targets=[...document.querySelectorAll('.wtab')];
-   const match=targets.find(x=>x.textContent.toLowerCase().includes(b.dataset.nav.toLowerCase()));
-   if(match) match.click();
-   else { const searchBox=document.getElementById('wSearch'); if(searchBox){searchBox.value=b.dataset.nav;searchBox.dispatchEvent(new Event('input',{bubbles:true}));} }
+   const names=navMap[category]||[category];
+   const match=targets.find(x=>names.some(n=>x.textContent.trim().toLowerCase().includes(n.toLowerCase())));
+   const searchBox=document.getElementById('wSearch');
+   if(match){
+     match.click();
+     if(searchBox){searchBox.value='';searchBox.dispatchEvent(new Event('input',{bubbles:true}));}
+   } else if(searchBox) {
+     const broad=targets.find(x=>x.textContent.toLowerCase().includes(category.includes('одяг')||category==='Взуття'?'одяг':category.toLowerCase()));
+     if(broad) broad.click();
+     searchBox.value=({ 'Волосся':'волос', 'Обличчя':'облич', 'Тіло':'тіл', 'Верхній одяг':'сорочка', 'Нижній одяг':'штани', 'Взуття':'взут', 'Аксесуари одягу':'аксесуар', 'Стиль одягу':'стиль', 'Зачіски':'волос', 'Проче':'додатков' })[category]||category;
+     searchBox.dispatchEvent(new Event('input',{bubbles:true}));
+   }
  }));
 })();
 </script>
