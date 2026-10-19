@@ -254,7 +254,7 @@ function workTabs() {
 function renderPrimaryNav(tabs) {
   const nav = document.getElementById('forgePrimaryNav');
   if (!nav) return;
-  const clean = x => x.t.replace(/^🧍\\s*/,'').replace(/^\\d+\\s*·\\s*/,'').trim();
+  const clean = x => x.t.replace(/^[^\\p{L}\\p{N}]+/u,'').replace(/^\\d+\\s*·\\s*/,'').trim();
   const classify = label => {
     const s = label.toLocaleLowerCase('uk');
     if (/волос|зачіс|очі|облич|ніс|рот|шкір|макіяж|вираз|голов|вух|зуб|обличч/.test(s)) return 'face';
@@ -269,14 +269,14 @@ function renderPrimaryNav(tabs) {
     return 'other';
   };
   const groups = [
-    {id:'character', title:'Персонаж і тіло', icon:'user-round', sub:['face','character']},
-    {id:'clothes', title:'Одяг та аксесуари', icon:'shirt', sub:['clothes']},
-    {id:'pose', title:'Поза та взаємодія', icon:'person-standing', sub:['pose']},
-    {id:'camera', title:'Камера та композиція', icon:'scan', sub:['camera']},
-    {id:'scene', title:'Сцена й оточення', icon:'landmark', sub:['scene']},
-    {id:'effects', title:'Світло та ефекти', icon:'sparkles', sub:['effects']},
-    {id:'style', title:'Стиль і якість', icon:'palette', sub:['style']},
-    {id:'other', title:'Інші параметри', icon:'sliders-horizontal', sub:['other']}
+    {id:'character', title:'Зовнішність і тіло', icon:'♙', sub:['face','character']},
+    {id:'clothes', title:'Одяг та аксесуари', icon:'♧', sub:['clothes']},
+    {id:'pose', title:'Поза та взаємодія', icon:'♟', sub:['pose']},
+    {id:'camera', title:'Камера та композиція', icon:'▣', sub:['camera']},
+    {id:'scene', title:'Сцена й оточення', icon:'▧', sub:['scene']},
+    {id:'effects', title:'Світло та ефекти', icon:'✦', sub:['effects']},
+    {id:'style', title:'Стиль і якість', icon:'◈', sub:['style']},
+    {id:'other', title:'Інші параметри', icon:'⚙', sub:['other']}
   ];
   const iconFor = label => {
     const s=label.toLocaleLowerCase('uk');
