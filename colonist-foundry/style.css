@@ -135,3 +135,7 @@ em.good { color: #a6e3b4; font-style: normal; } em.bad { color: #f2a0a0; font-st
 
 @media (max-width: 1060px) { main.wrap.stage { grid-template-columns: minmax(0, 1fr); } .detail { position: static; max-height: none; } .setup-grid, .pane.two { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) { main.wrap, .setup, .timebar, .cbar { padding-left: 12px; padding-right: 12px; } .tl { grid-template-columns: 70px repeat(24, 1fr) 30px; } .clock { margin-left: 0; align-items: flex-start; } }
+
+/* карта поселення */
+.mapwrap { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+.mapfeed { max-height: 190px; overflow: auto; }

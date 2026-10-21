@@ -4,12 +4,12 @@ const CFViews = (() => {
   let X = null, logMax = 200;
   const init = x => { X = x; };
   const svg = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
-  const VIEWS = [['log', '📜', 'Журнал', 'Усе, що відбувається в поселенні, від найновішого'], ['bonds', '🕸️', 'Стосунки', 'Схема й таблиця: хто кого як сприймає'], ['sched', '🕒', 'Розклад', 'Що робив кожен колоніст останні 24 години'], ['work', '🔨', 'Робота', 'Пріоритети робіт і скільки зроблено']];
+  const VIEWS = [['log', '📜', 'Журнал', 'Усе, що відбувається в поселенні, від найновішого'], ['bonds', '🕸️', 'Стосунки', 'Схема й таблиця: хто кого як сприймає'], ['map', '🗺️', 'Карта', 'Колоністи ходять поселенням: дім, їдальня, робота, лікарня'], ['sched', '🕒', 'Розклад', 'Що робив кожен колоніст останні 24 години'], ['work', '🔨', 'Робота', 'Пріоритети робіт і скільки зроблено']];
 
   function render(host) {
     const { el } = X, v = X.st.view;
     const tabs = el('div', { class: 'vtabs', role: 'tablist' }, VIEWS.map(([k, ic, l, t]) => el('button', { role: 'tab', 'aria-selected': k === v, title: t, onclick: () => { X.st.view = k; X.save(); X.refresh(); } }, `${ic} ${l}`)));
-    host.replaceChildren(tabs, v === 'log' ? log() : v === 'bonds' ? bonds() : v === 'sched' ? sched() : work());
+    host.replaceChildren(tabs, v === 'map' ? CFMap.pane() : v === 'log' ? log() : v === 'bonds' ? bonds() : v === 'sched' ? sched() : work());
   }
 
   const FILTERS = [['all', 'Усе', 'Усі записи'], ['mine', 'Обраний', 'Лише записи про обраного колоніста'], ['events', 'Події', 'Загальні, за професією й особисті події'], ['social', 'Люди', 'Розмови, сварки, дружба, кохання'], ['health', 'Здоров’я', 'Хвороби, травми й одужання'], ['weather', 'Погода', 'Зміни погоди']];

@@ -10,7 +10,7 @@
   const randSeed = () => Math.random().toString(36).slice(2, 7);
   const st = Object.assign({ seed: randSeed(), n: 8, day: 1, locks: {}, gen: 2, place: { planet: 'Орвелія', biome: 'temperate', kind: 'village' }, hours: 0, speed: 12, sel: 0, view: 'log', dtab: 'bio', logFilter: 'all' }, store.get('state', {}));
   st.place = W.normPlace(st.place); st.hours = Math.max(0, +st.hours || 0);
-  if (!['log', 'bonds', 'sched', 'work'].includes(st.view)) st.view = 'log';
+  if (!['log', 'map', 'bonds', 'sched', 'work'].includes(st.view)) st.view = 'log';
   const save = () => store.set('state', st);
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } e.append(...kids.flat().filter(x => x != null)); return e; };
   const toast = (m, ms = 1800) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
@@ -31,11 +31,11 @@
     if (firstRun) { firstRun = false; $('setup').open = false; }
     S.run(sim, h); st.hours = sim.hour; save(); CFDetail.resetDay(); refresh();
   }
-  function play() { const per = Math.max(1, Math.round(st.speed / 4)); timer = setInterval(() => advance(per), 250); renderTimebar(); }
+  function play() { const fast = st.speed >= 4, per = fast ? Math.round(st.speed / 4) : 1; timer = setInterval(() => advance(per), fast ? 250 : Math.round(1000 / st.speed)); renderTimebar(); }
   function pause() { if (timer) clearInterval(timer); timer = null; if ($('btnPlay')) renderTimebar(); }
 
   /* ---------- відображення ---------- */
-  const SPEEDS = { 4: '4 год/с', 12: '12 год/с', 24: '1 доба/с', 72: '3 доби/с' };
+  const SPEEDS = { 1: '1 год/с', 4: '4 год/с', 12: '12 год/с', 24: '1 доба/с', 72: '3 доби/с' };
   function renderTimebar() {
     $('btnPlay').textContent = timer ? '⏸ Пауза' : '▶ Грати'; $('btnPlay').classList.toggle('pulse', !timer && sim.hour === 0);
     $('speeds').replaceChildren(...Object.entries(SPEEDS).map(([v, l]) => el('button', { class: st.speed === +v ? 'on' : '', title: `Автоперемотка: ${l}`, onclick: () => { st.speed = +v; save(); const was = !!timer; pause(); if (was) play(); else renderTimebar(); } }, l)));
@@ -69,7 +69,7 @@
     setVariant(v) { st.day = v; resetTime(); save(); refresh(true); },
     setPlace(patch) { st.place = W.normPlace(Object.assign({}, st.place, patch)); resetTime(); save(); refresh(true); },
   };
-  CFSetup.init(X); CFDetail.init(X); CFViews.init(X);
+  CFSetup.init(X); CFDetail.init(X); CFViews.init(X); CFMap.init(X);
   $('btnPlay').onclick = () => (timer ? pause() : play());
   $('btnH1').onclick = () => advance(1); $('btnH6').onclick = () => advance(6); $('btnD1').onclick = () => advance(24);
   $('btnResetTime').onclick = () => { resetTime(); save(); refresh(); };
