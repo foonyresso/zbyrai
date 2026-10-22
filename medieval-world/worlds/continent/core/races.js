@@ -17,7 +17,8 @@
   function assign(world, p) {
     const A = globalThis.Atlas;
     if (!A || !A.races || !A.races.length) return;
-    for (const s of world.settlements) s.races = raceMix(p.seed, s, A.races);
+    const rs = A.racesFor ? A.racesFor(p.theme && p.theme !== 'continent' ? p.theme : ({ island: 'island', archipelago: 'archipelago', pangea: 'pangea' })[p.worldType] || 'continent') : A.races; // id виміру = тема
+    for (const s of world.settlements) s.races = raceMix(p.seed, s, rs);
   }
   R.Races = { assign, raceMix };
 })();

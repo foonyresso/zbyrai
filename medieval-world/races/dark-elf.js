@@ -3,7 +3,7 @@ Atlas.registerRace({
   "id": "dark-elf",
   "order": 102,
   "name": "Темний ельф",
-  "category": "темна",
+  "category": "ельфійська",
   "weight": 3,
   "size": "середня",
   "habitat": [

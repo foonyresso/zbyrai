@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "embergard",
+  "races": {"deny": ["elf", "dryad", "nymph", "cat:водяна"]},
   "name": "Емберґард",
   "order": 60,
   "runner": "builtin",

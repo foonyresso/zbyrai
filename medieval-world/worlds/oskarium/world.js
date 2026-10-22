@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "oskarium",
+  "races": {"allow": ["human", "cat:нежива", "cat:водяна", "cat:мала", "cat:демонічна"]},
   "name": "Оскаріум",
   "order": 61,
   "runner": "builtin",

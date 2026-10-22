@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "talassyr",
+  "races": {"allow": ["human", "dwarf", "cat:водяна", "cat:підземна", "cat:мала", "cat:інсектоїдна", "cat:стихійна"]},
   "name": "Талассир",
   "order": 63,
   "runner": "builtin",

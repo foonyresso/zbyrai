@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "neverion",
+  "races": {"allow": ["human", "cat:ефірна", "cat:конструкт", "cat:крилата", "cat:стихійна", "cat:мала"]},
   "name": "Неверіон",
   "order": 54,
   "runner": "builtin",

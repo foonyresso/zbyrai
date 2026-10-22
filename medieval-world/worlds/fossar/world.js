@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "fossar",
+  "races": {"deny": ["elf", "dryad", "halfling", "cat:рослинна"]},
   "name": "Фоссар",
   "order": 81,
   "runner": "builtin",

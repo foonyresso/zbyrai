@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "skarveld",
+  "races": {"allow": ["human", "dark-elf", "cat:підземна", "cat:мала", "cat:нежива", "cat:інсектоїдна", "cat:рослинна", "cat:ефірна"]},
   "name": "Скарвельд",
   "order": 58,
   "runner": "builtin",

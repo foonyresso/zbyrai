@@ -3,10 +3,12 @@
    Усе рахується за хешем (зерно світу, координати поселення), тож однакове для того самого зерна. Формат: docs/atlas/race-files.md */
 const RACES_BY_TIER = [3, 5, 9, 99, 99, 99, 99]; /* скільки рас вміщає хутір, село, велике село, а містечка й більші — усі */
 /* раси поселення: [{ r, share }] за спаданням частки. Усі раси, крім випадку дуже малих поселень, де вміщається лише частина */
+/* набір рас виміру: id виміру = тема (WSTYLE.id), нескінченний стандартний світ без теми */
+const worldRaces = () => Atlas.racesFor((typeof WSTYLE != "undefined" && WSTYLE.id) || "infinite");
 function raceMix(v) {
-  const key = WLD.hk + "|" + Atlas.races.length;
+  const rs = worldRaces(), key = WLD.hk + "|" + rs.length + "|" + (typeof WSTYLE != "undefined" ? WSTYLE.id : "");
   if (v.rmk === key) return v.rmv;
-  const rs = Atlas.races, s = WLD.s, i = v.i || 0, j = v.j || 0, tier = Math.min(6, v.tier || 0);
+  const s = WLD.s, i = v.i || 0, j = v.j || 0, tier = Math.min(6, v.tier || 0);
   const wt = (r) => r.weight;
   /* відбір без повторень зі шансами за вагою (ключ u^(1/w)): справедливо для довільної кількості рас */
   const keyed = rs.map((r, n) => ({ r, k: Math.pow(Math.max(1e-9, H2(i, j, s + 730 + n)), 1 / wt(r)) })).sort((a, b) => b.k - a.k);
@@ -40,6 +42,6 @@ const racePct = (x) => Math.max(1, Math.round(x * 100)) + "%";
 /* підказка про раси поселення (рядок для опису) */
 function raceInfo(v) {
   if (!Atlas.races.length) return "";
-  const mix = raceMix(v), top = mix.slice(0, 5).map((o) => o.r.name + " " + racePct(o.share)).join(", ");
-  return " · Раси: " + top + (mix.length > 5 ? " і ще " + (mix.length - 5) : "") + (mix.length < Atlas.races.length ? " (мале поселення вміщає не всіх)" : "");
+  const mix = raceMix(v), all = worldRaces().length, top = mix.slice(0, 5).map((o) => o.r.name + " " + racePct(o.share)).join(", ");
+  return " · Раси: " + top + (mix.length > 5 ? " і ще " + (mix.length - 5) : "") + (mix.length < all ? " (мале поселення вміщає не всіх)" : "");
 }

@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "frostheym",
+  "races": {"deny": ["cat:рептилоїдна", "lamia", "beast-camel", "beast-rabbit"]},
   "name": "Фростгейм",
   "order": 83,
   "runner": "builtin",

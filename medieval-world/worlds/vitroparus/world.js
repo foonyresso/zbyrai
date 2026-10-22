@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "vitroparus",
+  "races": {"deny": ["elf", "dark-elf", "dryad", "nymph", "cat:рослинна", "beast-wolf", "beast-panda"]},
   "name": "Вітропарус",
   "order": 91,
   "runner": "builtin",

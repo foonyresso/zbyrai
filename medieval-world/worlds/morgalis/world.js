@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "morgalis",
+  "races": {"deny": ["halfling", "dryad", "nymph", "satyr", "cat:водяна"]},
   "name": "Морґаліс",
   "order": 49,
   "runner": "builtin",

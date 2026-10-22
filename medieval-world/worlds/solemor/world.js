@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "solemor",
+  "races": {"allow": ["human", "elf", "cat:водяна", "cat:крилата", "cat:стихійна", "cat:драконяча"]},
   "name": "Солемор",
   "order": 43,
   "runner": "builtin",

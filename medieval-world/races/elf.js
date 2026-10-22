@@ -3,7 +3,7 @@ Atlas.registerRace({
   "id": "elf",
   "order": 101,
   "name": "Ельф",
-  "category": "звичайна",
+  "category": "ельфійська",
   "weight": 6,
   "size": "середня",
   "habitat": [

@@ -14,6 +14,7 @@
       const l = r.lore || {};
       return H.card(r.name, H.chip(r.category || "") + H.chip(r.size || ""), (l.description ? "<p>" + esc(l.description) + "</p>" : "") + H.kv("Як виглядає", l.appearance) + H.kv("Вдача", l.temperament) +
         H.kv("Квартал", l.quarter) + H.kv("Будівлі", l.buildings) + H.kv("Здібності", l.abilities) + H.kv("Середовище", (r.habitat || []).map((h) => HAB[h] || h)) +
+        H.kv("Де живе", Array.isArray(r.worlds) ? r.worlds.map((id) => (A.worldById(id) || { name: id }).name) : "усі виміри (де не заборонено)") +
         H.kv("Поширеність", r.weight >= 6 ? "часта" : r.weight >= 3 ? "помірна" : "рідкісна") + (mix[r.id] ? H.kv("У поточному світі", "живе у " + mix[r.id].places + " поселеннях") : ""), r.look && r.look.tint);
     }).join("");
     return H.sub("races", subs) + '<input data-filter="q" placeholder="Пошук раси…" value="' + esc(st.q || "") + '" title="Пошук за назвою й описом">' + "<p><small>Знайдено: " + arr.length + "</small></p>" + (out || "<p>Нічого не знайдено.</p>");

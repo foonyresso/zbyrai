@@ -3,7 +3,7 @@ Atlas.registerRace({
   "id": "demon",
   "order": 108,
   "name": "Демон",
-  "category": "темна",
+  "category": "демонічна",
   "weight": 1,
   "size": "середня",
   "habitat": [

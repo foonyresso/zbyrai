@@ -582,6 +582,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "aurelit",
+  "races": {"allow": ["human", "cat:ефірна", "cat:крилата", "cat:стихійна", "cat:ельфійська", "cat:конструкт"]},
   "name": "Ауреліт",
   "order": 48,
   "runner": "builtin",
@@ -1109,6 +1110,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "embergard",
+  "races": {"deny": ["elf", "dryad", "nymph", "cat:водяна"]},
   "name": "Емберґард",
   "order": 60,
   "runner": "builtin",
@@ -1408,6 +1410,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "eydoliya",
+  "races": {"allow": ["human", "cat:ефірна", "cat:мала", "cat:міфічна", "cat:конструкт"]},
   "name": "Ейдолія",
   "order": 62,
   "runner": "builtin",
@@ -1671,6 +1674,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "fossar",
+  "races": {"deny": ["elf", "dryad", "halfling", "cat:рослинна"]},
   "name": "Фоссар",
   "order": 81,
   "runner": "builtin",
@@ -1825,6 +1829,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "frostheym",
+  "races": {"deny": ["cat:рептилоїдна", "lamia", "beast-camel", "beast-rabbit"]},
   "name": "Фростгейм",
   "order": 83,
   "runner": "builtin",
@@ -2058,6 +2063,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "heliontar",
+  "races": {"deny": ["elf", "dark-elf", "dryad", "nymph", "cat:рослинна", "beast-wolf", "beast-panda"]},
   "name": "Геліонтар",
   "order": 55,
   "runner": "builtin",
@@ -3016,6 +3022,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "kernalis",
+  "races": {"deny": ["halfling"]},
   "name": "Керналіс",
   "order": 59,
   "runner": "builtin",
@@ -3146,6 +3153,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "krovostep",
+  "races": {"deny": ["elf", "dark-elf", "halfling", "dryad", "nymph", "cat:водяна"]},
   "name": "Кровостеп",
   "order": 32,
   "runner": "builtin",
@@ -4092,6 +4100,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "mirrahon",
+  "races": {"allow": ["human", "elf", "dark-elf", "cat:ефірна", "cat:мала", "cat:конструкт"]},
   "name": "Міррагон",
   "order": 46,
   "runner": "builtin",
@@ -4222,6 +4231,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "morgalis",
+  "races": {"deny": ["halfling", "dryad", "nymph", "satyr", "cat:водяна"]},
   "name": "Морґаліс",
   "order": 49,
   "runner": "builtin",
@@ -4535,6 +4545,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "neverion",
+  "races": {"allow": ["human", "cat:ефірна", "cat:конструкт", "cat:крилата", "cat:стихійна", "cat:мала"]},
   "name": "Неверіон",
   "order": 54,
   "runner": "builtin",
@@ -4781,6 +4792,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "noktalis",
+  "races": {"allow": ["human", "cat:нежива", "cat:ефірна", "cat:крилата", "cat:мала", "cat:ельфійська"]},
   "name": "Нокталіс",
   "order": 41,
   "runner": "builtin",
@@ -5070,6 +5082,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "ormaval",
+  "races": {"allow": ["human", "cat:мала", "cat:підземна", "cat:водяна", "cat:рослинна", "cat:інсектоїдна"]},
   "name": "Ормаваль",
   "order": 42,
   "runner": "builtin",
@@ -5199,6 +5212,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "oskarium",
+  "races": {"allow": ["human", "cat:нежива", "cat:водяна", "cat:мала", "cat:демонічна"]},
   "name": "Оскаріум",
   "order": 61,
   "runner": "builtin",
@@ -5329,6 +5343,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "ostanky",
+  "races": {"allow": ["human", "goblin", "dwarf", "cat:нежива", "cat:конструкт", "cat:ефірна", "cat:демонічна"]},
   "name": "Останки",
   "order": 31,
   "runner": "builtin",
@@ -6367,6 +6382,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "skarveld",
+  "races": {"allow": ["human", "dark-elf", "cat:підземна", "cat:мала", "cat:нежива", "cat:інсектоїдна", "cat:рослинна", "cat:ефірна"]},
   "name": "Скарвельд",
   "order": 58,
   "runner": "builtin",
@@ -6735,6 +6751,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "solemor",
+  "races": {"allow": ["human", "elf", "cat:водяна", "cat:крилата", "cat:стихійна", "cat:драконяча"]},
   "name": "Солемор",
   "order": 43,
   "runner": "builtin",
@@ -6912,6 +6929,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "talassyr",
+  "races": {"allow": ["human", "dwarf", "cat:водяна", "cat:підземна", "cat:мала", "cat:інсектоїдна", "cat:стихійна"]},
   "name": "Талассир",
   "order": 63,
   "runner": "builtin",
@@ -7513,6 +7531,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "umbralit",
+  "races": {"allow": ["human", "cat:ефірна", "cat:нежива", "cat:мала", "cat:крилата", "cat:ельфійська"]},
   "name": "Умбраліт",
   "order": 65,
   "runner": "builtin",
@@ -7757,6 +7776,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "varhess",
+  "races": {"allow": ["human", "orc", "goblin", "cat:нежива", "cat:стихійна", "cat:конструкт", "cat:ефірна", "cat:демонічна"]},
   "name": "Варгесс",
   "order": 53,
   "runner": "builtin",
@@ -8142,6 +8162,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "vershynnytsia",
+  "races": {"deny": ["dwarf", "cyclops", "cat:підземна"]},
   "name": "Вершинниця",
   "order": 33,
   "runner": "builtin",
@@ -8414,6 +8435,7 @@ Atlas.registerWorld({
 Atlas.registerWorld({
   "format": 2,
   "id": "vitroparus",
+  "races": {"deny": ["elf", "dark-elf", "dryad", "nymph", "cat:рослинна", "beast-wolf", "beast-panda"]},
   "name": "Вітропарус",
   "order": 91,
   "runner": "builtin",

@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "noktalis",
+  "races": {"allow": ["human", "cat:нежива", "cat:ефірна", "cat:крилата", "cat:мала", "cat:ельфійська"]},
   "name": "Нокталіс",
   "order": 41,
   "runner": "builtin",

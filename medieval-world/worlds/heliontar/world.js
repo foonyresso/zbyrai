@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "heliontar",
+  "races": {"deny": ["elf", "dark-elf", "dryad", "nymph", "cat:рослинна", "beast-wolf", "beast-panda"]},
   "name": "Геліонтар",
   "order": 55,
   "runner": "builtin",

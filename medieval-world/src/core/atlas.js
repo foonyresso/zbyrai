@@ -79,6 +79,27 @@
     A.races.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
   };
 
+  /* раси, що живуть у виміру worldId. Раса: worlds "all" (за замовчуванням) | [id виміру]; worldWeight { id: множник }.
+     Вимір: races { allow, deny } зі селекторами "<id раси>" | "cat:<категорія>"; раса, яку вимір прямо назвав у worlds, проходить allow. Порожній результат = усі раси */
+  const rcache = {};
+  A.racesFor = function (worldId) {
+    const ck = A.races.length + "|" + A.worlds.length;
+    if (rcache[worldId] && rcache[worldId].k === ck) return rcache[worldId].v;
+    const w = A.worldById(worldId), rl = (w && w.races) || {}, allow = rl.allow ? [].concat(rl.allow) : null, deny = [].concat(rl.deny || []);
+    const hit = (r, sel) => sel === r.id || sel === "cat:" + r.category;
+    const out = [];
+    for (const r of A.races) {
+      const direct = Array.isArray(r.worlds) && r.worlds.includes(worldId);
+      if (Array.isArray(r.worlds) && !direct) continue;
+      if (deny.some((s) => hit(r, s)) || (allow && !direct && !allow.some((s) => hit(r, s)))) continue;
+      const m = r.worldWeight && r.worldWeight[worldId];
+      out.push(m ? Object.assign({}, r, { weight: r.weight * m }) : r);
+    }
+    const res = out.length ? out : A.races;
+    rcache[worldId] = { k: ck, v: res };
+    return res;
+  };
+
   A.worldById = (id) => A.worlds.find((w) => w.id === id) || null;
 
   /* селектор: "all" | "<id>" | "tag:a" | "tag:a+b" (усі теги одразу) */

@@ -166,6 +166,14 @@ test('раси: ≥30 файлів, id = назві файлу, вага >0, у�
   for (const r of Atlas.races) { assert.ok(files.includes(r.id + '.js'), r.id); assert.ok(r.format >= 2 && r.weight > 0, r.id); }
   assert.strictEqual(new Set(Atlas.races.map((r) => r.name)).size, Atlas.races.length);
 });
+test('раси виміру: worlds посилається на існуючі виміри, кожен вимір має ≥8 рас, демони не в «темній»', () => {
+  const ids = new Set(Atlas.worlds.map((w) => w.id));
+  for (const r of Atlas.races) if (Array.isArray(r.worlds)) for (const w of r.worlds) assert.ok(ids.has(w), r.id + ' → ' + w);
+  for (const w of Atlas.worlds) assert.ok(Atlas.racesFor(w.id).length >= 8, w.id + ': рас ' + Atlas.racesFor(w.id).length);
+  assert.ok(new Set(Atlas.races.map((r) => r.category)).has('демонічна'));
+  for (const id of ['demon', 'tiefling', 'incubus', 'succubus']) assert.strictEqual(Atlas.races.find((r) => r.id === id).category, 'демонічна');
+  assert.ok(new Set(Atlas.racesFor('ormaval').map((r) => r.id)).size < Atlas.races.length, 'ormaval має власний набір');
+});
 test('склейки atlas-data/* і списки монстрів материка актуальні (node tools/build-atlas-registry.mjs --check)', () => {
   require('node:child_process').execFileSync(process.execPath, [path.join(__dirname, 'build-atlas-registry.mjs'), '--check'], { stdio: 'pipe' });
 });

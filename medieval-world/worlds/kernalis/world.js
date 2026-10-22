@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "kernalis",
+  "races": {"deny": ["halfling"]},
   "name": "Керналіс",
   "order": 59,
   "runner": "builtin",

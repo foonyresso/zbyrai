@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "umbralit",
+  "races": {"allow": ["human", "cat:ефірна", "cat:нежива", "cat:мала", "cat:крилата", "cat:ельфійська"]},
   "name": "Умбраліт",
   "order": 65,
   "runner": "builtin",

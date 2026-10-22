@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "varhess",
+  "races": {"allow": ["human", "orc", "goblin", "cat:нежива", "cat:стихійна", "cat:конструкт", "cat:ефірна", "cat:демонічна"]},
   "name": "Варгесс",
   "order": 53,
   "runner": "builtin",

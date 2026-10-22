@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "mirrahon",
+  "races": {"allow": ["human", "elf", "dark-elf", "cat:ефірна", "cat:мала", "cat:конструкт"]},
   "name": "Міррагон",
   "order": 46,
   "runner": "builtin",

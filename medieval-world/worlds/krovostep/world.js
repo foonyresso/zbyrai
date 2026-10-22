@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "krovostep",
+  "races": {"deny": ["elf", "dark-elf", "halfling", "dryad", "nymph", "cat:водяна"]},
   "name": "Кровостеп",
   "order": 32,
   "runner": "builtin",

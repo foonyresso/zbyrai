@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "aurelit",
+  "races": {"allow": ["human", "cat:ефірна", "cat:крилата", "cat:стихійна", "cat:ельфійська", "cat:конструкт"]},
   "name": "Ауреліт",
   "order": 48,
   "runner": "builtin",

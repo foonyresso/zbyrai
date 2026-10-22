@@ -3,7 +3,7 @@ Atlas.registerRace({
   "id": "tiefling",
   "order": 125,
   "name": "Тіфлінг",
-  "category": "темна",
+  "category": "демонічна",
   "weight": 2,
   "size": "середня",
   "habitat": [

@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "vershynnytsia",
+  "races": {"deny": ["dwarf", "cyclops", "cat:підземна"]},
   "name": "Вершинниця",
   "order": 33,
   "runner": "builtin",

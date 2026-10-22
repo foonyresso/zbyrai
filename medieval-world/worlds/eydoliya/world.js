@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "eydoliya",
+  "races": {"allow": ["human", "cat:ефірна", "cat:мала", "cat:міфічна", "cat:конструкт"]},
   "name": "Ейдолія",
   "order": 62,
   "runner": "builtin",

@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "ormaval",
+  "races": {"allow": ["human", "cat:мала", "cat:підземна", "cat:водяна", "cat:рослинна", "cat:інсектоїдна"]},
   "name": "Ормаваль",
   "order": 42,
   "runner": "builtin",

@@ -2,6 +2,7 @@
 Atlas.registerWorld({
   "format": 2,
   "id": "ostanky",
+  "races": {"allow": ["human", "goblin", "dwarf", "cat:нежива", "cat:конструкт", "cat:ефірна", "cat:демонічна"]},
   "name": "Останки",
   "order": 31,
   "runner": "builtin",
