@@ -55,17 +55,37 @@ function meander(c, ma) {
   out.push(c[n - 1]);
   return out;
 }
-/* Головна річка: спуск за спадом висоти з інерцією до моря чи озера; без гирла відкидається */
-function traceRiver(x0, y0) {
+/* Головна річка: спуск за спадом висоти з інерцією. Озеро на шляху вона перетинає по прямій і витікає з нього далі
+   (до двох озер); закінчується лише в морі чи океані, інакше відкидається. Старт у озері (lk) — річка, що витікає з озера. */
+function traceRiver(x0, y0, lk, ang) {
   const pts = [[x0, y0]];
   let x = x0,
     y = y0,
-    dx = 0,
-    dy = 0,
+    dx = lk ? Math.cos(ang) : 0,
+    dy = lk ? Math.sin(ang) : 0,
     minE = tsamp(x, y, 60).E,
     stall = 0,
+    wet = !!lk,
+    ls = 0,
+    lakes = 0,
+    it = 0,
     mouth = false;
-  for (let i = 0; i < RIVMAX; i++) {
+  while (it < RIVMAX) {
+    if (wet) {
+      if (++ls > 16) return null;
+      it += 2;
+      x += dx * RIVSTEP * 2;
+      y += dy * RIVSTEP * 2;
+      pts.push([x, y]);
+      const e = tsamp(x, y, 60).E;
+      if (e > .004) {
+        wet = false;
+        minE = e;
+        stall = 0;
+      }
+      continue;
+    }
+    it++;
     let best = 1e9, bx = 0, by = 0;
     for (let k = 0; k < 16; k++) {
       const a = k / 16 * PI2,
@@ -87,7 +107,7 @@ function traceRiver(x0, y0) {
     dy /= l;
     const nx = x + dx * RIVSTEP, ny = y + dy * RIVSTEP, p = tsamp(nx, ny, 60);
     if (p.E <= .004) {
-      /* гирло: закінчуємо точно на березі */
+      /* вода: знаходимо берег точно */
       let lo = 0, hi = 1;
       for (let k = 0; k < 6; k++) {
         const m = (lo + hi) / 2;
@@ -96,8 +116,16 @@ function traceRiver(x0, y0) {
           : lo = m;
       }
       pts.push([x + dx * RIVSTEP * lo, y + dy * RIVSTEP * lo]);
-      mouth = true;
-      break;
+      if (seaBody(nx, ny)) {
+        mouth = true;
+        break;
+      }
+      if (++lakes > 2) return null;
+      wet = true;
+      ls = 0;
+      x += dx * RIVSTEP * hi;
+      y += dy * RIVSTEP * hi;
+      continue;
     }
     x = nx;
     y = ny;
@@ -200,10 +228,13 @@ function riverBranch(ctrl, depth, out) {
     x2 = Math.max(x2, p[0]);
     y2 = Math.max(y2, p[1]);
   });
-  const pd = wm / 2 + 40,
+  /* dry[d] — точка на суші; відрізки у воді (озера) не малюємо й не враховуємо як русло */
+  const dry = dense.map((p) => tsamp(p[0], p[1], 60).E > .004),
+    pd = wm / 2 + 40,
     r = {
       pts: dense,
       w,
+      dry,
       fin: f[n - 1],
       bb: [x1 - pd, y1 - pd, x2 + pd, y2 + pd],
     };
@@ -218,13 +249,18 @@ function riverFrom(i, j) {
       y = (j + H2(i, j, s + 92 + k * 3)) * RIVC;
     if (Math.hypot(x, y) < 1500) continue;
     const p = tsamp(x, y, 60);
-    if (p.E > .12 && p.E < .75 && !p.lake) {
-      const c = traceRiver(x, y);
-      if (c) {
-        const out = [];
-        riverBranch(c, 0, out);
-        return out;
-      }
+    let c = null;
+    if (p.E > .12 && p.E < .75 && !p.lake) c = traceRiver(x, y);
+    else if (p.lake && H2(i, j, s + 99) < .6) {
+      c = traceRiver(x, y, 1, H2(i, j, s + 100 + k) * PI2);
+    }
+    if (c) {
+      const out = [];
+      riverBranch(c, 0, out);
+      const m = out[out.length - 1];
+      m.main = true;
+      m.mouth = c[c.length - 1];
+      return out;
     }
   }
   return null;
@@ -254,6 +290,7 @@ function riverBank(x, y) {
     if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
     const P = r.pts, W = r.w;
     for (let i = 0; i < P.length - 1; i++) {
+      if (!r.dry[i] && !r.dry[i + 1]) continue;
       const a = P[i],
         c = P[i + 1],
         dx = c[0] - a[0],
@@ -286,6 +323,7 @@ function riverRaster(X0, Y0, TW, Q, QB, R) {
     if (b[2] < X0 || b[0] > X1 || b[3] < Y0 || b[1] > Y1) continue;
     const P = r.pts, W = r.w;
     for (let s = 0; s < P.length - 1; s++) {
+      if (!r.dry[s] && !r.dry[s + 1]) continue;
       const a = P[s],
         c = P[s + 1],
         dx = c[0] - a[0],
@@ -313,4 +351,28 @@ function riverRaster(X0, Y0, TW, Q, QB, R) {
       }
     }
   }
+}
+/* Річковий порт: поселення біля широкої (від 24 м) головної річки виходить до моря її руслом.
+   Повертає гирло й русло від поселення до нього, або null */
+function riverPort(v) {
+  ensureRivers(v.x, v.y);
+  const lim = v.rad * 1.2;
+  let best = null, bd = 1e9;
+  for (const r of WLD.rl) {
+    const b = r.bb;
+    if (!r.main || v.x < b[0] - lim || v.x > b[2] + lim || v.y < b[1] - lim || v.y > b[3] + lim) continue;
+    for (let i = 0; i < r.pts.length; i++) {
+      if (!r.dry[i] || r.w[i] < 24) continue;
+      const d = Math.hypot(v.x - r.pts[i][0], v.y - r.pts[i][1]) - r.w[i] / 2;
+      if (d < lim && d < bd) {
+        bd = d;
+        best = { r, i };
+      }
+    }
+  }
+  return best && {
+    x: best.r.mouth[0],
+    y: best.r.mouth[1],
+    path: best.r.pts.slice(best.i),
+  };
 }

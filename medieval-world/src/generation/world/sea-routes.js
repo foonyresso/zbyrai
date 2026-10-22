@@ -16,7 +16,8 @@ function srPort(v) {
       if (p.E <= 0 && !p.lake && seaBody(x, y)) return v.rxp = { x, y, v };
     }
   }
-  return v.rxp = null;
+  const rp = riverPort(v);
+  return v.rxp = rp ? { x: rp.x, y: rp.y, v, river: rp.path } : null;
 }
 /* порти поруч: «відносний сусідський граф» як у наземних доріг — зв'язок є, якщо між двома портами немає третього, ближчого до обох */
 function srEdges(v) {
@@ -124,6 +125,9 @@ function srRoute(a, b) {
   if (pts) {
     const sm = srSmooth(pts);
     pts = srWet(sm) ? sm : srWet(pts) ? pts : null;
+  }
+  if (pts && (a.river || b.river)) {
+    pts = [...(a.river || []), ...pts, ...(b.river ? b.river.slice().reverse() : [])];
   }
   const r = pts ? { pts, bb: null } : null;
   if (r) {

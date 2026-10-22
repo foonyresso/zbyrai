@@ -37,7 +37,7 @@ function bigC(i, j) {
       for (let tr = t0; tr >= 3 && !v; tr--) {
         const rad = RB[tr] * 1.35;
         if (
-          !(riverBank(x, y) < rad) &&
+          riverBank(x, y) >= rad * .3 &&
           [[1, 0], [-1, 0], [0, 1], [0, -1], [.7, .7], [-.7, -.7], [.7, -.7], [
             -.7,
             .7,
@@ -78,7 +78,7 @@ function village(i, j) {
       const p = tsamp(x, y, 4);
       if (
         p.E > .05 && p.E < .4 && p.rv < .2 && p.fo < .7 &&
-        !(riverBank(x, y) < 40)
+        riverBank(x, y) >= 25
       ) {
         const tr = H2(i, j, s + 46),
           tr2 = tr < .45 ? 0 : tr < .85 ? 1 : 2,
@@ -87,7 +87,7 @@ function village(i, j) {
           [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => {
             const q = tsamp(x + a * rad, y + b * rad, 4);
             return q.E > .02 && q.rv < .5;
-          }) && !(riverBank(x, y) < rad * .8)
+          }) && riverBank(x, y) >= rad * .3
         ) {
           v = {
             i,
