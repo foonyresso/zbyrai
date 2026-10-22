@@ -29,7 +29,7 @@
     s(U.slider(pn, { label: 'Тепло', min: -0.3, max: 0.3, step: 0.05, title: 'Холодніший світ із тайгою й тундрою чи спекотніший із пустелями', get: () => P.warm, set: v => P.warm = v, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2), done }));
     s(U.slider(pn, { label: 'Річки', min: 0.3, max: 2.5, step: 0.1, title: 'Скільки річок і озер', get: () => P.riverDensity, set: v => P.riverDensity = v, fmt: v => '×' + v.toFixed(1), done }));
     s(U.slider(pn, { label: 'Фентезійність', min: 0, max: 2, step: 0.1, title: 'Частка зачарованих лісів і спустошених земель', get: () => P.fantasy, set: v => P.fantasy = v, fmt: v => '×' + v.toFixed(1), done }));
-    pn.append(U.el('button', { class: 'big', text: 'Скинути параметри', title: 'Повернути всі параметри до значень за замовчуванням (зерно лишається)', onclick: () => { const seed = P.seed; Object.assign(P, R.Params.defaults(), { seed }); App.buildWorldPanel(); App.regenNow(); } }));
+    pn.append(U.el('button', { class: 'big', text: 'Скинути параметри', title: 'Повернути всі параметри до значень за замовчуванням (зерно й оформлення виміру лишаються)', onclick: () => { const seed = P.seed; Object.assign(P, R.Params.defaults(), { seed, theme: P.theme }); App.buildWorldPanel(); App.regenNow(); } }));
     pn.append(U.el('p', { class: 'hint', text: 'Карта перебудовується сама після зміни параметра. Зерно й параметри потрапляють у посилання та JSON угорі.' }));
     App.syncWorld = () => { seedIn.value = P.seed; sync.forEach(f => f && f()); };
   };

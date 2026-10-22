@@ -1,4 +1,5 @@
-/* ---- меню типів світів «Проекту Атлас»: будується з реєстру (Atlas.worlds), кожен світ у власному файлі worlds/<id>/world.js ---- */
+/* ---- меню вимірів «Проекту Атлас»: будується з реєстру (Atlas.worlds), кожен вимір у власному файлі worlds/<id>/world.js.
+   Вимір — це тип світів: обираючи його в меню, отримуєш випадковий світ цього виміру (нове зерно); збережений світ відновлюється лише при відкритті сторінки ---- */
 (function () {
   const KEY = "atlas_world", $ = (s) => document.querySelector(s);
   const sel = $("#worldKind"), app = $("#app"), box = $("#continent");
@@ -13,20 +14,20 @@
   const byId = (id) => Atlas.worlds.find((w) => w.id === id);
   const isFrame = () => world && world.runner === "iframe";
 
-  function ensureFrame(w, hash) {
+  function ensureFrame(w, hash, fresh) {
     if (frame && frame.dataset.world === w.id) return;
     if (frame) frame.remove();
     frame = document.createElement("iframe");
-    frame.title = "Світ «" + w.name + "»";
+    frame.title = "Вимір «" + w.name + "»";
     frame.dataset.world = w.id;
     frame.setAttribute("allow", "clipboard-write");
     let stored = null;
     try { stored = localStorage.getItem("rm_" + w.id + "_params"); } catch { /* сховище недоступне */ }
-    if (!hash && w.preset && !stored) hash = encodeURIComponent(b64(JSON.stringify({ format: "zbyrai-realm-map", params: w.preset })));
+    if (!hash && (fresh || !stored)) hash = encodeURIComponent(b64(JSON.stringify({ format: "zbyrai-realm-map", params: Object.assign({}, w.preset, { seed: Math.random().toString(36).slice(2, 8).padEnd(6, "0") }) })));
     frame.src = w.entry + "&world=" + w.id + (hash ? "#p=" + hash : "");
     box.append(frame);
   }
-  function setWorld(id, hash) {
+  function setWorld(id, hash, fresh) {
     world = byId(id) || Atlas.worlds.find((w) => w.default) || Atlas.worlds[0];
     sel.value = world.id;
     app.hidden = isFrame();
@@ -40,7 +41,7 @@
       return b;
     }) : [];
     for (const k in base) $("#" + k).title = (isFrame() && src.titles && src.titles[k]) || base[k];
-    if (isFrame()) ensureFrame(world, hash);
+    if (isFrame()) ensureFrame(world, hash, fresh);
     else window.dispatchEvent(new Event("resize"));
     try { localStorage.setItem(KEY, world.id); } catch { /* сховище недоступне */ }
   }
@@ -78,10 +79,10 @@
   Atlas.load().then(() => {
     if (typeof redraw == "function") { bdirty = true; redraw(); } /* монстри з реєстру вже є */
     for (const w of Atlas.worlds) sel.append(new Option(w.name, w.id));
-    sel.title = "Тип світу. " + Atlas.worlds.map((w) => "«" + w.name + "»: " + (w.description || "")).join(" ");
-    sel.onchange = () => { history.replaceState(null, "", location.pathname + location.search); setWorld(sel.value); };
+    sel.title = "Вимір: у кожного виміру безліч світів, при виборі генерується випадковий світ цього виміру. " + Atlas.worlds.map((w) => "«" + w.name + "»: " + (w.description || "")).join(" ");
+    sel.onchange = () => { history.replaceState(null, "", location.pathname + location.search); setWorld(sel.value, "", true); };
     const h = /^#w=([\w-]+)(?:&p=(.*))?$/.exec(location.hash);
     if (h) setWorld(h[1], h[2] || "");
     else setWorld(location.hash.length < 3 ? saved() : null);
-  }).catch((err) => { console.error(err); toast("Не вдалося завантажити світи: " + err.message); });
+  }).catch((err) => { console.error(err); toast("Не вдалося завантажити виміри: " + err.message); });
 })();
