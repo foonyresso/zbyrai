@@ -13,5 +13,5 @@
 
 Зв'язки: `shared/theme.css` → (sync-theme) → `*/theme.css` ← `index.html` інструмента; картки хабу мають `id="t-<папка>"` (якір для повернення); тести логіки: `node <папка>/test/<файл>`, інтерфейсні правила: `node tools/ui-rules.test.js`.
 
-## Бестіарій вимірів (`medieval-world/src/ui/bestiary*.{js,css}`)
-Накладка з довідником вимірів. `bestiary-gen.js` — зерно → унікальний опис світу (без DOM); `bestiary.js` — інтерфейс, читає `Atlas.*` (лор, біоми, монстри, підземелля, раси); `bestiary.css` — стилі. З основним кодом пов'язаний лише кнопкою `#btnBestiary` у шапці `medieval-world/index.html` і трьома тегами підключення.
+## Бестіарій вимірів (`medieval-world/src/ui/bestiary*`)
+Накладка-довідник. `bestiary.js` — оболонка (шапка, вкладки, вибір виміру й зерна, помічники `Bestiary.H`), вкладки реєструються через `Bestiary.tab()` в окремих файлах: `bestiary-tab-world.js` (Огляд + унікальний опис з зерна), `bestiary-tab-biomes.js` (Біоми), `bestiary-tab-monsters.js` (Монстри). `bestiary-gen.js` — зерно → опис світу; `bestiary.css` — стилі. Нова вкладка = новий файл + тег у `index.html`. Черга: Локації, Поселення, Раси, Ресурси, Дороги. З сайтом пов'язаний кнопкою `#btnBestiary`.

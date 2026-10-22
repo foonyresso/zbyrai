@@ -20,3 +20,12 @@
 .bs-card small { opacity: .75; }
 .bs-sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .bs-unique { border: 1px dashed var(--gold-line, #c9a45c); border-radius: 10px; padding: 4px 14px 12px; margin-top: 16px; }
+.bs-tabs, .bs-sub-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px 0; }
+.bs-sub-tabs { padding: 0 0 10px; }
+.bs-tabs button.on, .bs-sub-tabs button.on { border-color: var(--gold-line, #c9a45c); color: var(--gold-hi, inherit); }
+.bs-entry { border: 1px solid var(--line, #2a2a33); border-radius: 8px; margin: 6px 0; padding: 6px 10px; }
+.bs-entry summary { cursor: pointer; }
+.bs-entry-body { padding: 6px 0 4px 4px; }
+.bs-entry-body p { margin: 4px 0; }
+.bs-chip { display: inline-block; font-size: 12px; border: 1px solid var(--line, #2a2a33); border-radius: 10px; padding: 0 7px; margin-left: 4px; opacity: .85; }
+.bs-page h4 { margin: 10px 0 4px; }
