@@ -134,7 +134,7 @@ function settleAngles(v) {
           P[Math.max(0, n - 4)][0] - P[n - 1][0],
         );
     };
-  for (const u of vedges(v)) {
+  for (const u of redges(v)) {
     const a = v.id < u.id ? v : u, b = a === v ? u : v, g = vroad(a, b, true);
     if (g) add(dir(g, a === v));
   }

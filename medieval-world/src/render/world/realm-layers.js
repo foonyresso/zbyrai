@@ -14,7 +14,7 @@ function rxShown(o) {
   return rlKindShown(o.mk);
 }
 function drawSeaRoutes() {
-  if (!RLAY.sr || S < .025) return;
+  if (!RLAY.sr || S < .045) return;
   const x0 = -ox / S, y0 = -oy / S, x1 = (W - ox) / S, y1 = (H - oy) / S, m = SR_R + 1500,
     vs = vlist(x0 - m, y0 - m, x1 + m, y1 + m), seen = new Set();
   ctx.save();

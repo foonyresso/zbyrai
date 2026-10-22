@@ -275,7 +275,7 @@ function strokeRoad(g, w, col, bw, bcol, dash, cw, ccol) {
     }
   }
 }
-/* чотири типи доріг за рангом кінців: велика (між центрами регіонів), середня (до великих сіл), мала (до сіл), стежка (до хуторів) */
+/* чотири типи доріг за рангом нижчого кінця: велика (між містами й столицями), середня (до містечок), мала (до сіл і великих сіл), стежка (до хуторів) */
 const ROAD_STYLE = {
   major: [3, "#e2c27f", 7.4, "#8a6a45", 5, "#2e2113"],
   medium: [2, "#d1a967", 5.8, "#8a6a45", 3.6, "#2e2113"],
@@ -284,7 +284,7 @@ const ROAD_STYLE = {
 };
 function roadClass(v, u) {
   const m = Math.min(v.tier, u.tier);
-  return m >= 3 ? "major" : m == 2 ? "medium" : m == 1 ? "minor" : "trail";
+  return m >= 4 ? "major" : m == 3 ? "medium" : m >= 1 ? "minor" : "trail";
 }
 function drawRoads() {
   if (!WRD || S < .04) return;
@@ -298,7 +298,7 @@ function drawRoads() {
     vis = (g) =>
       g && g.bb[2] > x0 && g.bb[0] < x1 && g.bb[3] > y0 && g.bb[1] < y1;
   for (const v of vs) {
-    for (const u of vedges(v)) {
+    for (const u of redges(v)) {
       if (v.id >= u.id) continue;
       const cls = roadClass(v, u);
       if (!WRT[cls]) continue;

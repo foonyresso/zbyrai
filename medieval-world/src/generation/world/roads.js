@@ -100,7 +100,7 @@ function astar(a, b) {
   g.set(k0, 0);
   push(0, i0, j0);
   let it = 0, found = false;
-  while (hp.length && it++ < 7000) {
+  while (hp.length && it++ < Math.max(7000, D / CS * 90)) {
     const [, i, j] = pop(), ki = KY(i, j);
     if (cs.has(ki)) continue;
     cs.add(ki);
@@ -254,4 +254,29 @@ function wgates() {
   });
   WLD.gl = o;
   return o;
+}
+/* Магістралі: міста (великі й містечка) з'єднані між собою навіть там, де між ними є села.
+   «Відносний сусідський граф» серед міст у межах TRUNK_R (міста між собою) або TRUNK_T (якщо одне з них містечко); кеш у v.te.
+   Клас дороги: обидва кінці місто й більше — велика, містечко — середня */
+const TRUNK_R = 15000, TRUNK_T = 9000;
+function trunkEdges(v) {
+  if (v.te) return v.te;
+  if (v.tier < 3) return v.te = [];
+  const c = [];
+  for (let a = Math.floor((v.x - TRUNK_R) / BC); a <= Math.floor((v.x + TRUNK_R) / BC); a++) {
+    for (let b = Math.floor((v.y - TRUNK_R) / BC); b <= Math.floor((v.y + TRUNK_R) / BC); b++) {
+      const w = bigC(a, b);
+      if (w && w.tier >= 3 && Math.hypot(w.x - v.x, w.y - v.y) < TRUNK_R) c.push(w);
+    }
+  }
+  const d2 = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+  return v.te = c.filter((u) => u !== v && d2(u, v) < (Math.min(u.tier, v.tier) >= 4 ? TRUNK_R : TRUNK_T) &&
+    !c.some((w) => w !== u && w !== v && (Math.min(u.tier, v.tier) < 4 || w.tier >= 4) && d2(w, v) < d2(u, v) && d2(w, u) < d2(u, v)));
+}
+/* усі дорожні зв'язки поселення: сусідні села плюс магістралі між містами */
+function redges(v) {
+  if (v.re) return v.re;
+  const o = vedges(v).slice();
+  for (const u of trunkEdges(v)) if (!o.includes(u)) o.push(u);
+  return v.re = o;
 }
