@@ -9,6 +9,8 @@ function srCache() {
 function srPort(v) {
   if (v.rxp !== undefined) return v.rxp;
   if (v.tier < 2 || rxState(v) != "normal") return v.rxp = null;
+  /* порт — лише місто, що справді впирається у воду (генератор поставив його на берег); решта поселень порту не мають */
+  if (v.home ? !SE : !v.water) return v.rxp = null;
   for (const k of [1, 1.3, 1.7, 2.2, 3]) {
     for (let a = 0; a < 16; a++) {
       const x = v.x + Math.cos(a / 16 * PI2) * v.rad * k, y = v.y + Math.sin(a / 16 * PI2) * v.rad * k,

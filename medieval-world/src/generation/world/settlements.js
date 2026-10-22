@@ -32,7 +32,7 @@ function bigC(i, j) {
       const x = (i + .15 + H2(i, j, s + 142 + t * 7) * .7) * BC,
         y = (j + .15 + H2(i, j, s + 143 + t * 7) * .7) * BC;
       if (Math.hypot(x, y) < Rm * 1.7 + 700) continue;
-      const wat = H2(i, j, s + 147) < .7 ? findWater(x, y) : null;
+      const wat = findWater(x, y);
       for (let tr = t0; tr >= 3 && !v; tr--) {
         const rad = RB[tr] * 1.35;
         if (wat) {
