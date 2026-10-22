@@ -154,7 +154,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.4,
     "riverDensity": 1.2,
-    "theme": "arkhelor", "cities": "r"
+    "theme": "arkhelor", "cities": "r", "settle": {"max": 0, "dens": 0.15, "names": {"hamlet": "Насінне гніздо"}}
   },
   "description": "Первісний вимір, у якому всі можливі форми життя зберігаються в гігантських насінинах, а ландшафт постійно проростає новими континентами.",
   "biomes": {
@@ -284,7 +284,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "asterfell", "cities": "r"
+    "theme": "asterfell", "cities": "r", "settle": {"max": 2, "dens": 0.25, "names": {"hamlet": "Кратерна стоянка", "village": "Кратерне село"}, "roads": {"trail": "Стежка між кратерами"}}
   },
   "description": "Суворий вимір ударних кратерів, метеоритних уламків і рідкісних небесних матеріалів, який заохочує дослідження відкритої місцевості.",
   "biomes": {
@@ -439,7 +439,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.55,
     "riverDensity": 0.8,
-    "theme": "astrakor", "cities": "r"
+    "theme": "astrakor", "cities": "r", "settle": {"max": 2, "dens": 0.35}
   },
   "description": "Континент на коренях космічного дерева, що дрейфує в зоряній порожнечі.",
   "biomes": {
@@ -990,7 +990,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "drumbor", "cities": "n"
+    "theme": "drumbor", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Планета, де матерія поводиться як вода: гори повільно перетікають, долини наповнюються кам'яними хвилями.",
   "biomes": {
@@ -1252,7 +1252,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "eshkariya", "cities": "r"
+    "theme": "eshkariya", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір, де блискавки залишаються в землі у вигляді твердих кристалічних гілок, утворюючи цілі електричні ліси та мінеральні бурі.",
   "biomes": {
@@ -1422,7 +1422,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "eydoliya", "cities": "n"
+    "theme": "eydoliya", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Вимір, у якому жодна істота чи споруда ніколи не досягає остаточної форми: гори перебудовуються, дерева змінюють геометрію.",
   "biomes": {
@@ -1552,7 +1552,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "ferroks", "cities": "r"
+    "theme": "ferroks", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір, у якому магнітні полюси формують географію: гори злітають у небо, залізні острови дрейфують, а металеві піски створюють живі бурі.",
   "biomes": {
@@ -1686,7 +1686,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.2,
-    "theme": "fossar", "cities": "r"
+    "theme": "fossar", "cities": "r", "settle": {"max": 2, "dens": 0.3, "names": {"hamlet": "Табір на дні моря", "village": "Сіль-село"}}
   },
   "description": "Сухий світ, який колись був океаном, а тепер складається з гігантських скам'янілих рифів, мушляних скель і залишків доісторичних морських істот.",
   "biomes": {
@@ -1841,7 +1841,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "frostheym", "cities": "r"
+    "theme": "frostheym", "cities": "r", "settle": {"max": 3, "dens": 0.4, "names": {"hamlet": "Зимівник", "village": "Льодове село"}, "roads": {"trail": "Льодова стежка"}}
   },
   "description": "Холодний гірський вимір із льодовиками, печерами та замерзлими озерами, придатний для звичайного воксельного дослідження, видобутку руди й боїв.",
   "biomes": {
@@ -1957,7 +1957,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.9,
-    "theme": "grondar", "cities": "r"
+    "theme": "grondar", "cities": "r", "settle": {"max": 2, "dens": 0.5, "names": {"village": "Нірне село"}}
   },
   "description": "Вимір луків і пагорбів, під якими прихована розгалужена система тунелів, залів і міст древньої цивілізації.",
   "biomes": {
@@ -2075,7 +2075,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.3,
     "riverDensity": 0.3,
-    "theme": "heliontar", "cities": "r"
+    "theme": "heliontar", "cities": "r", "settle": {"max": 3, "dens": 0.35, "names": {"hamlet": "Оаза-стоянка", "village": "Караванне село", "town": "Торгове місто пісків"}, "roads": {"trail": "Караванна стежка"}}
   },
   "description": "Вимір, де піски поводяться як рідке золото, а під пустелею ховаються океани світла, що можуть підніматися на поверхню у вигляді сяйливих припливів.",
   "biomes": {
@@ -2205,7 +2205,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "hlybokray", "cities": "r"
+    "theme": "hlybokray", "cities": "r", "settle": {"max": 3, "dens": 0.5, "names": {"hamlet": "Підвісна хатина", "village": "Підвісне село"}, "roads": {"trail": "Місток над безоднею"}}
   },
   "description": "Світ вузьких каньйонів, вертикальних скель і підвісних доріг, де основна пригода полягає у дослідженні висот і пошуку безпечних маршрутів.",
   "biomes": {
@@ -2360,7 +2360,7 @@ Atlas.registerWorld({
     "wet": -0.4,
     "ruggedness": 0.5,
     "riverDensity": 0.3,
-    "theme": "hlynyshche", "cities": "r"
+    "theme": "hlynyshche", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Світ сухих долин, багатошарових глиняних скель і природних форм, які нагадують гігантські виліплені споруди.",
   "biomes": {
@@ -2673,7 +2673,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.5,
-    "theme": "kaldras", "cities": "n"
+    "theme": "kaldras", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Світ, у якому геологія працює як магічний механізм: гори обертаються, річки рухаються зубчастими руслами, а дерева розкриваються за принципом замків.",
   "biomes": {
@@ -2918,7 +2918,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "kamyanorod", "cities": "n"
+    "theme": "kamyanorod", "cities": "n", "settle": {"max": 2, "dens": 0.5}
   },
   "description": "Гірський вимір, де мінеральні поклади іноді формують істот із каменю, а покинуті статуї здатні оживати під час певних природних явищ.",
   "biomes": {
@@ -3034,7 +3034,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "kernalis", "cities": "n"
+    "theme": "kernalis", "cities": "n", "settle": {"max": 3, "dens": 0.6}
   },
   "description": "Вимір, де зовнішність і властивості місцевості залежать від того, як її сприймають мешканці: страх перетворює ліс на лабіринт.",
   "biomes": {
@@ -3165,7 +3165,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.55,
     "riverDensity": 0.3,
-    "theme": "krovostep", "cities": "r"
+    "theme": "krovostep", "cities": "r", "settle": {"max": 2, "dens": 0.2, "ruin": 0.5, "names": {"hamlet": "Ватага", "village": "Орда-стійбище"}, "roads": {"trail": "Слід орди"}}
   },
   "description": "Світ червоного голоду: сухі рівнини, кістяні фортеці й війни за колодязі.",
   "biomes": {
@@ -3309,7 +3309,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 0.6,
-    "theme": "litarkh", "cities": "r"
+    "theme": "litarkh", "cities": "r", "settle": {"max": 0, "dens": 0.15, "names": {"hamlet": "Табір на спині землі"}}
   },
   "description": "Світ, де всі великі ділянки суші живі й мігрують, немов стада тварин, а географія змінюється залежно від сезонів та міграцій.",
   "biomes": {
@@ -3439,7 +3439,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.9,
     "riverDensity": 0.2,
-    "theme": "luskariya", "cities": "r"
+    "theme": "luskariya", "cities": "r", "settle": {"max": 2, "dens": 0.35}
   },
   "description": "Скелястий світ, де гори вкриті великими пластинами породи, що нагадують луску стародавнього земного змія.",
   "biomes": {
@@ -3562,7 +3562,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 1,
-    "theme": "lyumenvild", "cities": "r"
+    "theme": "lyumenvild", "cities": "r", "settle": {"max": 2, "dens": 0.5, "names": {"village": "Світляне село"}}
   },
   "description": "Густий лісовий вимір, де біолюмінесцентні рослини утворюють природні маршрути, а темрява приховує більшість небезпечних істот.",
   "biomes": {
@@ -3716,7 +3716,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.6,
-    "theme": "malvar", "cities": "r"
+    "theme": "malvar", "cities": "r", "settle": {"max": 4, "dens": 0.6, "ruin": 0.7, "names": {"town": "Руїни-місто художників"}}
   },
   "description": "Вимір стародавніх художників, де фортеці, храми та природні ландшафти вкриті кольоровими фресками, а пігменти мають прості магічні властивості.",
   "biomes": {
@@ -3841,7 +3841,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.6,
     "riverDensity": 0.7,
-    "theme": "medokray", "cities": "n"
+    "theme": "medokray", "cities": "n", "settle": {"max": 3, "dens": 0.8}
   },
   "description": "Гірсько-лісовий вимір, у якому гігантські колонії комах будують шестикутні споруди з воску, смоли й природних волокон.",
   "biomes": {
@@ -3965,7 +3965,7 @@ Atlas.registerWorld({
     "warm": -0.1,
     "wet": 0.0,
     "ruggedness": 1.0,
-    "theme": "midnokryl", "cities": "r"
+    "theme": "midnokryl", "cities": "r", "settle": {"max": 2, "dens": 0.4, "names": {"hamlet": "Гніздо", "village": "Гніздовище"}, "roads": {"trail": "Повітряна стежка"}}
   },
   "description": "Королівство гірських птахів: гніздові платформи, мисливці й приручені крилаті звірі.",
   "biomes": {
@@ -4112,7 +4112,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "mirrahon", "cities": "r"
+    "theme": "mirrahon", "cities": "r", "settle": {"max": 3, "dens": 0.4}
   },
   "description": "Світ, у якому кожна поверхня має живе відображення, що існує в паралельному шарі простору й може змінювати реальність.",
   "biomes": {
@@ -4243,7 +4243,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "morgalis", "cities": "0"
+    "theme": "morgalis", "cities": "0", "settle": {"max": 2, "dens": 0.25, "ruin": 0.7, "names": {"hamlet": "Кістяний табір", "village": "Кістяне село"}, "roads": {"trail": "Стежка по кістках"}}
   },
   "description": "Світ, побудований на останках божеств, де скелети стали гірськими хребтами, кров перетворилася на річки, а спогади — на живих мешканців.",
   "biomes": {
@@ -4415,7 +4415,7 @@ Atlas.registerWorld({
     "wet": 0.15,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "neborid", "cities": "r"
+    "theme": "neborid", "cities": "r", "settle": {"max": 2, "dens": 0.3}
   },
   "description": "Світ, де гори ростуть із хмар: плато, мости й гірські монастирі.",
   "biomes": {
@@ -4557,7 +4557,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "neverion", "cities": "r"
+    "theme": "neverion", "cities": "r", "settle": {"max": 0, "dens": 0.1, "names": {"hamlet": "Острівець матерії"}}
   },
   "description": "Вимір, де не існує звичайної землі: матерія складається з нескінченних платформ, мостів і кубічних структур, які виникають лише там.",
   "biomes": {
@@ -4689,7 +4689,7 @@ Atlas.registerWorld({
     "wet": 0.8,
     "ruggedness": 0.1,
     "riverDensity": 1.8,
-    "theme": "nokserra", "cities": "r"
+    "theme": "nokserra", "cities": "r", "settle": {"max": 2, "dens": 0.3, "names": {"hamlet": "Хатина на палях", "village": "Болотяне село"}, "roads": {"trail": "Гать"}}
   },
   "description": "Болотяний вимір, де холодне синє полум'я виникає над природними газами й стародавніми магічними покладами.",
   "biomes": {
@@ -4804,7 +4804,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "noktalis", "cities": "r"
+    "theme": "noktalis", "cities": "r", "settle": {"max": 3, "dens": 0.6, "ruin": 0.99, "names": {"hamlet": "Завмерла садиба", "village": "Завмерле село", "town": "Завмерле місто"}}
   },
   "description": "Світ, де час перетворився на матерію, а цілі долини застигли всередині окремих митей історії.",
   "biomes": {
@@ -5094,7 +5094,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "ormaval", "cities": "r"
+    "theme": "ormaval", "cities": "r", "settle": {"max": 2, "dens": 0.4}
   },
   "description": "Повноцінний вимір, що існує всередині тіла колосальної істоти, чиї органи стали континентами, а кровоносні шляхи — морями.",
   "biomes": {
@@ -5224,7 +5224,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "oskarium", "cities": "r"
+    "theme": "oskarium", "cities": "r", "settle": {"max": 2, "dens": 0.3, "ruin": 0.5}
   },
   "description": "Вимір, у якому моря складаються з мільярдів дрібних кістяних фрагментів, що рухаються як вода й утворюють нові острови та скелети.",
   "biomes": {
@@ -5355,7 +5355,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.4,
-    "theme": "ostanky", "cities": "0"
+    "theme": "ostanky", "cities": "0", "settle": {"max": 0, "dens": 0.15, "ruin": 1, "names": {"hamlet": "Уламкова стоянка"}, "roads": {"trail": "Місток між уламками"}}
   },
   "description": "Світ, складений з уламків інших реальностей: кладовище цивілізацій.",
   "biomes": {
@@ -5510,7 +5510,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "paperon", "cities": "n"
+    "theme": "paperon", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Фантастичний світ тонких шаруватих плато, де ґрунт, скелі й рослинність утворюють виразні кольорові пласти, схожі на складені листи.",
   "biomes": {
@@ -5624,7 +5624,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "rakhmir", "cities": "r"
+    "theme": "rakhmir", "cities": "r", "settle": {"max": 3, "dens": 0.35}
   },
   "description": "Вимір, де бурштинові бурі рухаються по поверхні як живі істоти, переносячи всередині себе фрагменти ландшафту.",
   "biomes": {
@@ -5919,7 +5919,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.5,
-    "theme": "runhar", "cities": "r"
+    "theme": "runhar", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір, у якому звук матеріалізується: спів створює мости, гуркіт утворює скелі, а тиша здатна розчиняти цілі долини.",
   "biomes": {
@@ -6049,7 +6049,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.3,
-    "theme": "runozem", "cities": "r"
+    "theme": "runozem", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Гірський світ, де великі кам'яні плити з рунами впливають на локальні властивості довкілля.",
   "biomes": {
@@ -6164,7 +6164,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "rzhavar", "cities": "n"
+    "theme": "rzhavar", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Вимір, де залізна руда проростає із землі у вигляді металевих рослин, а іржа покриває камені, дерева й старі фортеці.",
   "biomes": {
@@ -6394,7 +6394,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "skarveld", "cities": "0"
+    "theme": "skarveld", "cities": "0", "settle": {"max": 2, "dens": 0.4, "names": {"hamlet": "Печерна стоянка", "village": "Печерне село"}, "roads": {"trail": "Печерний хід"}}
   },
   "description": "Вимір, де небо поховане під шарами землі: над кожною печерною стелею існують колишні небосхили, стародавні хмари та цілі затиснуті небесні цивілізації.",
   "biomes": {
@@ -6525,7 +6525,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "skeltsvit", "cities": "n"
+    "theme": "skeltsvit", "cities": "n", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Гірський вимір, у якому природні мінеральні утворення мають форму гігантських квітів, а скелясті пелюстки утворюють тераси й укриття.",
   "biomes": {
@@ -6647,7 +6647,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.6,
-    "theme": "smolyar", "cities": "r"
+    "theme": "smolyar", "cities": "r", "settle": {"max": 2, "dens": 0.4, "names": {"village": "Смоляна слобода"}}
   },
   "description": "Стародавній ліс, у якому величезні смоляні поклади зберігають рослини, комах і фрагменти цілих цивілізацій.",
   "biomes": {
@@ -6763,7 +6763,7 @@ Atlas.registerWorld({
     "wet": 0.6,
     "ruggedness": 0.3,
     "riverDensity": 1.2,
-    "theme": "solemor", "cities": "r"
+    "theme": "solemor", "cities": "r", "settle": {"max": 3, "dens": 0.4}
   },
   "description": "Вимір, у якому безкрає море висить над світом, а його хвилі утворюють верхній горизонт, з якого іноді падають цілі острови води.",
   "biomes": {
@@ -6941,7 +6941,7 @@ Atlas.registerWorld({
     "wet": 0.7,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "talassyr", "cities": "r"
+    "theme": "talassyr", "cities": "r", "settle": {"max": 2, "dens": 0.4, "names": {"hamlet": "Печерна стоянка", "village": "Печерне село"}, "roads": {"trail": "Печерний хід"}}
   },
   "description": "Вимір, де весь світ складається з гігантської системи печер, заповнених морями, підводними лісами й повітряними озерами.",
   "biomes": {
@@ -7186,7 +7186,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "termalis", "cities": "r"
+    "theme": "termalis", "cities": "r", "settle": {"max": 3, "dens": 0.6}
   },
   "description": "Вимір із виразним чергуванням холодних рівнин і теплих геотермальних зон, де гарячі джерела.",
   "biomes": {
@@ -7303,7 +7303,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.7,
-    "theme": "ternaviya", "cities": "r"
+    "theme": "ternaviya", "cities": "r", "settle": {"max": 3, "dens": 0.5, "ruin": 0.9, "names": {"hamlet": "Заросла садиба"}}
   },
   "description": "Дикий вимір, де агресивні рослини поступово захоплюють покинуті землі, руїни й дороги.",
   "biomes": {
@@ -7543,7 +7543,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.8,
-    "theme": "umbralit", "cities": "r"
+    "theme": "umbralit", "cities": "r", "settle": {"max": 0, "dens": 0.2, "names": {"hamlet": "Сонна оселя"}}
   },
   "description": "Вимір, де сни мають фізичну форму, а уявлені предмети, істоти й пейзажі можуть існувати поруч із матеріальним світом.",
   "biomes": {
@@ -7673,7 +7673,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "valdren", "cities": "r"
+    "theme": "valdren", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Гірський вимір із плато, каньйонами та повітряними течіями, які визначають маршрути мандрівників.",
   "biomes": {
@@ -7788,7 +7788,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "varhess", "cities": "r"
+    "theme": "varhess", "cities": "r", "settle": {"max": 3, "dens": 0.5, "ruin": 0.8, "names": {"hamlet": "Попелище-хутір", "village": "Попелясте село"}, "roads": {"trail": "Слід у попелі"}}
   },
   "description": "Світ, де попіл є головною формою життя й пам'яті, а кожна буря здатна відтворити з пилу давно зниклі міста або чудовиськ.",
   "biomes": {
@@ -7919,7 +7919,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.9,
     "riverDensity": 0.6,
-    "theme": "velarium", "cities": "n"
+    "theme": "velarium", "cities": "n", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір із перевернутою гравітацією, де гірські масиви звисають із небес, а ліси ростуть униз, утворюючи нескінченні кам'яні крони.",
   "biomes": {
@@ -8056,7 +8056,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.2,
     "riverDensity": 0.8,
-    "theme": "veletraviya", "cities": "r"
+    "theme": "veletraviya", "cities": "r", "settle": {"max": 2, "dens": 0.5, "names": {"hamlet": "Кочове стійбище", "village": "Сезонне село"}, "roads": {"trail": "Шлях стада"}}
   },
   "description": "Відкритий світ широких рівнин, де гігантські тварини сезонно переміщуються між пасовищами, водопоями та місцями гніздування.",
   "biomes": {
@@ -8316,7 +8316,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "vespern", "cities": "r"
+    "theme": "vespern", "cities": "r", "settle": {"max": 3, "dens": 0.4}
   },
   "description": "Планета, де сонце навіки застрягло на горизонті, а температура, рослинність і поведінка істот змінюються залежно від відстані до останнього променя.",
   "biomes": {
@@ -8447,7 +8447,7 @@ Atlas.registerWorld({
     "wet": -0.6,
     "ruggedness": 0.4,
     "riverDensity": 0.1,
-    "theme": "vitroparus", "cities": "0"
+    "theme": "vitroparus", "cities": "0", "settle": {"max": 2, "dens": 0.3, "names": {"hamlet": "Стоянка біля вітрила"}}
   },
   "description": "Пустельний світ, у якому величезні вітрила стародавніх наземних кораблів стирчать із пісків, а торгові каравани пересуваються широкими дюнами.",
   "biomes": {
@@ -8571,7 +8571,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.5,
-    "theme": "vuhlerod", "cities": "r"
+    "theme": "vuhlerod", "cities": "r", "settle": {"max": 3, "dens": 0.6}
   },
   "description": "Суворий лісовий вимір із темними хвойними лісами, вугільними пагорбами й покинутими поселеннями, де основний ресурс — деревне вугілля та смола.",
   "biomes": {

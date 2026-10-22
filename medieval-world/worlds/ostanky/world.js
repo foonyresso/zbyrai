@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.4,
-    "theme": "ostanky", "cities": "0"
+    "theme": "ostanky", "cities": "0", "settle": {"max": 0, "dens": 0.15, "ruin": 1, "names": {"hamlet": "Уламкова стоянка"}, "roads": {"trail": "Місток між уламками"}}
   },
   "description": "Світ, складений з уламків інших реальностей: кладовище цивілізацій.",
   "biomes": {

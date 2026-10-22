@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "asterfell", "cities": "r"
+    "theme": "asterfell", "cities": "r", "settle": {"max": 2, "dens": 0.25, "names": {"hamlet": "Кратерна стоянка", "village": "Кратерне село"}, "roads": {"trail": "Стежка між кратерами"}}
   },
   "description": "Суворий вимір ударних кратерів, метеоритних уламків і рідкісних небесних матеріалів, який заохочує дослідження відкритої місцевості.",
   "biomes": {

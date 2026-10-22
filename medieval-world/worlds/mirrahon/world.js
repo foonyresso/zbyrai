@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "mirrahon", "cities": "r"
+    "theme": "mirrahon", "cities": "r", "settle": {"max": 3, "dens": 0.4}
   },
   "description": "Світ, у якому кожна поверхня має живе відображення, що існує в паралельному шарі простору й може змінювати реальність.",
   "biomes": {

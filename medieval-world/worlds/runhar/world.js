@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.5,
-    "theme": "runhar", "cities": "r"
+    "theme": "runhar", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір, у якому звук матеріалізується: спів створює мости, гуркіт утворює скелі, а тиша здатна розчиняти цілі долини.",
   "biomes": {

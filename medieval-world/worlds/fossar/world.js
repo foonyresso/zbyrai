@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.2,
-    "theme": "fossar", "cities": "r"
+    "theme": "fossar", "cities": "r", "settle": {"max": 2, "dens": 0.3, "names": {"hamlet": "Табір на дні моря", "village": "Сіль-село"}}
   },
   "description": "Сухий світ, який колись був океаном, а тепер складається з гігантських скам'янілих рифів, мушляних скель і залишків доісторичних морських істот.",
   "biomes": {

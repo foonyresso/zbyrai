@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "kamyanorod", "cities": "n"
+    "theme": "kamyanorod", "cities": "n", "settle": {"max": 2, "dens": 0.5}
   },
   "description": "Гірський вимір, де мінеральні поклади іноді формують істот із каменю, а покинуті статуї здатні оживати під час певних природних явищ.",
   "biomes": {

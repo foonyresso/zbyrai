@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.3,
     "riverDensity": 0.3,
-    "theme": "heliontar", "cities": "r"
+    "theme": "heliontar", "cities": "r", "settle": {"max": 3, "dens": 0.35, "names": {"hamlet": "Оаза-стоянка", "village": "Караванне село", "town": "Торгове місто пісків"}, "roads": {"trail": "Караванна стежка"}}
   },
   "description": "Вимір, де піски поводяться як рідке золото, а під пустелею ховаються океани світла, що можуть підніматися на поверхню у вигляді сяйливих припливів.",
   "biomes": {

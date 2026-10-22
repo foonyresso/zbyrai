@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 1,
-    "theme": "lyumenvild", "cities": "r"
+    "theme": "lyumenvild", "cities": "r", "settle": {"max": 2, "dens": 0.5, "names": {"village": "Світляне село"}}
   },
   "description": "Густий лісовий вимір, де біолюмінесцентні рослини утворюють природні маршрути, а темрява приховує більшість небезпечних істот.",
   "biomes": {

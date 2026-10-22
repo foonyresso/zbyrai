@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.5,
-    "theme": "vuhlerod", "cities": "r"
+    "theme": "vuhlerod", "cities": "r", "settle": {"max": 3, "dens": 0.6}
   },
   "description": "Суворий лісовий вимір із темними хвойними лісами, вугільними пагорбами й покинутими поселеннями, де основний ресурс — деревне вугілля та смола.",
   "biomes": {

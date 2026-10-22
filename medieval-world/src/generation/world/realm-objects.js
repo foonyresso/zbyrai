@@ -139,8 +139,11 @@ const RX_STATES = [
 ];
 const RX_STATE_NAMES = { fallen: "занепале", ruined: "зруйноване", abandoned: "покинуте", occupied: "захоплене монстрами" };
 function rxState(v) {
-  if (v.tier >= 3) return "normal";
+  if (v.home || (v.tier >= 3 && !SETL.ruin)) return "normal";
   if (v.rxs !== undefined) return v.rxs;
+  /* вимір-руїна: частка поселень будь-якого рангу зруйнована або покинута */
+  if (SETL.ruin && H2(v.i, v.j, WLD.s + 937) < SETL.ruin) return v.rxs = H2(v.i, v.j, WLD.s + 938) < .6 ? "ruined" : "abandoned";
+  if (v.tier >= 3) return v.rxs = "normal";
   const u = H2(v.i, v.j, WLD.s + 931), r = RX_STATES[v.tier];
   let a = 0, st = "normal";
   ["fallen", "ruined", "abandoned", "occupied"].some((k, n) => (a += r[n]) > u && (st = k));

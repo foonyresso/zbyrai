@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "rzhavar", "cities": "n"
+    "theme": "rzhavar", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Вимір, де залізна руда проростає із землі у вигляді металевих рослин, а іржа покриває камені, дерева й старі фортеці.",
   "biomes": {

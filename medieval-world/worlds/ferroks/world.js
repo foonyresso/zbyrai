@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "ferroks", "cities": "r"
+    "theme": "ferroks", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір, у якому магнітні полюси формують географію: гори злітають у небо, залізні острови дрейфують, а металеві піски створюють живі бурі.",
   "biomes": {

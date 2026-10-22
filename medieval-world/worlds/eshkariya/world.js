@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "eshkariya", "cities": "r"
+    "theme": "eshkariya", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір, де блискавки залишаються в землі у вигляді твердих кристалічних гілок, утворюючи цілі електричні ліси та мінеральні бурі.",
   "biomes": {

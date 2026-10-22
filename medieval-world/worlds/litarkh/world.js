@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 0.6,
-    "theme": "litarkh", "cities": "r"
+    "theme": "litarkh", "cities": "r", "settle": {"max": 0, "dens": 0.15, "names": {"hamlet": "Табір на спині землі"}}
   },
   "description": "Світ, де всі великі ділянки суші живі й мігрують, немов стада тварин, а географія змінюється залежно від сезонів та міграцій.",
   "biomes": {

@@ -75,3 +75,6 @@ Atlas.registerWorld({
 | Материк | `worlds/continent/world.js` | скінченна карта королівств; код у цій же папці |
 | Архіпелаг, Один острів, Суходіл із морями | `worlds/{archipelago,island,pangea}/world.js` | зразки: той самий рушій з іншими параметрами |
 | Астракор (131), Останки (132), Кровостеп (133), Вершинниця (134), Неборід (135), Міднокрил (116) | `worlds/{astrakor,ostanky,krovostep,vershynnytsia,neborid,midnokryl}/world.js` | формат 2: повний опис у `lore`, власні біоми, монстри, боси й підземелля; вигляд — власні теми на рушії «Материк» |
+
+## Лор поселень (`preset.settle`)
+`settle: {max, dens, ruin, names?, roads?}` у `preset` виміру: `max` найвищий ранг (6 усі, 3 без столиць, 2 лише малі, 0 хутори, −1 нічого), `dens` густота ×, `ruin` частка зруйнованих (0–1), `names`/`roads` власні назви рангів (hamlet, village, town, regional, capital) і класів доріг (trail, minor, medium, major). Код: `src/generation/world/settle-lore.js`; показ: Бестіарій, вкладки «Поселення» і «Дороги».

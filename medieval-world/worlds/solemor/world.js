@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.6,
     "ruggedness": 0.3,
     "riverDensity": 1.2,
-    "theme": "solemor", "cities": "r"
+    "theme": "solemor", "cities": "r", "settle": {"max": 3, "dens": 0.4}
   },
   "description": "Вимір, у якому безкрає море висить над світом, а його хвилі утворюють верхній горизонт, з якого іноді падають цілі острови води.",
   "biomes": {

@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "frostheym", "cities": "r"
+    "theme": "frostheym", "cities": "r", "settle": {"max": 3, "dens": 0.4, "names": {"hamlet": "Зимівник", "village": "Льодове село"}, "roads": {"trail": "Льодова стежка"}}
   },
   "description": "Холодний гірський вимір із льодовиками, печерами та замерзлими озерами, придатний для звичайного воксельного дослідження, видобутку руди й боїв.",
   "biomes": {

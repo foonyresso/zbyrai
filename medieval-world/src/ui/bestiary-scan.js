@@ -18,7 +18,7 @@
     try { dgnEach(-R, -R, R, R, (o) => out.dungeons.push(o)); } catch { /* підземелля недоступні */ }
     try {
       for (const v of vlist(-R, -R, R, R)) {
-        const st = typeof rxState === "function" && v.tier < 3 ? rxState(v) : "normal";
+        const st = typeof rxState === "function" ? rxState(v) : "normal";
         out.places.push({ name: v.name, tier: v.tier, state: st || "normal", x: v.x, y: v.y });
         if (typeof raceMix === "function") for (const m of raceMix(v)) { const o = out.mix[m.r.id] = out.mix[m.r.id] || { race: m.r, places: 0, share: 0 }; o.places++; o.share += m.share; }
       }

@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.9,
     "riverDensity": 0.6,
-    "theme": "velarium", "cities": "n"
+    "theme": "velarium", "cities": "n", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Вимір із перевернутою гравітацією, де гірські масиви звисають із небес, а ліси ростуть униз, утворюючи нескінченні кам'яні крони.",
   "biomes": {

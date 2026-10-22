@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.55,
     "riverDensity": 0.8,
-    "theme": "astrakor", "cities": "r"
+    "theme": "astrakor", "cities": "r", "settle": {"max": 2, "dens": 0.35}
   },
   "description": "Континент на коренях космічного дерева, що дрейфує в зоряній порожнечі.",
   "biomes": {

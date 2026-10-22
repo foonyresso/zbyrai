@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.3,
-    "theme": "runozem", "cities": "r"
+    "theme": "runozem", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Гірський світ, де великі кам'яні плити з рунами впливають на локальні властивості довкілля.",
   "biomes": {

@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "termalis", "cities": "r"
+    "theme": "termalis", "cities": "r", "settle": {"max": 3, "dens": 0.6}
   },
   "description": "Вимір із виразним чергуванням холодних рівнин і теплих геотермальних зон, де гарячі джерела.",
   "biomes": {

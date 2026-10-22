@@ -264,7 +264,7 @@ function drawSettle(v) {
       path(p);
       ctx.fill();
     }
-    const sst = v.tier < 3 ? rxState(v) : "normal";
+    const sst = rxState(v);
     for (const b of L) {
       if (b.o) {
         if (WFO.has(b.t) && sst == "normal") drawB(b);

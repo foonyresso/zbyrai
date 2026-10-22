@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "neverion", "cities": "r"
+    "theme": "neverion", "cities": "r", "settle": {"max": 0, "dens": 0.1, "names": {"hamlet": "Острівець матерії"}}
   },
   "description": "Вимір, де не існує звичайної землі: матерія складається з нескінченних платформ, мостів і кубічних структур, які виникають лише там.",
   "biomes": {

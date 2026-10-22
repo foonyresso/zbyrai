@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "oskarium", "cities": "r"
+    "theme": "oskarium", "cities": "r", "settle": {"max": 2, "dens": 0.3, "ruin": 0.5}
   },
   "description": "Вимір, у якому моря складаються з мільярдів дрібних кістяних фрагментів, що рухаються як вода й утворюють нові острови та скелети.",
   "biomes": {

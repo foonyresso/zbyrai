@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "eydoliya", "cities": "n"
+    "theme": "eydoliya", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Вимір, у якому жодна істота чи споруда ніколи не досягає остаточної форми: гори перебудовуються, дерева змінюють геометрію.",
   "biomes": {

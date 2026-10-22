@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "noktalis", "cities": "r"
+    "theme": "noktalis", "cities": "r", "settle": {"max": 3, "dens": 0.6, "ruin": 0.99, "names": {"hamlet": "Завмерла садиба", "village": "Завмерле село", "town": "Завмерле місто"}}
   },
   "description": "Світ, де час перетворився на матерію, а цілі долини застигли всередині окремих митей історії.",
   "biomes": {

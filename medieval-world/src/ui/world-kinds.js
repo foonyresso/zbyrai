@@ -36,6 +36,7 @@
     if (!w.preset && fresh) { $("#wtype").value = "cont"; $("#wcities").value = "n"; }
     if (p.worldType && $("#wtype")) $("#wtype").value = WT[p.worldType] || "cont";
     if (p.cities && $("#wcities")) $("#wcities").value = p.cities; /* частота міст виміру: n, r або 0 */
+    if (typeof setSettleLore == "function") setSettleLore(p.settle); /* лор поселень: ранги, густота, руїни */
     if ($("#wtype")) $("#wtype").dispatchEvent(new Event("change"));
   }
   function setWorld(id, hash, fresh) {

@@ -25,9 +25,9 @@ function bigC(i, j) {
   if (m.has(key)) return m.get(key);
   let v = null;
   const s = WLD.s;
-  if (H2(i, j, s + 141) < (CITY_P[$("#wcities").value] ?? .62)) {
+  if (SETL.max >= 3 && H2(i, j, s + 141) < (CITY_P[$("#wcities").value] ?? .62) * SETL.dens) {
     const u = H2(i, j, s + 146),
-      t0 = u < .45 ? 3 : u < .75 ? 4 : u < .92 ? 5 : 6;
+      t0 = Math.min(SETL.max, u < .45 ? 3 : u < .75 ? 4 : u < .92 ? 5 : 6);
     for (let t = 0; t < 3 && !v; t++) {
       const x = (i + .15 + H2(i, j, s + 142 + t * 7) * .7) * BC,
         y = (j + .15 + H2(i, j, s + 143 + t * 7) * .7) * BC;
@@ -85,7 +85,7 @@ function village(i, j) {
   if (m.has(key)) return m.get(key);
   let v = null;
   const s = WLD.s;
-  if (H2(i, j, s + 41) < .62) {
+  if (SETL.max >= 0 && H2(i, j, s + 41) < .62 * SETL.dens) {
     const x = (i + .15 + H2(i, j, s + 42) * .7) * VC,
       y = (j + .15 + H2(i, j, s + 43) * .7) * VC;
     if (Math.hypot(x, y) > Rm * 1.7 + 300 && !nearBig(x, y, 70)) {
@@ -95,7 +95,7 @@ function village(i, j) {
         riverBank(x, y) >= 25
       ) {
         const tr = H2(i, j, s + 46),
-          tr2 = tr < .45 ? 0 : tr < .85 ? 1 : 2,
+          tr2 = Math.min(SETL.max, tr < .45 ? 0 : tr < .85 ? 1 : 2),
           rad = RB[tr2] * 1.3;
         if (
           [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => {

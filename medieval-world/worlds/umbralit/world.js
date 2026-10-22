@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.8,
-    "theme": "umbralit", "cities": "r"
+    "theme": "umbralit", "cities": "r", "settle": {"max": 0, "dens": 0.2, "names": {"hamlet": "Сонна оселя"}}
   },
   "description": "Вимір, де сни мають фізичну форму, а уявлені предмети, істоти й пейзажі можуть існувати поруч із матеріальним світом.",
   "biomes": {

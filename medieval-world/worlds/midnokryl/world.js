@@ -12,7 +12,7 @@ Atlas.registerWorld({
     "warm": -0.1,
     "wet": 0.0,
     "ruggedness": 1.0,
-    "theme": "midnokryl", "cities": "r"
+    "theme": "midnokryl", "cities": "r", "settle": {"max": 2, "dens": 0.4, "names": {"hamlet": "Гніздо", "village": "Гніздовище"}, "roads": {"trail": "Повітряна стежка"}}
   },
   "description": "Королівство гірських птахів: гніздові платформи, мисливці й приручені крилаті звірі.",
   "biomes": {

@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "kernalis", "cities": "n"
+    "theme": "kernalis", "cities": "n", "settle": {"max": 3, "dens": 0.6}
   },
   "description": "Вимір, де зовнішність і властивості місцевості залежать від того, як її сприймають мешканці: страх перетворює ліс на лабіринт.",
   "biomes": {

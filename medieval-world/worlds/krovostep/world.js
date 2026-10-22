@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.55,
     "riverDensity": 0.3,
-    "theme": "krovostep", "cities": "r"
+    "theme": "krovostep", "cities": "r", "settle": {"max": 2, "dens": 0.2, "ruin": 0.5, "names": {"hamlet": "Ватага", "village": "Орда-стійбище"}, "roads": {"trail": "Слід орди"}}
   },
   "description": "Світ червоного голоду: сухі рівнини, кістяні фортеці й війни за колодязі.",
   "biomes": {

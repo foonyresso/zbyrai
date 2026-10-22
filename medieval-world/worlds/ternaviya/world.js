@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.7,
-    "theme": "ternaviya", "cities": "r"
+    "theme": "ternaviya", "cities": "r", "settle": {"max": 3, "dens": 0.5, "ruin": 0.9, "names": {"hamlet": "Заросла садиба"}}
   },
   "description": "Дикий вимір, де агресивні рослини поступово захоплюють покинуті землі, руїни й дороги.",
   "biomes": {

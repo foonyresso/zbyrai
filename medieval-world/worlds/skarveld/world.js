@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "skarveld", "cities": "0"
+    "theme": "skarveld", "cities": "0", "settle": {"max": 2, "dens": 0.4, "names": {"hamlet": "Печерна стоянка", "village": "Печерне село"}, "roads": {"trail": "Печерний хід"}}
   },
   "description": "Вимір, де небо поховане під шарами землі: над кожною печерною стелею існують колишні небосхили, стародавні хмари та цілі затиснуті небесні цивілізації.",
   "biomes": {

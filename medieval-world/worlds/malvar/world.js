@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.6,
-    "theme": "malvar", "cities": "r"
+    "theme": "malvar", "cities": "r", "settle": {"max": 4, "dens": 0.6, "ruin": 0.7, "names": {"town": "Руїни-місто художників"}}
   },
   "description": "Вимір стародавніх художників, де фортеці, храми та природні ландшафти вкриті кольоровими фресками, а пігменти мають прості магічні властивості.",
   "biomes": {

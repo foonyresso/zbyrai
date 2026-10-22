@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "rakhmir", "cities": "r"
+    "theme": "rakhmir", "cities": "r", "settle": {"max": 3, "dens": 0.35}
   },
   "description": "Вимір, де бурштинові бурі рухаються по поверхні як живі істоти, переносячи всередині себе фрагменти ландшафту.",
   "biomes": {

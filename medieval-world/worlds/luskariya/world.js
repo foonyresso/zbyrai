@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.9,
     "riverDensity": 0.2,
-    "theme": "luskariya", "cities": "r"
+    "theme": "luskariya", "cities": "r", "settle": {"max": 2, "dens": 0.35}
   },
   "description": "Скелястий світ, де гори вкриті великими пластинами породи, що нагадують луску стародавнього земного змія.",
   "biomes": {

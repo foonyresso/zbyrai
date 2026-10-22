@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "varhess", "cities": "r"
+    "theme": "varhess", "cities": "r", "settle": {"max": 3, "dens": 0.5, "ruin": 0.8, "names": {"hamlet": "Попелище-хутір", "village": "Попелясте село"}, "roads": {"trail": "Слід у попелі"}}
   },
   "description": "Світ, де попіл є головною формою життя й пам'яті, а кожна буря здатна відтворити з пилу давно зниклі міста або чудовиськ.",
   "biomes": {

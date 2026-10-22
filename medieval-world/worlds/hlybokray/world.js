@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "hlybokray", "cities": "r"
+    "theme": "hlybokray", "cities": "r", "settle": {"max": 3, "dens": 0.5, "names": {"hamlet": "Підвісна хатина", "village": "Підвісне село"}, "roads": {"trail": "Місток над безоднею"}}
   },
   "description": "Світ вузьких каньйонів, вертикальних скель і підвісних доріг, де основна пригода полягає у дослідженні висот і пошуку безпечних маршрутів.",
   "biomes": {

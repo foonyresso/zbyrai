@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.4,
     "ruggedness": 0.5,
     "riverDensity": 0.3,
-    "theme": "hlynyshche", "cities": "r"
+    "theme": "hlynyshche", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Світ сухих долин, багатошарових глиняних скель і природних форм, які нагадують гігантські виліплені споруди.",
   "biomes": {

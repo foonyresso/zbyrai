@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.15,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "neborid", "cities": "r"
+    "theme": "neborid", "cities": "r", "settle": {"max": 2, "dens": 0.3}
   },
   "description": "Світ, де гори ростуть із хмар: плато, мости й гірські монастирі.",
   "biomes": {

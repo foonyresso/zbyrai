@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.7,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "talassyr", "cities": "r"
+    "theme": "talassyr", "cities": "r", "settle": {"max": 2, "dens": 0.4, "names": {"hamlet": "Печерна стоянка", "village": "Печерне село"}, "roads": {"trail": "Печерний хід"}}
   },
   "description": "Вимір, де весь світ складається з гігантської системи печер, заповнених морями, підводними лісами й повітряними озерами.",
   "biomes": {

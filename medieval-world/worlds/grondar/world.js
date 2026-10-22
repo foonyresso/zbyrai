@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.9,
-    "theme": "grondar", "cities": "r"
+    "theme": "grondar", "cities": "r", "settle": {"max": 2, "dens": 0.5, "names": {"village": "Нірне село"}}
   },
   "description": "Вимір луків і пагорбів, під якими прихована розгалужена система тунелів, залів і міст древньої цивілізації.",
   "biomes": {

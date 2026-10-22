@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "vespern", "cities": "r"
+    "theme": "vespern", "cities": "r", "settle": {"max": 3, "dens": 0.4}
   },
   "description": "Планета, де сонце навіки застрягло на горизонті, а температура, рослинність і поведінка істот змінюються залежно від відстані до останнього променя.",
   "biomes": {

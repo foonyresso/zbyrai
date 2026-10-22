@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.6,
     "ruggedness": 0.4,
     "riverDensity": 0.1,
-    "theme": "vitroparus", "cities": "0"
+    "theme": "vitroparus", "cities": "0", "settle": {"max": 2, "dens": 0.3, "names": {"hamlet": "Стоянка біля вітрила"}}
   },
   "description": "Пустельний світ, у якому величезні вітрила стародавніх наземних кораблів стирчать із пісків, а торгові каравани пересуваються широкими дюнами.",
   "biomes": {

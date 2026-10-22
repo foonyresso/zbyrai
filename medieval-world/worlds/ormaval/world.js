@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "ormaval", "cities": "r"
+    "theme": "ormaval", "cities": "r", "settle": {"max": 2, "dens": 0.4}
   },
   "description": "Повноцінний вимір, що існує всередині тіла колосальної істоти, чиї органи стали континентами, а кровоносні шляхи — морями.",
   "biomes": {

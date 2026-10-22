@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.5,
-    "theme": "kaldras", "cities": "n"
+    "theme": "kaldras", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Світ, у якому геологія працює як магічний механізм: гори обертаються, річки рухаються зубчастими руслами, а дерева розкриваються за принципом замків.",
   "biomes": {

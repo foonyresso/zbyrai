@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.6,
     "riverDensity": 0.7,
-    "theme": "medokray", "cities": "n"
+    "theme": "medokray", "cities": "n", "settle": {"max": 3, "dens": 0.8}
   },
   "description": "Гірсько-лісовий вимір, у якому гігантські колонії комах будують шестикутні споруди з воску, смоли й природних волокон.",
   "biomes": {

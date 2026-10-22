@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "drumbor", "cities": "n"
+    "theme": "drumbor", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Планета, де матерія поводиться як вода: гори повільно перетікають, долини наповнюються кам'яними хвилями.",
   "biomes": {

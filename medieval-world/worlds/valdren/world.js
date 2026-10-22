@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "valdren", "cities": "r"
+    "theme": "valdren", "cities": "r", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Гірський вимір із плато, каньйонами та повітряними течіями, які визначають маршрути мандрівників.",
   "biomes": {

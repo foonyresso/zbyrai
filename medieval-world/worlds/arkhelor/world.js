@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.4,
     "riverDensity": 1.2,
-    "theme": "arkhelor", "cities": "r"
+    "theme": "arkhelor", "cities": "r", "settle": {"max": 0, "dens": 0.15, "names": {"hamlet": "Насінне гніздо"}}
   },
   "description": "Первісний вимір, у якому всі можливі форми життя зберігаються в гігантських насінинах, а ландшафт постійно проростає новими континентами.",
   "biomes": {

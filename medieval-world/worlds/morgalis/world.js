@@ -14,7 +14,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "morgalis", "cities": "0"
+    "theme": "morgalis", "cities": "0", "settle": {"max": 2, "dens": 0.25, "ruin": 0.7, "names": {"hamlet": "Кістяний табір", "village": "Кістяне село"}, "roads": {"trail": "Стежка по кістках"}}
   },
   "description": "Світ, побудований на останках божеств, де скелети стали гірськими хребтами, кров перетворилася на річки, а спогади — на живих мешканців.",
   "biomes": {

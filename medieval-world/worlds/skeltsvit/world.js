@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "skeltsvit", "cities": "n"
+    "theme": "skeltsvit", "cities": "n", "settle": {"max": 3, "dens": 0.5}
   },
   "description": "Гірський вимір, у якому природні мінеральні утворення мають форму гігантських квітів, а скелясті пелюстки утворюють тераси й укриття.",
   "biomes": {

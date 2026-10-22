@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.6,
-    "theme": "smolyar", "cities": "r"
+    "theme": "smolyar", "cities": "r", "settle": {"max": 2, "dens": 0.4, "names": {"village": "Смоляна слобода"}}
   },
   "description": "Стародавній ліс, у якому величезні смоляні поклади зберігають рослини, комах і фрагменти цілих цивілізацій.",
   "biomes": {

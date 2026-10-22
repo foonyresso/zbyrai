@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.2,
     "riverDensity": 0.8,
-    "theme": "veletraviya", "cities": "r"
+    "theme": "veletraviya", "cities": "r", "settle": {"max": 2, "dens": 0.5, "names": {"hamlet": "Кочове стійбище", "village": "Сезонне село"}, "roads": {"trail": "Шлях стада"}}
   },
   "description": "Відкритий світ широких рівнин, де гігантські тварини сезонно переміщуються між пасовищами, водопоями та місцями гніздування.",
   "biomes": {

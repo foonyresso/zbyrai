@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "paperon", "cities": "n"
+    "theme": "paperon", "cities": "n", "settle": {"max": 3, "dens": 0.7}
   },
   "description": "Фантастичний світ тонких шаруватих плато, де ґрунт, скелі й рослинність утворюють виразні кольорові пласти, схожі на складені листи.",
   "biomes": {

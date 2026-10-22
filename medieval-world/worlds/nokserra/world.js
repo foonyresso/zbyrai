@@ -13,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.8,
     "ruggedness": 0.1,
     "riverDensity": 1.8,
-    "theme": "nokserra", "cities": "r"
+    "theme": "nokserra", "cities": "r", "settle": {"max": 2, "dens": 0.3, "names": {"hamlet": "Хатина на палях", "village": "Болотяне село"}, "roads": {"trail": "Гать"}}
   },
   "description": "Болотяний вимір, де холодне синє полум'я виникає над природними газами й стародавніми магічними покладами.",
   "biomes": {
