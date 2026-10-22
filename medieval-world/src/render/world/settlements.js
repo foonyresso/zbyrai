@@ -40,6 +40,7 @@ function drawVillages() {
       RealmMap.IconsSettlements.drawSettlement(ctx, { rank: hubRank(v), state: "normal" }, x, y, ik);
       if (v.tier >= 3 && isCap(v)) capStar(x, y, ik);
     }
+    if (RLAY.sr && S >= .045 && srPort(v)) portBadge(x + (full ? v.rad * S * .7 : r * .9 + 5), y - (full ? v.rad * S * .7 : r * .9 + 5), full ? 1.3 : Math.max(.9, Math.min(1.4, .6 + S * 6)));
     if ((v.tier >= 3 ? S >= .025 : S >= .15) && S < 2.4) {
       ctx.font = (v.tier >= 3 ? "700 " : "600 ") + (v.tier >= 3
         ? Math.min(18, 10 + v.tier * 1.6 + S * 4)
@@ -63,4 +64,28 @@ function drawVillages() {
     ctx.strokeText(nm, ox, ty);
     ctx.fillText(nm, ox, ty);
   }
+}
+
+/* значок порту: якір у бірюзовому колі біля поселення */
+function portBadge(x, y, k) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(k, k);
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, 0, PI2);
+  ctx.fillStyle = "#1f7f8a";
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "#f3fbff";
+  ctx.stroke();
+  ctx.strokeStyle = "#f3fbff";
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.arc(0, -4.6, 1.5, 0, PI2);
+  ctx.moveTo(0, -3); ctx.lineTo(0, 4.6);
+  ctx.moveTo(-2.6, -1); ctx.lineTo(2.6, -1);
+  ctx.moveTo(-4.4, 1.4); ctx.quadraticCurveTo(-3.6, 5, 0, 4.8); ctx.quadraticCurveTo(3.6, 5, 4.4, 1.4);
+  ctx.stroke();
+  ctx.restore();
 }

@@ -36,11 +36,11 @@ function wInfo0(x, y) {
       const st = mkSettle(v);
       return {
         n: NAMES[v.tier] + " «" + v.name + "»" + (rxState(v) != "normal" ? " — " + RX_STATE_NAMES[rxState(v)] : ""),
-        c: v.tier >= 3 && isCap(v) ? "Столиця провінції" : "Поселення",
+        c: (v.tier >= 3 && isCap(v) ? "Столиця провінції" : "Поселення") + (srPort(v) ? " · Порт" : ""),
         d: (st
           ? "Стиль: " + CITY_STYLES[cityStyleOf(v)].name + " · споруд: " + st.n + " · мешканців ≈ " + st.p +
             ". Дороги ведуть до сусідніх поселень."
-          : "Невелике поселення.") + (RLAY.pp ? raceInfo(v) : ""),
+          : "Невелике поселення.") + (srPort(v) ? " ⚓ Порт: " + (srPort(v).river ? "річковий, виходить до моря руслом" : "на узбережжі") + ", звідси ходять морські шляхи." : "") + (RLAY.pp ? raceInfo(v) : ""),
       };
     }
   }

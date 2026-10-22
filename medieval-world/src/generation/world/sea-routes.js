@@ -64,7 +64,7 @@ function srAstar(a, b) {
   const i0 = Math.floor(a.x / WG), j0 = Math.floor(a.y / WG), i1 = Math.floor(b.x / WG), j1 = Math.floor(b.y / WG),
     key = (i, j) => i + "," + j, open = [[0, i0, j0]], g = new Map([[key(i0, j0), 0]]), from = new Map();
   let n = 0;
-  while (open.length && n++ < 4000) {
+  while (open.length && n++ < 14000) {
     let bi = 0;
     for (let k = 1; k < open.length; k++) if (open[k][0] < open[bi][0]) bi = k;
     const [, i, j] = open.splice(bi, 1)[0];
