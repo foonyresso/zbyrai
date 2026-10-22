@@ -133,7 +133,18 @@ function bTile(ti, tj) {
       ]
         .filter(Boolean);
       if (P.length == 2) put(P[0], P[1]);
-      else if (P.length > 2) {
+      else if (P.length == 1) {
+        /* межа впирається в край територіальних вод: добудовуємо її до лінії дикого океану, інакше лишається розрив */
+        const k = j * N + i, K = [k, k + 1, k + N, k + N + 1], X = [i, i + 1, i, i + 1], Y = [j, j, j + 1, j + 1], p = P[0];
+        let best = null, bd = 1e18;
+        for (const [a, b] of [[0, 1], [1, 3], [2, 3], [0, 2]]) {
+          const za = Zw[K[a]], zb = Zw[K[b]];
+          if ((za > 0) === (zb > 0)) continue;
+          const u = za / (za - zb), x = X0 + (X[a] + (X[b] - X[a]) * u) * BGS, y = Y0 + (Y[a] + (Y[b] - Y[a]) * u) * BGS, d = (x - p.x) ** 2 + (y - p.y) ** 2;
+          if (d < bd) { bd = d; best = { x, y, t: p.t, l: false }; }
+        }
+        if (best) put(p, best);
+      } else if (P.length > 2) {
         const c = {
           x: P.reduce((a, q) => a + q.x, 0) / P.length,
           y: P.reduce((a, q) => a + q.y, 0) / P.length,
