@@ -32,10 +32,33 @@ function bigC(i, j) {
       const x = (i + .15 + H2(i, j, s + 142 + t * 7) * .7) * BC,
         y = (j + .15 + H2(i, j, s + 143 + t * 7) * .7) * BC;
       if (Math.hypot(x, y) < Rm * 1.7 + 700) continue;
-      const p = tsamp(x, y, 4);
-      if (!(p.E > .05 && p.E < .34 && p.rd > .01 && p.fo < .8)) continue;
+      const wat = H2(i, j, s + 147) < .7 ? findWater(x, y) : null;
       for (let tr = t0; tr >= 3 && !v; tr--) {
         const rad = RB[tr] * 1.35;
+        if (wat) {
+          const c = shiftSite(wat, x, y, rad),
+            cx = c[0],
+            cy = c[1],
+            q = tsamp(cx, cy, 4);
+          if (
+            cx > (i + .1) * BC && cx < (i + .9) * BC && cy > (j + .1) * BC && cy < (j + .9) * BC &&
+            Math.hypot(cx, cy) >= Rm * 1.7 + 700 && q.E > .01 && q.E < .34 && q.fo < .8 && q.rd > .01 &&
+            riverBank(cx, cy) >= 3 &&
+            [[1, 0], [-1, 0], [0, 1], [0, -1], [.7, .7], [-.7, -.7], [.7, -.7], [-.7, .7]].every(([a, b]) => {
+              if (wat.water == "sea" && Math.cos(Math.atan2(b, a) - wat.a) > .3) return true;
+              const w = tsamp(cx + a * rad * .8, cy + b * rad * .8, 4);
+              return w.E > .02 && w.E < .5 && w.rd > 0;
+            })
+          ) {
+            v = {
+              i, j, x: cx, y: cy, id: key, tier: tr, rad, bk: q.bk, water: wat.water, wa: wat.a,
+              name: cname(s + "v" + key), st: undefined, ed: null,
+            };
+            continue;
+          }
+        }
+        const p = tsamp(x, y, 4);
+        if (!(p.E > .05 && p.E < .34 && p.rd > .01 && p.fo < .8)) continue;
         if (
           riverBank(x, y) >= rad * .3 &&
           [[1, 0], [-1, 0], [0, 1], [0, -1], [.7, .7], [-.7, -.7], [.7, -.7], [
@@ -47,17 +70,8 @@ function bigC(i, j) {
           })
         ) {
           v = {
-            i,
-            j,
-            x,
-            y,
-            id: key,
-            tier: tr,
-            rad,
-            bk: p.bk,
-            name: cname(s + "v" + key),
-            st: undefined,
-            ed: null,
+            i, j, x, y, id: key, tier: tr, rad, bk: p.bk,
+            name: cname(s + "v" + key), st: undefined, ed: null,
           };
         }
       }
@@ -127,6 +141,8 @@ function vlist(x0, y0, x1, y1) {
       }
     }
   }
+  /* стартове поселення — звичайне місто серед інших (окремого «головного міста» на карті світу немає) */
+  if (x0 <= 0 && x1 >= 0 && y0 <= 0 && y1 >= 0) o.push(hh());
   return o;
 }
 /* Граф доріг між селами: «відносний сусідський граф» — дорога є, якщо між двома селами немає третього, ближчого до обох */

@@ -17,8 +17,16 @@ function drawBase() {
     drawSeaRoutes();
     drawVillages();
     drawRealmObjects();
+    if (WPEND && !moving()) {
+      bdirty = true;
+      requestAnimationFrame(() => {
+        q = 0;
+        redraw();
+      });
+    }
+    return;
   }
-  for (const b of L) if (b.o && !(WON && WSK.has(b.t))) drawB(b);
+  for (const b of L) if (b.o) drawB(b);
   wpath();
   ctx.fillStyle = "#cdbf9e";
   ctx.fill();
@@ -112,6 +120,7 @@ function homeBtn() {
   }
 }
 function goHome() {
+  if (WON && WLD) return flyTo(hh());
   if (HH) {
     $("#cn").textContent = HH[0];
     $("#stat").textContent = HH[1];
@@ -226,7 +235,14 @@ function render() {
     ctx.strokeStyle = free(hov[0], hov[1]) ? "#3cd05a" : "#d03030";
     ctx.lineWidth = 2.5;
     ctx.stroke();
-  } else if (hov && mode !== "wall" && !HV) {
+  } else if (hov && WON && HVW && mode === "info") {
+    path(HVW.b.poly.map((q) => [HVW.x + q[0], HVW.y + q[1]]));
+    ctx.fillStyle = "rgba(255,255,255,.35)";
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  } else if (hov && !WON && mode !== "wall" && !HV) {
     const b = hit(hov[0], hov[1]);
     if (b) {
       path(b.poly);
@@ -296,13 +312,13 @@ cv.onpointermove = (e) => {
   if (mode !== "wall" && !(drag && drag.mv)) {
     HV = null;
     const lh = mode === "info" && layerHover(hov[0], hov[1]),
-      b = hit(hov[0], hov[1]),
-      ins = Math.hypot(hov[0], hov[1]) < Rat(Math.atan2(hov[1], hov[0])),
+      b = WON ? null : hit(hov[0], hov[1]),
+      ins = !WON && Math.hypot(hov[0], hov[1]) < Rat(Math.atan2(hov[1], hov[0])),
       D = b
         ? T[b.t]
-        : (SE && seaD(hov[0], hov[1]) > 0)
+        : (!WON && SE && seaD(hov[0], hov[1]) > 0)
         ? T.sea
-        : (RV && rivD(hov[0], hov[1]) < RV.w / 2)
+        : (!WON && RV && rivD(hov[0], hov[1]) < RV.w / 2)
         ? T.river
         : ins
         ? T.street

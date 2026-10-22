@@ -28,6 +28,7 @@ function pickShore(r, tierN, sel, ro, so) {
 /* Лінія берега: відстань від центру міста до води вздовж напрямку моря на «поперечній» координаті q */
 function shoreAt(q) {
   const S_ = SE;
+  if (S_.f) return S_.f(q);
   const wob = S_.kind == "ocean" ? 9 * Math.sin(q * .025) + 4 * Math.sin(q * .09) : 4 * Math.sin(q * .04);
   const bay = Math.min(S_.bayMax, q * q / (2 * S_.bayR));
   const a = Math.abs(q),

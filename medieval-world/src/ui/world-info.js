@@ -25,7 +25,22 @@ function wInfo(x, y) {
   }
   return o;
 }
+/* будинок під курсором у поселенні, коли видно кожну споруду (масштаб від .5); HVW — підсвітка для drawVillages */
+var HVW = null;
+function settleHit(v, x, y) {
+  const st = S >= .5 && v.tier >= 0 && mkSettle(v);
+  if (!st) return null;
+  const lx = x - v.x, ly = y - v.y;
+  for (let i = st.L.length - 1; i >= 0; i--) {
+    const b = st.L[i];
+    if (b.o || !T[b.t] || Math.hypot(lx - b.cx, ly - b.cy) > b.r || !pip(b.poly, lx, ly)) continue;
+    HVW = { x: v.x, y: v.y, b };
+    return { n: T[b.t].n, c: T[b.t].c + " · " + NAMES[v.tier] + " «" + v.name + "»", d: T[b.t].d };
+  }
+  return null;
+}
 function wInfo0(x, y) {
+  HVW = null;
   if (!WLD) wsetup();
   const p = tsamp(x, y, 4);
   /* зі зменшенням масштабу значок більший за саме поселення: допуск у пікселях екрана */
@@ -33,7 +48,8 @@ function wInfo0(x, y) {
   for (const v of vlist(x - tol, y - tol, x + tol, y + tol)) {
     if (S < .5 && (S < .07 && v.tier < 2 || S < .045 && v.tier == 2)) continue;
     if (Math.hypot(v.x - x, v.y - y) < Math.max(v.rad, S < .5 ? 16 / S : 0)) {
-      const st = mkSettle(v);
+      const st = mkSettle(v), hb = settleHit(v, x, y);
+      if (hb) return hb;
       return {
         n: NAMES[v.tier] + " «" + v.name + "»" + (rxState(v) != "normal" ? " — " + RX_STATE_NAMES[rxState(v)] : ""),
         c: (v.tier >= 3 && isCap(v) ? "Столиця провінції" : "Поселення") + (srPort(v) ? " · Порт" : ""),

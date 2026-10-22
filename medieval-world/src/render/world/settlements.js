@@ -54,16 +54,6 @@ function drawVillages() {
       ctx.fillText(v.name, x, ty);
     }
   }
-  if (S < .6) {
-    ctx.font = "700 " + Math.max(12, Math.min(20, 10 + S * 16)) +
-      "px system-ui";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "rgba(255,252,240,.9)";
-    ctx.fillStyle = "#2a1c0c";
-    const nm = cname($("#seed").value), ty = oy - (Math.max(...R) + 10) * S;
-    ctx.strokeText(nm, ox, ty);
-    ctx.fillText(nm, ox, ty);
-  }
 }
 
 /* значок порту: якір у бірюзовому колі біля поселення */

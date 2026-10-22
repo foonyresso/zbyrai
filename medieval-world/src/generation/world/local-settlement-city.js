@@ -167,6 +167,19 @@ function mkSettle(v) {
         ? Rm * b * (1 + .3 * Math.cos(2 * (a - p1)))
         : Rm * b;
     });
+    if (v.home) {
+      SE = base.SE;
+      RV = base.RV;
+    } else {
+      if (v.water == "sea") SE = coastSE(v);
+      RV = riverRV(v);
+      if (RV && SE) {
+        RV.pts = RV.pts.filter((p) => seaD(p[0], p[1]) <= 0);
+        if (RV.pts.length < 2) RV = null;
+      }
+    }
+    SHORE = SE ? (RV ? "delta" : SE.kind) : RV ? "river" : "none";
+    clampSea();
     polyR();
     mkGates();
     {
@@ -182,6 +195,8 @@ function mkSettle(v) {
     setup();
     build();
     makeL();
+    /* справжній берег звивистіший за SE: споруди, що опинились у воді світу, прибираємо */
+    if (SE && !v.home) L = L.filter((b) => b.o ? tsamp(v.x + b.cx, v.y + b.cy, 4).E > -.004 || WFO.has(b.t) : tsamp(v.x + b.cx, v.y + b.cy, 4).E > 0);
     let n = 0, p = 0;
     for (const b of L) {
       if (!b.o && !["well", "fountain", "garden"].includes(b.t)) {
@@ -209,6 +224,8 @@ function mkSettle(v) {
   }
   return v.st;
 }
+/* позастінні споруди берега, які видно в поселенні: причали, човни, рибальські хатини, млин */
+const WFO = new Set(["pier", "boat", "fishhut", "watermill"]);
 function drawSettle(v) {
   const st = mkSettle(v);
   if (!st) return false;
@@ -223,12 +240,21 @@ function drawSettle(v) {
     wpath();
     ctx.fillStyle = "#cdbf9e";
     ctx.fill();
+    drawRiver();
     ctx.strokeStyle = "#c4b080";
     ctx.lineWidth = Math.max(1, S * 7);
     ctx.lineCap = "butt";
     ctx.lineJoin = "round";
     for (const p of RDS) {
       path0(p);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "#8a6a45";
+    ctx.lineWidth = Math.max(2, 8 * S);
+    for (const q of BR) {
+      ctx.beginPath();
+      ctx.moveTo(ox + q[0][0] * S, oy + q[0][1] * S);
+      ctx.lineTo(ox + q[1][0] * S, oy + q[1][1] * S);
       ctx.stroke();
     }
     ctx.fillStyle = "#d6cdb2";
@@ -239,7 +265,12 @@ function drawSettle(v) {
       ctx.fill();
     }
     const sst = v.tier < 3 ? rxState(v) : "normal";
-    for (const b of L) if (!b.o) { if (sst == "normal") drawB(b); else stDraw(b, sst); }
+    for (const b of L) {
+      if (b.o) {
+        if (WFO.has(b.t) && sst == "normal") drawB(b);
+      } else if (sst == "normal") drawB(b);
+      else stDraw(b, sst);
+    }
     drawWall();
   } finally {
     raceLeave(pp0);

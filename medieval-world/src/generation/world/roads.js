@@ -224,6 +224,7 @@ function vroad(a, b, force) {
 /* Від кожних воріт міста — одна дорога до найвдалішого села (з перевагою за напрямком воріт) */
 function wgates() {
   if (WLD.gl) return WLD.gl;
+  if (WON) return WLD.gl = [];
   const o = [], used = new Set();
   RDS.forEach((rd, k) => {
     const e = rd[rd.length - 1],

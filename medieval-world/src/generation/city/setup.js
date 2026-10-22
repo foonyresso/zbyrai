@@ -111,7 +111,7 @@ function gen(rnd) {
   fit();
 }
 function fit() {
-  S = Math.max(.3, Math.min(20, Math.min(W, H) / ((Math.max(...R) + 60) * 2)));
+  S = Math.max(WON ? .55 : .3, Math.min(20, Math.min(W, H) / ((Math.max(...R) + 60) * 2)));
   ox = W / 2;
   oy = H / 2;
   redraw();

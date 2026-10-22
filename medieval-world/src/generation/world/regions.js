@@ -25,6 +25,12 @@ function hh() {
       tier,
       rad: Rm,
       name: cname($("#seed").value),
+      i: 0,
+      j: 0,
+      id: "H",
+      bk: BIOK,
+      st: undefined,
+      ed: null,
       home: true,
     };
   }
