@@ -324,7 +324,8 @@ function drawBorders() {
       far = S < .04,
       r = far ? 2.2 + h.tier * 1.1 : RB[h.tier] * S * .85;
     if (far) {
-      RealmMap.IconsSettlements.drawSettlement(ctx, { rank: TIER_RANK[Math.min(h.tier, 6)], state: "normal" }, x, y, .7 + h.tier * .06);
+      RealmMap.IconsSettlements.drawSettlement(ctx, { rank: hubRank(h), state: "normal" }, x, y, .7 + h.tier * .06);
+      if (isCap(h)) capStar(x, y, .7 + h.tier * .06);
     }
     const ty = hm ? oy - mr * S : y + r + 12,
       ry = hm ? oy + mr * S + 14 : y + r + 25;

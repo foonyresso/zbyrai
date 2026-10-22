@@ -1,5 +1,21 @@
 /* значки поселень: ранг за рівнем */
 const TIER_RANK = ["hamlet", "village", "town", "regional", "capital", "capital", "capital"];
+/* значок за рангом: столиця провінції — замок із золотою зіркою, решта великих міст — місто з муром */
+const hubRank = (h) => h.tier >= 3 ? (isCap(h) ? "capital" : "regional") : TIER_RANK[Math.min(h.tier, 6)];
+function capStar(x, y, k) {
+  const r = 5.5 * k, cy = y - 27 * k;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .45 : r;
+    ctx.lineTo(x + Math.cos(a) * q, cy + Math.sin(a) * q);
+  }
+  ctx.closePath();
+  ctx.fillStyle = "#f2c230";
+  ctx.strokeStyle = "#5a3a10";
+  ctx.lineWidth = 1.2;
+  ctx.fill();
+  ctx.stroke();
+}
 function drawVillages() {
   if (WBD) drawBorders();
   if (S < .04) return;
@@ -20,7 +36,9 @@ function drawVillages() {
     }
     if (!full) {
       /* значки поселень спільні з «Материком» (worlds/continent/render/icons-settlements.js); стан малює шар RLAY.st */
-      RealmMap.IconsSettlements.drawSettlement(ctx, { rank: TIER_RANK[Math.min(v.tier, 6)], state: "normal" }, x, y, Math.max(.6, Math.min(1.5, .5 + S * 6)));
+      const ik = Math.max(.6, Math.min(1.5, .5 + S * 6));
+      RealmMap.IconsSettlements.drawSettlement(ctx, { rank: hubRank(v), state: "normal" }, x, y, ik);
+      if (v.tier >= 3 && isCap(v)) capStar(x, y, ik);
     }
     if ((v.tier >= 3 ? S >= .025 : S >= .15) && S < 2.4) {
       ctx.font = (v.tier >= 3 ? "700 " : "600 ") + (v.tier >= 3

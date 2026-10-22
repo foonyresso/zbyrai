@@ -28,12 +28,15 @@ function wInfo(x, y) {
 function wInfo0(x, y) {
   if (!WLD) wsetup();
   const p = tsamp(x, y, 4);
-  for (const v of vlist(x - 90, y - 90, x + 90, y + 90)) {
-    if (Math.hypot(v.x - x, v.y - y) < v.rad) {
+  /* зі зменшенням масштабу значок більший за саме поселення: допуск у пікселях екрана */
+  const tol = Math.max(90, 16 / S);
+  for (const v of vlist(x - tol, y - tol, x + tol, y + tol)) {
+    if (S < .5 && (S < .07 && v.tier < 2 || S < .045 && v.tier == 2)) continue;
+    if (Math.hypot(v.x - x, v.y - y) < Math.max(v.rad, S < .5 ? 16 / S : 0)) {
       const st = mkSettle(v);
       return {
         n: NAMES[v.tier] + " «" + v.name + "»" + (rxState(v) != "normal" ? " — " + RX_STATE_NAMES[rxState(v)] : ""),
-        c: "Поселення",
+        c: v.tier >= 3 && isCap(v) ? "Столиця провінції" : "Поселення",
         d: (st
           ? "Споруд: " + st.n + " · мешканців ≈ " + st.p +
             ". Дороги ведуть до сусідніх поселень."

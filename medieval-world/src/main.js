@@ -219,6 +219,7 @@ function render() {
   scaleBar();
   homeBtn();
   drawFx();
+  if (hov && mode !== "wall" && mode !== "build" && !(drag && drag.mv)) drawHoverRegion();
   if (hov && mode === "build") {
     const [w, h] = dims(sel.value);
     path(rp(hov[0], hov[1], w, h, Math.atan2(hov[1], hov[0]) + 1.5708));
