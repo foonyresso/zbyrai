@@ -153,6 +153,7 @@ function mkSettle(v) {
   v.st = null;
   try {
     setG(BLK());
+    CSTY = CITY_STYLES[cityStyleOf(v)];
     seed = hs(WLD.s + "S" + v.id);
     tier = v.tier;
     Rm = RB[tier];
@@ -203,6 +204,7 @@ function mkSettle(v) {
     v.st = null;
     console.warn(e);
   } finally {
+    CSTY = null;
     setG(base);
   }
   return v.st;
@@ -215,7 +217,7 @@ function drawSettle(v) {
   const bo = BIO, sx = ox, sy = oy, old = getG(), pp0 = raceEnter(v);
   try {
     setG(st);
-    BIO = BIOS[v.bk] || bo;
+    BIO = v.bk == "grass" ? BIOS[CITY_STYLES[cityStyleOf(v)].bio] || bo : BIOS[v.bk] || bo;
     ox = sx + v.x * S;
     oy = sy + v.y * S;
     wpath();

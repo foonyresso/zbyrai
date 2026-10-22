@@ -23,6 +23,8 @@ function rxGroup(x, y) {
   if (p.fo > .45) return "forest";
   return "plain";
 }
+/* суша поза провінціями: острови в диких океанах (нічийні, переважно монстри, руїни й скарби) */
+const rxWild = (x, y) => eland(x, y) > 0 && !regAt(x, y);
 const rxDomain = (g) => g == "sea" ? "sea" : (g == "peaks" || g == "mountain" || g == "hills") ? "mountain" : g == "forest" ? "forest" : null;
 const rxPick = (a, u) => a[Math.min(a.length - 1, Math.floor(u * a.length))];
 const rxSpot = (i, j, c, a, b) => [(i + .15 + H2(i, j, WLD.s + a) * .7) * c, (j + .15 + H2(i, j, WLD.s + b) * .7) * c];
@@ -74,9 +76,11 @@ function rxMon(kind, i, j) {
   if (m.has(key)) return m.get(key);
   const K = Atlas.monsterKinds[kind], s = WLD.s, ks = RX_KIND_SEED[kind];
   let o = null;
-  if (H2(i, j, s + ks) < K.gate) {
+  const gh = H2(i, j, s + ks);
+  if (gh < K.gate * 3) {
     const [x, y] = rxSpot(i, j, K.cell, ks + 1, ks + 2);
-    if (Math.hypot(x, y) > Rm * 1.7 + 300) {
+    /* на диких островах монстрів утричі більше */
+    if (Math.hypot(x, y) > Rm * 1.7 + 300 && (gh < K.gate || rxWild(x, y))) {
       const info = rxBiomesAt(x, y), list = Atlas.monstersFor(kind, info.biomes, "infinite");
       if (list.length && (info.group != "sea" || kind == "weak" || kind == "monster" || kind == "other" || tsamp(x, y, 4).E < -.15) &&
         rxFar(kind, x, y, H2(i, j, s + ks + 9) < (K.weakNear || 0))) {
@@ -100,16 +104,24 @@ function rxPoi(i, j) {
   if (m.has(key)) return m.get(key);
   let o = null;
   const s = WLD.s;
-  if (H2(i, j, s + 921) < .45) {
+  const ph = H2(i, j, s + 921);
+  if (ph < .7) {
     const [x, y] = rxSpot(i, j, RX_PC, 922, 923);
-    if (Math.hypot(x, y) > Rm * 1.7 + 300) {
+    const wl = rxWild(x, y);
+    if (Math.hypot(x, y) > Rm * 1.7 + 300 && (ph < .45 || wl)) {
       const g = rxGroup(x, y), P = RealmMap.Data.poi;
       let ids = [];
       if (g == "lake") ids = ["lake"];
-      else if (g != "sea" && g != "shore") {
+      else if (wl && g != "sea" && g != "shore") {
+        /* дикий острів: руїни й скарби, зрідка мала оселя */
+        ids = ["ruins", "ruins", "ruins", "treasure", "treasure", "treasure", "monument", "small_monument", "shrine"];
+        if (H2(i, j, s + 926) < .12) ids = ["wild_hamlet"];
+      } else if (g != "sea" && g != "shore") {
         const tags = [g == "peaks" ? "mountain" : g, "land"];
         ids = Object.keys(P).filter((k) => P[k].on && P[k].on.some((t) => tags.includes(t)));
         if (g == "peaks" || g == "mountain") ids.push("mountain");
+        /* табори бандитів частіші за інші дрібні місця на рівнині, в лісі й на пагорбах */
+        if (["plain", "forest", "hills"].includes(g)) ids.push("bandit_camp");
       }
       if (ids.length && rxClear(x, y, 120)) {
         const type = rxPick(ids, H2(i, j, s + 924)), def = P[type];
@@ -166,13 +178,19 @@ function realmInfo(x, y) {
   });
   if (!best) return null;
   if (best.type) {
-    const r = best.type == "small_mine" ? mineRes(best) : null;
-    return { n: best.name, c: "Місце", d: (best.cls == "major" ? "Значне місце: до нього веде мала дорога." : "Дрібне місце: до нього веде стежка.") + (r ? " Ресурс: " + r.name + ", жила " + MINE_RICH[r.rich] + "." : "") };
+    const r = best.type == "small_mine" ? mineRes(best) : null, wl = rxWild(best.x, best.y),
+      L = wl ? oceanLv(best.x, best.y)[0] : lvlAt(best.x, best.y)[0],
+      T2 = {
+        bandit_camp: "Табір бандитів: небезпечні розбійники ≈ " + L + " ур. Живуть на рівнині, в лісі й на пагорбах; до табору веде стежка.",
+        treasure: "Прихований скарб: зазвичай його стереже щось із місцевих монстрів (≈ " + L + " ур.).",
+        wild_hamlet: "Мала оселя на дикому острові: рідкісне безпечне місце серед монстрів (≈ " + L + " ур.). Не належить жодній провінції.",
+      };
+    return { n: best.name, c: wl ? "Дикий острів" : "Місце", d: (T2[best.type] || (best.cls == "major" ? "Значне місце: до нього веде мала дорога." : "Дрібне місце: до нього веде стежка.") + (wl ? " Нічия земля в дикому океані: монстри ≈ " + L + " ур." : "")) + (r ? " Ресурс: " + r.name + ", жила " + MINE_RICH[r.rich] + "." : "") };
   }
   const K = Atlas.monsterKinds[best.mk], biome = Atlas.biomes.find((b) => b.id == best.biome);
   return {
     n: best.name, c: K.name,
     d: Atlas.monsterNatures[best.nature] + " · живе: " + (biome ? biome.name.toLowerCase() : best.biome) + (best.alias ? " · також: " + best.alias : "") +
-      ". Чим сильніший тип, тим далі від поселень.",
+      ". Рівень ≈ " + (rxWild(best.x, best.y) ? oceanLv(best.x, best.y)[0] : lvlAt(best.x, best.y)[0]) + (rxWild(best.x, best.y) ? " (дикий острів)" : "") + ". Чим сильніший тип, тим далі від поселень.",
   };
 }

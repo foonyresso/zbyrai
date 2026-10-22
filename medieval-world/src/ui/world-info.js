@@ -18,9 +18,9 @@ function wInfo(x, y) {
         : regName(h) + (h === pv
           ? (isCap(h) ? " (столиця)" : " (окрема провінція)")
           : "") +
-          ": монстри ≈ " + lvl(h)[0] + " ур., NPC ≈ " + lvl(h)[1] + " ур.") +
+          ": монстри тут ≈ " + lvlAt(x, y)[0] + " ур., NPC ≈ " + lvlAt(x, y)[1] + " ур. (росте з відстанню від центру)") +
         " · " + provName(pv) + ": регіонів " + provN(pv) + ", монстри ≈ " +
-        pl[0] + " ур., NPC ≈ " + pl[1] + " ур.";
+        pl[0] + " ур. (від " + pv.lr[0] + " до " + pv.lr[1] + "), NPC ≈ " + pl[1] + " ур.";
     }
   }
   return o;
@@ -38,7 +38,7 @@ function wInfo0(x, y) {
         n: NAMES[v.tier] + " «" + v.name + "»" + (rxState(v) != "normal" ? " — " + RX_STATE_NAMES[rxState(v)] : ""),
         c: v.tier >= 3 && isCap(v) ? "Столиця провінції" : "Поселення",
         d: (st
-          ? "Споруд: " + st.n + " · мешканців ≈ " + st.p +
+          ? "Стиль: " + CITY_STYLES[cityStyleOf(v)].name + " · споруд: " + st.n + " · мешканців ≈ " + st.p +
             ". Дороги ведуть до сусідніх поселень."
           : "Невелике поселення.") + (RLAY.pp ? raceInfo(v) : ""),
       };

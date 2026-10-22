@@ -131,7 +131,8 @@ var tint = (c) => {
       ).toString(16).padStart(2, "0")
     ).join("");
 };
-var LAY = "rad",
+var CSTY = null, /* стиль поселення світу (generation/world/city-styles.js): множники частот споруд */
+  LAY = "rad",
   MAG = false,
   ST = null,
   BIOS = {
@@ -157,6 +158,21 @@ var LAY = "rad",
       tr: "#a9b57e",
       fl: "#e8d194",
       fs: "#c9ad6a",
+    },
+    rock: {
+      t: "#8a8f99",
+      g: "#e4e2da",
+      f: "#cfd3c4",
+      tr: "#8fa18a",
+      fl: "#e6e0cf",
+      fs: "#bdb59a",
+    },
+    coast: {
+      g: "#efe9d6",
+      f: "#d3dcc0",
+      tr: "#9bb580",
+      fl: "#efe3a9",
+      fs: "#d8c890",
     },
     swamp: {
       t: "#4a6a50",
@@ -355,7 +371,7 @@ function setup() {
     [0, 1].map((b) =>
       Object.keys(T).filter((k) =>
         T[k].t <= tier && T[k].w[z] > 0 && BIG.has(k) == !!b
-      ).map((k) => [k, T[k].w[z]])
+      ).map((k) => [k, T[k].w[z] * (CSTY && CSTY.mul[k] !== undefined ? CSTY.mul[k] : 1)]).filter((e) => e[1] > 0)
     )
   );
   sums = lists.map((zz) => zz.map((l) => l.reduce((a, x) => a + x[1], 0)));

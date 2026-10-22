@@ -185,24 +185,34 @@ function isl(pv) {
   }
   return pv.im;
 }
-/* рівні: ростуть із відстанню від (0,0); монстри ≈ базовий рівень, NPC трохи нижчі; у провінції — середнє з її регіонів */
-function lvl(h) {
-  const d = Math.hypot(h.x, h.y),
-    b = 1 + d / 800,
-    r = H2(Math.round(h.x), Math.round(h.y), WLD.s + 601),
-    q = H2(Math.round(h.x), Math.round(h.y), WLD.s + 602);
+/* рівні: ростуть із відстанню від (0,0) прямо по координатах (плавний шум ±10 %); монстри ≈ базовий рівень, NPC трохи нижчі */
+function lvlAt(x, y) {
+  const b = 1 + Math.hypot(x, y) / 800,
+    r = fbm(x / 3000 + 61, y / 3000, WLD.s + 601, 2),
+    q = fbm(x / 3000, y / 3000 + 62, WLD.s + 602, 2);
   return [
     Math.max(1, Math.round(b * (.9 + .2 * r))),
     Math.max(1, Math.round(b * (.55 + .3 * q))),
   ];
 }
+const lvl = (h) => lvlAt(h.x, h.y);
 const provMem = (p) => isCap(p) ? [p, ...roster(p)] : [p];
+/* рівень провінції = середнє значень рівня по точках її суші (ґратка навколо регіонів), тож залежить від форми провінції; lr — найменший і найбільший */
 function provLv(p) {
   if (p.lk === WLD.hk) return p.lv;
-  const a = provMem(p).map(lvl);
-  p.lv = [0, 1].map((n) =>
-    Math.round(a.reduce((s, v) => s + v[n], 0) / a.length)
-  );
+  const pts = [];
+  for (const h of provMem(p)) {
+    for (const r of [0, 1100, 2300]) {
+      for (const [a, b] of r ? [[1, 0], [-1, 0], [0, 1], [0, -1], [.7, .7], [-.7, -.7], [.7, -.7], [-.7, .7]] : [[0, 0]]) {
+        const x = h.x + a * r, y = h.y + b * r;
+        if (eland(x, y) > 0 && (!r || PV(regAt(x, y) || h) === p)) pts.push(lvlAt(x, y));
+      }
+    }
+  }
+  if (!pts.length) pts.push(lvl(p));
+  p.lv = [0, 1].map((n) => Math.round(pts.reduce((s, v) => s + v[n], 0) / pts.length));
+  const m = pts.map((v) => v[0]);
+  p.lr = [Math.min(...m), Math.max(...m)];
   p.lk = WLD.hk;
   return p.lv;
 }

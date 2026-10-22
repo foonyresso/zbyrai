@@ -44,6 +44,8 @@
     small_monument: { name: 'Старий пам’ятний знак', cls: 'minor', shape: 'obelisk', color: '#d9c58e', on: ['land'] },
     park:        { name: 'Природний парк чи садок', cls: 'minor', shape: 'tree',  color: '#9fd18a', on: ['plain', 'forest'] },
     bandit_camp: { name: 'Табір бандитів',        cls: 'minor', shape: 'tent',    color: '#e07a5f', on: ['forest', 'hills', 'plain'], danger: 1 },
+    treasure:    { name: 'Прихований скарб',     cls: 'minor', shape: 'flag',    color: '#f2c230', on: [] },
+    wild_hamlet: { name: 'Оселя на дикому острові', cls: 'minor', shape: 'dot',  color: '#c9e0f0', on: [] },
     shrine:      { name: 'Придорожня капличка',   cls: 'minor', shape: 'dot',     color: '#f3e7bd', on: ['land'] },
     hermit:      { name: 'Хатина відлюдника',     cls: 'minor', shape: 'dot',     color: '#d7c3a1', on: ['forest', 'hills'] },
   };
