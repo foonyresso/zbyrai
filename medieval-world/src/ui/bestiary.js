@@ -49,25 +49,45 @@
   const card = (t, sub, color) => '<div class="bs-card"><b>' + (color ? '<span class="bs-sw" style="background:' + esc(color) + '"></span>' : "") + esc(t) + "</b>" + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</div>";
   const plain = (h) => h.replace(/<\/(h[123]|p|div)>/g, "\n").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[ \t]+/g, " ").replace(/\n\s+/g, "\n");
 
+  const BOSS = ["boss", "super-boss", "world-boss"], CAP = 36;
+  /* виміри без lore (стандартні): біоми, монстри й підземелля беруться з реєстру за правилами спавну виміру */
+  function derive(w) {
+    const L = Object.assign({}, w.lore || {});
+    const bs = A.resolveBiomes(w).map((x) => x.biome);
+    if (!(L.biomes || []).length) L.biomes = bs.map((b) => ({ id: b.id }));
+    const ids = L.biomes.map((b) => b.id), allB = ids.map((id) => by(A.biomes, id)).filter(Boolean);
+    const hit = (o) => (o.spawn.worlds === "all" || o.spawn.worlds.includes(w.id)) && allB.some((b) => [].concat(o.spawn.biomes).some((x) => A.matches(b, x)));
+    const ms = A.monsters.filter(hit);
+    if (!(L.creatures || []).length) L.creatures = ms.filter((m) => !BOSS.includes(m.kind)).map((m) => m.id);
+    if (!(L.bosses || []).length) L.bosses = ms.filter((m) => BOSS.includes(m.kind)).map((m) => m.id);
+    if (!(L.dungeons || []).length) L.dungeons = A.dungeons.filter(hit).map((d) => d.id);
+    if (!(L.locations || []).length) L.locations = L.dungeons.map((id) => (by(A.dungeons, id) || {}).name).filter(Boolean);
+    L.derived = !w.lore || !w.lore.biomes;
+    return L;
+  }
+  const cap = (a) => a.length > CAP ? a.slice(0, CAP) : a;
+  const more = (a) => a.length > CAP ? "<p><small>…і ще " + (a.length - CAP) + "</small></p>" : "";
+
   function render() {
-    const w = by(A.worlds, sel.value) || A.worlds[0], L = w.lore || {}, seed = seedIn.value || "0";
+    const w = by(A.worlds, sel.value) || A.worlds[0], L = derive(w), seed = seedIn.value || "0";
     const u = G.make(w, seed);
     const bio = (L.biomes || []).map((b) => { const d = by(A.biomes, b.id) || {}; return { name: b.as_name || d.name || b.id, color: d.color, note: b.note || (d.lore && d.lore.description) || "", id: b.id }; });
     const mons = (ids) => (ids || []).map((id) => by(A.monsters, id)).filter(Boolean);
     const mcard = (m) => card(m.name + (KIND[m.kind] ? " · " + KIND[m.kind].name : ""), m.lore && m.lore.description);
     const creatures = mons(L.creatures), bosses = mons(L.bosses);
+    const nC = creatures.length, nBo = bosses.length;
     const dng = (L.dungeons || []).map((id) => by(A.dungeons, id)).filter(Boolean);
-    const gl = [["Біомів", bio.length], ["Монстрів", creatures.length], ["Босів", bosses.length], ["Підземель", dng.length], ["Локацій", (L.locations || []).length]];
+    const gl = [["Біомів", bio.length], ["Монстрів", nC], ["Босів", nBo], ["Підземель", dng.length], ["Локацій", (L.locations || []).length]];
     let h = "<h1>" + esc(w.name) + "</h1><div class=bs-sub>" + esc(L.subtitle || w.description || "") + (L.ref ? " · № " + esc(L.ref) : "") + "</div>";
-    if (!w.lore) h += "<p>" + esc(w.description || "Для цього виміру ще немає повного опису.") + "</p>";
+    if (L.derived) h += "<p><small>Повного літопису цього виміру ще немає: біоми, монстри й підземелля зібрано з правил його генерації.</small></p>";
     h += '<div class="bs-kv">' + gl.map((x) => "<div>" + x[0] + "<b>" + x[1] + "</b></div>").join("") + "</div>";
     for (const [t, k] of [["Концепт", "concept"], ["Сенс", "meaning"], ["Історія", "history"], ["Будова", "structure"], ["Небо", "sky"], ["Як досліджувати", "exploration"]]) if (L[k]) h += "<h3>" + t + "</h3><p>" + esc(L[k]) + "</p>";
-    h += sec("Біоми", bio, (a) => cards(a.map((b) => card(b.name, b.note, b.color))));
+    h += sec("Біоми", bio, (a) => cards(cap(a).map((b) => card(b.name, b.note, b.color))) + more(a));
     h += sec("Локації та місця", L.locations, (a) => "<p>" + list(a) + "</p>");
     h += sec("Архітектура", L.architecture, (a) => "<p>" + list(a) + "</p>");
-    h += sec("Монстри", creatures, (a) => cards(a.map(mcard)));
-    h += sec("Боси", bosses, (a) => cards(a.map(mcard)));
-    h += sec("Підземелля", dng, (a) => cards(a.map((d) => card(d.name, d.lore && d.lore.description))));
+    h += sec("Монстри", creatures, (a) => cards(cap(a).map(mcard)) + more(a));
+    h += sec("Боси", bosses, (a) => cards(cap(a).map(mcard)) + more(a));
+    h += sec("Підземелля", dng, (a) => cards(cap(a).map((d) => card(d.name, d.lore && d.lore.description))) + more(a));
     h += sec("Закони й механіки", L.mechanics, (a) => "<p>" + list(a) + "</p>");
     h += sec("Ресурси", L.resources, (a) => "<p>" + list(a) + "</p>");
     if (L.dangers) h += "<h3>Небезпеки</h3><p>" + esc(L.dangers) + "</p>";
