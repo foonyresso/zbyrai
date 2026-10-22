@@ -495,6 +495,37 @@ Atlas.registerMonster({
   order: 59,
 });
 
+/* monsters/beregova-motuziaka.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "beregova-motuziaka",
+  "name": "Берегова мотузяка",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:shore",
+      "tag:water",
+      "tag:sea",
+      "tag:fresh"
+    ],
+    "worlds": "all"
+  },
+  "order": 978,
+  "lore": {
+    "description": "Довга водорость із щупальцями, що ловить ноги.",
+    "behavior": "Лежить прихована в припливі.",
+    "abilities": [
+      "хапає й тягне до води",
+      "огортає липким слизом"
+    ],
+    "drops": [
+      "водорості",
+      "мотузка припливу"
+    ]
+  }
+});
+
 /* monsters/bezholosyy-korol.js */
 Atlas.registerMonster({
   "format": 2,
@@ -878,6 +909,35 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/bolotnyi-bulbashnyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "bolotnyi-bulbashnyk",
+  "name": "Болотяний бульбашник",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:swamp",
+      "tag:wet"
+    ],
+    "worlds": "all"
+  },
+  "order": 940,
+  "lore": {
+    "description": "Прозорий кубічний слиз із бульбашками газу всередині.",
+    "behavior": "Пливе по ряскі, лопається, коли його чіпають.",
+    "abilities": [
+      "лопається й відкидає хмарку смердючого газу",
+      "липка плівка уповільнює"
+    ],
+    "drops": [
+      "бульбашка газу",
+      "болотний слиз"
+    ]
+  }
+});
+
 /* monsters/bolotnyy-hidra-pan.js */
 Atlas.registerMonster({
   format: 1,
@@ -1197,6 +1257,33 @@ Atlas.registerMonster({
     behavior: "Гніздиться в Смоляних заростях.",
     abilities: ["створює прозорі бурштинові перегородки, а розбиті перегородки випускають короткочасні примарні образи колишніх мешканців"],
   },
+});
+
+/* monsters/burshtynova-mukha.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "burshtynova-mukha",
+  "name": "Бурштинова муха",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:amber",
+      "tag:clay"
+    ],
+    "worlds": "all"
+  },
+  "order": 997,
+  "lore": {
+    "description": "Муха, що застигла в краплі смоли й ожила.",
+    "behavior": "Падає з гілок, приклеюючись.",
+    "abilities": [
+      "липке падіння"
+    ],
+    "drops": [
+      "бурштин"
+    ]
+  }
 });
 
 /* monsters/burshtynovi-holemy.js */
@@ -2033,6 +2120,60 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/dyvnyi-pushynets.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "dyvnyi-pushynets",
+  "name": "Дивний пушинець",
+  "kind": "weak",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:land+fantasy"
+    ],
+    "worlds": "all"
+  },
+  "order": 1000,
+  "lore": {
+    "description": "Кубічне створіння з веселковим пухом.",
+    "behavior": "Кружляє над квітами й підспівує.",
+    "abilities": [
+      "спокійна пісенька",
+      "розсипає пух"
+    ],
+    "drops": [
+      "веселковий пух"
+    ]
+  }
+});
+
+/* monsters/dzerkalnyi-povtoriuvach.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "dzerkalnyi-povtoriuvach",
+  "name": "Дзеркальний повторювач",
+  "kind": "weak",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:surreal"
+    ],
+    "worlds": "all"
+  },
+  "order": 993,
+  "lore": {
+    "description": "Малий куб, що повторює рухи гравця із запізненням.",
+    "behavior": "Ходить за кимось усюди.",
+    "abilities": [
+      "повторює дію",
+      "виникає позаду"
+    ],
+    "drops": [
+      "дзеркальне скельце"
+    ]
+  }
+});
+
 /* monsters/dzerkalnyy-tsvyntarnyk.js */
 Atlas.registerMonster({
   format: 2,
@@ -2644,6 +2785,36 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/hirskyi-drymba.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "hirskyi-drymba",
+  "name": "Гірський дримба",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:highland",
+      "tag:hills",
+      "tag:mountain",
+      "tag:stone"
+    ],
+    "worlds": "all"
+  },
+  "order": 990,
+  "lore": {
+    "description": "Вовкоподібна істота з кам'яною спиною.",
+    "behavior": "Лазить по скелях і скидає каміння.",
+    "abilities": [
+      "каменепад",
+      "блискавичний стрибок"
+    ],
+    "drops": [
+      "камінь-спина"
+    ]
+  }
+});
+
 /* monsters/hirskyy-hachkokhvist.js */
 Atlas.registerMonster({
   format: 2,
@@ -2835,6 +3006,34 @@ Atlas.registerMonster({
     behavior: "Підводні печери.",
     abilities: ["сприймає вібрації та нападає на тих, хто рухається"],
   },
+});
+
+/* monsters/hlyniana-lialka.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "hlyniana-lialka",
+  "name": "Глиняна лялька",
+  "kind": "monster",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:amber",
+      "tag:clay"
+    ],
+    "worlds": "all"
+  },
+  "order": 998,
+  "lore": {
+    "description": "Нескладна глиняна фігурка, що ходить на півсвідомості.",
+    "behavior": "Лепить себе з землі після ударів.",
+    "abilities": [
+      "самолікування",
+      "глиняні кулі"
+    ],
+    "drops": [
+      "свіжа глина"
+    ]
+  }
 });
 
 /* monsters/hlynomov.js */
@@ -3288,6 +3487,68 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/horshchyk-peklo.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "horshchyk-peklo",
+  "name": "Гончар пекла",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:amber",
+      "tag:clay"
+    ],
+    "worlds": "all"
+  },
+  "order": 999,
+  "lore": {
+    "description": "Велетень-гончар із кам'яним колом замість серця.",
+    "behavior": "Виготовляє слуг із глини й випалює їх у горнилі.",
+    "abilities": [
+      "випалює слуг",
+      "розбиває на черепки",
+      "кидає розпечену глину"
+    ],
+    "drops": [
+      "горнило гончара",
+      "жива глина"
+    ]
+  }
+});
+
+/* monsters/hospodar-dyvnoho-krayu.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "hospodar-dyvnoho-krayu",
+  "name": "Господар дивного краю",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:land+fantasy"
+    ],
+    "worlds": "all"
+  },
+  "order": 1002,
+  "lore": {
+    "description": "Високий постать у плащі зі шматків різних пейзажів.",
+    "behavior": "Господарює в кожному дивному краї й міняє його правила.",
+    "abilities": [
+      "змінює ландшафт у бою",
+      "закликає слуг із різних біомів",
+      "відводить увагу ілюзіями"
+    ],
+    "drops": [
+      "плащ краю",
+      "печатка господаря"
+    ]
+  },
+  "variants": [
+    "господар краю"
+  ]
+});
+
 /* monsters/hospodar-zvorotnoho-polumya.js */
 Atlas.registerMonster({
   format: 2,
@@ -3336,6 +3597,36 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/hryb-pukhlyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "hryb-pukhlyk",
+  "name": "Гриб-пухлик",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:mushroom",
+      "tag:glow",
+      "tag:toxic"
+    ],
+    "worlds": "all"
+  },
+  "order": 981,
+  "lore": {
+    "description": "Кругленький гриб на ніжках, що підстрибує.",
+    "behavior": "Розкидає спори в обличчя.",
+    "abilities": [
+      "спори дурману",
+      "стрибки"
+    ],
+    "drops": [
+      "спори",
+      "капелюшок"
+    ]
+  }
+});
+
 /* monsters/hrybna-krykhta.js */
 Atlas.registerMonster({
   format: 2,
@@ -3350,6 +3641,36 @@ Atlas.registerMonster({
     behavior: "Грибні галявини.",
     abilities: ["тікає стрибками й розкидає легкі спори"],
   },
+});
+
+/* monsters/hrybnyi-patriarkh.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "hrybnyi-patriarkh",
+  "name": "Грибний патріарх",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:mushroom",
+      "tag:glow",
+      "tag:toxic"
+    ],
+    "worlds": "all"
+  },
+  "order": 983,
+  "lore": {
+    "description": "Високий гриб-старець із очима на капелюшку.",
+    "behavior": "Керує меншими грибами й просить розмов.",
+    "abilities": [
+      "закликає спорових слуг",
+      "отруйна хмара"
+    ],
+    "drops": [
+      "капелюх патріарха",
+      "спори"
+    ]
+  }
 });
 
 /* monsters/hrybnyy-kolos.js */
@@ -3425,6 +3746,35 @@ Atlas.registerMonster({
   nature: "threat",
   spawn: { biomes: ["hills", "mountain", "peaks"], worlds: "all" },
   order: 8,
+});
+
+/* monsters/hubchasta-matka.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "hubchasta-matka",
+  "name": "Губчаста матка",
+  "kind": "mini-boss",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:swamp",
+      "tag:wet"
+    ],
+    "worlds": "all"
+  },
+  "order": 942,
+  "lore": {
+    "description": "Величезна пориста губка на кривих лапах, що народжує дрібних губчат.",
+    "behavior": "Сидить у трясовині й вичавлює воду на всіх навколо.",
+    "abilities": [
+      "випускає виводок губчат",
+      "вбирає удари й повертає водяним потоком"
+    ],
+    "drops": [
+      "живляча губка",
+      "жила матки"
+    ]
+  }
 });
 
 /* monsters/hulki-holemy.js */
@@ -3534,6 +3884,36 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/kamenyi-arkhivariy.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "kamenyi-arkhivariy",
+  "name": "Кам'яний архівар",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:ruins",
+      "tag:bones",
+      "tag:dead"
+    ],
+    "worlds": "all"
+  },
+  "order": 975,
+  "lore": {
+    "description": "Статуя зі стосом кам'яних сувоїв замість голови.",
+    "behavior": "Допитує мандрівників загадками на камені.",
+    "abilities": [
+      "каменем накладає мовчання",
+      "пересуває стіни"
+    ],
+    "drops": [
+      "кам'яний сувій",
+      "печатка архівара"
+    ]
+  }
+});
+
 /* monsters/kamertonnyy-zhuk.js */
 Atlas.registerMonster({
   format: 2,
@@ -3548,6 +3928,34 @@ Atlas.registerMonster({
     behavior: "Живе у шахтах із покладами чорного заліза.",
     abilities: ["вдаряє рогами об каміння, викликаючи резонанс, який руйнує крихкі блоки та тимчасово дезорієнтує супротивників"],
   },
+});
+
+/* monsters/kamianyi-lyshainyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "kamianyi-lyshainyk",
+  "name": "Кам'яний лишайник",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:canyon"
+    ],
+    "worlds": "all"
+  },
+  "order": 949,
+  "lore": {
+    "description": "Плаский лишайник, що повзе по відвісних стінах.",
+    "behavior": "Висить на скелях, падає на тих, хто йде вузьким проходом.",
+    "abilities": [
+      "падає й обволікає",
+      "маскується під скелю"
+    ],
+    "drops": [
+      "лишайник",
+      "кам'яна цвіль"
+    ]
+  }
 });
 
 /* monsters/kaminni-veletni.js */
@@ -3904,6 +4312,34 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/kanionnyi-sup.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "kanionnyi-sup",
+  "name": "Каньйонний сип",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:canyon"
+    ],
+    "worlds": "all"
+  },
+  "order": 950,
+  "lore": {
+    "description": "Червоний стерв'ятник із рогами-уступами.",
+    "behavior": "Кружляє над ущелинами й виглядає втомлених мандрівників.",
+    "abilities": [
+      "пікірує з виступів",
+      "скидає каміння з-під крил"
+    ],
+    "drops": [
+      "пір'я сипа",
+      "рогова пластина"
+    ]
+  }
+});
+
 /* monsters/kapelyushnyk-pereverten.js */
 Atlas.registerMonster({
   format: 2,
@@ -4156,6 +4592,38 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/khmarnyi-pukhnastyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "khmarnyi-pukhnastyk",
+  "name": "Хмарний пухнастик",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:cloud"
+    ],
+    "worlds": "all"
+  },
+  "order": 936,
+  "lore": {
+    "description": "Круглий кубічний звірок із білою хмароподібною шерстю й крихітними крильцями.",
+    "behavior": "Тримається зграйками між плавучими островами, ночує в густому тумані.",
+    "abilities": [
+      "падає повільно, як пір'їна, тож не розбивається з жодної висоти",
+      "розкидає пухнасті клубки, які липнуть до ніг"
+    ],
+    "drops": [
+      "хмарна вовна",
+      "пір'їна пухнастика"
+    ]
+  },
+  "variants": [
+    "вітряний",
+    "грозовий"
+  ]
+});
+
 /* monsters/khodyachyy-koral.js */
 Atlas.registerMonster({
   format: 2,
@@ -4248,6 +4716,38 @@ Atlas.registerMonster({
   "order": 844,
   "lore": {
     "description": "Бос світу «Фростгейм»."
+  }
+});
+
+/* monsters/khranytel-tykhoho-pryplyvu.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "khranytel-tykhoho-pryplyvu",
+  "name": "Хранитель тихого припливу",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:shore",
+      "tag:water",
+      "tag:sea",
+      "tag:fresh"
+    ],
+    "worlds": "all"
+  },
+  "order": 980,
+  "lore": {
+    "description": "Колосальна медуза-парасоля з перлинами всередині.",
+    "behavior": "Підіймається з глибин, коли місяць повний.",
+    "abilities": [
+      "електричні щупальці",
+      "хвиля-цунамі",
+      "зцілюється від води"
+    ],
+    "drops": [
+      "серце медузи",
+      "перлина припливу"
+    ]
   }
 });
 
@@ -4456,6 +4956,35 @@ Atlas.registerMonster({
     ],
     "drops": [
       "корона Короля Баранів"
+    ]
+  }
+});
+
+/* monsters/kistkovyi-zhuk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "kistkovyi-zhuk",
+  "name": "Кістковий жук",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:ruins",
+      "tag:bones",
+      "tag:dead"
+    ],
+    "worlds": "all"
+  },
+  "order": 973,
+  "lore": {
+    "description": "Жук із панциром із черепа.",
+    "behavior": "Роздирає старі гробниці.",
+    "abilities": [
+      "гризе кістки",
+      "висипає прах"
+    ],
+    "drops": [
+      "кістковий панцир"
     ]
   }
 });
@@ -4870,6 +5399,35 @@ Atlas.registerMonster({
   order: 14,
 });
 
+/* monsters/kolo-pravdopodibnosti.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "kolo-pravdopodibnosti",
+  "name": "Коло ймовірності",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:surreal"
+    ],
+    "worlds": "all"
+  },
+  "order": 996,
+  "lore": {
+    "description": "Велетенське колесо з тисячею рамок, що показують різні можливості.",
+    "behavior": "Крутиться над площею, і правила змінюються щоразу.",
+    "abilities": [
+      "крутить правила бою",
+      "клони з різних можливостей",
+      "стирає одну можливість"
+    ],
+    "drops": [
+      "колесо ймовірності",
+      "рамка можливості"
+    ]
+  }
+});
+
 /* monsters/kolos-polyusiv.js */
 Atlas.registerMonster({
   "format": 2,
@@ -5185,6 +5743,34 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/korenevyi-lastivets.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "korenevyi-lastivets",
+  "name": "Кореневий ластівець",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:cloud"
+    ],
+    "worlds": "all"
+  },
+  "order": 937,
+  "lore": {
+    "description": "Швидкий птах із бурштиновим дзьобом і кроною-гребенем із живого коріння.",
+    "behavior": "Гніздиться на звислому корені й обстрілює чужинців насінням.",
+    "abilities": [
+      "пікірує на сильних вітрах",
+      "випльовує смолисте насіння, що склеює ноги"
+    ],
+    "drops": [
+      "бурштинова смола",
+      "кореневе пір'я"
+    ]
+  }
+});
+
 /* monsters/korenevyy-chervyak.js */
 Atlas.registerMonster({
   format: 2,
@@ -5247,6 +5833,41 @@ Atlas.registerMonster({
     behavior: "Старі сади.",
     abilities: ["з’являється з-під ґрунту, хапає предмети й тікає в нори"],
   },
+});
+
+/* monsters/korol-bez-korony.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "korol-bez-korony",
+  "name": "Король без корони",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:ruins",
+      "tag:bones",
+      "tag:dead"
+    ],
+    "worlds": "all"
+  },
+  "order": 976,
+  "lore": {
+    "description": "Гігантський скелет у розбитих латах, на голові — порожнє коло.",
+    "behavior": "Ходить залом зруйнованого палацу й шукає свою корону.",
+    "abilities": [
+      "командує мертвою вартою",
+      "розколює підлогу",
+      "пророчий погляд знімає захист"
+    ],
+    "drops": [
+      "розбита корона",
+      "королівський меч"
+    ]
+  },
+  "variants": [
+    "темний король",
+    "білий король"
+  ]
 });
 
 /* monsters/korol-bezodni.js */
@@ -5526,6 +6147,39 @@ Atlas.registerMonster({
   order: 104,
 });
 
+/* monsters/koroliva-vitriv.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "koroliva-vitriv",
+  "name": "Королева вітрів",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:cloud"
+    ],
+    "worlds": "all"
+  },
+  "order": 939,
+  "lore": {
+    "description": "Велетенська орлиця зі склепінням із кам'яних кілець замість корони.",
+    "behavior": "Кружляє над кільцевими островами й керує грозами.",
+    "abilities": [
+      "викликає смерчі навколо арени",
+      "скидає на героїв кам'яні кільця",
+      "блискавка з ясного неба"
+    ],
+    "drops": [
+      "корона-кільце",
+      "грозове перо"
+    ]
+  },
+  "variants": [
+    "королева бур",
+    "повітряна владарка"
+  ]
+});
+
 /* monsters/korona-hrozovykh-dzvoniv.js */
 Atlas.registerMonster({
   format: 2,
@@ -5556,6 +6210,35 @@ Atlas.registerMonster({
     behavior: "Блукає давніми королівськими трактами й кам’яними рівнинами.",
     abilities: ["кожен крок зсуває пагорби, розколює землю та змінює рельєф арени"],
   },
+});
+
+/* monsters/korovyi-vovk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "korovyi-vovk",
+  "name": "Корововий вовк",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:forest",
+      "tag:canopy"
+    ],
+    "worlds": "all"
+  },
+  "order": 946,
+  "lore": {
+    "description": "Вовк із корою замість шерсті й гіллястими рогами.",
+    "behavior": "Полює зграєю на чужинців, що вторглися в чагарі.",
+    "abilities": [
+      "завиває, і ліс збирає хижаків",
+      "кора поглинає перший удар"
+    ],
+    "drops": [
+      "вовча кора",
+      "ріг-гілка"
+    ]
+  }
 });
 
 /* monsters/kotushka-pavuk.js */
@@ -6369,6 +7052,34 @@ Atlas.registerMonster({
   order: 123,
 });
 
+/* monsters/kryshtalevyi-yizhak.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "kryshtalevyi-yizhak",
+  "name": "Кришталевий їжак",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:crystal",
+      "tag:glass"
+    ],
+    "worlds": "all"
+  },
+  "order": 962,
+  "lore": {
+    "description": "Їжак, чий хребет — гостра кристалічна щітка.",
+    "behavior": "Згортається в кулю й котиться по схилах.",
+    "abilities": [
+      "розкидає гострі кристали",
+      "дзвенить, відлякуючи ворогів"
+    ],
+    "drops": [
+      "кришталева голка"
+    ]
+  }
+});
+
 /* monsters/kryshtalevyy-chervets.js */
 Atlas.registerMonster({
   format: 2,
@@ -6971,6 +7682,35 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/lavovyi-rakshyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "lavovyi-rakshyk",
+  "name": "Лавовий рачок",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:hot",
+      "tag:volcanic",
+      "tag:ashlands"
+    ],
+    "worlds": "all"
+  },
+  "order": 966,
+  "lore": {
+    "description": "Рак із розпеченою кам'яною шкаралупою.",
+    "behavior": "Ходить по лаві, ловить клешнями.",
+    "abilities": [
+      "вогняні клешні",
+      "охолоджується й тверднішає"
+    ],
+    "drops": [
+      "розпечена шкаралупа"
+    ]
+  }
+});
+
 /* monsters/lavovyy-zhuk-oblohar.js */
 Atlas.registerMonster({
   format: 2,
@@ -7174,6 +7914,35 @@ Atlas.registerMonster({
   nature: "threat",
   spawn: { biomes: ["forest", "taiga", "enchanted"], worlds: "all" },
   order: 30,
+});
+
+/* monsters/lisovyi-dzvonar.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "lisovyi-dzvonar",
+  "name": "Лісовий дзвонар",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:forest",
+      "tag:canopy"
+    ],
+    "worlds": "all"
+  },
+  "order": 947,
+  "lore": {
+    "description": "Старий пеньок із дзвоником-серцем і довгими руками-вусами.",
+    "behavior": "Б'є в дупло — і з землі встають коріння.",
+    "abilities": [
+      "дзвін оживляє коріння",
+      "розсіює пилок, що присипляє"
+    ],
+    "drops": [
+      "дзвоник-серце",
+      "пеньок дзвонаря"
+    ]
+  }
 });
 
 /* monsters/lisovyy-chaklun-vyhnanets.js */
@@ -7410,6 +8179,35 @@ Atlas.registerMonster({
     behavior: "Піщані подвір’я руїн.",
     abilities: ["ковзає крізь пісок і залишає короткі слизькі борозни"],
   },
+});
+
+/* monsters/lystkovyi-kralyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "lystkovyi-kralyk",
+  "name": "Листковий кролик",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:forest",
+      "tag:canopy"
+    ],
+    "worlds": "all"
+  },
+  "order": 945,
+  "lore": {
+    "description": "Кролик із вухами-листками, що зливається з підліском.",
+    "behavior": "Тікає, шелестить, сам не нападає.",
+    "abilities": [
+      "зникає в кущах",
+      "шелестом відволікає хижаків"
+    ],
+    "drops": [
+      "лист-вухо",
+      "кролячий хвіст"
+    ]
+  }
 });
 
 /* monsters/lystohryznyy-zhuzhil.js */
@@ -7761,6 +8559,33 @@ Atlas.registerMonster({
   order: 135,
 });
 
+/* monsters/mandrivnyi-kameniak.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "mandrivnyi-kameniak",
+  "name": "Мандрівний каменяк",
+  "kind": "monster",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:land+fantasy"
+    ],
+    "worlds": "all"
+  },
+  "order": 1001,
+  "lore": {
+    "description": "Безформний шматок породи на чотирьох лапах.",
+    "behavior": "Блукає зі стадом.",
+    "abilities": [
+      "каменяче прискорення",
+      "удар головою"
+    ],
+    "drops": [
+      "дивний камінь"
+    ]
+  }
+});
+
 /* monsters/mandrivnyy-tron.js */
 Atlas.registerMonster({
   format: 2,
@@ -7998,6 +8823,70 @@ Atlas.registerMonster({
     behavior: "Ховається в западинах Рифового Собору.",
     abilities: ["вирощує просто під противником гострі шпилі та перегороджує морське дно кораловими стінами"],
   },
+});
+
+/* monsters/matka-stovburiv.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "matka-stovburiv",
+  "name": "Матка стовбурів",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:forest",
+      "tag:canopy"
+    ],
+    "worlds": "all"
+  },
+  "order": 948,
+  "lore": {
+    "description": "Велетенське дерево-вдова, що ходить на корінні й шепоче гілками.",
+    "behavior": "Сідає в чорному лісі та вирощує вартових зі своїх шишок.",
+    "abilities": [
+      "гілки б'ють по площі",
+      "шишки розкриваються стражами",
+      "вичавлює життя з сусідніх дерев"
+    ],
+    "drops": [
+      "серцевина стовбура",
+      "смола-матка"
+    ]
+  },
+  "variants": [
+    "біла вдова лісу",
+    "чорна вдова лісу"
+  ]
+});
+
+/* monsters/matka-zhyl.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "matka-zhyl",
+  "name": "Матка жил",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:underground",
+      "tag:mine"
+    ],
+    "worlds": "all"
+  },
+  "order": 960,
+  "lore": {
+    "description": "Колосальний павук із лискучою рудою замість панцира.",
+    "behavior": "Пряде мережу з металевого волокна під найглибшою шахтою.",
+    "abilities": [
+      "окутує павутинням-дротом",
+      "вмикає живу руду-слуг",
+      "струмінь розпеченого металу"
+    ],
+    "drops": [
+      "панцир-руда",
+      "серце матки"
+    ]
+  }
 });
 
 /* monsters/matrona-ostannoho-snihopadu.js */
@@ -8665,6 +9554,34 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/mokhova-zhabura.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "mokhova-zhabura",
+  "name": "Мохова жабура",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:swamp",
+      "tag:wet"
+    ],
+    "worlds": "all"
+  },
+  "order": 944,
+  "lore": {
+    "description": "Товста жабка з мохом замість шкіри.",
+    "behavior": "Сидить на купинах, квакає, коли хтось поруч.",
+    "abilities": [
+      "стрибає, ляскаючи язиком по ногах"
+    ],
+    "drops": [
+      "мох",
+      "жаб'яче стегно"
+    ]
+  }
+});
+
 /* monsters/mokhovyy-maskaron.js */
 Atlas.registerMonster({
   format: 2,
@@ -8807,6 +9724,34 @@ Atlas.registerMonster({
     behavior: "Зустрічається: засніжені долини.",
     abilities: ["крижані хвилі", "таран", "заклик стада"],
   },
+});
+
+/* monsters/morozylnyi-vedmid.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "morozylnyi-vedmid",
+  "name": "Морозильний ведмідь",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:cold"
+    ],
+    "worlds": "all"
+  },
+  "order": 970,
+  "lore": {
+    "description": "Здоровенний білий ведмідь із крижаним панцирем.",
+    "behavior": "Стереже озера з крижаними печерами.",
+    "abilities": [
+      "крижаний подих",
+      "удар лапою, що заморожує"
+    ],
+    "drops": [
+      "ведмежа шкура",
+      "льодяний кіготь"
+    ]
+  }
 });
 
 /* monsters/morska-holka.js */
@@ -9039,6 +9984,34 @@ Atlas.registerMonster({
   "order": 846,
   "lore": {
     "description": "Загроза світу «Глибокрай»."
+  }
+});
+
+/* monsters/mostovyi-strazh.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "mostovyi-strazh",
+  "name": "Мостовий страж",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:cloud"
+    ],
+    "worlds": "all"
+  },
+  "order": 938,
+  "lore": {
+    "description": "Кам'яний гуманоїд-арка, що стоїть посеред вузького природного мосту.",
+    "behavior": "Не пускає тих, хто не поклав дар на камінь, і скидає порушників у прірву.",
+    "abilities": [
+      "розширює себе й перекриває міст",
+      "відштовхує ударною хвилею"
+    ],
+    "drops": [
+      "мостовий камінь",
+      "жила-ключ"
+    ]
   }
 });
 
@@ -9795,6 +10768,36 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/pahorbkovyi-baran.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pahorbkovyi-baran",
+  "name": "Горбатий баран",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:highland",
+      "tag:hills",
+      "tag:mountain",
+      "tag:stone"
+    ],
+    "worlds": "all"
+  },
+  "order": 989,
+  "lore": {
+    "description": "Баран із кам'яними рогами.",
+    "behavior": "Паситься на уступах.",
+    "abilities": [
+      "таран",
+      "стрибки"
+    ],
+    "drops": [
+      "баранячий ріг"
+    ]
+  }
+});
+
 /* monsters/palayuchyy-kistyanyy-drakon.js */
 Atlas.registerMonster({
   format: 2,
@@ -10081,6 +11084,37 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/pasovyshchnyi-hihant.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pasovyshchnyi-hihant",
+  "name": "Пасовищний гігант",
+  "kind": "mini-boss",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:highland",
+      "tag:hills",
+      "tag:mountain",
+      "tag:stone"
+    ],
+    "worlds": "all"
+  },
+  "order": 991,
+  "lore": {
+    "description": "Волохатий кам'яний велетень, що гляне — і трава в'яне.",
+    "behavior": "Живе на високих пасовищах і відганяє чужинців.",
+    "abilities": [
+      "кидає валуни",
+      "розтрощує землю"
+    ],
+    "drops": [
+      "камінь-шерсть",
+      "мох велетня"
+    ]
+  }
+});
+
 /* monsters/pastka-khodok.js */
 Atlas.registerMonster({
   format: 2,
@@ -10336,6 +11370,34 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/pecherna-mukha.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pecherna-mukha",
+  "name": "Печерна мошка",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:underground",
+      "tag:mine"
+    ],
+    "worlds": "all"
+  },
+  "order": 957,
+  "lore": {
+    "description": "Світлячок-мошка з тьмяним ліхтариком у хвості.",
+    "behavior": "Тягне мандрівників у темряву, мерехтіючи.",
+    "abilities": [
+      "осліплює спалахом",
+      "рій піднімається разом"
+    ],
+    "drops": [
+      "тьмяний світляк"
+    ]
+  }
+});
+
 /* monsters/pecherna-salamandra.js */
 Atlas.registerMonster({
   format: 2,
@@ -10562,6 +11624,33 @@ Atlas.registerMonster({
     behavior: "Живе на старих лісосіках.",
     abilities: ["облизує пеньки, роблячи їх і прилеглі ділянки землі слизькими, а потім ковзає до здобичі"],
   },
+});
+
+/* monsters/perevernuta-tin.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "perevernuta-tin",
+  "name": "Перевернута тінь",
+  "kind": "monster",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:surreal"
+    ],
+    "worlds": "all"
+  },
+  "order": 994,
+  "lore": {
+    "description": "Темна постать, що висить догори ногами й тягнеться до голови.",
+    "behavior": "Виринає з перевернутих водоспадів.",
+    "abilities": [
+      "тягне вгору",
+      "інвертує керування"
+    ],
+    "drops": [
+      "чорна тінь"
+    ]
+  }
 });
 
 /* monsters/pereverten-alfa.js */
@@ -10916,6 +12005,35 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/pishchana-zmiia-spraty.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pishchana-zmiia-spraty",
+  "name": "Піщана змія спраги",
+  "kind": "boss",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:dry"
+    ],
+    "worlds": "all"
+  },
+  "order": 956,
+  "lore": {
+    "description": "Колосальна змія з піску, чиє тіло лишає за собою мертву смугу.",
+    "behavior": "Повзає під барханами й шукає останню краплю води.",
+    "abilities": [
+      "заривається й виринає під ногами",
+      "піщана буря",
+      "виссисає воду з героїв"
+    ],
+    "drops": [
+      "пісок спраги",
+      "луска-діна"
+    ]
+  }
+});
+
 /* monsters/pishchani-chervy.js */
 Atlas.registerMonster({
   "format": 2,
@@ -11001,6 +12119,37 @@ Atlas.registerMonster({
   "order": 746,
   "lore": {
     "description": "Загроза світу «Геліонтар»."
+  }
+});
+
+/* monsters/pishchanyi-krab-pozhyvnyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pishchanyi-krab-pozhyvnyk",
+  "name": "Піщаний крабик",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:shore",
+      "tag:water",
+      "tag:sea",
+      "tag:fresh"
+    ],
+    "worlds": "all"
+  },
+  "order": 977,
+  "lore": {
+    "description": "Крихітний краб із мушлею-хатинкою.",
+    "behavior": "Збирає блискітки на березі.",
+    "abilities": [
+      "щипає за пальці",
+      "ховається в піску"
+    ],
+    "drops": [
+      "мушля",
+      "піщана перлинка"
+    ]
   }
 });
 
@@ -11382,6 +12531,34 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/polovyi-zhaivoronok.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "polovyi-zhaivoronok",
+  "name": "Польовий жайворонок",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:plain",
+      "tag:farmland"
+    ],
+    "worlds": "all"
+  },
+  "order": 985,
+  "lore": {
+    "description": "Малий птах, що співає серед пшениці.",
+    "behavior": "Тікає при наближенні.",
+    "abilities": [
+      "заспокійлива пісня"
+    ],
+    "drops": [
+      "пір'я",
+      "пшениця"
+    ]
+  }
+});
+
 /* monsters/popelyasti-khyzhaky.js */
 Atlas.registerMonster({
   "format": 2,
@@ -11461,6 +12638,36 @@ Atlas.registerMonster({
     behavior: "Вулканічні рівнини.",
     abilities: ["під час стрибка здіймає хмару, що затуманює огляд"],
   },
+});
+
+/* monsters/popilnyi-chervak.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "popilnyi-chervak",
+  "name": "Попільний черв'як",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:hot",
+      "tag:volcanic",
+      "tag:ashlands"
+    ],
+    "worlds": "all"
+  },
+  "order": 965,
+  "lore": {
+    "description": "Довгий черв'як із тліючим хвостом.",
+    "behavior": "Виповзає з попелу, обпалює ноги.",
+    "abilities": [
+      "тліючий укус",
+      "залишає вогняні плями"
+    ],
+    "drops": [
+      "попіл",
+      "тліюча луска"
+    ]
+  }
 });
 
 /* monsters/poridni-holemy.js */
@@ -12047,6 +13254,37 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/pryplyvova-kasatka.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pryplyvova-kasatka",
+  "name": "Приплив-касатка",
+  "kind": "mini-boss",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:shore",
+      "tag:water",
+      "tag:sea",
+      "tag:fresh"
+    ],
+    "worlds": "all"
+  },
+  "order": 979,
+  "lore": {
+    "description": "Чорно-білий кит-вартовий, що виринає на мілководді.",
+    "behavior": "Нападає на судна й тих, хто ступає в воду.",
+    "abilities": [
+      "хвильовий удар хвостом",
+      "затягує на глибину"
+    ],
+    "drops": [
+      "китовий жир",
+      "перлина припливу"
+    ]
+  }
+});
+
 /* monsters/pryvydy-shlyakhiv.js */
 Atlas.registerMonster({
   format: 1,
@@ -12056,6 +13294,36 @@ Atlas.registerMonster({
   nature: "magic",
   spawn: { biomes: ["grass", "steppe", "wasteland", "hills"], worlds: "all" },
   order: 134,
+});
+
+/* monsters/pryzma-koloh.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pryzma-koloh",
+  "name": "Призма-коло",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:crystal",
+      "tag:glass"
+    ],
+    "worlds": "all"
+  },
+  "order": 964,
+  "lore": {
+    "description": "Колосальна призма, що кружляє над долиною й розкладає сонце на промені.",
+    "behavior": "Прокидається на світанку й палить усе кольоровими променями.",
+    "abilities": [
+      "розкладає світло на шість променів",
+      "дзеркала-двійники",
+      "осліплює при руйнуванні"
+    ],
+    "drops": [
+      "серце-призма",
+      "уламок веселки"
+    ]
+  }
 });
 
 /* monsters/psar-iz-rozkolotoyi-orbity.js */
@@ -12419,6 +13687,33 @@ Atlas.registerMonster({
   "order": 742,
   "lore": {
     "description": "Загроза світу «Варгесс»."
+  }
+});
+
+/* monsters/pylovyi-skarabei.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "pylovyi-skarabei",
+  "name": "Пиловий скарабей",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:dry"
+    ],
+    "worlds": "all"
+  },
+  "order": 953,
+  "lore": {
+    "description": "Дрібний жук, що збирає пил у кульки.",
+    "behavior": "Котить кульку просто через дорогу.",
+    "abilities": [
+      "пилова завіса",
+      "кусає за ногу"
+    ],
+    "drops": [
+      "пилова кулька"
+    ]
   }
 });
 
@@ -13238,6 +14533,35 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/rudoiid.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "rudoiid",
+  "name": "Рудоїд",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:underground",
+      "tag:mine"
+    ],
+    "worlds": "all"
+  },
+  "order": 958,
+  "lore": {
+    "description": "Кубічний кріт, що гризе жили руди й вигризає осколки.",
+    "behavior": "Риється в жилах, напрошується на будь-який шум.",
+    "abilities": [
+      "пробиває стіни",
+      "відригує гострими уламками"
+    ],
+    "drops": [
+      "сира руда",
+      "зуб рудоїда"
+    ]
+  }
+});
+
 /* monsters/ruin-predator.js */
 Atlas.registerMonster({
   "format": 2,
@@ -13758,6 +15082,35 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/shakhtnyi-obvalnyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "shakhtnyi-obvalnyk",
+  "name": "Шахтний обвальник",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:underground",
+      "tag:mine"
+    ],
+    "worlds": "all"
+  },
+  "order": 959,
+  "lore": {
+    "description": "Дух старої шахти, оповитий дерев'яною кріпою й пилом.",
+    "behavior": "Вмикає обвали у тих, хто неповажно ставиться до шахти.",
+    "abilities": [
+      "обвалює стелю",
+      "кріпа ожива й б'є балками"
+    ],
+    "drops": [
+      "балка духа",
+      "шахтний пил"
+    ]
+  }
+});
+
 /* monsters/shaman-vidlyudnyk.js */
 Atlas.registerMonster({
   format: 2,
@@ -14121,6 +15474,63 @@ Atlas.registerMonster({
     behavior: "Кладовище велетенських істот.",
     abilities: ["перебудовує арену з ребер, щелеп і хребців"],
   },
+});
+
+/* monsters/skliana-iskra.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "skliana-iskra",
+  "name": "Скляна іскра",
+  "kind": "weak",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:crystal",
+      "tag:glass"
+    ],
+    "worlds": "all"
+  },
+  "order": 961,
+  "lore": {
+    "description": "Дрібна кубічна іскра з прозорим тілом.",
+    "behavior": "Блукає в кристалічних долинах, відбиваючи світло.",
+    "abilities": [
+      "відбиває промінь у очі",
+      "розсипається на скельця"
+    ],
+    "drops": [
+      "скляна іскра"
+    ]
+  }
+});
+
+/* monsters/skliarnyi-tkach.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "skliarnyi-tkach",
+  "name": "Скляний ткач",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:crystal",
+      "tag:glass"
+    ],
+    "worlds": "all"
+  },
+  "order": 963,
+  "lore": {
+    "description": "Тонка людиноподібна постать зі скла, що в'яже світло в нитки.",
+    "behavior": "Плете прозорі стіни, які не видно, доки не вдаришся.",
+    "abilities": [
+      "прозорі пастки",
+      "нитка світла, що ріже"
+    ],
+    "drops": [
+      "скляна нитка",
+      "ткацький кристал"
+    ]
+  }
 });
 
 /* monsters/skloryb.js */
@@ -14545,6 +15955,33 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/snihova-shchurka.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "snihova-shchurka",
+  "name": "Сніжна щурка",
+  "kind": "weak",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:cold"
+    ],
+    "worlds": "all"
+  },
+  "order": 969,
+  "lore": {
+    "description": "Біла щурка з крижаними вусами.",
+    "behavior": "Риє нори в снігу й гризе припаси.",
+    "abilities": [
+      "викопує пастки",
+      "холодний укус"
+    ],
+    "drops": [
+      "крижані вуса"
+    ]
+  }
+});
+
 /* monsters/snihovi-prymary.js */
 Atlas.registerMonster({
   format: 1,
@@ -14618,6 +16055,34 @@ Atlas.registerMonster({
     behavior: "Живе в соляних болотцях уздовж берега.",
     abilities: ["збирає сіль з каміння та шкіри, а при захисті вистрілює нею тонкими кристалічними голками"],
   },
+});
+
+/* monsters/solonchakovyi-vartovyi.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "solonchakovyi-vartovyi",
+  "name": "Солончаковий вартовий",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:dry"
+    ],
+    "worlds": "all"
+  },
+  "order": 955,
+  "lore": {
+    "description": "Статуя з соляних кристалів із нахиленою головою.",
+    "behavior": "Захищає висохлі джерела й вимагає води як данини.",
+    "abilities": [
+      "висушує воду зі спорядження",
+      "сольові шипи вириваються з землі"
+    ],
+    "drops": [
+      "соляне серце",
+      "вартова сіль"
+    ]
+  }
 });
 
 /* monsters/solyanyy-plyuvach.js */
@@ -15130,6 +16595,35 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/stepovyi-bizon-shypospyn.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "stepovyi-bizon-shypospyn",
+  "name": "Степовий бізон-шипоспин",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:plain",
+      "tag:farmland"
+    ],
+    "worlds": "all"
+  },
+  "order": 986,
+  "lore": {
+    "description": "Зарослий кущами бізон із шипами на спині.",
+    "behavior": "Гуляє по степу стадом.",
+    "abilities": [
+      "тарани",
+      "шипи при поваленні"
+    ],
+    "drops": [
+      "бізонова шкура",
+      "шип"
+    ]
+  }
+});
+
 /* monsters/stone-bird.js */
 Atlas.registerMonster({
   "format": 2,
@@ -15263,6 +16757,33 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/strazh-nepryvatnoho-horyzontu.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "strazh-nepryvatnoho-horyzontu",
+  "name": "Страж непридатного горизонту",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:surreal"
+    ],
+    "worlds": "all"
+  },
+  "order": 995,
+  "lore": {
+    "description": "Висока рамка з дверима, у якій видно інше небо.",
+    "behavior": "Дозволяє перейти, лише якщо відповісти на загадку.",
+    "abilities": [
+      "відкриває портал-ловушку",
+      "міняє місцями героїв"
+    ],
+    "drops": [
+      "шматок горизонту"
+    ]
+  }
+});
+
 /* monsters/strazh-pidzemnoho-zharu.js */
 Atlas.registerMonster({
   "format": 2,
@@ -15329,6 +16850,34 @@ Atlas.registerMonster({
     behavior: "Засідає в Суді Вічного Полудня.",
     abilities: ["забирає тіні з арени, перетворюючи їх на агресивні копії ворогів, а безтінних цілей карає променями"],
   },
+});
+
+/* monsters/sukhokh-vitrohon.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "sukhokh-vitrohon",
+  "name": "Сухий вітрогон",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:dry"
+    ],
+    "worlds": "all"
+  },
+  "order": 954,
+  "lore": {
+    "description": "Худий звір із воском замість шерсті, ноги як у газелі.",
+    "behavior": "Мчить по барханах, перекидає тих, хто на нього полює.",
+    "abilities": [
+      "різкий ривок із кидком",
+      "піщана хвиля за хвостом"
+    ],
+    "drops": [
+      "воскова шерсть",
+      "копито вітрогона"
+    ]
+  }
 });
 
 /* monsters/sutinkovi-koty.js */
@@ -15454,6 +17003,36 @@ Atlas.registerMonster({
   "order": 747,
   "lore": {
     "description": "Загроза світу «Геліонтар»."
+  }
+});
+
+/* monsters/svitlovyi-shuhaistyr.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "svitlovyi-shuhaistyr",
+  "name": "Світловий шугайстир",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:mushroom",
+      "tag:glow",
+      "tag:toxic"
+    ],
+    "worlds": "all"
+  },
+  "order": 982,
+  "lore": {
+    "description": "Довгі мережива міцелію, що рухаються як тварина.",
+    "behavior": "Охороняє грибні сади й світиться, коли гнівається.",
+    "abilities": [
+      "міцеліальні батоги",
+      "спалахи світла"
+    ],
+    "drops": [
+      "міцелій",
+      "світлий гриб"
+    ]
   }
 });
 
@@ -16374,6 +17953,37 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/tumannyi-sluh.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "tumannyi-sluh",
+  "name": "Туманний слух",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:mushroom",
+      "tag:glow",
+      "tag:toxic"
+    ],
+    "worlds": "all"
+  },
+  "order": 984,
+  "lore": {
+    "description": "Велетенська тінь серед мережі грибних веж.",
+    "behavior": "Шепоче в тумані й веде до мертвих печер.",
+    "abilities": [
+      "туман, що збиває з пуття",
+      "отруйні кулі",
+      "лунає голосами загиблих"
+    ],
+    "drops": [
+      "серце туману",
+      "отруйний гриб"
+    ]
+  }
+});
+
 /* monsters/tumannyy-kopyten.js */
 Atlas.registerMonster({
   format: 2,
@@ -16460,6 +18070,36 @@ Atlas.registerMonster({
     behavior: "Зустрічається: штормові рівнини, небесні плато.",
     abilities: ["створює торнадо", "блискавки й потоки вітру"],
   },
+});
+
+/* monsters/tytan-nyv.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "tytan-nyv",
+  "name": "Титан ланів",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:plain",
+      "tag:farmland"
+    ],
+    "worlds": "all"
+  },
+  "order": 988,
+  "lore": {
+    "description": "Колосальний колос із соломи й каменя, що ходить по ланах.",
+    "behavior": "Рушить, коли когось ловлять на крадіжці врожаю.",
+    "abilities": [
+      "молотить кулаками",
+      "розсіює солому, що сліпить",
+      "скликає хвилі пшениці"
+    ],
+    "drops": [
+      "колос титана",
+      "золоте зерно"
+    ]
+  }
 });
 
 /* monsters/tytan-zaliznoho-pantsyra.js */
@@ -16607,6 +18247,34 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/ushchelynnyi-kolos.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "ushchelynnyi-kolos",
+  "name": "Ущельний колос",
+  "kind": "mini-boss",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:canyon"
+    ],
+    "worlds": "all"
+  },
+  "order": 951,
+  "lore": {
+    "description": "Кам'яний велетень, схожий на живий пласт скелі.",
+    "behavior": "Закриває собою прохід між двома стінами.",
+    "abilities": [
+      "розхитує стіни, скидаючи завали",
+      "бій зблизька важкими кулаками"
+    ],
+    "drops": [
+      "колосовий камінь",
+      "руда стіни"
+    ]
+  }
+});
+
 /* monsters/utopeltsi.js */
 Atlas.registerMonster({
   format: 1,
@@ -16643,6 +18311,36 @@ Atlas.registerMonster({
   nature: "threat",
   spawn: { biomes: ["forest", "taiga", "enchanted"], worlds: "all" },
   order: 25,
+});
+
+/* monsters/vartovyi-zlamanykh-vezh.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vartovyi-zlamanykh-vezh",
+  "name": "Вартовий зламаних веж",
+  "kind": "monster",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:ruins",
+      "tag:bones",
+      "tag:dead"
+    ],
+    "worlds": "all"
+  },
+  "order": 974,
+  "lore": {
+    "description": "Порожні обладунки, що ходять там, де впали вежі.",
+    "behavior": "Не пускає чужаків у руїни.",
+    "abilities": [
+      "удари мечем із-за кута",
+      "збирається знову після удару"
+    ],
+    "drops": [
+      "іржавий шолом",
+      "уламок вежі"
+    ]
+  }
 });
 
 /* monsters/vartovyy-semy-baseyniv.js */
@@ -16754,6 +18452,35 @@ Atlas.registerMonster({
     behavior: "Зустрічається: ліси, гори; печери; снігові гори.",
     abilities: ["сильні удари лапами", "захоплення", "важкі удари", "лютість у темряві", "морозний укус", "стійкість до холоду"],
   },
+});
+
+/* monsters/velet-metelytsia.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "velet-metelytsia",
+  "name": "Велет-метелиця",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:cold"
+    ],
+    "worlds": "all"
+  },
+  "order": 972,
+  "lore": {
+    "description": "Велетень із вихру снігу й льоду, обличчя — дві чорні діри.",
+    "behavior": "Гуляє полями й перетворює усе на крижані скульптури.",
+    "abilities": [
+      "завірюха по площі",
+      "заморожує героїв у льоді",
+      "ламає лід під ногами"
+    ],
+    "drops": [
+      "серце метелиці",
+      "ядро снігу"
+    ]
+  }
 });
 
 /* monsters/veletenska-sova-vereteno.js */
@@ -16943,6 +18670,35 @@ Atlas.registerMonster({
   }
 });
 
+/* monsters/verbovyi-trusnyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "verbovyi-trusnyk",
+  "name": "Вербовий трусник",
+  "kind": "monster",
+  "nature": "threat",
+  "spawn": {
+    "biomes": [
+      "tag:swamp",
+      "tag:wet"
+    ],
+    "worlds": "all"
+  },
+  "order": 941,
+  "lore": {
+    "description": "Згорблена істота з гілля велетенських верб, очі — дві світляні жаби.",
+    "behavior": "Ховається серед верб, хапає за ноги довгими прутами.",
+    "abilities": [
+      "обвиває лозою й тягне в багно",
+      "свистить, скликаючи жаб"
+    ],
+    "drops": [
+      "вербова лоза",
+      "жаб'яче око"
+    ]
+  }
+});
+
 /* monsters/verkhovna-temna-karha.js */
 Atlas.registerMonster({
   format: 1,
@@ -17049,6 +18805,34 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/vichnyi-likhtarnyk.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vichnyi-likhtarnyk",
+  "name": "Вічний ліхтарник",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:cold"
+    ],
+    "worlds": "all"
+  },
+  "order": 971,
+  "lore": {
+    "description": "Привид-ліхтар у снігу, оповитий синім світлом.",
+    "behavior": "Заводить подорожніх у хуртовину.",
+    "abilities": [
+      "морозна заграва",
+      "зникає в завірюсі"
+    ],
+    "drops": [
+      "синій ліхтар",
+      "крижаний вогонь"
+    ]
+  }
+});
+
 /* monsters/vichnyy-volodar-khashchi.js */
 Atlas.registerMonster({
   format: 1,
@@ -17122,6 +18906,35 @@ Atlas.registerMonster({
     behavior: "Мешкає на вітрових плато.",
     abilities: ["розправляє шкіряні вітрила та ширяє на висхідних потоках, вихоплюючи дрібну здобич зі скельних гнізд"],
   },
+});
+
+/* monsters/vitrovyi-pastukh.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vitrovyi-pastukh",
+  "name": "Вітровий пастух",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:plain",
+      "tag:farmland"
+    ],
+    "worlds": "all"
+  },
+  "order": 987,
+  "lore": {
+    "description": "Чучело в піджаку з вітру, чия коса косить усе поспіль.",
+    "behavior": "Вартує поля й ганяє злодіїв.",
+    "abilities": [
+      "вітер-коса по прямій",
+      "скликає ворон"
+    ],
+    "drops": [
+      "чучело",
+      "ворона"
+    ]
+  }
 });
 
 /* monsters/vitrovyy-kozlyk.js */
@@ -17204,6 +19017,73 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/vladar-hori-polumia.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vladar-hori-polumia",
+  "name": "Владар гори полум'я",
+  "kind": "super-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:hot",
+      "tag:volcanic",
+      "tag:ashlands"
+    ],
+    "worlds": "all"
+  },
+  "order": 968,
+  "lore": {
+    "description": "Колосальний дракон-вулкан, чиє тіло складається з обвугленого каменю.",
+    "behavior": "Спить усередині жерла й прокидається, коли земля тріщить.",
+    "abilities": [
+      "виверження по площі",
+      "вогняний подих",
+      "бронює себе застиглою лавою"
+    ],
+    "drops": [
+      "серце вулкана",
+      "луска магми"
+    ]
+  },
+  "variants": [
+    "драконовий вулкан",
+    "вогняний владар"
+  ]
+});
+
+/* monsters/vladyka-pasma.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vladyka-pasma",
+  "name": "Владика пасма",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:highland",
+      "tag:hills",
+      "tag:mountain",
+      "tag:stone"
+    ],
+    "worlds": "all"
+  },
+  "order": 992,
+  "lore": {
+    "description": "Колосальний орел із крилами зі скель і очима з дзеркал.",
+    "behavior": "Мешкає на вершині й вивчає тих, хто підіймається.",
+    "abilities": [
+      "пікірує з вершини",
+      "лавини з крил",
+      "ілюзії з очей"
+    ],
+    "drops": [
+      "оч-дзеркало",
+      "орлине крило"
+    ]
+  }
+});
+
 /* monsters/vladyka-pecher.js */
 Atlas.registerMonster({
   format: 1,
@@ -17213,6 +19093,35 @@ Atlas.registerMonster({
   nature: "magic",
   spawn: { biomes: ["hills", "mountain", "peaks"], worlds: "all" },
   order: 64,
+});
+
+/* monsters/vladyka-rozlomu.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vladyka-rozlomu",
+  "name": "Владика розлому",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:canyon"
+    ],
+    "worlds": "all"
+  },
+  "order": 952,
+  "lore": {
+    "description": "Скелет із видовженими уламками гір, у ребрах — світний кристал.",
+    "behavior": "Живе на дні найглибшого розлому, чекає, поки хтось упаде.",
+    "abilities": [
+      "провалює арену трясінням",
+      "метає уламки-списи",
+      "тримає героїв гравітаційною пасткою"
+    ],
+    "drops": [
+      "кристал розлому",
+      "осколок хребта"
+    ]
+  }
 });
 
 /* monsters/vlastelin-lisu.js */
@@ -17656,6 +19565,36 @@ Atlas.registerMonster({
   },
 });
 
+/* monsters/volodar-porozhnikh-dzvoniv.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "volodar-porozhnikh-dzvoniv",
+  "name": "Володар порожніх дзвонів",
+  "kind": "boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:swamp",
+      "tag:wet"
+    ],
+    "worlds": "all"
+  },
+  "order": 943,
+  "lore": {
+    "description": "Вежа з кам'яних водяних дзвонів, які б'ють самі, а всередині немає нікого.",
+    "behavior": "Прокидається, коли хтось порушує болотну тишу.",
+    "abilities": [
+      "дзвін звуком руйнує щити",
+      "викликає хвилі з мулу",
+      "стискає воду в кулі"
+    ],
+    "drops": [
+      "порожній дзвін",
+      "болотна перлина"
+    ]
+  }
+});
+
 /* monsters/volodar-zatoplenoho-kvartalu.js */
 Atlas.registerMonster({
   "format": 2,
@@ -17971,6 +19910,36 @@ Atlas.registerMonster({
   nature: "magic",
   spawn: { biomes: ["volcanic", "ashlands"], worlds: "all" },
   order: 122,
+});
+
+/* monsters/vulkanichnyi-kuznets.js */
+Atlas.registerMonster({
+  "format": 2,
+  "id": "vulkanichnyi-kuznets",
+  "name": "Вулканічний коваль",
+  "kind": "mini-boss",
+  "nature": "magic",
+  "spawn": {
+    "biomes": [
+      "tag:hot",
+      "tag:volcanic",
+      "tag:ashlands"
+    ],
+    "worlds": "all"
+  },
+  "order": 967,
+  "lore": {
+    "description": "Кам'яний гігант із молотом із застиглої лави.",
+    "behavior": "Кує зброю з магми, нападає на всіх, хто несе зброю.",
+    "abilities": [
+      "вогняний удар молотом",
+      "кує щит із лави"
+    ],
+    "drops": [
+      "молот лави",
+      "магматична руда"
+    ]
+  }
 });
 
 /* monsters/vulkanichnyy-pryvratnyk.js */

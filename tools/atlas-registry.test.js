@@ -58,7 +58,7 @@ test('кожен файл монстра реєструє монстра з id =
     assert.ok(Atlas.monsterKinds[m.kind], m.id + ': невідомий тип ' + m.kind);
     assert.ok(Atlas.monsterNatures[m.nature], m.id + ': невідома природа');
     assert.ok(m.spawn.biomes.length, m.id);
-    for (const b of m.spawn.biomes) assert.ok(Atlas.biomes.some((x) => x.id === b), m.id + ': невідомий біом ' + b);
+    for (const b of m.spawn.biomes) assert.ok(Atlas.biomes.some((x) => Atlas.matches(x, b)), m.id + ': невідомий біом ' + b);
   }
 });
 test('у кожній групі монстрів щонайменше кілька', () => {
@@ -73,7 +73,12 @@ test('чим сильніший тип, тим далі від міст і сі�
 });
 test('monstersFor фільтрує за типом і біомом', () => {
   const l = Atlas.monstersFor('boss', ['mountain'], 'infinite');
-  assert.ok(l.length && l.every((m) => m.kind === 'boss' && m.spawn.biomes.includes('mountain')));
+  assert.ok(l.length && l.every((m) => m.kind === 'boss' && m.spawn.biomes.some((s) => Atlas.matches(Atlas.biomes.find((b) => b.id === 'mountain'), s))));
+});
+test('кожен біом кожного світу має монстрів (спільних або своїх)', () => {
+  for (const w of Atlas.worlds) for (const { biome } of Atlas.resolveBiomes(w)) {
+    assert.ok(Atlas.monsters.some((m) => (m.spawn.worlds === 'all' || m.spawn.worlds.includes(w.id)) && [].concat(m.spawn.biomes).some((s) => Atlas.matches(biome, s))), w.id + ': біом без монстрів ' + biome.id);
+  }
 });
 test('registry.js містить усі файли монстрів', () => {
   const m = JSON.parse(fs.readFileSync(path.join(base, 'registry.js'), 'utf8').replace(/^[\s\S]*?Atlas\.manifest = /, '').replace(/;\s*$/, ''));
