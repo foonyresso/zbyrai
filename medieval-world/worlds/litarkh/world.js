@@ -52,20 +52,6 @@ Atlas.registerWorld({
         "id": "mihratsiyni-bolota"
       }
     ],
-    "peoples": [
-      {
-        "name": "Народи остров'ян",
-        "text": "Народи остров'ян будують пересувні поселення."
-      },
-      {
-        "name": "Пастухи",
-        "text": "Пастухи керують маршрутами материків."
-      },
-      {
-        "name": "Мисливці на корені",
-        "text": "Мисливці на корені збирають рідкісні матеріали з живої суші."
-      }
-    ],
     "creatures": [
       "khyzhaky-mandrivnyky",
       "rozlyucheni-ostrovy"

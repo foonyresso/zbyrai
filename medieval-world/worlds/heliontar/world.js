@@ -52,20 +52,6 @@ Atlas.registerWorld({
         "id": "pidzemni-sonyachni-morya"
       }
     ],
-    "peoples": [
-      {
-        "name": "Кочові піскарі",
-        "text": "Кочові піскарі будують каравани з легких блоків."
-      },
-      {
-        "name": "Світлові скорпіони",
-        "text": "Світлові скорпіони охороняють оази."
-      },
-      {
-        "name": "Жерці сонця",
-        "text": "Жерці сонця контролюють доступ до підземних морів."
-      }
-    ],
     "creatures": [
       "pishchani-leviafany",
       "svitlovi-skorpiony"

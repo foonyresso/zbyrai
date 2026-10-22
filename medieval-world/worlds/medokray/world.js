@@ -48,21 +48,6 @@ Atlas.registerWorld({
         "id": "porozhnysti-vulyky"
       }
     ],
-    "peoples": [
-      {
-        "name": "Бджоли-воїни"
-      },
-      {
-        "name": "Броньовані жуки"
-      },
-      {
-        "name": "Збирачі меду"
-      },
-      {
-        "name": "Невеликі громади людей",
-        "text": "Невеликі громади людей, які обмінюються продуктами з мирними колоніями."
-      }
-    ],
     "creatures": [
       "okhorontsi-matky",
       "shershni-berserky"

@@ -15,7 +15,7 @@ const monFiles = fs.readdirSync(path.join(base, 'monsters')).filter((f) => f.end
 for (const f of monFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'monsters', f + '.js'), 'utf8'));
 const dgFiles = fs.readdirSync(path.join(base, 'dungeons')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
 for (const f of dgFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'dungeons', f + '.js'), 'utf8'));
-for (const d of ['peoples', 'races']) for (const f of fs.readdirSync(path.join(base, d)).filter((x) => x.endsWith('.js'))) vm.runInThisContext(fs.readFileSync(path.join(base, d, f), 'utf8'));
+for (const f of fs.readdirSync(path.join(base, 'races')).filter((x) => x.endsWith('.js'))) vm.runInThisContext(fs.readFileSync(path.join(base, 'races', f), 'utf8'));
 for (const f of worldFiles) vm.runInThisContext(fs.readFileSync(path.join(base, 'worlds', f, 'world.js'), 'utf8'));
 
 test('кожен файл реєструє світ/біом з id, що збігається з назвою файлу', () => {
@@ -126,7 +126,7 @@ test('світи формату 2: усі посилання в lore існую�
   for (const w of full) {
     const L = w.lore;
     for (const k of ['concept', 'meaning', 'history', 'structure', 'sky', 'exploration']) assert.ok(typeof L[k] === 'string' && L[k].length > 20, w.id + ': немає ' + k);
-    for (const k of ['biomes', 'peoples', 'creatures', 'bosses', 'architecture', 'mechanics', 'resources', 'dungeons']) assert.ok(Array.isArray(L[k]) && L[k].length, w.id + ': порожнє ' + k);
+    for (const k of ['biomes', 'creatures', 'bosses', 'architecture', 'mechanics', 'resources', 'dungeons']) assert.ok(Array.isArray(L[k]) && L[k].length, w.id + ': порожнє ' + k);
     assert.ok(L.visual && L.visual.palette.length >= 4 && L.visual.signature, w.id + ': немає вигляду');
     assert.ok(L.structures && L.structures.under && L.structures.above, w.id + ': немає підземних і надземних споруд');
     for (const b of L.biomes) assert.ok(Atlas.biomes.some((x) => x.id === b.id), w.id + ': біом ' + b.id);
@@ -149,19 +149,9 @@ test('тема кожного світу на рушії «Материк» іс
   vm.runInNewContext(fs.readFileSync(path.join(base, 'worlds/continent/render/themes.js'), 'utf8'), Object.assign(sb, { globalThis: sb }));
   for (const w of Atlas.worlds) if (w.preset && w.preset.theme) assert.ok(sb.RealmMap.Themes[w.preset.theme], w.id + ': немає теми ' + w.preset.theme);
 });
-test('народи: 25 файлів, id = назві файлу, формат ≥2, коректні кольори, унікальні назви, без чужих брендів', () => {
-  const files = fs.readdirSync(path.join(base, 'peoples')).filter((f) => f.endsWith('.js'));
-  assert.strictEqual(Atlas.peoples.length, files.length);
-  assert.ok(files.length >= 25);
-  const hex = /^#[0-9a-f]{6}$/i;
-  for (const p of Atlas.peoples) {
-    assert.ok(files.includes(p.id + '.js'), p.id);
-    assert.ok(p.format >= 2, p.id);
-    assert.ok(p.look.walls.length && p.look.walls.every((c) => hex.test(c)) && p.look.roofs.every((c) => hex.test(c)) && hex.test(p.look.trim), p.id + ': палітра');
-  }
-  assert.strictEqual(new Set(Atlas.peoples.map((p) => p.name)).size, Atlas.peoples.length);
-  const bad = /\b(dune|avatar|warhammer|lotr|game of thrones|дюна|аватар|толкін)\b/i;
-  for (const f of files) assert.ok(!bad.test(fs.readFileSync(path.join(base, 'peoples', f), 'utf8')), f + ': чужий бренд');
+test('народів немає: ні реєстру, ні папки, ні поля lore.peoples', () => {
+  assert.ok(!('peoples' in Atlas) && !Atlas.registerPeople && !fs.existsSync(path.join(base, 'peoples')));
+  for (const w of Atlas.worlds) assert.ok(!(w.lore && 'peoples' in w.lore), w.id + ': lore.peoples');
 });
 test('раси: ≥30 файлів, id = назві файлу, вага >0, унікальні назви', () => {
   const files = fs.readdirSync(path.join(base, 'races')).filter((f) => f.endsWith('.js'));

@@ -64,32 +64,6 @@ Atlas.registerWorld({
         "id": "zoloti-teplytsi"
       }
     ],
-    "peoples": [
-      {
-        "name": "Садівники-алхіміки"
-      },
-      {
-        "name": "Плодоїдні звірі"
-      },
-      {
-        "name": "Глиняні помічники"
-      },
-      {
-        "name": "Торговельні гільдії"
-      },
-      {
-        "name": "Фермери"
-      },
-      {
-        "name": "Бджолярі"
-      },
-      {
-        "name": "Плодоїдні кабани"
-      },
-      {
-        "name": "Глиняні садові вартові"
-      }
-    ],
     "creatures": [
       "otruyni-kabany",
       "korenevi-okhorontsi",

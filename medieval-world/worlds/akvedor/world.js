@@ -48,21 +48,6 @@ Atlas.registerWorld({
         "id": "arkhitekturni-kanyony"
       }
     ],
-    "peoples": [
-      {
-        "name": "Водоводи-ремісники"
-      },
-      {
-        "name": "Торговці"
-      },
-      {
-        "name": "Річкові ящери"
-      },
-      {
-        "name": "Клани",
-        "text": "Клани, які контролюють доступ до питної води."
-      }
-    ],
     "creatures": [
       "kanalni-marodery",
       "vodyani-holemy"

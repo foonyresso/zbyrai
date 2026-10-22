@@ -54,16 +54,6 @@ Atlas.registerWorld({
         "id": "old-cloud-fortresses"
       }
     ],
-    "peoples": [
-      {
-        "name": "Скелелази",
-        "text": "Будують поселення на плато, відновлюють переправи."
-      },
-      {
-        "name": "Хмарні пастухи",
-        "text": "Розводять повітряних звірів і збирають мінерали."
-      }
-    ],
     "creatures": [
       "cloud-ray",
       "stone-bird",

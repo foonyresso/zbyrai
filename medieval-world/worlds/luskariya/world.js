@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "pechery-staroyi-shkiry"
       }
     ],
-    "peoples": [
-      {
-        "name": "Панцирні ящери"
-      },
-      {
-        "name": "Гірські мисливці"
-      },
-      {
-        "name": "Племена шкіряників"
-      },
-      {
-        "name": "Монахи-збирачі старих лусок"
-      }
-    ],
     "creatures": [
       "skelni-yashchery",
       "pantsyrni-holemy"

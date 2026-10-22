@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "vulkanichni-ustupy"
       }
     ],
-    "peoples": [
-      {
-        "name": "Ковалі"
-      },
-      {
-        "name": "Гірські мисливці"
-      },
-      {
-        "name": "Теплокровні звірі"
-      },
-      {
-        "name": "Мешканці поселень навколо джерел"
-      }
-    ],
     "creatures": [
       "parovi-khyzhaky",
       "lavovi-zhuky"

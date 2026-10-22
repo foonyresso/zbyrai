@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "smolyani-yary"
       }
     ],
-    "peoples": [
-      {
-        "name": "Вугільні шахтарі"
-      },
-      {
-        "name": "Лісові збирачі"
-      },
-      {
-        "name": "Попелясті вовки"
-      },
-      {
-        "name": "Ковальські клани"
-      }
-    ],
     "creatures": [
       "popelyasti-khyzhaky",
       "vuhilni-holemy"

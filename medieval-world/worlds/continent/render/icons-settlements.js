@@ -4,14 +4,10 @@
   const R = (globalThis.RealmMap = globalThis.RealmMap || {});
   const INK = '#2f2418';
   // Тонування за станом без ctx.filter (він дуже повільний у програмному растеризаторі): сірий для зруйнованих і покинутих, червонуватий для захоплених
-  let mode = '', look = null, lookId = 0;
-  const mix = (c, to, k) => c.map((v, i) => v * (1 - k) + to[i] * k);
+  let mode = '';
   function T(hex) {
-    if ((!mode && !look) || hex[0] !== '#') return hex;
-    let c = R.Palette.hex2rgb(hex);
-    // народ провінції: стіни й дахи беруть кольори його палітри (крім чорного контуру)
-    if (look && hex !== INK) { const pal = (c[0] + c[1] + c[2]) / 3 < 150 ? look.roofs : look.walls; c = mix(c, R.Palette.hex2rgb(pal[lookId % pal.length]), 0.45); }
-    if (!mode) return 'rgb(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ')';
+    if (!mode || hex[0] !== '#') return hex;
+    const c = R.Palette.hex2rgb(hex);
     const gray = (c[0] + c[1] + c[2]) / 3;
     if (mode === 'gray') return 'rgb(' + Math.round(gray * 0.92) + ',' + Math.round(gray * 0.9) + ',' + Math.round(gray * 0.88) + ')';
     return 'rgb(' + Math.round(Math.min(255, c[0] * 0.8 + 70)) + ',' + Math.round(c[1] * 0.55) + ',' + Math.round(c[2] * 0.5) + ')';
@@ -57,11 +53,10 @@
     ctx.save();
     if (s.state === 'abandoned') ctx.globalAlpha = 0.5;
     if (s.state === 'fallen') ctx.globalAlpha = 0.82;
-    look = s.look || null; lookId = s.id;
     mode = s.state === 'ruined' || s.state === 'abandoned' ? 'gray' : s.state === 'occupied' ? 'red' : '';
     // ореол столиць і центрів
     if (s.rank === 'capital' || s.rank === 'regional') { ctx.beginPath(); ctx.arc(sx, sy - size * 0.35, size * (s.rank === 'capital' ? 1.55 : 1.2), 0, 6.3); ctx.fillStyle = 'rgba(255,244,214,.45)'; ctx.fill(); }
-    d[0](ctx, sx, sy, size); mode = ''; look = null;
+    d[0](ctx, sx, sy, size); mode = '';
     ctx.restore();
     if (s.state === 'ruined') { ctx.strokeStyle = '#4a3b30'; ctx.lineWidth = Math.max(1, size * 0.12); ctx.beginPath(); ctx.moveTo(sx - size * 0.6, sy - size * 0.1); ctx.lineTo(sx + size * 0.6, sy - size * 0.7); ctx.moveTo(sx - size * 0.6, sy - size * 0.7); ctx.lineTo(sx + size * 0.6, sy - size * 0.1); ctx.stroke(); }
     if (s.state === 'occupied') skull(ctx, sx + size * 0.75, sy - size * 0.85, size * 0.6);

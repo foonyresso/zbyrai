@@ -1,6 +1,6 @@
 function drawBase() {
   RT0 = performance.now();
-  pplEnter(null, true);
+  raceEnter(null, true);
   OPS = 0;
   WPEND = false;
   if (WON) drawWorld();

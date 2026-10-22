@@ -48,21 +48,6 @@ Atlas.registerWorld({
         "id": "pylovi-dolyny"
       }
     ],
-    "peoples": [
-      {
-        "name": "Скульптори-кочівники"
-      },
-      {
-        "name": "Гірські ремісники"
-      },
-      {
-        "name": "Кам'яні істоти"
-      },
-      {
-        "name": "Старі ордени",
-        "text": "Старі ордени, які вважають ожилі статуї святинями."
-      }
-    ],
     "creatures": [
       "statuyi-vartovi",
       "kamyani-honchi"

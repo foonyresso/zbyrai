@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "tepli-pidzemni-dzherela"
       }
     ],
-    "peoples": [
-      {
-        "name": "Збирачі водних трав"
-      },
-      {
-        "name": "Гірські кози"
-      },
-      {
-        "name": "Панцирні амфібії"
-      },
-      {
-        "name": "Громади майстрів мінеральної кераміки"
-      }
-    ],
     "creatures": [
       "vodyani-khyzhaky",
       "karstovi-holemy"

@@ -52,20 +52,6 @@ Atlas.registerWorld({
         "id": "nervovi-sady"
       }
     ],
-    "peoples": [
-      {
-        "name": "Кістяні ковалі"
-      },
-      {
-        "name": "Племена мікроскопічних на вигляд мандрівників"
-      },
-      {
-        "name": "Симбіотичні жуки"
-      },
-      {
-        "name": "Паразитичні титани"
-      }
-    ],
     "creatures": [
       "imunni-kolosy",
       "parazyty-pozhyrachi"

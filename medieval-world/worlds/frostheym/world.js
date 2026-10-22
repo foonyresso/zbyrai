@@ -49,20 +49,6 @@ Atlas.registerWorld({
         "id": "krystalichni-pechery"
       }
     ],
-    "peoples": [
-      {
-        "name": "Гірські мисливці"
-      },
-      {
-        "name": "Хутряні кочівники"
-      },
-      {
-        "name": "Крижані вовки"
-      },
-      {
-        "name": "Підлідні жуки"
-      }
-    ],
     "creatures": [
       "kryzhani-troli",
       "lodovi-pavuky"

@@ -64,29 +64,6 @@ Atlas.registerWorld({
         "id": "chorni-vypalyuvalni-pechery"
       }
     ],
-    "peoples": [
-      {
-        "name": "Гончарні клани"
-      },
-      {
-        "name": "Пустельні ящери"
-      },
-      {
-        "name": "Глиняні големи"
-      },
-      {
-        "name": "Караванники"
-      },
-      {
-        "name": "Мандрівні гончарі"
-      },
-      {
-        "name": "Уламкові жуки"
-      },
-      {
-        "name": "Торгові громади реставраторів"
-      }
-    ],
     "creatures": [
       "hlynyani-storozhi",
       "pishchani-chervy",

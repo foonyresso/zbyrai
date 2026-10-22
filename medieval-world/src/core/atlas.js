@@ -1,11 +1,11 @@
 /* ---- Реєстр світів, біомів, монстрів і підземель «Проекту Атлас» (формати 1 і 2) ----
-   Світ = worlds/<id>/world.js, біом = biomes/<id>.js, монстр = monsters/<id>.js, підземелля = dungeons/<id>.js, народ = peoples/<id>.js,
-   раса = races/<id>.js. Файли самі себе реєструють (Atlas.registerWorld / registerBiome / registerMonster / registerDungeon / registerPeople / registerRace); ядро знає лише цей реєстр, а перелік файлів
+   Світ = worlds/<id>/world.js, біом = biomes/<id>.js, монстр = monsters/<id>.js, підземелля = dungeons/<id>.js,
+   раса = races/<id>.js. Файли самі себе реєструють (Atlas.registerWorld / registerBiome / registerMonster / registerDungeon / registerRace); ядро знає лише цей реєстр, а перелік файлів
    бере з registry.js, який генерує `node tools/build-atlas-registry.mjs`. Формат 2 лише додає необов'язкове поле lore (повний опис для гри);
    файли формату 1 працюють без змін. Документація: docs/atlas/{world,biome,monster,dungeon}-files.md */
 (function (root) {
   "use strict";
-  const A = { FORMAT: 2, FORMATS: [1, 2], worlds: [], biomes: [], monsters: [], dungeons: [], peoples: [], races: [], manifest: { worlds: [], biomes: [], monsters: [], dungeons: [], peoples: [], races: [] } };
+  const A = { FORMAT: 2, FORMATS: [1, 2], worlds: [], biomes: [], monsters: [], dungeons: [], races: [], manifest: { worlds: [], biomes: [], monsters: [], dungeons: [], races: [] } };
   /* Типи монстрів від найслабших до найсильніших. rank — сила; city/village — найменша відстань до краю міста (містечка й більші)
      та села/хутора (у світових одиницях нескінченного світу): чим сильніший тип, тим далі від людей. weakNear — частка слабких,
      що все ж трапляються ближче за village (лише біля сіл і хуторів, рідко). cell/gate — сітка й імовірність появи в нескінченному світі */
@@ -69,17 +69,7 @@
     });
   };
 
-  /* народи (стиль міст і будівель провінції) і раси (мешканці поселень); обидва лише формату 2 */
-  A.registerPeople = function (p) {
-    need(p, ["format", "id", "name", "mindset", "look"], "народ");
-    if (!A.FORMATS.includes(p.format) || p.format < 2) throw new Error("народ " + p.id + ": потрібен формат 2");
-    const L = p.look, hex = /^#[0-9a-f]{6}$/i;
-    if (![L.walls, L.roofs].every((a) => Array.isArray(a) && a.length && a.every((c) => hex.test(c)))) throw new Error("народ " + p.id + ": look.walls і look.roofs — списки кольорів #rrggbb");
-    if (!hex.test(L.trim || "")) throw new Error("народ " + p.id + ": look.trim — колір #rrggbb");
-    if (A.peoples.some((x) => x.id === p.id)) throw new Error("народ " + p.id + " вже зареєстровано");
-    A.peoples.push(Object.assign({ order: 1000, habitat: ["any"], raceBias: {} }, p));
-    A.peoples.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
-  };
+  /* раси (мешканці поселень); лише формату 2 */
   A.registerRace = function (r) {
     need(r, ["format", "id", "name", "category", "weight"], "раса");
     if (!A.FORMATS.includes(r.format) || r.format < 2) throw new Error("раса " + r.id + ": потрібен формат 2");
@@ -121,7 +111,7 @@
   A.load = function () {
     /* async=false: файли вантажаться паралельно, а виконуються по черзі. Сайт бере готові склейки (manifest.bundles: порядок біоми, монстри,
        підземелля, світи), а окремі файли лишаються джерелом правди й запасним шляхом */
-    const files = A.manifest.bundles || A.manifest.biomes.concat(A.manifest.monsters, A.manifest.dungeons, A.manifest.peoples, A.manifest.races, A.manifest.worlds);
+    const files = A.manifest.bundles || A.manifest.biomes.concat(A.manifest.monsters, A.manifest.dungeons, A.manifest.races, A.manifest.worlds);
     return Promise.all(files.map((src) => new Promise((ok, no) => {
       const s = document.createElement("script");
       s.src = src;

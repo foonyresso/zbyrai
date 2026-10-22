@@ -54,12 +54,6 @@ Atlas.registerWorld({
         "id": "blood-wells"
       }
     ],
-    "peoples": [
-      {
-        "name": "Племена колодязів",
-        "text": "Будують укріплені поселення навколо колодязів і постійно борються за запаси."
-      }
-    ],
     "creatures": [
       "blood-wolf",
       "bone-digger",

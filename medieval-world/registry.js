@@ -1854,33 +1854,6 @@ Atlas.manifest = {
     "dungeons/zatopleni-kvartaly-doshchohradu.js",
     "dungeons/zatopleni-pryplyvni-khramy.js"
   ],
-  "peoples": [
-    "peoples/bolotni-drevliany.js",
-    "peoples/chervoni-pastukhy.js",
-    "peoples/dity-khvyl.js",
-    "peoples/dity-pernatoho-zmiia.js",
-    "peoples/dity-staroi-imperii.js",
-    "peoples/khraniteli-nekropoliv.js",
-    "peoples/liudy-lodu.js",
-    "peoples/moroznyi-pervistky.js",
-    "peoples/narod-semy-richok.js",
-    "peoples/narod-solonykh-pustel.js",
-    "peoples/natsiia-hory.js",
-    "peoples/nefrytova-imperiia.js",
-    "peoples/ostriv-vyshnevoho-tsvitu.js",
-    "peoples/pisochni-vezhi.js",
-    "peoples/pivnichni-morekhidtsi.js",
-    "peoples/polisni-elliny.js",
-    "peoples/pustelni-vilni.js",
-    "peoples/skhodzheni-na-dakh-svitu.js",
-    "peoples/sonyachni-pivdenti.js",
-    "peoples/stepovi-vilni.js",
-    "peoples/syni-vershnyky-pustel.js",
-    "peoples/syny-vitru.js",
-    "peoples/tundrovi-sontsepoklonnyky.js",
-    "peoples/vershnyky-bezmezhnoho-stepu.js",
-    "peoples/vulkantsi.js"
-  ],
   "races": [
     "races/beast-cat.js",
     "races/beast-fox.js",
@@ -1920,7 +1893,6 @@ Atlas.manifest = {
     "atlas-data/biomes.js",
     "atlas-data/monsters.js",
     "atlas-data/dungeons.js",
-    "atlas-data/peoples.js",
     "atlas-data/races.js",
     "atlas-data/worlds.js"
   ]

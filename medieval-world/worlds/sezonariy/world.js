@@ -48,23 +48,6 @@ Atlas.registerWorld({
         "id": "kryzhanyy-pereval"
       }
     ],
-    "peoples": [
-      {
-        "name": "Фермери"
-      },
-      {
-        "name": "Мисливці"
-      },
-      {
-        "name": "Крижані вовки"
-      },
-      {
-        "name": "Листяні големи"
-      },
-      {
-        "name": "Хранителі сезонів"
-      }
-    ],
     "creatures": [
       "khyzhaky-kozhnoho-sezonu"
     ],

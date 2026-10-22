@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "temni-sharovi-pechery"
       }
     ],
-    "peoples": [
-      {
-        "name": "Майстри листових ремесел"
-      },
-      {
-        "name": "Степові мандрівники"
-      },
-      {
-        "name": "Пласкі скельні жуки"
-      },
-      {
-        "name": "Гірські птахи"
-      }
-    ],
     "creatures": [
       "plastynchasti-zhuky",
       "poridni-holemy"

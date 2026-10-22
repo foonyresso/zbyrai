@@ -48,24 +48,6 @@ Atlas.registerWorld({
         "id": "zatopleni-svyatylyshcha"
       }
     ],
-    "peoples": [
-      {
-        "name": "Провідники"
-      },
-      {
-        "name": "Мисливці"
-      },
-      {
-        "name": "Туманні олені"
-      },
-      {
-        "name": "Руїнні вартові"
-      },
-      {
-        "name": "Громади",
-        "text": "Громади, які торгують картами."
-      }
-    ],
     "creatures": [
       "tumanni-khyzhaky",
       "ruyinni-holemy"

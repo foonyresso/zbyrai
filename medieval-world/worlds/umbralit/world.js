@@ -52,20 +52,6 @@ Atlas.registerWorld({
         "id": "chorni-porozhnechi"
       }
     ],
-    "peoples": [
-      {
-        "name": "Сновидці",
-        "text": "Сновидці будують міста з уявлених матеріалів."
-      },
-      {
-        "name": "Хранителі снів",
-        "text": "Хранителі снів охороняють проходи."
-      },
-      {
-        "name": "Кошмарні істоти",
-        "text": "Кошмарні істоти прагнуть проникнути в реальність."
-      }
-    ],
     "creatures": [
       "strakhitlyvi-dviynyky",
       "khyzhaky-zabuttya"

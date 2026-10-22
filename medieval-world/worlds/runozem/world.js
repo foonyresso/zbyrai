@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "chorni-zaly"
       }
     ],
-    "peoples": [
-      {
-        "name": "Каменярі-рунотворці"
-      },
-      {
-        "name": "Мандрівні хранителі"
-      },
-      {
-        "name": "Рунні звірі"
-      },
-      {
-        "name": "Розвідники покинутих фортець"
-      }
-    ],
     "creatures": [
       "runni-vartovi",
       "tinovi-zviri"

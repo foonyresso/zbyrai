@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "hazovi-pechery"
       }
     ],
-    "peoples": [
-      {
-        "name": "Болотні мисливці"
-      },
-      {
-        "name": "Човнярі"
-      },
-      {
-        "name": "Жаб'ячі торговці"
-      },
-      {
-        "name": "Жерці синього полум'я"
-      }
-    ],
     "creatures": [
       "tryasovynni-khyzhaky",
       "vohnyani-dukhy"

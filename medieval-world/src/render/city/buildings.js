@@ -275,15 +275,10 @@ function drawCastle(b) {
   ctx.fillStyle = "#c04a4a";
   dot(kx, ky, Math.max(1.5, rc * .035 * S));
 }
-/* будівля й прикраса народу (people-style.js) */
 function drawB(b) {
-  drawB0(b);
-  pplDecor(b);
-}
-function drawB0(b) {
   const x = ox + b.cx * S, y = oy + b.cy * S, rs = b.r * S;
   if (x + rs < 0 || y + rs < 0 || x - rs > W || y - rs > H) return;
-  const D = T[b.t], cc = pplCol(tint(LM.has(b.t) ? D.lc : D.mc), b, !!b.rc);
+  const D = T[b.t], cc = raceCol(tint(LM.has(b.t) ? D.lc : D.mc));
   if (b.t == "forest") {
     ctx.fillStyle = BIO.tr;
     dot(x, y, rs);
@@ -379,14 +374,9 @@ function drawB0(b) {
       ctx.lineWidth = 1;
       ctx.stroke();
     }
-    if (PPLC && RLAY.pp && PPLC.look.round) {
-      ctx.beginPath();
-      ctx.arc(x, y, Math.max(1, rs * .62), 0, PI2);
-    } else {
-      path(
-        b.poly.map((c) => [b.cx + (c[0] - b.cx) * .6, b.cy + (c[1] - b.cy) * .6]),
-      );
-    }
+    path(
+      b.poly.map((c) => [b.cx + (c[0] - b.cx) * .6, b.cy + (c[1] - b.cy) * .6]),
+    );
     ctx.fillStyle = cc;
     ctx.fill();
     return;

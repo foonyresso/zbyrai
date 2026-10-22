@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "pokhovani-porty"
       }
     ],
-    "peoples": [
-      {
-        "name": "Караванники"
-      },
-      {
-        "name": "Ящери-в'ючники"
-      },
-      {
-        "name": "Пустельні розбійники"
-      },
-      {
-        "name": "Мисливці за затонулими в піску кораблями"
-      }
-    ],
     "creatures": [
       "pishchani-khyzhaky",
       "reyderski-karavany"

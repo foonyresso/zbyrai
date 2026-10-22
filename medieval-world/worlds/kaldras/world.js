@@ -52,20 +52,6 @@ Atlas.registerWorld({
         "id": "zaly-pershotvortsiv"
       }
     ],
-    "peoples": [
-      {
-        "name": "Ковалі-кубари",
-        "text": "Ковалі-кубари живуть у рухомих фортецях."
-      },
-      {
-        "name": "Шестеренні звірі",
-        "text": "Шестеренні звірі охороняють родовища."
-      },
-      {
-        "name": "Ордени заводчиків",
-        "text": "Ордени заводчиків прагнуть повернути контроль над світом."
-      }
-    ],
     "creatures": [
       "avtonomni-storozhi",
       "mekhanichni-khyzhaky"

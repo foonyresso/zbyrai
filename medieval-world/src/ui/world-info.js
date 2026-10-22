@@ -20,8 +20,7 @@ function wInfo(x, y) {
           : "") +
           ": монстри ≈ " + lvl(h)[0] + " ур., NPC ≈ " + lvl(h)[1] + " ур.") +
         " · " + provName(pv) + ": регіонів " + provN(pv) + ", монстри ≈ " +
-        pl[0] + " ур., NPC ≈ " + pl[1] + " ур." +
-        (RLAY.pp && pplOfProv(pv) ? " · Народ провінції: " + pplOfProv(pv).name : "");
+        pl[0] + " ур., NPC ≈ " + pl[1] + " ур.";
     }
   }
   return o;
@@ -38,7 +37,7 @@ function wInfo0(x, y) {
         d: (st
           ? "Споруд: " + st.n + " · мешканців ≈ " + st.p +
             ". Дороги ведуть до сусідніх поселень."
-          : "Невелике поселення.") + (RLAY.pp ? pplInfo(v) : ""),
+          : "Невелике поселення.") + (RLAY.pp ? raceInfo(v) : ""),
       };
     }
   }

@@ -48,21 +48,6 @@ Atlas.registerWorld({
         "id": "chorni-kuzni"
       }
     ],
-    "peoples": [
-      {
-        "name": "Ковалі-кочівники"
-      },
-      {
-        "name": "Металеві жуки"
-      },
-      {
-        "name": "Броньовані кабани"
-      },
-      {
-        "name": "Клани",
-        "text": "Клани, які збирають руду з живих дерев."
-      }
-    ],
     "creatures": [
       "zalizni-khyzhaky",
       "rudni-vartovi"

@@ -105,10 +105,10 @@
 <button class="chip on" id="rldg" data-rl="dg" title="Підземелля як локації світу: під містами, у зруйнованих і покинутих поселеннях, у руїнах, храмах, вежах, шахтах і горах. До них ведуть дороги й стежки до місця. Позначка показує тип, мешканців і приблизний розмір (кімнати, ходи, площа); кімнат не генерується. Вимкни, щоб не бачити цей шар."><div>Підземелля світу<small>під містами, у руїнах, шахтах</small></div></button>
 <button class="chip on" id="rlsb" data-rl="sb" title="Нові біоми: на суші поза рідними землями з'являються плями інших біомів (пустища, кристальні нагір'я, чудернацькі ліси...). Вони змінюють колір місцевості й додають свої монстри та підземелля. Вимкни, щоб бачити лише класичні біоми."><div>Нові біоми<small>плями на суші, свої монстри</small></div></button>
 <button class="chip" id="rldn" data-rl="dn" title="Карта небезпеки: кольором показано, де небезпечніше (зелений безпечно, жовтий небезпечно, червоний дуже небезпечно). Рахується за кількістю й силою монстрів поруч і відстанню до поселень. Увімкни, щоб планувати маршрути."><div>Небезпека<small>карта: зелений → червоний</small></div></button>
-<button class="chip on" id="rlpp" data-rl="pp" title="Народи й раси: кожна провінція належить одному народу, і його стиль видно в будівлях, дахах і прикрасах поселень провінції; раси змішані, їхній склад дає відтінок і показаний у підказці. Вимкни, щоб бачити звичайні будівлі."><div>Народи й раси<small>стиль провінції, склад поселень</small></div></button>
+<button class="chip on" id="rlpp" data-rl="pp" title="Раси: мешканці поселень належать різним расам; склад рас дає відтінок будівлям і показаний у підказці поселення. Вимкни, щоб бачити звичайні будівлі."><div>Раси<small>склад поселень</small></div></button>
 <button class="chip on" id="rlst" data-rl="st" title="Стани не головних поселень: занепале, зруйноване, покинуте, захоплене монстрами (значок біля поселення). Вимкни, щоб не бачити цей шар."><div>Стани поселень<small>руїни, покинуті, захоплені</small></div></button>
 <button class="chip on" id="wbd" title="Межі провінцій і регіонів та їхні назви при віддаленні. Вимкни, щоб бачити лише місцевість."><div>Провінції й регіони<small>межі та назви</small></div></button></div>
-<label title="Співвідношення суші й води">Суша і вода</label><select id="wtype" title="Співвідношення суші й води: материки, архіпелаги з багатьма островами або суходіл із невеликими морями."><option value="cont">Материки</option><option value="arch">Архіпелаги</option><option value="land">Суходіл</option></select>
+<label title="Співвідношення суші й води">Суша і вода</label><select id="wtype" title="Співвідношення суші й води: материки з велетенськими океанами між ними й нічийними островами, архіпелаги з багатьма островами або суходіл із невеликими морями."><option value="cont">Материки</option><option value="arch">Архіпелаги</option><option value="land">Суходіл</option></select>
 <label title="Окреме число для світу навколо міста">Зерно світу</label><input id="wseed" placeholder="як у міста" style="width:100%;box-sizing:border-box" title="Окреме зерно світу. Порожньо: світ залежить від зерна міста.">
 <label title="Розмір поселення для переходу">Випадкове поселення</label><select id="rsz" title="Розмір поселення, до якого перейти."><option value="a">Будь-якого розміру</option><option value="0">Хутір</option><option value="1">Село</option><option value="2">Велике село</option><option value="3">Містечко</option><option value="4">Місто</option><option value="5">Велике місто</option><option value="6">Столиця</option></select><button id="rnd" style="width:100%;margin-top:6px" title="Перелетіти до випадкового поселення поруч. Подвійний клік по поселенню на карті теж переходить до нього.">Перейти до випадкового</button>
 <div class="row" style="margin-top:12px"><button id="wall1" style="flex:1" title="Віддалитись, щоб побачити материки, моря й гірські хребти.">Весь світ</button><button id="wcity" style="flex:1" title="Повернутися до міста.">До свого міста</button></div>
@@ -153,7 +153,7 @@
     <script src="src/generation/world/world-dungeons.js"></script>
     <script src="src/generation/world/sea-routes.js"></script>
     <script src="src/render/world/realm-layers.js"></script>
-    <script src="src/render/world/people-style.js"></script>
+    <script src="src/render/world/race-style.js"></script>
     <script src="src/render/world/settle-state.js"></script>
     <script src="src/render/world/canvas.js"></script>
     <script src="src/generation/world/regions.js"></script>
@@ -161,7 +161,7 @@
     <script src="src/generation/world/object-trails.js"></script>
     <script src="src/generation/world/danger.js"></script>
     <script src="src/generation/world/mine-resources.js"></script>
-    <script src="src/generation/world/peoples.js"></script>
+    <script src="src/generation/world/races.js"></script>
     <script src="src/render/world/regions.js"></script>
     <script src="src/render/world/settlements.js"></script>
     <script src="src/ui/world-info.js"></script>

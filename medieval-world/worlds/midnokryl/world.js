@@ -56,16 +56,6 @@ Atlas.registerWorld({
         "id": "windy-meadows"
       }
     ],
-    "peoples": [
-      {
-        "name": "Мисливці на птахів",
-        "text": "Живуть у селищах на вершинах, приручають гірських птахів."
-      },
-      {
-        "name": "Гірські кочівники",
-        "text": "Мандрують полонинами з приручених звірів."
-      }
-    ],
     "creatures": [
       "aggressive-mountain-bird",
       "cliff-predator",

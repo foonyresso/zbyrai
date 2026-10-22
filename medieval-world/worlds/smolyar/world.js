@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "sklyani-korenevyshcha"
       }
     ],
-    "peoples": [
-      {
-        "name": "Збирачі смоли"
-      },
-      {
-        "name": "Деревні големи"
-      },
-      {
-        "name": "Комахи-хижаки"
-      },
-      {
-        "name": "Громади лісових ремісників"
-      }
-    ],
     "creatures": [
       "smolyani-pavuky",
       "derevni-vartovi"

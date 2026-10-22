@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "zruynovani-korolivski-sady"
       }
     ],
-    "peoples": [
-      {
-        "name": "Мандрівні лицарі"
-      },
-      {
-        "name": "Гоблінські загони"
-      },
-      {
-        "name": "Торговці"
-      },
-      {
-        "name": "Ордени претендентів на престол"
-      }
-    ],
     "creatures": [
       "lytsari-vidstupnyky",
       "oblohovi-holemy"

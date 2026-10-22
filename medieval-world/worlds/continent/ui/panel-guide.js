@@ -23,7 +23,7 @@
     const tree = U.el('div', { class: 'tree' });
     const link = (s, txt) => U.el('a', { text: txt || s.name, title: 'Показати на карті: ' + s.name, onclick: () => App.focusObject({ t: 's', o: s }) });
     for (const pv of w.provinces) {
-      const d = U.el('details'), sm = U.el('summary', { text: pv.name + (pv.peopleName ? ' (' + pv.peopleName + ')' : '') + ' · ' + pv.regions.length + ' рег. · ' + km2(pv.cells) + ' км²', title: 'Провінція: ' + pv.cultureName + ' культура' + (pv.peopleName ? ', народ: ' + pv.peopleName : '') });
+      const d = U.el('details'), sm = U.el('summary', { text: pv.name + ' · ' + pv.regions.length + ' рег. · ' + km2(pv.cells) + ' км²', title: 'Провінція: ' + pv.cultureName + ' культура' });
       sm.style.color = R.Palette.provinceSolid(pv.hue).replace('38%', '70%'); d.append(sm);
       const ul = U.el('ul');
       for (const rid of pv.regions) {

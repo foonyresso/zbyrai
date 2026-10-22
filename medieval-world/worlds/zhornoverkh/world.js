@@ -48,23 +48,6 @@ Atlas.registerWorld({
         "id": "zernoskhovyshcha-pidzemel"
       }
     ],
-    "peoples": [
-      {
-        "name": "Мельники"
-      },
-      {
-        "name": "Фермери"
-      },
-      {
-        "name": "Зерноїдні звірі"
-      },
-      {
-        "name": "Вітряні големи"
-      },
-      {
-        "name": "Торгові громади"
-      }
-    ],
     "creatures": [
       "zernoyidni-chudovyska",
       "mlynovi-holemy"

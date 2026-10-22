@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "soloni-zaplavy"
       }
     ],
-    "peoples": [
-      {
-        "name": "Берегові рибалки"
-      },
-      {
-        "name": "Крабоподібні воїни"
-      },
-      {
-        "name": "Болотні ящери"
-      },
-      {
-        "name": "Орден Хранителів Води"
-      }
-    ],
     "creatures": [
       "kraby-ruynivnyky",
       "zatopleni-lytsari"

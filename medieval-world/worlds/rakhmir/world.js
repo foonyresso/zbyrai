@@ -52,20 +52,6 @@ Atlas.registerWorld({
         "id": "vitrovi-khrebty"
       }
     ],
-    "peoples": [
-      {
-        "name": "Ловці бур",
-        "text": "Ловці бур живуть у пересувних поселеннях."
-      },
-      {
-        "name": "Бурштинові жуки",
-        "text": "Бурштинові жуки збирають смолу."
-      },
-      {
-        "name": "Хранителі долин",
-        "text": "Хранителі долин охороняють застиглі пам'ятки."
-      }
-    ],
     "creatures": [
       "smolyani-khyzhaky",
       "burshtynovi-holemy"

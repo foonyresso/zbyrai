@@ -1,4 +1,4 @@
-// Збирає medieval-world/registry.js: перелік файлів світів (worlds/*/world.js), біомів (biomes/*.js), монстрів (monsters/*.js) і підземель (dungeons/*.js), народів (peoples/*.js) і рас (races/*.js).
+// Збирає medieval-world/registry.js: перелік файлів світів (worlds/*/world.js), біомів (biomes/*.js), монстрів (monsters/*.js) і підземель (dungeons/*.js) і рас (races/*.js).
 // Запуск: node tools/build-atlas-registry.mjs   (--check: лише перевірити, що registry.js актуальний)
 import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -14,18 +14,17 @@ export function buildRegistry() {
   const biomes = readdirSync(join(base, 'biomes')).filter((f) => f.endsWith('.js')).map((f) => `biomes/${f}`).sort();
   const monsters = readdirSync(join(base, 'monsters')).filter((f) => f.endsWith('.js')).map((f) => `monsters/${f}`).sort();
   const dungeons = readdirSync(join(base, 'dungeons')).filter((f) => f.endsWith('.js')).map((f) => `dungeons/${f}`).sort();
-  const peoples = readdirSync(join(base, 'peoples')).filter((f) => f.endsWith('.js')).map((f) => `peoples/${f}`).sort();
   const races = readdirSync(join(base, 'races')).filter((f) => f.endsWith('.js')).map((f) => `races/${f}`).sort();
-  const bundles = { biomes: 'atlas-data/biomes.js', monsters: 'atlas-data/monsters.js', dungeons: 'atlas-data/dungeons.js', peoples: 'atlas-data/peoples.js', races: 'atlas-data/races.js', worlds: 'atlas-data/worlds.js' };
+  const bundles = { biomes: 'atlas-data/biomes.js', monsters: 'atlas-data/monsters.js', dungeons: 'atlas-data/dungeons.js', races: 'atlas-data/races.js', worlds: 'atlas-data/worlds.js' };
   return '/* Автоматично: node tools/build-atlas-registry.mjs. Не правити вручну. */\n'
-    + 'Atlas.manifest = ' + JSON.stringify({ worlds, biomes, monsters, dungeons, peoples, races, bundles: Object.values(bundles) }, null, 2) + ';\n';
+    + 'Atlas.manifest = ' + JSON.stringify({ worlds, biomes, monsters, dungeons, races, bundles: Object.values(bundles) }, null, 2) + ';\n';
 }
 /* Один файл на кожен вид для сайту (кілька запитів замість тисяч): склейка файлів із папок. Вихідні файли лишаються джерелом правди */
 export function buildBundles() {
   const cat = (list) => list.map((f) => '/* ' + f + ' */\n' + readFileSync(join(base, f), 'utf8')).join('\n');
   const m = JSON.parse(buildRegistry().replace(/^[\s\S]*?Atlas\.manifest = /, '').replace(/;\s*$/, ''));
   const head = '/* Автоматично: node tools/build-atlas-registry.mjs. Не правити вручну: правте файли в папках. */\n';
-  return Object.fromEntries(['worlds', 'biomes', 'monsters', 'dungeons', 'peoples', 'races'].map((k) => ['atlas-data/' + k + '.js', head + cat(m[k])]));
+  return Object.fromEntries(['worlds', 'biomes', 'monsters', 'dungeons', 'races'].map((k) => ['atlas-data/' + k + '.js', head + cat(m[k])]));
 }
 
 /* Списки монстрів рушія «Материк» (src/data/realm/monsters-*.js) збираються з файлів monsters/: рушій читає старий формат { monsters: [назви], bosses: [{ n, alias, variants, tier }] }.

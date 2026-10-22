@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "chornylni-pechery"
       }
     ],
-    "peoples": [
-      {
-        "name": "Художники-мандрівники"
-      },
-      {
-        "name": "Големи-статуї"
-      },
-      {
-        "name": "Торговці фарбами"
-      },
-      {
-        "name": "Хранителі храмових розписів"
-      }
-    ],
     "creatures": [
       "farbovani-holemy",
       "okhorontsi-halerey"

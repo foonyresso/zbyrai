@@ -48,23 +48,6 @@ Atlas.registerWorld({
         "id": "zatopleni-nyzhni-kvartaly"
       }
     ],
-    "peoples": [
-      {
-        "name": "Покрівельники"
-      },
-      {
-        "name": "Човнярі"
-      },
-      {
-        "name": "Дощові жаби"
-      },
-      {
-        "name": "Торгові гільдії"
-      },
-      {
-        "name": "Мешканці старих кварталів"
-      }
-    ],
     "creatures": [
       "kanalovi-khyzhaky",
       "dakhovi-hrabizhnyky"

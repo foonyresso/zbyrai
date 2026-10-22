@@ -55,12 +55,6 @@ Atlas.registerWorld({
         "id": "upper-light-gardens"
       }
     ],
-    "peoples": [
-      {
-        "name": "Дереволази",
-        "text": "Племена, що будують будинки на платформах і переміщуються системою мотузкових мостів."
-      }
-    ],
     "creatures": [
       "trunk-spider",
       "crown-cat",

@@ -64,32 +64,6 @@ Atlas.registerWorld({
         "id": "zabuti-mostovi-mista"
       }
     ],
-    "peoples": [
-      {
-        "name": "Скелелази"
-      },
-      {
-        "name": "Торгові громади"
-      },
-      {
-        "name": "Гірські козли"
-      },
-      {
-        "name": "Крилаті хижаки"
-      },
-      {
-        "name": "Мостові охоронці"
-      },
-      {
-        "name": "Торговці"
-      },
-      {
-        "name": "Гірські розбійники"
-      },
-      {
-        "name": "Громади будівельників"
-      }
-    ],
     "creatures": [
       "kamyani-honchi",
       "krylati-myslyvtsi",

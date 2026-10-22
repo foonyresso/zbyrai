@@ -48,20 +48,6 @@ Atlas.registerWorld({
         "id": "temni-heodni-pechery"
       }
     ],
-    "peoples": [
-      {
-        "name": "Збирачі самоцвітів"
-      },
-      {
-        "name": "Гірські козли"
-      },
-      {
-        "name": "Кристалічні жуки"
-      },
-      {
-        "name": "Майстри кам'яних прикрас"
-      }
-    ],
     "creatures": [
       "krystalichni-zhuky",
       "kamyani-storozhi"

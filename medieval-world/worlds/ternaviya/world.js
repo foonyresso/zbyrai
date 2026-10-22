@@ -48,21 +48,6 @@ Atlas.registerWorld({
         "id": "sukhi-shypasti-stepy"
       }
     ],
-    "peoples": [
-      {
-        "name": "Збирачі трав"
-      },
-      {
-        "name": "Лісові лицарі"
-      },
-      {
-        "name": "Броньовані комахи"
-      },
-      {
-        "name": "Громади",
-        "text": "Громади, які захищають вирубані ділянки."
-      }
-    ],
     "creatures": [
       "kolyuchi-khyzhaky",
       "zarosli-holemy"

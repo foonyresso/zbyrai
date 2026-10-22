@@ -49,20 +49,6 @@ Atlas.registerWorld({
         "id": "tykhi-dolyny"
       }
     ],
-    "peoples": [
-      {
-        "name": "Гірські мисливці"
-      },
-      {
-        "name": "Крилаті хижаки"
-      },
-      {
-        "name": "Кам'яні барани"
-      },
-      {
-        "name": "Племена вершників на гігантських птахах"
-      }
-    ],
     "creatures": [
       "povitryani-zmiyi",
       "hirski-rozbiynyky"
