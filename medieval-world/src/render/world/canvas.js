@@ -223,19 +223,20 @@ function drawWorld() {
   while (WLD.t.size > 80) WLD.t.delete(WLD.t.keys().next().value);
 }
 /* ---- дороги й села поверх тайлів (векторно, без швів) ---- */
-function strokeRoad(g, w, col, bw, bcol, dash) {
+function strokeRoad(g, w, col, bw, bcol, dash, cw, ccol) {
   const P = g.pts, wt = g.wet;
   ctx.lineJoin = "round";
   ctx.lineCap = "butt";
-  for (const pass of [0, 1]) {
-    if (pass && !wt.some(Boolean)) break;
-    ctx.strokeStyle = pass ? bcol : col;
-    ctx.lineWidth = pass ? bw : w;
-    ctx.setLineDash(dash && !pass ? dash : []);
+  for (const pass of [-1, 0, 1]) {
+    if (pass == -1 && !cw) continue;
+    if (pass == 1 && !wt.some(Boolean)) break;
+    ctx.strokeStyle = pass < 0 ? ccol : pass ? bcol : col;
+    ctx.lineWidth = pass < 0 ? cw : pass ? bw : w;
+    ctx.setLineDash(dash && pass == 0 ? dash : []);
     ctx.beginPath();
     let on = false;
     for (let i = 1; i < P.length; i++) {
-      const hit = pass ? (wt[i - 1] || wt[i]) : !(wt[i - 1] || wt[i]);
+      const hit = pass > 0 ? (wt[i - 1] || wt[i]) : !(wt[i - 1] || wt[i]);
       if (!hit) {
         on = false;
         continue;
@@ -276,10 +277,10 @@ function strokeRoad(g, w, col, bw, bcol, dash) {
 }
 /* чотири типи доріг за рангом кінців: велика (між центрами регіонів), середня (до великих сіл), мала (до сіл), стежка (до хуторів) */
 const ROAD_STYLE = {
-  major: [4.2, "#c4b080", 7.4, "#8a6a45"],
-  medium: [3.2, "#c4b080", 5.8, "#8a6a45"],
-  minor: [2.4, "#b8a478", 4.6, "#8a6a45"],
-  trail: [1.5, "#a89468", 3, "#8a6a45"],
+  major: [3, "#e2c27f", 7.4, "#8a6a45", 5, "#2e2113"],
+  medium: [2, "#d1a967", 5.8, "#8a6a45", 3.6, "#2e2113"],
+  minor: [1.5, "#6b4a2a", 4.6, "#8a6a45"],
+  trail: [1.15, "#6b4a2a", 3, "#8a6a45"],
 };
 function roadClass(v, u) {
   const m = Math.min(v.tier, u.tier);
@@ -304,8 +305,8 @@ function drawRoads() {
       let g = WLD.lg.get("v" + v.id + ">" + u.id);
       if (g === undefined && can) g = vroad(v, u);
       if (vis(g)) {
-        const [w, col, bw, bcol] = ROAD_STYLE[cls];
-        strokeRoad(g, Math.max(1, w * S), col, Math.max(2, bw * S), bcol, cls == "trail" ? [Math.max(3, 8 * S), Math.max(2, 5 * S)] : null);
+        const [w, col, bw, bcol, cw, ccol] = ROAD_STYLE[cls], k = Math.max(.7, Math.min(2.2, Math.sqrt(S * 8)));
+        strokeRoad(g, Math.max(1, w * k), col, Math.max(2, bw * k), bcol, cls == "trail" ? [Math.max(3, 2.6 * k), Math.max(2, 3.2 * k)] : null, cw && Math.max(2, cw * k), ccol);
       }
     }
   }
@@ -313,10 +314,13 @@ function drawRoads() {
     if (vis(g)) {
       strokeRoad(
         g,
-        Math.max(1.2, 4.6 * S),
-        "#c4b080",
+        Math.max(1.2, 3 * S),
+        "#e2c27f",
         Math.max(2, 7 * S),
         "#8a6a45",
+        null,
+        Math.max(2, 5 * S),
+        "#2e2113",
       );
     }
   }

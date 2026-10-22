@@ -1,3 +1,5 @@
+/* значки поселень: ранг за рівнем */
+const TIER_RANK = ["hamlet", "village", "town", "regional", "capital", "capital", "capital"];
 function drawVillages() {
   if (WBD) drawBorders();
   if (S < .04) return;
@@ -17,45 +19,8 @@ function drawVillages() {
       else WPEND = true;
     }
     if (!full) {
-      if (S < .12) {
-        const rr = 2.2 + v.tier * 1.1;
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = "#3a2e22";
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(x, y, rr, 0, PI2);
-        ctx.fill();
-        ctx.stroke();
-        if (v.tier >= 3) {
-          ctx.fillStyle = "#3a2e22";
-          dot(x, y, rr * .45);
-        }
-      } else {
-        path0([[v.x, v.y]]);
-        ctx.beginPath();
-        ctx.arc(x, y, r * .85, 0, PI2);
-        ctx.fillStyle = "#cdbf9e";
-        ctx.fill();
-        ctx.strokeStyle = "#7a5a38";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        if (r > 6) {
-          const sst = RLAY.st && v.tier < 3 ? rxState(v) : "normal";
-          for (let q = 0, n = 4 + v.tier * 5; q < n; q++) {
-            if (sst == "ruined" && H2(v.i, v.j, q + 600) < .5) continue;
-            const a = H2(v.i, v.j, q + 300) * PI2,
-              d = Math.sqrt(H2(v.i, v.j, q + 400)) * .65 * RB[v.tier],
-              z = Math.max(1.6, 5 * S);
-            ctx.fillStyle = sst == "normal" || sst == "occupied" ? ROOF[Math.floor(H2(v.i, v.j, q + 500) * ROOF.length)] : "#8a8374";
-            ctx.fillRect(
-              ox + (v.x + Math.cos(a) * d) * S - z / 2,
-              oy + (v.y + Math.sin(a) * d) * S - z / 2,
-              z,
-              z,
-            );
-          }
-        }
-      }
+      /* значки поселень спільні з «Материком» (worlds/continent/render/icons-settlements.js); стан малює шар RLAY.st */
+      RealmMap.IconsSettlements.drawSettlement(ctx, { rank: TIER_RANK[Math.min(v.tier, 6)], state: "normal" }, x, y, Math.max(.6, Math.min(1.5, .5 + S * 6)));
     }
     if ((v.tier >= 3 ? S >= .025 : S >= .15) && S < 2.4) {
       ctx.font = (v.tier >= 3 ? "700 " : "600 ") + (v.tier >= 3

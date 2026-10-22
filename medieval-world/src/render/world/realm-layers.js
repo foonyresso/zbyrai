@@ -20,9 +20,7 @@ function drawSeaRoutes() {
   ctx.save();
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  ctx.strokeStyle = "rgba(30,90,140,.85)";
-  ctx.lineWidth = Math.max(1.6, 3 * S);
-  ctx.setLineDash([Math.max(5, 14 * S), Math.max(4, 9 * S)]);
+  const ws = Math.max(.7, Math.min(2.2, Math.sqrt(S * 8)));
   for (const v of vs) {
     const pa = srPort(v);
     if (!pa) continue;
@@ -33,9 +31,16 @@ function drawSeaRoutes() {
       if (Math.max(pa.x, pb.x) < x0 - SR_R && Math.min(pa.x, pb.x) > x1 + SR_R) continue;
       const r = srRoute(pa, pb);
       if (!r || r.bb[2] < x0 || r.bb[0] > x1 || r.bb[3] < y0 || r.bb[1] > y1) continue;
-      ctx.beginPath();
-      r.pts.forEach((q, i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, ox + q[0] * S, oy + q[1] * S));
-      ctx.stroke();
+      /* як на «Материку»: темна окантовка й світлий пунктир */
+      for (const pass of [0, 1]) {
+        ctx.strokeStyle = pass ? "#f3fbff" : "rgba(12,38,64,.55)";
+        ctx.lineWidth = (pass ? 1.5 : 3) * ws;
+        ctx.setLineDash(pass ? [6 * ws, 5 * ws] : []);
+        ctx.lineCap = pass ? "butt" : "round";
+        ctx.beginPath();
+        r.pts.forEach((q, i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, ox + q[0] * S, oy + q[1] * S));
+        ctx.stroke();
+      }
     }
   }
   ctx.restore();

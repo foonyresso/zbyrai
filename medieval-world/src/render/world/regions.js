@@ -324,17 +324,7 @@ function drawBorders() {
       far = S < .04,
       r = far ? 2.2 + h.tier * 1.1 : RB[h.tier] * S * .85;
     if (far) {
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = "#3a2e22";
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, PI2);
-      ctx.fill();
-      ctx.stroke();
-      if (h.tier >= 3) {
-        ctx.fillStyle = "#3a2e22";
-        dot(x, y, r * .45);
-      }
+      RealmMap.IconsSettlements.drawSettlement(ctx, { rank: TIER_RANK[Math.min(h.tier, 6)], state: "normal" }, x, y, .7 + h.tier * .06);
     }
     const ty = hm ? oy - mr * S : y + r + 12,
       ry = hm ? oy + mr * S + 14 : y + r + 25;
