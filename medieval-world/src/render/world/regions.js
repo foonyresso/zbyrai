@@ -241,33 +241,7 @@ function drawBorders() {
     rc = (h, l) => "rgb(" + hue(h.name, .8, l).join(",") + ")",
     pd = (h) => "rgb(" + provCol(PV(h)).map((v) => v * .5 | 0).join(",") + ")",
     sgm = BCK.seg;
-  /* слабка межа провінцій по воді */
-  for (const [col, w, al] of [["#fff8e6", 5.5, .4], ["#3a1f30", 2.4, .8]]) {
-    ctx.strokeStyle = col;
-    ctx.globalAlpha = al * fa;
-    ctx.lineWidth = w;
-    ctx.beginPath();
-    for (const q of sgm[2]) {
-      ctx.moveTo(q[0], q[1]);
-      ctx.lineTo(q[2], q[3]);
-    }
-    ctx.stroke();
-  }
-  /* межа територіальних вод: штрих; довжина штриха = довжина сегмента ґратки, тож вигляд не залежить від масштабу */
-  ctx.save();
-  ctx.lineCap = "butt";
-  ctx.strokeStyle = "#3a1f30";
-  ctx.globalAlpha = .75 * fa;
-  ctx.lineWidth = 1.5;
-  for (const q of BCK.wild) {
-    const l = Math.hypot(q[2] - q[0], q[3] - q[1]);
-    if (l < 1) continue;
-    ctx.setLineDash([l * .6, l * .4]);
-    ctx.beginPath();
-    ctx.moveTo(q[0], q[1]);
-    ctx.lineTo(q[2], q[3]);
-    ctx.stroke();
-  }
+  /* по воді меж немає: кордони лише на суші */
   ctx.restore(); /* берег: темний колір провінції + колір регіону зверху */
   st(
     by(BCK.coast, (q) => [[PV(q[4]).name, pd(q[4]), q[0], q[1], q[2], q[3]]]),

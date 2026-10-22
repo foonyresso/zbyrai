@@ -4,7 +4,7 @@ const HR_STEP = 6, HR_PROV_S = .04, HR_MAX_S = .5;
 let hrCv = null, hrKey = "", hrTarget = null;
 function hrTargetAt(x, y) {
   const h = bTerr(x, y);
-  if (!h) return null;
+  if (!h || eland(x, y) <= 0) return null;
   return S < HR_PROV_S ? PV(h) : h;
 }
 function drawHoverRegion() {
@@ -21,7 +21,7 @@ function drawHoverRegion() {
     for (let j = 0; j < h; j++) {
       for (let i = 0; i < w; i++) {
         const q = bTerr(((i + .5) * HR_STEP - ox) / S, ((j + .5) * HR_STEP - oy) / S);
-        if (!q || (prov ? PV(q) : q) !== t) continue;
+        if (!q || eland(((i + .5) * HR_STEP - ox) / S, ((j + .5) * HR_STEP - oy) / S) <= 0 || (prov ? PV(q) : q) !== t) continue;
         const o = (j * w + i) * 4;
         d[o] = d[o + 1] = d[o + 2] = 255;
         d[o + 3] = 95;
