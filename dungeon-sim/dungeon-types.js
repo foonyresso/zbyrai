@@ -3353,5 +3353,2956 @@
   ],
   "desc": "Затоплені нижні квартали зі сховищами під старими будинками.",
   "sim": null
+ },
+ {
+  "id": "shlyuzovi-hlyboky",
+  "name": "Шлюзові Глибини",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   34
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   720,
+   2550
+  ],
+  "area": [
+   1680,
+   6460
+  ],
+  "worlds": [
+   "akvedor"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "водяні вартові",
+   "мулисті ґолеми",
+   "мародери"
+  ],
+  "desc": "Старі шлюзи під руслом каналу, де досі працюють засувки й тече чорна вода.",
+  "sim": null
+ },
+ {
+  "id": "nasinni-sklepinnya",
+  "name": "Насінні Склепіння",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "arkhelor"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "паростеві стражі",
+   "спорові хробаки"
+  ],
+  "desc": "Порожнисті насінини завбільшки з собор, у яких дрімають зародки невідомих істот.",
+  "sim": null
+ },
+ {
+  "id": "kratery-ulamkiv",
+  "name": "Кратерні Уламкосховища",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "asterfell"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "метеоритні жуки",
+   "зоряні шукачі"
+  ],
+  "desc": "Тунелі під ударним кратером, повні небесного металу й уламків чужих зірок.",
+  "sim": null
+ },
+ {
+  "id": "svitlovi-kamery-aurelitu",
+  "name": "Світлові Камери",
+  "anchor": "poi",
+  "rooms": [
+   9,
+   28
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   540,
+   2100
+  ],
+  "area": [
+   1260,
+   5320
+  ],
+  "worlds": [
+   "aurelit"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "світлові духи",
+   "криштальні хранителі"
+  ],
+  "desc": "Зали, де застигле світло утворює стіни, колони й пастки з променів.",
+  "sim": null
+ },
+ {
+  "id": "tumanni-pidvaly",
+  "name": "Туманні Підвали Аурохму",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "aurokhm"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "тіні в тумані",
+   "золотопилові мисливці"
+  ],
+  "desc": "Затоплені золотим туманом льохи давнього міста, де губляться стежки.",
+  "sim": null
+ },
+ {
+  "id": "dakhovi-tsysterny",
+  "name": "Дахові Цистерни",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   2,
+   4
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "doshchohrad"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "злодії-дахоходи",
+   "болотяні водяники"
+  ],
+  "desc": "Вертикальний лабіринт цистерн і критих переходів під багатоярусним містом.",
+  "sim": null
+ },
+ {
+  "id": "kamyani-khvyli-hrot",
+  "name": "Грот Кам'яних Хвиль",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "drumbor"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "хвильові елементалі",
+   "скельні плавуни"
+  ],
+  "desc": "Печера, де порода тече повільною хвилею й раз на добу змикає коридори.",
+  "sim": null
+ },
+ {
+  "id": "kuzni-pidhirya",
+  "name": "Кузні Підгір'я",
+  "anchor": "poi",
+  "rooms": [
+   14,
+   40
+  ],
+  "levels": [
+   2,
+   4
+  ],
+  "length": [
+   840,
+   3000
+  ],
+  "area": [
+   1960,
+   7600
+  ],
+  "worlds": [
+   "embergard"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "вогняні ковалі",
+   "попелясті ґолеми"
+  ],
+  "desc": "Покинуті гірські кузні, де горнила досі горять без палива.",
+  "sim": null
+ },
+ {
+  "id": "hromovi-hrotyy",
+  "name": "Громові Грота",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "eshkariya"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "іскрові гончаки",
+   "кристалічні варти"
+  ],
+  "desc": "Печери в корінні блискавичних лісів, де кожен крок викликає розряд.",
+  "sim": null
+ },
+ {
+  "id": "plynni-zaly",
+  "name": "Плинні Зали",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   32
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2400
+  ],
+  "area": [
+   1400,
+   6080
+  ],
+  "worlds": [
+   "eydoliya"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "мінливі тіні",
+   "незавершені створіння"
+  ],
+  "desc": "Підземелля, що перебудовує кімнати щоразу, коли в нього заходять.",
+  "sim": null
+ },
+ {
+  "id": "magnitni-shakhty-ferroksu",
+  "name": "Магнітні Копальні",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   34
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   720,
+   2550
+  ],
+  "area": [
+   1680,
+   6460
+  ],
+  "worlds": [
+   "ferroks"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "залізні оповідачі",
+   "магнітні рої"
+  ],
+  "desc": "Шахти, де інструмент прилипає до стін, а компас показує лише вглиб.",
+  "sim": null
+ },
+ {
+  "id": "rakushkovi-zaly",
+  "name": "Мушляні Зали",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "fossar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "рифові ховрахи",
+   "кам'яні краби"
+  ],
+  "desc": "Витончені зали всередині велетенської скам'янілої мушлі колишнього океану.",
+  "sim": null
+ },
+ {
+  "id": "lodovi-sklepinnya",
+  "name": "Крижані Склепіння",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "frostheym"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "льодові вовки",
+   "замерзлі вартові"
+  ],
+  "desc": "Печери в глибині льодовика з вмороженими людьми й тваринами.",
+  "sim": null
+ },
+ {
+  "id": "tunelni-mista-hrondaru",
+  "name": "Тунельні Міста Предків",
+  "anchor": "poi",
+  "rooms": [
+   20,
+   60
+  ],
+  "levels": [
+   2,
+   5
+  ],
+  "length": [
+   1200,
+   4500
+  ],
+  "area": [
+   2800,
+   11400
+  ],
+  "worlds": [
+   "grondar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "тунельні сторожі",
+   "забуті мешканці"
+  ],
+  "desc": "Покинуті підземні кварталі давньої цивілізації з галереями й сходами.",
+  "sim": null
+ },
+ {
+  "id": "okeani-svitla",
+  "name": "Підпіскові Океани Світла",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "heliontar"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "золоті піщані духи",
+   "світляні медузи"
+  ],
+  "desc": "Підземні порожнини, заповнені світлом, що хлюпає, як вода.",
+  "sim": null
+ },
+ {
+  "id": "pidvisni-pechery",
+  "name": "Підвісні Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "hlybokray"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "скельні птахи",
+   "мотузкові павуки"
+  ],
+  "desc": "Печери в стінах каньйонів із мостами з канатів і місцями без підлоги.",
+  "sim": null
+ },
+ {
+  "id": "hlynyani-labirynty",
+  "name": "Глиняні Лабіринти",
+  "anchor": "poi",
+  "rooms": [
+   14,
+   40
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   840,
+   3000
+  ],
+  "area": [
+   1960,
+   7600
+  ],
+  "worlds": [
+   "hlynyshche"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "глиняні істоти",
+   "гончарні вартові"
+  ],
+  "desc": "Лабіринти у вибитих глиняних скелях, схожі на велетенські виліплені соти.",
+  "sim": null
+ },
+ {
+  "id": "symetrychni-kryvtu",
+  "name": "Симетричні Крипти",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "illariya"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "кореневі хранителі",
+   "квіткові наглядачі"
+  ],
+  "desc": "Дзеркально симетричні зали, де ліва й права половини завжди збігаються.",
+  "sim": null
+ },
+ {
+  "id": "zubchasti-mekhanizmy",
+  "name": "Зубчасті Механізми",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   2,
+   4
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "kaldras"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "шестерні-стражі",
+   "латунні павуки"
+  ],
+  "desc": "Гірське нутро з великими обертовими зубчастими плитами замість підлоги.",
+  "sim": null
+ },
+ {
+  "id": "chashovi-pechery",
+  "name": "Чашеві Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "kaltseron"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "мінеральні водяники",
+   "кальцитові чужаки"
+  ],
+  "desc": "Печери з терасами, чашами джерел і прозорими озерцями на кожному рівні.",
+  "sim": null
+ },
+ {
+  "id": "zalyshi-zhyvykh-statuy",
+  "name": "Зали Живих Статуй",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   34
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   720,
+   2550
+  ],
+  "area": [
+   1680,
+   6460
+  ],
+  "worlds": [
+   "kamyanorod"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "оживші статуї",
+   "кам'яні блукальці"
+  ],
+  "desc": "Зали, де статуї рухаються, коли ніхто не дивиться.",
+  "sim": null
+ },
+ {
+  "id": "pechery-strakhu",
+  "name": "Печери Страху",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "kernalis"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "уособлення страху",
+   "тіні мешканців"
+  ],
+  "desc": "Підземелля, яке набуває форми найбільшого страху того, хто в нього заходить.",
+  "sim": null
+ },
+ {
+  "id": "kistyani-kolodyazi",
+  "name": "Кістяні Колодязі",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "krovostep"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "кістяні кочовики",
+   "колодязні вартові"
+  ],
+  "desc": "Колодязі кістяних фортець із обороною на сухих воротах.",
+  "sim": null
+ },
+ {
+  "id": "pechery-zhyvoyi-zemli",
+  "name": "Печери Живої Землі",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   32
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2400
+  ],
+  "area": [
+   1400,
+   6080
+  ],
+  "worlds": [
+   "litarkh"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "земляні крокодили",
+   "ґрунтові блукальці"
+  ],
+  "desc": "Печери, які повільно переходять разом із велетенською живою ділянкою суші.",
+  "sim": null
+ },
+ {
+  "id": "pechery-svitlyakiv",
+  "name": "Печери Світляків",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   28
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   2100
+  ],
+  "area": [
+   1120,
+   5320
+  ],
+  "worlds": [
+   "lyumenvild"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "світляні павуки",
+   "грибні сторожі"
+  ],
+  "desc": "Темні печери, які освітлюють лише біолюмінесцентні рослини й гриби.",
+  "sim": null
+ },
+ {
+  "id": "freskovi-hallerey",
+  "name": "Фрескові Галереї",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   32
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2400
+  ],
+  "area": [
+   1400,
+   6080
+  ],
+  "worlds": [
+   "malvar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "оживлені малюнки",
+   "фарбові привиди"
+  ],
+  "desc": "Підземні галереї з фресками, які оживають, якщо поглянути довго.",
+  "sim": null
+ },
+ {
+  "id": "voshchani-soty",
+  "name": "Воскові Соти",
+  "anchor": "poi",
+  "rooms": [
+   16,
+   48
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   960,
+   3600
+  ],
+  "area": [
+   2240,
+   9120
+  ],
+  "worlds": [
+   "medokray"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "воскові ковалі",
+   "бджолині варти"
+  ],
+  "desc": "Шестикутні кімнати в порожнині старої бджолиної колонії.",
+  "sim": null
+ },
+ {
+  "id": "hnizdovi-pechery",
+  "name": "Гніздові Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "midnokryl"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "гірські птахи",
+   "пташині ловці"
+  ],
+  "desc": "Печери в урвищах, де ховаються яйця й корми гірських птахів.",
+  "sim": null
+ },
+ {
+  "id": "dzerkalni-zaly",
+  "name": "Дзеркальні Зали",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "mirrahon"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "відображення",
+   "дзеркальні варти"
+  ],
+  "desc": "Зали з дзеркалами, у яких відображення діє самостійно.",
+  "sim": null
+ },
+ {
+  "id": "reberni-sklepinnya",
+  "name": "Реберні Склепіння",
+  "anchor": "poi",
+  "rooms": [
+   14,
+   40
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   840,
+   3000
+  ],
+  "area": [
+   1960,
+   7600
+  ],
+  "worlds": [
+   "morgalis"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "кістяні блукальці",
+   "кров'яні шукачі"
+  ],
+  "desc": "Склепіння всередині ребер колосального скелета бога.",
+  "sim": null
+ },
+ {
+  "id": "khmarni-monastyri",
+  "name": "Хмарні Підвали",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "neborid"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "хмарні монахи",
+   "вітряні духи"
+  ],
+  "desc": "Підвали гірських монастирів на плато над хмарами.",
+  "sim": null
+ },
+ {
+  "id": "kubichni-kamery",
+  "name": "Кубічні Камери",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   4
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "neverion"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "кубічні варти",
+   "платформні блукальці"
+  ],
+  "desc": "Кубічні кімнати, з'єднані зсувними платформами й мостами в порожнечі.",
+  "sim": null
+ },
+ {
+  "id": "bolotni-sklepy",
+  "name": "Болотні Склепи",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "nokserra"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "синьовогнені блукальці",
+   "болотні гнилі"
+  ],
+  "desc": "Склепи під водою з холодним синім полум'ям над газовими бульбашками.",
+  "sim": null
+ },
+ {
+  "id": "zastyhli-khvylyny",
+  "name": "Застиглі Хвилини",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "noktalis"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "застиглі люди",
+   "часові тіні"
+  ],
+  "desc": "Кімнати, де час застиг: можна пройти повз людей, що завмерли на півкроці.",
+  "sim": null
+ },
+ {
+  "id": "korin-sadiv",
+  "name": "Коріння Садів",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   28
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   480,
+   2100
+  ],
+  "area": [
+   1120,
+   5320
+  ],
+  "worlds": [
+   "orchardum"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "садові духи",
+   "плодові хижаки"
+  ],
+  "desc": "Підземні зали під давніми садами, де коріння змінюють властивості плодів.",
+  "sim": null
+ },
+ {
+  "id": "pechery-zhyvota",
+  "name": "Чревні Печери",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "ormaval"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "сокові слизняки",
+   "кров'яні паразити"
+  ],
+  "desc": "Пустоти в органах колосальної істоти, повні травних соків і слизу.",
+  "sim": null
+ },
+ {
+  "id": "kistyani-prymorski-pechery",
+  "name": "Кістяні Піщані Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "oskarium"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "кістяні краби",
+   "піщані привиди"
+  ],
+  "desc": "Печери під «кістяним морем» з тонкими, як пісок, фрагментами.",
+  "sim": null
+ },
+ {
+  "id": "kaplytsi-uzlamkiv",
+  "name": "Каплиці Уламків",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   32
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2400
+  ],
+  "area": [
+   1400,
+   6080
+  ],
+  "worlds": [
+   "ostanky"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "осколочні духи",
+   "чужі вартові"
+  ],
+  "desc": "Каплиці, зібрані з уламків різних світів, де кожна стіна з іншої епохи.",
+  "sim": null
+ },
+ {
+  "id": "paperovi-shari",
+  "name": "Паперові Шари",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   2,
+   5
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "paperon"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "сторінкові істоти",
+   "чорнильні блукальці"
+  ],
+  "desc": "Багаторівневе підземелля з тонких шарів плато, що шарудять під ногами.",
+  "sim": null
+ },
+ {
+  "id": "burshtynovi-vykhory",
+  "name": "Бурштинові Виходи",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "rakhmir"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "бурштинові комахи",
+   "вихрові зайди"
+  ],
+  "desc": "Печери, де застигла буря, і в бурштині ховаються уламки ландшафту.",
+  "sim": null
+ },
+ {
+  "id": "kolorovi-zhyly",
+  "name": "Кольорові Жили",
+  "anchor": "poi",
+  "rooms": [
+   14,
+   40
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   840,
+   3000
+  ],
+  "area": [
+   1960,
+   7600
+  ],
+  "worlds": [
+   "rudozir"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "рудні ґноми",
+   "самоцвітні ящери"
+  ],
+  "desc": "Шахти вздовж кольорових жил руди, що світяться в темряві.",
+  "sim": null
+ },
+ {
+  "id": "zvukovi-sklepinnya",
+  "name": "Звукові Склепіння",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "runhar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "луна-духи",
+   "гуркітні істоти"
+  ],
+  "desc": "Склепіння, у яких кожен звук матеріалізується й залишається в стінах.",
+  "sim": null
+ },
+ {
+  "id": "runni-pidzemellya",
+  "name": "Рунні Підземелля",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "runozem"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "рунні вартові",
+   "кам'яні ритуалісти"
+  ],
+  "desc": "Підземелля з руническими плитами, які змінюють правила кімнат.",
+  "sim": null
+ },
+ {
+  "id": "irzhavi-tunely",
+  "name": "Іржаві Тунелі",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "rzhavar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "іржаві рослини",
+   "залізні жуки"
+  ],
+  "desc": "Тунелі, де метал проростає з порід, а повітря пахне іржею.",
+  "sim": null
+ },
+ {
+  "id": "chotyry-pory-pidzemellya",
+  "name": "Підземелля Чотирьох Пір",
+  "anchor": "poi",
+  "rooms": [
+   16,
+   44
+  ],
+  "levels": [
+   1,
+   4
+  ],
+  "length": [
+   960,
+   3300
+  ],
+  "area": [
+   2240,
+   8360
+  ],
+  "worlds": [
+   "sezonariy"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "сезонні духи",
+   "крижані та квіткові стражі"
+  ],
+  "desc": "Підземелля з чотирма крилами, у кожному з яких панує своя пора року.",
+  "sim": null
+ },
+ {
+  "id": "kolyshni-nebesa",
+  "name": "Колишні Небеса",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   34
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2550
+  ],
+  "area": [
+   1400,
+   6460
+  ],
+  "worlds": [
+   "skarveld"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "хмарні тіні",
+   "забуті птахи"
+  ],
+  "desc": "Печери зі стелями-старими небосхилами, де ще блукають хмари.",
+  "sim": null
+ },
+ {
+  "id": "petlyustky-pechery",
+  "name": "Пелюсткові Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "skeltsvit"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "кам'яні бджоли",
+   "мінеральні квітки"
+  ],
+  "desc": "Печери в гігантських кам'яних квітках із пелюстками-стінами.",
+  "sim": null
+ },
+ {
+  "id": "smolyani-hrobnytsi",
+  "name": "Смолисті Гробниці",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "smolyar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "застиглі комахи",
+   "смолисті ґолеми"
+  ],
+  "desc": "Гробниці у товщі смоли з рослинами й комахами всередині, іноді ще живими.",
+  "sim": null
+ },
+ {
+  "id": "padinnya-moriv",
+  "name": "Падіння Морів",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "solemor"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "морські духи",
+   "падаючі риби"
+  ],
+  "desc": "Печери під місцями, куди падає вода з небесного моря.",
+  "sim": null
+ },
+ {
+  "id": "pidvodni-pechery-talasyru",
+  "name": "Підводні Печери",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   4
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "talassyr"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "глибинні риби",
+   "печерні хижаки"
+  ],
+  "desc": "Затоплені пещерні системи з повітряними кишенями.",
+  "sim": null
+ },
+ {
+  "id": "vidlyvni-pidzemellya",
+  "name": "Відливні Підземелля",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "talmoriya"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "відливні крабі",
+   "затоплені мерці"
+  ],
+  "desc": "Підземелля, що відкриваються лише під час відпливу й зникають під водою.",
+  "sim": null
+ },
+ {
+  "id": "parovi-hrotyy",
+  "name": "Парові Грота",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "termalis"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "парові духи",
+   "теплолюбні ящери"
+  ],
+  "desc": "Грота з гарячими джерелами й густою парою.",
+  "sim": null
+ },
+ {
+  "id": "ternovi-krypty",
+  "name": "Тернові Крипти",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   28
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   480,
+   2100
+  ],
+  "area": [
+   1120,
+   5320
+  ],
+  "worlds": [
+   "ternaviya"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "терновики",
+   "лозові душителі"
+  ],
+  "desc": "Крипти, де коріння й терен розламали мури й проросли в склепи.",
+  "sim": null
+ },
+ {
+  "id": "kilcevi-bastiony",
+  "name": "Кільцеві Бастіони",
+  "anchor": "poi",
+  "rooms": [
+   16,
+   48
+  ],
+  "levels": [
+   1,
+   4
+  ],
+  "length": [
+   960,
+   3600
+  ],
+  "area": [
+   2240,
+   9120
+  ],
+  "worlds": [
+   "trykoron"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "гарнізонні привиди",
+   "мурові вартові"
+  ],
+  "desc": "Підземні ходи між трьома кільцями оборонних мурів.",
+  "sim": null
+ },
+ {
+  "id": "dzherela-snovydin",
+  "name": "Джерела Сновидінь",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "umbralit"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "образи снів",
+   "сонні вартові"
+  ],
+  "desc": "Печери, де сни матеріалізуються в предмети й створіння.",
+  "sim": null
+ },
+ {
+  "id": "povitryani-kaniony",
+  "name": "Повітряні Каньйонові Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "valdren"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "вітряні орли",
+   "скелелази"
+  ],
+  "desc": "Печери в каньйонах, де повітряні течії видно як стрічки пилу.",
+  "sim": null
+ },
+ {
+  "id": "popilyani-mista",
+  "name": "Попелясті Міста",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "varhess"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "попелясті привиди",
+   "пилові вартові"
+  ],
+  "desc": "Підземні міста, що відновлюються з попелу після кожної бурі.",
+  "sim": null
+ },
+ {
+  "id": "perevernuti-zaly",
+  "name": "Перевернуті Зали",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "velarium"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "висячі тіні",
+   "перевернуті істоти"
+  ],
+  "desc": "Зали, де підлога там, де в інших світах стеля.",
+  "sim": null
+ },
+ {
+  "id": "kopytni-nori",
+  "name": "Копитні Нори",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "veletraviya"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "нірні велетні",
+   "степові вовки"
+  ],
+  "desc": "Нори під степом, прокопані й вибиті велетенськими стадами.",
+  "sim": null
+ },
+ {
+  "id": "hilkovi-pidvaly",
+  "name": "Гіллясті Підвали",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   480,
+   1800
+  ],
+  "area": [
+   1120,
+   4560
+  ],
+  "worlds": [
+   "vershynnytsia"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "гіллясті звірі",
+   "павуки-ткачі"
+  ],
+  "desc": "Підвали в дуплах велетенських дерев із щаблями з гілок.",
+  "sim": null
+ },
+ {
+  "id": "sutinkovi-pechery",
+  "name": "Сутінкові Печери",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   26
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   480,
+   1950
+  ],
+  "area": [
+   1120,
+   4940
+  ],
+  "worlds": [
+   "vespern"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "тіньові звірі",
+   "спекотні тварини"
+  ],
+  "desc": "Печери на межі вічного заходу, де температура різко змінюється.",
+  "sim": null
+ },
+ {
+  "id": "korabelni-trumy",
+  "name": "Корабельні Трюми",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   720,
+   2700
+  ],
+  "area": [
+   1680,
+   6840
+  ],
+  "worlds": [
+   "vitroparus"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "піщані пірати",
+   "парусні привиди"
+  ],
+  "desc": "Трюми наземних кораблів, закопаних у піски разом із вантажем.",
+  "sim": null
+ },
+ {
+  "id": "vuhilni-shakhty",
+  "name": "Вугільні Шахти",
+  "anchor": "poi",
+  "rooms": [
+   14,
+   40
+  ],
+  "levels": [
+   1,
+   4
+  ],
+  "length": [
+   840,
+   3000
+  ],
+  "area": [
+   1960,
+   7600
+  ],
+  "worlds": [
+   "vuhlerod"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "вугільні ґноми",
+   "задимлені вовки"
+  ],
+  "desc": "Покинуті вугільні шахти під темними хвойними лісами.",
+  "sim": null
+ },
+ {
+  "id": "mlynovi-pidzemellya",
+  "name": "Млинові Підземелля",
+  "anchor": "poi",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   600,
+   2250
+  ],
+  "area": [
+   1400,
+   5700
+  ],
+  "worlds": [
+   "zhornoverkh"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "жорнові ґолеми",
+   "борошняні привиди"
+  ],
+  "desc": "Підземні млини, де чарівне зерно досі перемелюється самотужки.",
+  "sim": null
+ },
+ {
+  "id": "kamera-zhyvykh-nasinyn",
+  "name": "Камера Живих Насінин",
+  "anchor": "poi",
+  "rooms": [
+   6,
+   18
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   360,
+   1350
+  ],
+  "area": [
+   840,
+   3420
+  ],
+  "worlds": [
+   "arkhelor"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "паростеві істоти",
+   "зародкові тіні"
+  ],
+  "desc": "Малий склеп, де зберігаються насінини, що самі обирають господаря.",
+  "sim": null
+ },
+ {
+  "id": "lodova-krypta",
+  "name": "Крижана Крипта",
+  "anchor": "settlement",
+  "rooms": [
+   4,
+   12
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   100,
+   400
+  ],
+  "area": [
+   200,
+   800
+  ],
+  "worlds": [
+   "frostheym"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "морозні мерці",
+   "льодові тіні"
+  ],
+  "desc": "Склеп, вичавлений у льоду, із замерзлими саркофагами.",
+  "sim": null
+ },
+ {
+  "id": "krypta-strakhiv",
+  "name": "Крипта Страхів",
+  "anchor": "settlement",
+  "rooms": [
+   4,
+   12
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   100,
+   400
+  ],
+  "area": [
+   200,
+   800
+  ],
+  "worlds": [
+   "kernalis"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "уособлення страху"
+  ],
+  "desc": "Склеп, у якому страхи мешканців стають видимими.",
+  "sim": null
+ },
+ {
+  "id": "krypta-hrafov",
+  "name": "Крипта Графів",
+  "anchor": "settlement",
+  "rooms": [
+   4,
+   12
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   100,
+   400
+  ],
+  "area": [
+   200,
+   800
+  ],
+  "worlds": [
+   "trykoron"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "гарнізонні привиди"
+  ],
+  "desc": "Склеп королівської знаті всередині мурів.",
+  "sim": null
+ },
+ {
+  "id": "paruska-hrobnytsia",
+  "name": "Парусна Гробниця",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   900,
+   3000
+  ],
+  "area": [
+   1500,
+   6500
+  ],
+  "worlds": [
+   "vitroparus"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "піщані мумії",
+   "парусні духи"
+  ],
+  "desc": "Гробниця капітанів наземних кораблів.",
+  "sim": {
+   "tags": {
+    "tombs": 55,
+    "cache": 35,
+    "webs": 15
+   },
+   "corr": 10,
+   "cave": false
+  }
+ },
+ {
+  "id": "zolota-hrobnytsia",
+  "name": "Золота Гробниця",
+  "anchor": "poi",
+  "rooms": [
+   12,
+   36
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   900,
+   3000
+  ],
+  "area": [
+   1500,
+   6500
+  ],
+  "worlds": [
+   "heliontar"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "золоті мумії",
+   "піщані скарабеї"
+  ],
+  "desc": "Гробниця пустельних правителів у шарі золотого піску.",
+  "sim": {
+   "tags": {
+    "tombs": 55,
+    "cache": 35,
+    "webs": 15
+   },
+   "corr": 10,
+   "cave": false
+  }
+ },
+ {
+  "id": "vuhilna-shakhta",
+  "name": "Закинута Вугільна Шахта",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   500,
+   3000
+  ],
+  "area": [
+   1000,
+   6000
+  ],
+  "worlds": [
+   "vuhlerod"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "задимлені ґноми",
+   "вугільні жуки"
+  ],
+  "desc": "Шахта під хвойним лісом з обвалами.",
+  "sim": null
+ },
+ {
+  "id": "rudna-shakhta-rudozoru",
+  "name": "Рудна Шахта Кольорів",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   500,
+   3000
+  ],
+  "area": [
+   1000,
+   6000
+  ],
+  "worlds": [
+   "rudozir"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "рудні ґноми"
+  ],
+  "desc": "Шахта, де кожен рівень відповідає кольору руди.",
+  "sim": null
+ },
+ {
+  "id": "vulkanichna-shakhta",
+  "name": "Вулканічна Шахта",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   30
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   500,
+   3000
+  ],
+  "area": [
+   1000,
+   6000
+  ],
+  "worlds": [
+   "embergard"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "вогняні ґноми"
+  ],
+  "desc": "Шахта поряд з ділянкою живої лави.",
+  "sim": null
+ },
+ {
+  "id": "skhovyshche-uzlamkiv",
+  "name": "Сховище Уламків",
+  "anchor": "poi",
+  "rooms": [
+   15,
+   45
+  ],
+  "levels": [
+   2,
+   4
+  ],
+  "length": [
+   900,
+   3500
+  ],
+  "area": [
+   2000,
+   8000
+  ],
+  "worlds": [
+   "ostanky"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "чужі вартові"
+  ],
+  "desc": "Сховище, складене з частин інших цивілізацій.",
+  "sim": null
+ },
+ {
+  "id": "tumanni-pidvaly-ruin",
+  "name": "Підвали Забутого Міста",
+  "anchor": "settlement",
+  "rooms": [
+   3,
+   9
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   80,
+   300
+  ],
+  "area": [
+   150,
+   600
+  ],
+  "worlds": [
+   "aurokhm"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "тіні в тумані"
+  ],
+  "desc": "Підвали старих будинків у золотому тумані.",
+  "sim": null
+ },
+ {
+  "id": "rozrosli-pidvaly",
+  "name": "Розрослі Підвали",
+  "anchor": "settlement",
+  "rooms": [
+   3,
+   9
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   80,
+   300
+  ],
+  "area": [
+   150,
+   600
+  ],
+  "worlds": [
+   "ternaviya"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "терновики"
+  ],
+  "desc": "Підвали, захоплені рослинністю.",
+  "sim": null
+ },
+ {
+  "id": "dosh-kanal",
+  "name": "Дощовий Колектор",
+  "anchor": "city",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   600,
+   2500
+  ],
+  "area": [
+   800,
+   4000
+  ],
+  "worlds": [
+   "solemor"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "водяні істоти"
+  ],
+  "desc": "Колектор, куди стікає вода з небесного моря.",
+  "sim": null
+ },
+ {
+  "id": "dakhova-kanalizatsiya",
+  "name": "Дахова Каналізація",
+  "anchor": "city",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   600,
+   2500
+  ],
+  "area": [
+   800,
+   4000
+  ],
+  "worlds": [
+   "doshchohrad"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "щурі",
+   "дахоходи"
+  ],
+  "desc": "Каналізація міста-даху з водоспадами.",
+  "sim": null
+ },
+ {
+  "id": "akvedukovi-tunely",
+  "name": "Акведукові Тунелі",
+  "anchor": "city",
+  "rooms": [
+   10,
+   30
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   600,
+   2500
+  ],
+  "area": [
+   800,
+   4000
+  ],
+  "worlds": [
+   "akvedor"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "водяні вартові"
+  ],
+  "desc": "Підземні тунелі мережі акведуків.",
+  "sim": null
+ },
+ {
+  "id": "kistyane-lihvo",
+  "name": "Кістяне Лігво Кочовиків",
+  "anchor": "poi",
+  "rooms": [
+   3,
+   8
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   100,
+   400
+  ],
+  "area": [
+   200,
+   700
+  ],
+  "worlds": [
+   "krovostep"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "кістяні кочовики"
+  ],
+  "desc": "Схованка кочовиків у кістяних фортецях.",
+  "sim": null
+ },
+ {
+  "id": "pastushyi-skhov",
+  "name": "Пастуший Сховок",
+  "anchor": "poi",
+  "rooms": [
+   3,
+   8
+  ],
+  "levels": [
+   1,
+   1
+  ],
+  "length": [
+   100,
+   400
+  ],
+  "area": [
+   200,
+   700
+  ],
+  "worlds": [
+   "veletraviya"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "вовки",
+   "злодії-пастухи"
+  ],
+  "desc": "Схованка бандитів, що нападають на стада.",
+  "sim": null
+ },
+ {
+  "id": "maliarskyi-pidval",
+  "name": "Малярський Підвал",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   20
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   300,
+   1200
+  ],
+  "area": [
+   900,
+   3000
+  ],
+  "worlds": [
+   "malvar"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "оживлені малюнки"
+  ],
+  "desc": "Підвал художника-мага з оживаючими картинами.",
+  "sim": null
+ },
+ {
+  "id": "pidval-snoviddya",
+  "name": "Підвал Сновидця",
+  "anchor": "poi",
+  "rooms": [
+   8,
+   20
+  ],
+  "levels": [
+   1,
+   3
+  ],
+  "length": [
+   300,
+   1200
+  ],
+  "area": [
+   900,
+   3000
+  ],
+  "worlds": [
+   "umbralit"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "образи снів"
+  ],
+  "desc": "Підвал чарівника снів із дверима в нікуди.",
+  "sim": null
+ },
+ {
+  "id": "zatoka-vidplyvu",
+  "name": "Затока Контрабандистів",
+  "anchor": "poi",
+  "rooms": [
+   6,
+   18
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   400,
+   1500
+  ],
+  "area": [
+   700,
+   3000
+  ],
+  "worlds": [
+   "talmoriya"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "контрабандисти",
+   "крабі"
+  ],
+  "desc": "Печера, доступна лише під час відпливу.",
+  "sim": {
+   "tags": {
+    "cache": 55,
+    "flooded": 30,
+    "cells": 10
+   },
+   "corr": 25,
+   "cave": false
+  }
+ },
+ {
+  "id": "pidvodna-zatoka",
+  "name": "Підводна Затока",
+  "anchor": "poi",
+  "rooms": [
+   6,
+   18
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   400,
+   1500
+  ],
+  "area": [
+   700,
+   3000
+  ],
+  "worlds": [
+   "talassyr"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "контрабандисти-плавці"
+  ],
+  "desc": "Печерна затока з повітряними кишенями.",
+  "sim": {
+   "tags": {
+    "cache": 55,
+    "flooded": 30,
+    "cells": 10
+   },
+   "corr": 25,
+   "cave": false
+  }
+ },
+ {
+  "id": "hirska-viaznytsia",
+  "name": "Гірська В'язниця Птахів",
+  "anchor": "city",
+  "rooms": [
+   8,
+   24
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   500,
+   1800
+  ],
+  "area": [
+   700,
+   3000
+  ],
+  "worlds": [
+   "midnokryl"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "сторожі",
+   "крилаті звірі"
+  ],
+  "desc": "В'язниця в скелі, що охороняється приручені птахами.",
+  "sim": {
+   "tags": {
+    "cells": 60,
+    "blood": 15,
+    "rubble": 10
+   },
+   "corr": 30,
+   "cave": false
+  }
+ },
+ {
+  "id": "katakomby-kistok",
+  "name": "Катакомби Кісток",
+  "anchor": "city",
+  "rooms": [
+   20,
+   60
+  ],
+  "levels": [
+   2,
+   3
+  ],
+  "length": [
+   1200,
+   4000
+  ],
+  "area": [
+   2500,
+   9000
+  ],
+  "worlds": [
+   "morgalis"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "кістяні мерці"
+  ],
+  "desc": "Катакомби в кістках бога.",
+  "sim": null
+ },
+ {
+  "id": "katakomby-mytey",
+  "name": "Катакомби Миттєвостей",
+  "anchor": "city",
+  "rooms": [
+   20,
+   60
+  ],
+  "levels": [
+   2,
+   3
+  ],
+  "length": [
+   1200,
+   4000
+  ],
+  "area": [
+   2500,
+   9000
+  ],
+  "worlds": [
+   "noktalis"
+  ],
+  "monsterIds": [],
+  "danger": 4,
+  "inhabitants": [
+   "часові тіні"
+  ],
+  "desc": "Катакомби, де кожна ніша тримає застиглу мить.",
+  "sim": null
+ },
+ {
+  "id": "kistyani-katakomby",
+  "name": "Піщані Катакомби",
+  "anchor": "city",
+  "rooms": [
+   20,
+   60
+  ],
+  "levels": [
+   2,
+   3
+  ],
+  "length": [
+   1200,
+   4000
+  ],
+  "area": [
+   2500,
+   9000
+  ],
+  "worlds": [
+   "oskarium"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "кістяні шукачі"
+  ],
+  "desc": "Катакомби з тонким кістяним піском на підлозі.",
+  "sim": null
+ },
+ {
+  "id": "rifovyi-hrot",
+  "name": "Рифовий Грот",
+  "anchor": "poi",
+  "rooms": [
+   6,
+   20
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   500,
+   1800
+  ],
+  "area": [
+   800,
+   3500
+  ],
+  "worlds": [
+   "fossar"
+  ],
+  "monsterIds": [],
+  "danger": 2,
+  "inhabitants": [
+   "рифові істоти"
+  ],
+  "desc": "Грот серед скам'янілих рифів.",
+  "sim": {
+   "tags": {
+    "flooded": 65,
+    "webs": 20,
+    "nests": 25
+   },
+   "corr": 8,
+   "cave": true
+  }
+ },
+ {
+  "id": "synii-hrot",
+  "name": "Синій Грот",
+  "anchor": "poi",
+  "rooms": [
+   6,
+   20
+  ],
+  "levels": [
+   1,
+   2
+  ],
+  "length": [
+   500,
+   1800
+  ],
+  "area": [
+   800,
+   3500
+  ],
+  "worlds": [
+   "nokserra"
+  ],
+  "monsterIds": [],
+  "danger": 3,
+  "inhabitants": [
+   "синьовогневі істоти"
+  ],
+  "desc": "Грот із постійним синім полум'ям.",
+  "sim": {
+   "tags": {
+    "flooded": 65,
+    "webs": 20,
+    "nests": 25
+   },
+   "corr": 8,
+   "cave": true
+  }
  }
 ]; if (typeof module !== 'undefined') module.exports = g.DungeonTypes; })(typeof globalThis !== 'undefined' ? globalThis : this);
