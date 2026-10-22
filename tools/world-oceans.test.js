@@ -29,8 +29,8 @@ function scan(W, R = 120000, st = 1000) {
 }
 const cache = {}, sc = (s) => cache[s] || (cache[s] = scan(world(s)));
 const seeds = Array.from({ length: 8 }, (_, i) => 's' + i);
-test('між материками велетенські океани: 90% води далі за 25 км від великого суходолу, найглибша точка далі за 60 км', () => {
-  for (const s of seeds) { const r = sc(s); assert.ok(r.p90 >= 25 && r.max >= 60, s + ': p90=' + r.p90 + ' км, max=' + r.max + ' км'); }
+test('між материками велетенські океани: 90% води далі за 18 км від великого суходолу, найглибша точка далі за 35 км (простори води помірні)', () => {
+  for (const s of seeds) { const r = sc(s); assert.ok(r.p90 >= 18 && r.max >= 35, s + ': p90=' + r.p90 + ' км, max=' + r.max + ' км'); }
 });
 test('в океанах є нічийні острови: і малі, і великі', () => {
   for (const s of seeds) {

@@ -77,7 +77,7 @@ const WT = {
 function ocean(X, Y, s, k) {
   if (!k) return 0;
   const m = fbm(X / 40000 + 11.3, Y / 40000 - 6.1, s + 41, 3),
-    o = 1 - sst(.42, .56, m);
+    o = 1 - sst(.36, .46, m);
   if (o <= 0) return 0;
   const big = sst(.7, .8, fbm(X / 7000 - 2.4, Y / 7000 + 9.7, s + 43, 3)),
     small = sst(.68, .78, fbm(X / 1500 + 5.5, Y / 1500 - 8.8, s + 45, 2));
@@ -118,7 +118,8 @@ function wsetup() {
       }
     }
     /* старт має бути на великому суходолі, а не на острівці: більшість точок у радіусі 9 км — суша (якщо такого зміщення бракує, береться найближче) */
-    const dd = Math.abs(sc - 80 * t.tg) + Math.max(0, 36 - near) * 4;
+    const dd = Math.abs(sc - 80 * t.tg) + Math.max(0, 36 - near) * 4 +
+      (cont(0, 0, s, ox, oy, t.w) > t.lv + .03 ? 0 : 200);
     if (dd < bd) {
       bd = dd;
       bo = [ox, oy];
@@ -140,6 +141,7 @@ function wsetup() {
     re: new Set(),
     kc: new Map(),
     zt: new Map(),
+    zd: new Map(),
     bt: new Map(),
   };
 }

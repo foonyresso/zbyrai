@@ -267,10 +267,10 @@ function regAt(x, y) {
   }
   return best;
 }
-/* Територіальні води: від берега 3–5 км (змінюється шумом), далі — дикий океан зі своїм рівнем */
+/* Територіальні води: від берега 2–3 км (змінюється шумом), далі — дикий океан зі своїм рівнем */
 const terrW = (x, y) =>
-  3000 +
-  2000 * cl01((fbm(x / 7000 + 21, y / 7000 - 9, WLD.s + 503, 2) - .3) / .4);
+  2000 +
+  1000 * cl01((fbm(x / 7000 + 21, y / 7000 - 9, WLD.s + 503, 2) - .3) / .4);
 /* Поле територіальних вод у світовій ґратці TC (не залежить від масштабу й вікна), плитки TN×TN кешуються в WLD.zt.
    G = відстань до суші мінус terrW; дикий океан — де в крузі радіуса RC є вузол із G>RC (морфологічне відкриття):
    закриті кишені між островами стають територією, відкритий океан не змінюється. terrZ>0 — територія, <0 — дикий океан */
@@ -321,6 +321,12 @@ function zTile(ti, tj) {
         terrW((ti * TN + i - TH) * TC, (tj * TN + j - TH) * TC);
     }
   }
+  /* відстань до суші (м) у центральній частині плитки: море чи океан для розфарбування */
+  const dc = new Float32Array(TN * TN);
+  for (let j = 0; j < TN; j++) {
+    for (let i = 0; i < TN; i++) dc[j * TN + i] = Dc[(j + TH) * M + i + TH] * TC;
+  }
+  WLD.zd.set(key, dc);
   t = new Float32Array(TN * TN);
   for (let j = TH; j < TH + TN; j++) {
     for (let i = TH; i < TH + TN; i++) {
@@ -341,6 +347,15 @@ function zTile(ti, tj) {
 function zNode(i, j) {
   const ti = Math.floor(i / TN), tj = Math.floor(j / TN);
   return zTile(ti, tj)[(j - tj * TN) * TN + i - ti * TN];
+}
+function coastD(x, y) {
+  const fx = x / TC, fy = y / TC, i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j,
+    n = (a, b) => {
+      const ti = Math.floor(a / TN), tj = Math.floor(b / TN);
+      zTile(ti, tj);
+      return WLD.zd.get(ti + "," + tj)[(b - tj * TN) * TN + a - ti * TN];
+    };
+  return n(i, j) * (1 - u) * (1 - v) + n(i + 1, j) * u * (1 - v) + n(i, j + 1) * (1 - u) * v + n(i + 1, j + 1) * u * v;
 }
 function terrZ(x, y) {
   const fx = x / TC,

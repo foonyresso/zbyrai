@@ -16,6 +16,7 @@ function pal(bk) {
   if (PCL[bk]) return PCL[bk];
   const T = WSTYLE.theme, tn = (c) => hx(T ? RealmMap.Palette.tint(c) : c),
     b = BIOS[bk], g = tn(b.g), f = tn(b.f);
+  const oc = (T ? hx(T.sea[4]) : [156, 197, 222]).map((v, i) => Math.round(v * [.7, .78, .9][i]));
   return PCL[bk] = [
     T ? hx(T.sea[1]) : [168, 205, 227],
     T ? hx(T.sea[4]) : [156, 197, 222],
@@ -24,8 +25,11 @@ function pal(bk) {
     bk == "snow" ? [226, 230, 229] : [218, 212, 192],
     [247, 248, 248],
     g,
+    oc,
   ];
 }
+/* вода: море (світліше) біля суші, океан (темніший, однорідний) далі від берегів; глибина E колір не міняє */
+const wc = (P, o) => [0, 1, 2].map((k) => P[0][k] + (P[7][k] - P[0][k]) * o);
 function mkTile(b, tx, ty) {
   const TW = 2 ** b,
     X0 = tx * TW,
@@ -35,7 +39,7 @@ function mkTile(b, tx, ty) {
     QB = Q + 2,
     sp = TW / GN2,
     GG = GN2 + 4,
-    NF = 9,
+    NF = 10,
     FD = new Float32Array(GG * GG * NF),
     ps = TW / Q * 1.6;
   for (let gy = -2; gy < GN2 + 2; gy++) {
@@ -47,6 +51,7 @@ function mkTile(b, tx, ty) {
       FD[o + 2] = p.mo;
       FD[o + 3] = p.tp;
       FD[o + 4] = p.fo;
+      if (p.E <= 0) FD[o + 9] = sst(9000, 14000, coastD(X0 + (gx + .5) * sp, Y0 + (gy + .5) * sp));
       const sb = p.E > 0 ? sbAt(X0 + (gx + .5) * sp, Y0 + (gy + .5) * sp) : null;
       if (sb) { FD[o + 5] = sb.w; FD[o + 6] = sb.w * sb.rgb[0]; FD[o + 7] = sb.w * sb.rgb[1]; FD[o + 8] = sb.w * sb.rgb[2]; }
     }
@@ -57,6 +62,7 @@ function mkTile(b, tx, ty) {
     Sb = new Float32Array(QB * QB * 4),
     bi = new Uint8Array(QB * QB),
     Rr = new Float32Array(QB * QB).fill(1e3),
+    Of = new Float32Array(QB * QB),
     V = new Float32Array(NF),
     gs = GN2 / Q;
   if (TW <= 65536) riverRaster(X0, Y0, TW, Q, QB, Rr);
@@ -80,6 +86,7 @@ function mkTile(b, tx, ty) {
       }
       const i = (py + 1) * QB + px + 1;
       Ef[i] = V[0];
+      Of[i] = V[9];
       Rf[i] = V[1];
       Ff[i] = V[4];
       Sb[i * 4] = V[5];
@@ -118,7 +125,7 @@ function mkTile(b, tx, ty) {
         P = pal(BKI[bi[i]]),
         gE = gr(Ef, x, y, i);
       if (E < 0 && -E > 3 * gE) {
-        const c = E < -.16 ? P[1] : P[0], o = i * 4;
+        const c = wc(P, Of[i]), o = i * 4;
         dt[o] = c[0];
         dt[o + 1] = c[1];
         dt[o + 2] = c[2];
@@ -154,7 +161,7 @@ function mkTile(b, tx, ty) {
             sw = sr;
           }
         }
-        mxc(E < -.16 ? P[1] : P[0], cl01(sw + .5));
+        mxc(wc(P, Of[i]), cl01(sw + .5));
         mxc(COAST, cl01(1 - Math.abs(sw)) * .9);
       }
       const o = i * 4;
