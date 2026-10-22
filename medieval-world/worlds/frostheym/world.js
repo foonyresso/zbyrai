@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "frostheym",
   "name": "Фростгейм",
   "order": 83,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "island"
+    "theme": "frostheym", "cities": "r"
   },
   "description": "Холодний гірський вимір із льодовиками, печерами та замерзлими озерами, придатний для звичайного воксельного дослідження, видобутку руди й боїв.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "krystalichni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "50",
     "subtitle": "Край синіх льодових печер",

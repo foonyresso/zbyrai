@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "paperon",
   "name": "Паперон",
   "order": 85,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "continent"
+    "theme": "paperon", "cities": "n"
   },
   "description": "Фантастичний світ тонких шаруватих плато, де ґрунт, скелі й рослинність утворюють виразні кольорові пласти, схожі на складені листи.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "temni-sharovi-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "52",
     "subtitle": "Земля складених рівнин",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "talassyr",
   "name": "Талассир",
   "order": 63,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.7,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "archipelago"
+    "theme": "talassyr", "cities": "r"
   },
   "description": "Вимір, де весь світ складається з гігантської системи печер, заповнених морями, підводними лісами й повітряними озерами.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "zeleni-hlybynni-lisy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "27",
     "subtitle": "Світ океанічних печер",

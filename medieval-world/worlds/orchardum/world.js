@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "orchardum",
   "name": "Орчардум",
   "order": 71,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.2,
     "riverDensity": 0.9,
-    "theme": "continent"
+    "theme": "orchardum", "cities": "n"
   },
   "description": "Родючий вимір, у якому дерева дають плоди з передбачуваними магічними властивостями, а стародавні садівники створювали з них зілля та бойові суміші.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "zoloti-teplytsi"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "36 + 57",
     "subtitle": "Сади алхімічних плодів",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "varhess",
   "name": "Варгесс",
   "order": 53,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "ostanky"
+    "theme": "varhess", "cities": "r"
   },
   "description": "Світ, де попіл є головною формою життя й пам'яті, а кожна буря здатна відтворити з пилу давно зниклі міста або чудовиськ.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "vitryani-nekropoli"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "15",
     "subtitle": "Країна попелястих буревіїв",

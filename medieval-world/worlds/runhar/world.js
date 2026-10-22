@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "runhar",
   "name": "Рунгар",
   "order": 56,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "runhar", "cities": "r"
   },
   "description": "Вимір, у якому звук матеріалізується: спів створює мости, гуркіт утворює скелі, а тиша здатна розчиняти цілі долини.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "basovi-bezodni"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "18",
     "subtitle": "Світ голосових гір",

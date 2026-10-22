@@ -146,7 +146,8 @@ test('світи не змішують біоми один одного: біо�
 });
 test('тема кожного світу на рушії «Материк» існує в themes.js', () => {
   const sb = { RealmMap: {} };
-  vm.runInNewContext(fs.readFileSync(path.join(base, 'worlds/continent/render/themes.js'), 'utf8'), Object.assign(sb, { globalThis: sb }));
+  Object.assign(sb, { globalThis: sb });
+  for (const f of ['themes.js', 'themes-worlds.js']) vm.runInNewContext(fs.readFileSync(path.join(base, 'worlds/continent/render', f), 'utf8'), sb);
   for (const w of Atlas.worlds) if (w.preset && w.preset.theme) assert.ok(sb.RealmMap.Themes[w.preset.theme], w.id + ': немає теми ' + w.preset.theme);
 });
 test('народів немає: ні реєстру, ні папки, ні поля lore.peoples', () => {

@@ -26,7 +26,7 @@
 ```
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
-tools/                   sync-theme.mjs, ui-rules.test.js, build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
+tools/                   sync-theme.mjs, ui-rules.test.js, build-world-themes.mjs (теми вимірів із палітр lore), build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
 image-converter/         Конвертер зображень (convert-core, zip-core, convert-render, воркер і пул, app.js)
 <інструмент>/            index.html, app.js, *-core.js, style.css, theme.css, README.md, test/
 prompt-dice/             Кубик промптів: pools/styles/types (параметри), flux-*.js (Flux), mk-*.js (манекен: фігура, категорії, слоти), ui-mannequin.js і ui-workspace.js (інтерфейс), app.js (стан і збирання промптів)

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "mirrahon",
   "name": "Міррагон",
   "order": 46,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "ostanky"
+    "theme": "mirrahon", "cities": "r"
   },
   "description": "Світ, у якому кожна поверхня має живе відображення, що існує в паралельному шарі простору й може змінювати реальність.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "sady-zvorotnoho-svitla"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "7",
     "subtitle": "Дзеркальний материк",

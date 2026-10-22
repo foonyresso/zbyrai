@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "kernalis",
   "name": "Керналіс",
   "order": 59,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "continent"
+    "theme": "kernalis", "cities": "n"
   },
   "description": "Вимір, де зовнішність і властивості місцевості залежать від того, як її сприймають мешканці: страх перетворює ліс на лабіринт.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "maskovi-hory"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "21",
     "subtitle": "Світ мінливих масок",

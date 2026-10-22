@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "akvedor",
   "name": "Акведор",
   "order": 93,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.4,
     "riverDensity": 1.2,
-    "theme": "continent"
+    "theme": "akvedor", "cities": "n"
   },
   "description": "Вимір, де цивілізації побудували складну мережу акведуків, каналів, шлюзів і резервуарів, що досі забезпечують водою міста серед посушливих земель.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "arkhitekturni-kanyony"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "65",
     "subtitle": "Країна кам'яних водоводів",

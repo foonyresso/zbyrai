@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "vitroparus",
   "name": "Вітропарус",
   "order": 91,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.6,
     "ruggedness": 0.4,
     "riverDensity": 0.1,
-    "theme": "pangea"
+    "theme": "vitroparus", "cities": "0"
   },
   "description": "Пустельний світ, у якому величезні вітрила стародавніх наземних кораблів стирчать із пісків, а торгові каравани пересуваються широкими дюнами.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "pokhovani-porty"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "63",
     "subtitle": "Море без води",

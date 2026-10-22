@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "veletraviya",
   "name": "Велетравія",
   "order": 76,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.2,
     "riverDensity": 0.8,
-    "theme": "pangea"
+    "theme": "veletraviya", "cities": "r"
   },
   "description": "Відкритий світ широких рівнин, де гігантські тварини сезонно переміщуються між пасовищами, водопоями та місцями гніздування.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "tumanni-zaplavy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "41",
     "subtitle": "Степ мігруючих стад",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "illariya",
   "name": "Ілларія",
   "order": 52,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 1.3,
-    "theme": "vershynnytsia"
+    "theme": "illariya", "cities": "n"
   },
   "description": "Вимір, у якому вся природа прагне архітектурної симетрії, а дерева, корені й квіти формують живі міста, лабіринти та багатоповерхові святилища.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "sklyani-pelyustkovi-hory"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "14",
     "subtitle": "Світ рослинних соборів",

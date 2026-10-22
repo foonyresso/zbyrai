@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "drumbor",
   "name": "Друмбор",
   "order": 47,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "island"
+    "theme": "drumbor", "cities": "n"
   },
   "description": "Планета, де матерія поводиться як вода: гори повільно перетікають, долини наповнюються кам'яними хвилями.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "porozhni-kamyani-bukhty"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "8",
     "subtitle": "Світ кам'яних припливів",

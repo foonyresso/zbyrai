@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "rudozir",
   "name": "Рудозір",
   "order": 98,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "midnokryl"
+    "theme": "rudozir", "cities": "n"
   },
   "description": "Гірський вимір із виразними кольоровими шарами руди, які виходять на поверхню й утворюють помітні орієнтири для дослідників.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "temni-hirski-sela"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "72 + 58",
     "subtitle": "Країна кольорових гірських жил",

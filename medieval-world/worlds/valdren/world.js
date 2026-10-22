@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "valdren",
   "name": "Вальдрен",
   "order": 67,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "midnokryl"
+    "theme": "valdren", "cities": "r"
   },
   "description": "Гірський вимір із плато, каньйонами та повітряними течіями, які визначають маршрути мандрівників.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "tykhi-dolyny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "31",
     "subtitle": "Край семи вітрів",

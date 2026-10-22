@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "termalis",
   "name": "Термаліс",
   "order": 88,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "pangea"
+    "theme": "termalis", "cities": "r"
   },
   "description": "Вимір із виразним чергуванням холодних рівнин і теплих геотермальних зон, де гарячі джерела.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "vulkanichni-ustupy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "59",
     "subtitle": "Долини гарячого каменю",

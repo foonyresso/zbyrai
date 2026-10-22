@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "heliontar",
   "name": "Геліонтар",
   "order": 55,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.3,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "heliontar", "cities": "r"
   },
   "description": "Вимір, де піски поводяться як рідке золото, а під пустелею ховаються океани світла, що можуть підніматися на поверхню у вигляді сяйливих припливів.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "pidzemni-sonyachni-morya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "17",
     "subtitle": "Світ сонячних пустельних океанів",

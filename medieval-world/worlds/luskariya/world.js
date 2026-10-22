@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "luskariya",
   "name": "Лускарія",
   "order": 94,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.9,
     "riverDensity": 0.2,
-    "theme": "pangea"
+    "theme": "luskariya", "cities": "r"
   },
   "description": "Скелястий світ, де гори вкриті великими пластинами породи, що нагадують луску стародавнього земного змія.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "pechery-staroyi-shkiry"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "66",
     "subtitle": "Земля кам'яних лусок",

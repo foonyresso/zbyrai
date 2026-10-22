@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "eydoliya",
   "name": "Ейдолія",
   "order": 62,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "eydoliya", "cities": "n"
   },
   "description": "Вимір, у якому жодна істота чи споруда ніколи не досягає остаточної форми: гори перебудовуються, дерева змінюють геометрію.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "porozhni-formy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "26",
     "subtitle": "Світ незавершених форм",

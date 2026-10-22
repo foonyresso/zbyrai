@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "vuhlerod",
   "name": "Вуглерод",
   "order": 87,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "vuhlerod", "cities": "r"
   },
   "description": "Суворий лісовий вимір із темними хвойними лісами, вугільними пагорбами й покинутими поселеннями, де основний ресурс — деревне вугілля та смола.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "smolyani-yary"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "56",
     "subtitle": "Королівство чорних сосен",

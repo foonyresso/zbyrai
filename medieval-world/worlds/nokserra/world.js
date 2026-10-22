@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "nokserra",
   "name": "Ноксерра",
   "order": 74,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.8,
     "ruggedness": 0.1,
     "riverDensity": 1.8,
-    "theme": "island"
+    "theme": "nokserra", "cities": "r"
   },
   "description": "Болотяний вимір, де холодне синє полум'я виникає над природними газами й стародавніми магічними покладами.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "hazovi-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "39",
     "subtitle": "Болота синього вогню",

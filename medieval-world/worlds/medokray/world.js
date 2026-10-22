@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "medokray",
   "name": "Медокрай",
   "order": 92,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.6,
     "riverDensity": 0.7,
-    "theme": "continent"
+    "theme": "medokray", "cities": "n"
   },
   "description": "Гірсько-лісовий вимір, у якому гігантські колонії комах будують шестикутні споруди з воску, смоли й природних волокон.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "porozhnysti-vulyky"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "64",
     "subtitle": "Королівство велетенських сот",

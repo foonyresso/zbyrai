@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "sezonariy",
   "name": "Сезонарій",
   "order": 80,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.9,
-    "theme": "continent"
+    "theme": "sezonariy", "cities": "n"
   },
   "description": "Великий фентезійний континент, поділений на чотири регіони, у кожному з яких постійно панує окрема пора року.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "kryzhanyy-pereval"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "46",
     "subtitle": "Королівство чотирьох пір року",

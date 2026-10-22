@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "litarkh",
   "name": "Літарх",
   "order": 57,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 0.6,
-    "theme": "archipelago"
+    "theme": "litarkh", "cities": "r"
   },
   "description": "Світ, де всі великі ділянки суші живі й мігрують, немов стада тварин, а географія змінюється залежно від сезонів та міграцій.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "mihratsiyni-bolota"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "19",
     "subtitle": "Королівство мандрівних островів",

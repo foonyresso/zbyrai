@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "arkhelor",
   "name": "Архелор",
   "order": 66,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.4,
     "riverDensity": 1.2,
-    "theme": "vershynnytsia"
+    "theme": "arkhelor", "cities": "r"
   },
   "description": "Первісний вимір, у якому всі можливі форми життя зберігаються в гігантських насінинах, а ландшафт постійно проростає новими континентами.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "skhovyshcha-nezarodzhenykh-svitiv"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "30",
     "subtitle": "Світ останнього зерна",

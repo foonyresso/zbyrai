@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "aurelit",
   "name": "Ауреліт",
   "order": 48,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.4,
     "riverDensity": 0.7,
-    "theme": "pangea"
+    "theme": "aurelit", "cities": "n"
   },
   "description": "Світ, де світло є матерією, здатною рости, твердіти, розмножуватися й формувати цілі ландшафти.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "sklyani-nebesni-luhy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "9",
     "subtitle": "Країна живого світла",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "asterfell",
   "name": "Астерфелл",
   "order": 72,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "island"
+    "theme": "asterfell", "cities": "r"
   },
   "description": "Суворий вимір ударних кратерів, метеоритних уламків і рідкісних небесних матеріалів, який заохочує дослідження відкритої місцевості.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "kraterni-bolota"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "37 + 43",
     "subtitle": "Край небесного каміння",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "oskarium",
   "name": "Оскаріум",
   "order": 61,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "oskarium", "cities": "r"
   },
   "description": "Вимір, у якому моря складаються з мільярдів дрібних кістяних фрагментів, що рухаються як вода й утворюють нові острови та скелети.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "skeletni-ryfy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "25",
     "subtitle": "Світ крихких кістяних морів",

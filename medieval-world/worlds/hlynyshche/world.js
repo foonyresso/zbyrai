@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "hlynyshche",
   "name": "Глинище",
   "order": 77,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.4,
     "ruggedness": 0.5,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "hlynyshche", "cities": "r"
   },
   "description": "Світ сухих долин, багатошарових глиняних скель і природних форм, які нагадують гігантські виліплені споруди.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "chorni-vypalyuvalni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "42 + 62",
     "subtitle": "Архіпелаг глиняних островів",

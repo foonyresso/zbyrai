@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "trykoron",
   "name": "Трикорон",
   "order": 90,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.6,
-    "theme": "continent"
+    "theme": "trykoron", "cities": "n"
   },
   "description": "Середньовічний фентезійний світ, де три стародавні королівства збудували гігантські кільця оборонних мурів навколо спільної гірської долини.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "zruynovani-korolivski-sady"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "61",
     "subtitle": "Земля нескорених фортець",

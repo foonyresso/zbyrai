@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "aurokhm",
   "name": "Аурохм",
   "order": 89,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.5,
     "riverDensity": 1.1,
-    "theme": "continent"
+    "theme": "aurokhm", "cities": "n"
   },
   "description": "Широкий лісово-гірський вимір, де золотий туман регулярно заповнює низини, приховуючи стежки та стародавні руїни.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "zatopleni-svyatylyshcha"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "60",
     "subtitle": "Королівство золотого туману",

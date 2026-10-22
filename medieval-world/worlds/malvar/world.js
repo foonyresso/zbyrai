@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "malvar",
   "name": "Мальвар",
   "order": 95,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.6,
-    "theme": "continent"
+    "theme": "malvar", "cities": "r"
   },
   "description": "Вимір стародавніх художників, де фортеці, храми та природні ландшафти вкриті кольоровими фресками, а пігменти мають прості магічні властивості.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "chornylni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "68",
     "subtitle": "Земля живописних руїн",

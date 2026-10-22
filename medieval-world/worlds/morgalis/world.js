@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "morgalis",
   "name": "Морґаліс",
   "order": 49,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "morgalis", "cities": "0"
   },
   "description": "Світ, побудований на останках божеств, де скелети стали гірськими хребтами, кров перетворилася на річки, а спогади — на живих мешканців.",
   "biomes": {
@@ -30,7 +29,6 @@ Atlas.registerWorld({
       "pechery-khrebtsiv"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "10 + 71",
     "subtitle": "Цвинтар забутих богів",

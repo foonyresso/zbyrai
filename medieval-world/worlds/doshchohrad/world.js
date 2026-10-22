@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "doshchohrad",
   "name": "Дощоград",
   "order": 99,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 1,
     "ruggedness": 0.4,
     "riverDensity": 2,
-    "theme": "island"
+    "theme": "doshchohrad", "cities": "n"
   },
   "description": "Вимір постійних дощів, де міста розрослися в суцільні багатоярусні поселення з дахів, навісів і критих мостів.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "zatopleni-nyzhni-kvartaly"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "75",
     "subtitle": "Королівство нескінченних дахів",

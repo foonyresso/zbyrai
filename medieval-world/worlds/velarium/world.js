@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "velarium",
   "name": "Веларіум",
   "order": 40,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.9,
     "riverDensity": 0.6,
-    "theme": "midnokryl"
+    "theme": "velarium", "cities": "n"
   },
   "description": "Вимір із перевернутою гравітацією, де гірські масиви звисають із небес, а ліси ростуть униз, утворюючи нескінченні кам'яні крони.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "pylovi-arkhipelahy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "1",
     "subtitle": "Світ перевернутих коренів",

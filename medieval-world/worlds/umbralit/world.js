@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "umbralit",
   "name": "Умбраліт",
   "order": 65,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.8,
-    "theme": "neborid"
+    "theme": "umbralit", "cities": "r"
   },
   "description": "Вимір, де сни мають фізичну форму, а уявлені предмети, істоти й пейзажі можуть існувати поруч із матеріальним світом.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "chorni-porozhnechi"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "29",
     "subtitle": "Світ матеріальних снів",

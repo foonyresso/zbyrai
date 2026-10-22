@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "kaldras",
   "name": "Кальдрас",
   "order": 44,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.5,
-    "theme": "midnokryl"
+    "theme": "kaldras", "cities": "n"
   },
   "description": "Світ, у якому геологія працює як магічний механізм: гори обертаються, річки рухаються зубчастими руслами, а дерева розкриваються за принципом замків.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "zaly-pershotvortsiv"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "5",
     "subtitle": "Королівство живих механізмів",

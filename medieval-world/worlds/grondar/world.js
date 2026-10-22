@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "grondar",
   "name": "Ґрондар",
   "order": 69,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.9,
-    "theme": "continent"
+    "theme": "grondar", "cities": "r"
   },
   "description": "Вимір луків і пагорбів, під якими прихована розгалужена система тунелів, залів і міст древньої цивілізації.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "kamyani-pokhovannya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "33",
     "subtitle": "Королівство підземних курганів",

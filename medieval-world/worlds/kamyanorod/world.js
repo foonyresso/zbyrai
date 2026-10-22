@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "kamyanorod",
   "name": "Кам'янород",
   "order": 75,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "ostanky"
+    "theme": "kamyanorod", "cities": "n"
   },
   "description": "Гірський вимір, де мінеральні поклади іноді формують істот із каменю, а покинуті статуї здатні оживати під час певних природних явищ.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "pylovi-dolyny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "40",
     "subtitle": "Світ живих статуй",

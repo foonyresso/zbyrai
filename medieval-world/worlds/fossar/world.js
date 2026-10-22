@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "fossar",
   "name": "Фоссар",
   "order": 81,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.2,
-    "theme": "pangea"
+    "theme": "fossar", "cities": "r"
   },
   "description": "Сухий світ, який колись був океаном, а тепер складається з гігантських скам'янілих рифів, мушляних скель і залишків доісторичних морських істот.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "skamyanili-berehy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "48 + 35",
     "subtitle": "Царство скам'янілого моря",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "lyumenvild",
   "name": "Люменвільд",
   "order": 70,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 1,
-    "theme": "vershynnytsia"
+    "theme": "lyumenvild", "cities": "r"
   },
   "description": "Густий лісовий вимір, де біолюмінесцентні рослини утворюють природні маршрути, а темрява приховує більшість небезпечних істот.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "zabuti-svitli-halyavyny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "34 + 47",
     "subtitle": "Ліс світних стежок",

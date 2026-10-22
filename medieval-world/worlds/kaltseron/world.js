@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "kaltseron",
   "name": "Кальцерон",
   "order": 86,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.6,
     "ruggedness": 0.6,
     "riverDensity": 1.6,
-    "theme": "archipelago"
+    "theme": "kaltseron", "cities": "n"
   },
   "description": "Мальовничий вимір із природними кам'яними чашами, терасами, мінеральними джерелами й водоспадами, що створюють багатоступеневий ландшафт.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "tepli-pidzemni-dzherela"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "55",
     "subtitle": "Сади кам'яних чаш",

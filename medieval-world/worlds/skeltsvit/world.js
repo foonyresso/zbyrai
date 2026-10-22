@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "skeltsvit",
   "name": "Скельцвіт",
   "order": 96,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "island"
+    "theme": "skeltsvit", "cities": "n"
   },
   "description": "Гірський вимір, у якому природні мінеральні утворення мають форму гігантських квітів, а скелясті пелюстки утворюють тераси й укриття.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "temni-heodni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "69",
     "subtitle": "Королівство кам'яних квітів",

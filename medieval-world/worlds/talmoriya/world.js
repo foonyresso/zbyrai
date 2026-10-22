@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "talmoriya",
   "name": "Талморія",
   "order": 68,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.3,
     "riverDensity": 0.8,
-    "theme": "archipelago"
+    "theme": "talmoriya", "cities": "n"
   },
   "description": "Прибережний світ, де рівень океану циклічно змінюється, відкриваючи затоплені регіони та підземелля.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "soloni-zaplavy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "32",
     "subtitle": "Земля двох припливів",

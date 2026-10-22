@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "skarveld",
   "name": "Скарвельд",
   "order": 58,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "skarveld", "cities": "0"
   },
   "description": "Вимір, де небо поховане під шарами землі: над кожною печерною стелею існують колишні небосхили, стародавні хмари та цілі затиснуті небесні цивілізації.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "pokhovani-mista"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "20",
     "subtitle": "Світ похованих небес",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "neverion",
   "name": "Неверіон",
   "order": 54,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "neborid"
+    "theme": "neverion", "cities": "r"
   },
   "description": "Вимір, де не існує звичайної землі: матерія складається з нескінченних платформ, мостів і кубічних структур, які виникають лише там.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "kray-znyklykh-dorih"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "16",
     "subtitle": "Світ без поверхні",

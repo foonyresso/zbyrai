@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "smolyar",
   "name": "Смоляр",
   "order": 78,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.6,
-    "theme": "midnokryl"
+    "theme": "smolyar", "cities": "r"
   },
   "description": "Стародавній ліс, у якому величезні смоляні поклади зберігають рослини, комах і фрагменти цілих цивілізацій.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "sklyani-korenevyshcha"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "44",
     "subtitle": "Ліс закам'янілої смоли",

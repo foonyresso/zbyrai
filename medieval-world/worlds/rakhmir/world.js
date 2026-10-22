@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "rakhmir",
   "name": "Рахмір",
   "order": 64,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "rakhmir", "cities": "r"
   },
   "description": "Вимір, де бурштинові бурі рухаються по поверхні як живі істоти, переносячи всередині себе фрагменти ландшафту.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "vitrovi-khrebty"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "28",
     "subtitle": "Світ кочових бурштинових бур",

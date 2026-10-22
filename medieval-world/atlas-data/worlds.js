@@ -6,8 +6,7 @@ Atlas.registerWorld({
   "id": "akvedor",
   "name": "Акведор",
   "order": 93,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -16,7 +15,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.4,
     "riverDensity": 1.2,
-    "theme": "continent"
+    "theme": "akvedor", "cities": "n"
   },
   "description": "Вимір, де цивілізації побудували складну мережу акведуків, каналів, шлюзів і резервуарів, що досі забезпечують водою міста серед посушливих земель.",
   "biomes": {
@@ -27,7 +26,6 @@ Atlas.registerWorld({
       "arkhitekturni-kanyony"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "65",
     "subtitle": "Країна кам'яних водоводів",
@@ -147,8 +145,7 @@ Atlas.registerWorld({
   "id": "arkhelor",
   "name": "Архелор",
   "order": 66,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "m",
@@ -157,7 +154,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.4,
     "riverDensity": 1.2,
-    "theme": "vershynnytsia"
+    "theme": "arkhelor", "cities": "r"
   },
   "description": "Первісний вимір, у якому всі можливі форми життя зберігаються в гігантських насінинах, а ландшафт постійно проростає новими континентами.",
   "biomes": {
@@ -169,7 +166,6 @@ Atlas.registerWorld({
       "skhovyshcha-nezarodzhenykh-svitiv"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "30",
     "subtitle": "Світ останнього зерна",
@@ -279,8 +275,7 @@ Atlas.registerWorld({
   "id": "asterfell",
   "name": "Астерфелл",
   "order": 72,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "l",
@@ -289,7 +284,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "island"
+    "theme": "asterfell", "cities": "r"
   },
   "description": "Суворий вимір ударних кратерів, метеоритних уламків і рідкісних небесних матеріалів, який заохочує дослідження відкритої місцевості.",
   "biomes": {
@@ -304,7 +299,6 @@ Atlas.registerWorld({
       "kraterni-bolota"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "37 + 43",
     "subtitle": "Край небесного каміння",
@@ -590,8 +584,7 @@ Atlas.registerWorld({
   "id": "aurelit",
   "name": "Ауреліт",
   "order": 48,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -600,7 +593,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.4,
     "riverDensity": 0.7,
-    "theme": "pangea"
+    "theme": "aurelit", "cities": "n"
   },
   "description": "Світ, де світло є матерією, здатною рости, твердіти, розмножуватися й формувати цілі ландшафти.",
   "biomes": {
@@ -612,7 +605,6 @@ Atlas.registerWorld({
       "sklyani-nebesni-luhy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "9",
     "subtitle": "Країна живого світла",
@@ -721,8 +713,7 @@ Atlas.registerWorld({
   "id": "aurokhm",
   "name": "Аурохм",
   "order": 89,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -731,7 +722,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.5,
     "riverDensity": 1.1,
-    "theme": "continent"
+    "theme": "aurokhm", "cities": "n"
   },
   "description": "Широкий лісово-гірський вимір, де золотий туман регулярно заповнює низини, приховуючи стежки та стародавні руїни.",
   "biomes": {
@@ -742,7 +733,6 @@ Atlas.registerWorld({
       "zatopleni-svyatylyshcha"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "60",
     "subtitle": "Королівство золотого туману",
@@ -864,8 +854,7 @@ Atlas.registerWorld({
   "id": "doshchohrad",
   "name": "Дощоград",
   "order": 99,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -874,7 +863,7 @@ Atlas.registerWorld({
     "wet": 1,
     "ruggedness": 0.4,
     "riverDensity": 2,
-    "theme": "island"
+    "theme": "doshchohrad", "cities": "n"
   },
   "description": "Вимір постійних дощів, де міста розрослися в суцільні багатоярусні поселення з дахів, навісів і критих мостів.",
   "biomes": {
@@ -885,7 +874,6 @@ Atlas.registerWorld({
       "zatopleni-nyzhni-kvartaly"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "75",
     "subtitle": "Королівство нескінченних дахів",
@@ -992,8 +980,7 @@ Atlas.registerWorld({
   "id": "drumbor",
   "name": "Друмбор",
   "order": 47,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -1002,7 +989,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "island"
+    "theme": "drumbor", "cities": "n"
   },
   "description": "Планета, де матерія поводиться як вода: гори повільно перетікають, долини наповнюються кам'яними хвилями.",
   "biomes": {
@@ -1014,7 +1001,6 @@ Atlas.registerWorld({
       "porozhni-kamyani-bukhty"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "8",
     "subtitle": "Світ кам'яних припливів",
@@ -1125,8 +1111,7 @@ Atlas.registerWorld({
   "id": "embergard",
   "name": "Емберґард",
   "order": 60,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -1135,7 +1120,7 @@ Atlas.registerWorld({
     "wet": -0.4,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "krovostep"
+    "theme": "embergard", "cities": "n"
   },
   "description": "Вимір, у якому гори є стародавніми кузнями, а вулканічні процеси створюють не просто лаву, а нові мінерали, живих істот і цілі архітектурні форми.",
   "biomes": {
@@ -1147,7 +1132,6 @@ Atlas.registerWorld({
       "kryshtalevi-horny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "23",
     "subtitle": "Світ вічних кузень",
@@ -1257,8 +1241,7 @@ Atlas.registerWorld({
   "id": "eshkariya",
   "name": "Ешкарія",
   "order": 45,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -1267,7 +1250,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "eshkariya", "cities": "r"
   },
   "description": "Вимір, де блискавки залишаються в землі у вигляді твердих кристалічних гілок, утворюючи цілі електричні ліси та мінеральні бурі.",
   "biomes": {
@@ -1283,7 +1266,6 @@ Atlas.registerWorld({
       "dolyny-blyskavychnoho-kamenyu"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "6 + 54",
     "subtitle": "Степи кристалічного грому",
@@ -1428,8 +1410,7 @@ Atlas.registerWorld({
   "id": "eydoliya",
   "name": "Ейдолія",
   "order": 62,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -1438,7 +1419,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "eydoliya", "cities": "n"
   },
   "description": "Вимір, у якому жодна істота чи споруда ніколи не досягає остаточної форми: гори перебудовуються, дерева змінюють геометрію.",
   "biomes": {
@@ -1450,7 +1431,6 @@ Atlas.registerWorld({
       "porozhni-formy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "26",
     "subtitle": "Світ незавершених форм",
@@ -1560,8 +1540,7 @@ Atlas.registerWorld({
   "id": "ferroks",
   "name": "Феррокс",
   "order": 51,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -1570,7 +1549,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "midnokryl"
+    "theme": "ferroks", "cities": "r"
   },
   "description": "Вимір, у якому магнітні полюси формують географію: гори злітають у небо, залізні острови дрейфують, а металеві піски створюють живі бурі.",
   "biomes": {
@@ -1582,7 +1561,6 @@ Atlas.registerWorld({
       "polyarni-kratery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "13",
     "subtitle": "Земля магнітних материків",
@@ -1695,8 +1673,7 @@ Atlas.registerWorld({
   "id": "fossar",
   "name": "Фоссар",
   "order": 81,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -1705,7 +1682,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.2,
-    "theme": "pangea"
+    "theme": "fossar", "cities": "r"
   },
   "description": "Сухий світ, який колись був океаном, а тепер складається з гігантських скам'янілих рифів, мушляних скель і залишків доісторичних морських істот.",
   "biomes": {
@@ -1720,7 +1697,6 @@ Atlas.registerWorld({
       "skamyanili-berehy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "48 + 35",
     "subtitle": "Царство скам'янілого моря",
@@ -1851,8 +1827,7 @@ Atlas.registerWorld({
   "id": "frostheym",
   "name": "Фростгейм",
   "order": 83,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -1861,7 +1836,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "island"
+    "theme": "frostheym", "cities": "r"
   },
   "description": "Холодний гірський вимір із льодовиками, печерами та замерзлими озерами, придатний для звичайного воксельного дослідження, видобутку руди й боїв.",
   "biomes": {
@@ -1872,7 +1847,6 @@ Atlas.registerWorld({
       "krystalichni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "50",
     "subtitle": "Край синіх льодових печер",
@@ -1969,8 +1943,7 @@ Atlas.registerWorld({
   "id": "grondar",
   "name": "Ґрондар",
   "order": 69,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -1979,7 +1952,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.9,
-    "theme": "continent"
+    "theme": "grondar", "cities": "r"
   },
   "description": "Вимір луків і пагорбів, під якими прихована розгалужена система тунелів, залів і міст древньої цивілізації.",
   "biomes": {
@@ -1990,7 +1963,6 @@ Atlas.registerWorld({
       "kamyani-pokhovannya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "33",
     "subtitle": "Королівство підземних курганів",
@@ -2088,8 +2060,7 @@ Atlas.registerWorld({
   "id": "heliontar",
   "name": "Геліонтар",
   "order": 55,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -2098,7 +2069,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.3,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "heliontar", "cities": "r"
   },
   "description": "Вимір, де піски поводяться як рідке золото, а під пустелею ховаються океани світла, що можуть підніматися на поверхню у вигляді сяйливих припливів.",
   "biomes": {
@@ -2110,7 +2081,6 @@ Atlas.registerWorld({
       "pidzemni-sonyachni-morya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "17",
     "subtitle": "Світ сонячних пустельних океанів",
@@ -2220,8 +2190,7 @@ Atlas.registerWorld({
   "id": "hlybokray",
   "name": "Глибокрай",
   "order": 84,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -2230,7 +2199,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "hlybokray", "cities": "r"
   },
   "description": "Світ вузьких каньйонів, вертикальних скель і підвісних доріг, де основна пригода полягає у дослідженні висот і пошуку безпечних маршрутів.",
   "biomes": {
@@ -2245,7 +2214,6 @@ Atlas.registerWorld({
       "zabuti-mostovi-mista"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "51 + 73",
     "subtitle": "Країна бездонних ущелин",
@@ -2377,8 +2345,7 @@ Atlas.registerWorld({
   "id": "hlynyshche",
   "name": "Глинище",
   "order": 77,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "m",
@@ -2387,7 +2354,7 @@ Atlas.registerWorld({
     "wet": -0.4,
     "ruggedness": 0.5,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "hlynyshche", "cities": "r"
   },
   "description": "Світ сухих долин, багатошарових глиняних скель і природних форм, які нагадують гігантські виліплені споруди.",
   "biomes": {
@@ -2402,7 +2369,6 @@ Atlas.registerWorld({
       "chorni-vypalyuvalni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "42 + 62",
     "subtitle": "Архіпелаг глиняних островів",
@@ -2536,8 +2502,7 @@ Atlas.registerWorld({
   "id": "illariya",
   "name": "Ілларія",
   "order": 52,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -2546,7 +2511,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 1.3,
-    "theme": "vershynnytsia"
+    "theme": "illariya", "cities": "n"
   },
   "description": "Вимір, у якому вся природа прагне архітектурної симетрії, а дерева, корені й квіти формують живі міста, лабіринти та багатоповерхові святилища.",
   "biomes": {
@@ -2558,7 +2523,6 @@ Atlas.registerWorld({
       "sklyani-pelyustkovi-hory"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "14",
     "subtitle": "Світ рослинних соборів",
@@ -2694,8 +2658,7 @@ Atlas.registerWorld({
   "id": "kaldras",
   "name": "Кальдрас",
   "order": 44,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -2704,7 +2667,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.5,
-    "theme": "midnokryl"
+    "theme": "kaldras", "cities": "n"
   },
   "description": "Світ, у якому геологія працює як магічний механізм: гори обертаються, річки рухаються зубчастими руслами, а дерева розкриваються за принципом замків.",
   "biomes": {
@@ -2716,7 +2679,6 @@ Atlas.registerWorld({
       "zaly-pershotvortsiv"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "5",
     "subtitle": "Королівство живих механізмів",
@@ -2825,8 +2787,7 @@ Atlas.registerWorld({
   "id": "kaltseron",
   "name": "Кальцерон",
   "order": 86,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -2835,7 +2796,7 @@ Atlas.registerWorld({
     "wet": 0.6,
     "ruggedness": 0.6,
     "riverDensity": 1.6,
-    "theme": "archipelago"
+    "theme": "kaltseron", "cities": "n"
   },
   "description": "Мальовничий вимір із природними кам'яними чашами, терасами, мінеральними джерелами й водоспадами, що створюють багатоступеневий ландшафт.",
   "biomes": {
@@ -2846,7 +2807,6 @@ Atlas.registerWorld({
       "tepli-pidzemni-dzherela"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "55",
     "subtitle": "Сади кам'яних чаш",
@@ -2943,8 +2903,7 @@ Atlas.registerWorld({
   "id": "kamyanorod",
   "name": "Кам'янород",
   "order": 75,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -2953,7 +2912,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "ostanky"
+    "theme": "kamyanorod", "cities": "n"
   },
   "description": "Гірський вимір, де мінеральні поклади іноді формують істот із каменю, а покинуті статуї здатні оживати під час певних природних явищ.",
   "biomes": {
@@ -2964,7 +2923,6 @@ Atlas.registerWorld({
       "pylovi-dolyny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "40",
     "subtitle": "Світ живих статуй",
@@ -3060,8 +3018,7 @@ Atlas.registerWorld({
   "id": "kernalis",
   "name": "Керналіс",
   "order": 59,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -3070,7 +3027,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "continent"
+    "theme": "kernalis", "cities": "n"
   },
   "description": "Вимір, де зовнішність і властивості місцевості залежать від того, як її сприймають мешканці: страх перетворює ліс на лабіринт.",
   "biomes": {
@@ -3082,7 +3039,6 @@ Atlas.registerWorld({
       "maskovi-hory"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "21",
     "subtitle": "Світ мінливих масок",
@@ -3336,8 +3292,7 @@ Atlas.registerWorld({
   "id": "litarkh",
   "name": "Літарх",
   "order": 57,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -3346,7 +3301,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 0.6,
-    "theme": "archipelago"
+    "theme": "litarkh", "cities": "r"
   },
   "description": "Світ, де всі великі ділянки суші живі й мігрують, немов стада тварин, а географія змінюється залежно від сезонів та міграцій.",
   "biomes": {
@@ -3358,7 +3313,6 @@ Atlas.registerWorld({
       "mihratsiyni-bolota"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "19",
     "subtitle": "Королівство мандрівних островів",
@@ -3468,8 +3422,7 @@ Atlas.registerWorld({
   "id": "luskariya",
   "name": "Лускарія",
   "order": 94,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -3478,7 +3431,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.9,
     "riverDensity": 0.2,
-    "theme": "pangea"
+    "theme": "luskariya", "cities": "r"
   },
   "description": "Скелястий світ, де гори вкриті великими пластинами породи, що нагадують луску стародавнього земного змія.",
   "biomes": {
@@ -3489,7 +3442,6 @@ Atlas.registerWorld({
       "pechery-staroyi-shkiry"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "66",
     "subtitle": "Земля кам'яних лусок",
@@ -3593,8 +3545,7 @@ Atlas.registerWorld({
   "id": "lyumenvild",
   "name": "Люменвільд",
   "order": 70,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -3603,7 +3554,7 @@ Atlas.registerWorld({
     "wet": 0.4,
     "ruggedness": 0.3,
     "riverDensity": 1,
-    "theme": "vershynnytsia"
+    "theme": "lyumenvild", "cities": "r"
   },
   "description": "Густий лісовий вимір, де біолюмінесцентні рослини утворюють природні маршрути, а темрява приховує більшість небезпечних істот.",
   "biomes": {
@@ -3618,7 +3569,6 @@ Atlas.registerWorld({
       "zabuti-svitli-halyavyny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "34 + 47",
     "subtitle": "Ліс світних стежок",
@@ -3749,8 +3699,7 @@ Atlas.registerWorld({
   "id": "malvar",
   "name": "Мальвар",
   "order": 95,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -3759,7 +3708,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.6,
-    "theme": "continent"
+    "theme": "malvar", "cities": "r"
   },
   "description": "Вимір стародавніх художників, де фортеці, храми та природні ландшафти вкриті кольоровими фресками, а пігменти мають прості магічні властивості.",
   "biomes": {
@@ -3770,7 +3719,6 @@ Atlas.registerWorld({
       "chornylni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "68",
     "subtitle": "Земля живописних руїн",
@@ -3876,8 +3824,7 @@ Atlas.registerWorld({
   "id": "medokray",
   "name": "Медокрай",
   "order": 92,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -3886,7 +3833,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.6,
     "riverDensity": 0.7,
-    "theme": "continent"
+    "theme": "medokray", "cities": "n"
   },
   "description": "Гірсько-лісовий вимір, у якому гігантські колонії комах будують шестикутні споруди з воску, смоли й природних волокон.",
   "biomes": {
@@ -3897,7 +3844,6 @@ Atlas.registerWorld({
       "porozhnysti-vulyky"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "64",
     "subtitle": "Королівство велетенських сот",
@@ -4148,8 +4094,7 @@ Atlas.registerWorld({
   "id": "mirrahon",
   "name": "Міррагон",
   "order": 46,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -4158,7 +4103,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.8,
-    "theme": "ostanky"
+    "theme": "mirrahon", "cities": "r"
   },
   "description": "Світ, у якому кожна поверхня має живе відображення, що існує в паралельному шарі простору й може змінювати реальність.",
   "biomes": {
@@ -4170,7 +4115,6 @@ Atlas.registerWorld({
       "sady-zvorotnoho-svitla"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "7",
     "subtitle": "Дзеркальний материк",
@@ -4280,8 +4224,7 @@ Atlas.registerWorld({
   "id": "morgalis",
   "name": "Морґаліс",
   "order": 49,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -4290,7 +4233,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.8,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "morgalis", "cities": "0"
   },
   "description": "Світ, побудований на останках божеств, де скелети стали гірськими хребтами, кров перетворилася на річки, а спогади — на живих мешканців.",
   "biomes": {
@@ -4306,7 +4249,6 @@ Atlas.registerWorld({
       "pechery-khrebtsiv"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "10 + 71",
     "subtitle": "Цвинтар забутих богів",
@@ -4595,8 +4537,7 @@ Atlas.registerWorld({
   "id": "neverion",
   "name": "Неверіон",
   "order": 54,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -4605,7 +4546,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.6,
     "riverDensity": 0.3,
-    "theme": "neborid"
+    "theme": "neverion", "cities": "r"
   },
   "description": "Вимір, де не існує звичайної землі: матерія складається з нескінченних платформ, мостів і кубічних структур, які виникають лише там.",
   "biomes": {
@@ -4617,7 +4558,6 @@ Atlas.registerWorld({
       "kray-znyklykh-dorih"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "16",
     "subtitle": "Світ без поверхні",
@@ -4729,8 +4669,7 @@ Atlas.registerWorld({
   "id": "nokserra",
   "name": "Ноксерра",
   "order": 74,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -4739,7 +4678,7 @@ Atlas.registerWorld({
     "wet": 0.8,
     "ruggedness": 0.1,
     "riverDensity": 1.8,
-    "theme": "island"
+    "theme": "nokserra", "cities": "r"
   },
   "description": "Болотяний вимір, де холодне синє полум'я виникає над природними газами й стародавніми магічними покладами.",
   "biomes": {
@@ -4750,7 +4689,6 @@ Atlas.registerWorld({
       "hazovi-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "39",
     "subtitle": "Болота синього вогню",
@@ -4845,8 +4783,7 @@ Atlas.registerWorld({
   "id": "noktalis",
   "name": "Нокталіс",
   "order": 41,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -4855,7 +4792,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "noktalis", "cities": "r"
   },
   "description": "Світ, де час перетворився на матерію, а цілі долини застигли всередині окремих митей історії.",
   "biomes": {
@@ -4867,7 +4804,6 @@ Atlas.registerWorld({
       "mista-povtorennya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "2",
     "subtitle": "Архіпелаг останніх митей",
@@ -4980,8 +4916,7 @@ Atlas.registerWorld({
   "id": "orchardum",
   "name": "Орчардум",
   "order": 71,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -4990,7 +4925,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.2,
     "riverDensity": 0.9,
-    "theme": "continent"
+    "theme": "orchardum", "cities": "n"
   },
   "description": "Родючий вимір, у якому дерева дають плоди з передбачуваними магічними властивостями, а стародавні садівники створювали з них зілля та бойові суміші.",
   "biomes": {
@@ -5005,7 +4940,6 @@ Atlas.registerWorld({
       "zoloti-teplytsi"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "36 + 57",
     "subtitle": "Сади алхімічних плодів",
@@ -5138,8 +5072,7 @@ Atlas.registerWorld({
   "id": "ormaval",
   "name": "Ормаваль",
   "order": 42,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -5148,7 +5081,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "krovostep"
+    "theme": "ormaval", "cities": "r"
   },
   "description": "Повноцінний вимір, що існує всередині тіла колосальної істоти, чиї органи стали континентами, а кровоносні шляхи — морями.",
   "biomes": {
@@ -5160,7 +5093,6 @@ Atlas.registerWorld({
       "nervovi-sady"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "3",
     "subtitle": "Світ усередині сплячого велета",
@@ -5269,8 +5201,7 @@ Atlas.registerWorld({
   "id": "oskarium",
   "name": "Оскаріум",
   "order": 61,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -5279,7 +5210,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "oskarium", "cities": "r"
   },
   "description": "Вимір, у якому моря складаються з мільярдів дрібних кістяних фрагментів, що рухаються як вода й утворюють нові острови та скелети.",
   "biomes": {
@@ -5291,7 +5222,6 @@ Atlas.registerWorld({
       "skeletni-ryfy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "25",
     "subtitle": "Світ крихких кістяних морів",
@@ -5556,8 +5486,7 @@ Atlas.registerWorld({
   "id": "paperon",
   "name": "Паперон",
   "order": 85,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -5566,7 +5495,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "continent"
+    "theme": "paperon", "cities": "n"
   },
   "description": "Фантастичний світ тонких шаруватих плато, де ґрунт, скелі й рослинність утворюють виразні кольорові пласти, схожі на складені листи.",
   "biomes": {
@@ -5577,7 +5506,6 @@ Atlas.registerWorld({
       "temni-sharovi-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "52",
     "subtitle": "Земля складених рівнин",
@@ -5672,8 +5600,7 @@ Atlas.registerWorld({
   "id": "rakhmir",
   "name": "Рахмір",
   "order": 64,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -5682,7 +5609,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "rakhmir", "cities": "r"
   },
   "description": "Вимір, де бурштинові бурі рухаються по поверхні як живі істоти, переносячи всередині себе фрагменти ландшафту.",
   "biomes": {
@@ -5694,7 +5621,6 @@ Atlas.registerWorld({
       "vitrovi-khrebty"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "28",
     "subtitle": "Світ кочових бурштинових бур",
@@ -5804,8 +5730,7 @@ Atlas.registerWorld({
   "id": "rudozir",
   "name": "Рудозір",
   "order": 98,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -5814,7 +5739,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "midnokryl"
+    "theme": "rudozir", "cities": "n"
   },
   "description": "Гірський вимір із виразними кольоровими шарами руди, які виходять на поверхню й утворюють помітні орієнтири для дослідників.",
   "biomes": {
@@ -5829,7 +5754,6 @@ Atlas.registerWorld({
       "temni-hirski-sela"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "72 + 58",
     "subtitle": "Країна кольорових гірських жил",
@@ -5971,8 +5895,7 @@ Atlas.registerWorld({
   "id": "runhar",
   "name": "Рунгар",
   "order": 56,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -5981,7 +5904,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "runhar", "cities": "r"
   },
   "description": "Вимір, у якому звук матеріалізується: спів створює мости, гуркіт утворює скелі, а тиша здатна розчиняти цілі долини.",
   "biomes": {
@@ -5993,7 +5916,6 @@ Atlas.registerWorld({
       "basovi-bezodni"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "18",
     "subtitle": "Світ голосових гір",
@@ -6103,8 +6025,7 @@ Atlas.registerWorld({
   "id": "runozem",
   "name": "Рунозем",
   "order": 79,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -6113,7 +6034,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.3,
-    "theme": "island"
+    "theme": "runozem", "cities": "r"
   },
   "description": "Гірський світ, де великі кам'яні плити з рунами впливають на локальні властивості довкілля.",
   "biomes": {
@@ -6124,7 +6045,6 @@ Atlas.registerWorld({
       "chorni-zaly"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "45",
     "subtitle": "Плато стародавніх печаток",
@@ -6220,8 +6140,7 @@ Atlas.registerWorld({
   "id": "rzhavar",
   "name": "Ржавар",
   "order": 82,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -6230,7 +6149,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "krovostep"
+    "theme": "rzhavar", "cities": "n"
   },
   "description": "Вимір, де залізна руда проростає із землі у вигляді металевих рослин, а іржа покриває камені, дерева й старі фортеці.",
   "biomes": {
@@ -6241,7 +6160,6 @@ Atlas.registerWorld({
       "chorni-kuzni"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "49",
     "subtitle": "Країна іржавих лісів",
@@ -6336,8 +6254,7 @@ Atlas.registerWorld({
   "id": "sezonariy",
   "name": "Сезонарій",
   "order": 80,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "l",
@@ -6346,7 +6263,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.4,
     "riverDensity": 0.9,
-    "theme": "continent"
+    "theme": "sezonariy", "cities": "n"
   },
   "description": "Великий фентезійний континент, поділений на чотири регіони, у кожному з яких постійно панує окрема пора року.",
   "biomes": {
@@ -6357,7 +6274,6 @@ Atlas.registerWorld({
       "kryzhanyy-pereval"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "46",
     "subtitle": "Королівство чотирьох пір року",
@@ -6453,8 +6369,7 @@ Atlas.registerWorld({
   "id": "skarveld",
   "name": "Скарвельд",
   "order": 58,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -6463,7 +6378,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "skarveld", "cities": "0"
   },
   "description": "Вимір, де небо поховане під шарами землі: над кожною печерною стелею існують колишні небосхили, стародавні хмари та цілі затиснуті небесні цивілізації.",
   "biomes": {
@@ -6475,7 +6390,6 @@ Atlas.registerWorld({
       "pokhovani-mista"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "20",
     "subtitle": "Світ похованих небес",
@@ -6586,8 +6500,7 @@ Atlas.registerWorld({
   "id": "skeltsvit",
   "name": "Скельцвіт",
   "order": 96,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -6596,7 +6509,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "island"
+    "theme": "skeltsvit", "cities": "n"
   },
   "description": "Гірський вимір, у якому природні мінеральні утворення мають форму гігантських квітів, а скелясті пелюстки утворюють тераси й укриття.",
   "biomes": {
@@ -6607,7 +6520,6 @@ Atlas.registerWorld({
       "temni-heodni-pechery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "69",
     "subtitle": "Королівство кам'яних квітів",
@@ -6710,8 +6622,7 @@ Atlas.registerWorld({
   "id": "smolyar",
   "name": "Смоляр",
   "order": 78,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -6720,7 +6631,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.6,
-    "theme": "midnokryl"
+    "theme": "smolyar", "cities": "r"
   },
   "description": "Стародавній ліс, у якому величезні смоляні поклади зберігають рослини, комах і фрагменти цілих цивілізацій.",
   "biomes": {
@@ -6731,7 +6642,6 @@ Atlas.registerWorld({
       "sklyani-korenevyshcha"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "44",
     "subtitle": "Ліс закам'янілої смоли",
@@ -6827,8 +6737,7 @@ Atlas.registerWorld({
   "id": "solemor",
   "name": "Солемор",
   "order": 43,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -6837,7 +6746,7 @@ Atlas.registerWorld({
     "wet": 0.6,
     "ruggedness": 0.3,
     "riverDensity": 1.2,
-    "theme": "archipelago"
+    "theme": "solemor", "cities": "r"
   },
   "description": "Вимір, у якому безкрає море висить над світом, а його хвилі утворюють верхній горизонт, з якого іноді падають цілі острови води.",
   "biomes": {
@@ -6854,7 +6763,6 @@ Atlas.registerWorld({
       "nebesni-bolota"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "4 + 22",
     "subtitle": "Океан над небом",
@@ -7006,8 +6914,7 @@ Atlas.registerWorld({
   "id": "talassyr",
   "name": "Талассир",
   "order": 63,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -7016,7 +6923,7 @@ Atlas.registerWorld({
     "wet": 0.7,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "archipelago"
+    "theme": "talassyr", "cities": "r"
   },
   "description": "Вимір, де весь світ складається з гігантської системи печер, заповнених морями, підводними лісами й повітряними озерами.",
   "biomes": {
@@ -7028,7 +6935,6 @@ Atlas.registerWorld({
       "zeleni-hlybynni-lisy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "27",
     "subtitle": "Світ океанічних печер",
@@ -7137,8 +7043,7 @@ Atlas.registerWorld({
   "id": "talmoriya",
   "name": "Талморія",
   "order": 68,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -7147,7 +7052,7 @@ Atlas.registerWorld({
     "wet": 0.5,
     "ruggedness": 0.3,
     "riverDensity": 0.8,
-    "theme": "archipelago"
+    "theme": "talmoriya", "cities": "n"
   },
   "description": "Прибережний світ, де рівень океану циклічно змінюється, відкриваючи затоплені регіони та підземелля.",
   "biomes": {
@@ -7158,7 +7063,6 @@ Atlas.registerWorld({
       "soloni-zaplavy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "32",
     "subtitle": "Земля двох припливів",
@@ -7255,8 +7159,7 @@ Atlas.registerWorld({
   "id": "termalis",
   "name": "Термаліс",
   "order": 88,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -7265,7 +7168,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.5,
-    "theme": "pangea"
+    "theme": "termalis", "cities": "r"
   },
   "description": "Вимір із виразним чергуванням холодних рівнин і теплих геотермальних зон, де гарячі джерела.",
   "biomes": {
@@ -7276,7 +7179,6 @@ Atlas.registerWorld({
       "vulkanichni-ustupy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "59",
     "subtitle": "Долини гарячого каменю",
@@ -7374,8 +7276,7 @@ Atlas.registerWorld({
   "id": "ternaviya",
   "name": "Тернавія",
   "order": 73,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -7384,7 +7285,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.7,
-    "theme": "vershynnytsia"
+    "theme": "ternaviya", "cities": "r"
   },
   "description": "Дикий вимір, де агресивні рослини поступово захоплюють покинуті землі, руїни й дороги.",
   "biomes": {
@@ -7395,7 +7296,6 @@ Atlas.registerWorld({
       "sukhi-shypasti-stepy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "38",
     "subtitle": "Королівство колючих хащів",
@@ -7490,8 +7390,7 @@ Atlas.registerWorld({
   "id": "trykoron",
   "name": "Трикорон",
   "order": 90,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -7500,7 +7399,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.6,
-    "theme": "continent"
+    "theme": "trykoron", "cities": "n"
   },
   "description": "Середньовічний фентезійний світ, де три стародавні королівства збудували гігантські кільця оборонних мурів навколо спільної гірської долини.",
   "biomes": {
@@ -7511,7 +7410,6 @@ Atlas.registerWorld({
       "zruynovani-korolivski-sady"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "61",
     "subtitle": "Земля нескорених фортець",
@@ -7617,8 +7515,7 @@ Atlas.registerWorld({
   "id": "umbralit",
   "name": "Умбраліт",
   "order": 65,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -7627,7 +7524,7 @@ Atlas.registerWorld({
     "wet": 0.2,
     "ruggedness": 0.4,
     "riverDensity": 0.8,
-    "theme": "neborid"
+    "theme": "umbralit", "cities": "r"
   },
   "description": "Вимір, де сни мають фізичну форму, а уявлені предмети, істоти й пейзажі можуть існувати поруч із матеріальним світом.",
   "biomes": {
@@ -7639,7 +7536,6 @@ Atlas.registerWorld({
       "chorni-porozhnechi"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "29",
     "subtitle": "Світ матеріальних снів",
@@ -7749,8 +7645,7 @@ Atlas.registerWorld({
   "id": "valdren",
   "name": "Вальдрен",
   "order": 67,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -7759,7 +7654,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "midnokryl"
+    "theme": "valdren", "cities": "r"
   },
   "description": "Гірський вимір із плато, каньйонами та повітряними течіями, які визначають маршрути мандрівників.",
   "biomes": {
@@ -7770,7 +7665,6 @@ Atlas.registerWorld({
       "tykhi-dolyny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "31",
     "subtitle": "Край семи вітрів",
@@ -7865,8 +7759,7 @@ Atlas.registerWorld({
   "id": "varhess",
   "name": "Варгесс",
   "order": 53,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -7875,7 +7768,7 @@ Atlas.registerWorld({
     "wet": -0.5,
     "ruggedness": 0.4,
     "riverDensity": 0.3,
-    "theme": "ostanky"
+    "theme": "varhess", "cities": "r"
   },
   "description": "Світ, де попіл є головною формою життя й пам'яті, а кожна буря здатна відтворити з пилу давно зниклі міста або чудовиськ.",
   "biomes": {
@@ -7887,7 +7780,6 @@ Atlas.registerWorld({
       "vitryani-nekropoli"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "15",
     "subtitle": "Країна попелястих буревіїв",
@@ -7998,8 +7890,7 @@ Atlas.registerWorld({
   "id": "velarium",
   "name": "Веларіум",
   "order": 40,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -8008,7 +7899,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.9,
     "riverDensity": 0.6,
-    "theme": "midnokryl"
+    "theme": "velarium", "cities": "n"
   },
   "description": "Вимір із перевернутою гравітацією, де гірські масиви звисають із небес, а ліси ростуть униз, утворюючи нескінченні кам'яні крони.",
   "biomes": {
@@ -8020,7 +7911,6 @@ Atlas.registerWorld({
       "pylovi-arkhipelahy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "1",
     "subtitle": "Світ перевернутих коренів",
@@ -8137,8 +8027,7 @@ Atlas.registerWorld({
   "id": "veletraviya",
   "name": "Велетравія",
   "order": 76,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -8147,7 +8036,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.2,
     "riverDensity": 0.8,
-    "theme": "pangea"
+    "theme": "veletraviya", "cities": "r"
   },
   "description": "Відкритий світ широких рівнин, де гігантські тварини сезонно переміщуються між пасовищами, водопоями та місцями гніздування.",
   "biomes": {
@@ -8158,7 +8047,6 @@ Atlas.registerWorld({
       "tumanni-zaplavy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "41",
     "subtitle": "Степ мігруючих стад",
@@ -8398,8 +8286,7 @@ Atlas.registerWorld({
   "id": "vespern",
   "name": "Весперн",
   "order": 50,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "l",
@@ -8408,7 +8295,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "pangea"
+    "theme": "vespern", "cities": "r"
   },
   "description": "Планета, де сонце навіки застрягло на горизонті, а температура, рослинність і поведінка істот змінюються залежно від відстані до останнього променя.",
   "biomes": {
@@ -8420,7 +8307,6 @@ Atlas.registerWorld({
       "kray-chornoho-sontsya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "12",
     "subtitle": "Світ вічного заходу",
@@ -8530,8 +8416,7 @@ Atlas.registerWorld({
   "id": "vitroparus",
   "name": "Вітропарус",
   "order": 91,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -8540,7 +8425,7 @@ Atlas.registerWorld({
     "wet": -0.6,
     "ruggedness": 0.4,
     "riverDensity": 0.1,
-    "theme": "pangea"
+    "theme": "vitroparus", "cities": "0"
   },
   "description": "Пустельний світ, у якому величезні вітрила стародавніх наземних кораблів стирчать із пісків, а торгові каравани пересуваються широкими дюнами.",
   "biomes": {
@@ -8551,7 +8436,6 @@ Atlas.registerWorld({
       "pokhovani-porty"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "63",
     "subtitle": "Море без води",
@@ -8656,8 +8540,7 @@ Atlas.registerWorld({
   "id": "vuhlerod",
   "name": "Вуглерод",
   "order": 87,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -8666,7 +8549,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.6,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "vuhlerod", "cities": "r"
   },
   "description": "Суворий лісовий вимір із темними хвойними лісами, вугільними пагорбами й покинутими поселеннями, де основний ресурс — деревне вугілля та смола.",
   "biomes": {
@@ -8677,7 +8560,6 @@ Atlas.registerWorld({
       "smolyani-yary"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "56",
     "subtitle": "Королівство чорних сосен",
@@ -8774,8 +8656,7 @@ Atlas.registerWorld({
   "id": "zhornoverkh",
   "name": "Жорноверх",
   "order": 97,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -8784,7 +8665,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.3,
     "riverDensity": 0.5,
-    "theme": "continent"
+    "theme": "zhornoverkh", "cities": "n"
   },
   "description": "Відкритий світ пагорбів і вітряних рівнин, де стародавні млини перемелювали чарівне зерно, забезпечуючи магічною енергією цілі поселення.",
   "biomes": {
@@ -8795,7 +8676,6 @@ Atlas.registerWorld({
       "zernoskhovyshcha-pidzemel"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "70",
     "subtitle": "Земля тисячі млинів",

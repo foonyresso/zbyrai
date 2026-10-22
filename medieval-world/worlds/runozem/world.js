@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "runozem",
   "name": "Рунозем",
   "order": 79,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.8,
     "riverDensity": 0.3,
-    "theme": "island"
+    "theme": "runozem", "cities": "r"
   },
   "description": "Гірський світ, де великі кам'яні плити з рунами впливають на локальні властивості довкілля.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "chorni-zaly"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "45",
     "subtitle": "Плато стародавніх печаток",

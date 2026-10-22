@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "ormaval",
   "name": "Ормаваль",
   "order": 42,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.3,
     "ruggedness": 0.5,
     "riverDensity": 1.5,
-    "theme": "krovostep"
+    "theme": "ormaval", "cities": "r"
   },
   "description": "Повноцінний вимір, що існує всередині тіла колосальної істоти, чиї органи стали континентами, а кровоносні шляхи — морями.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "nervovi-sady"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "3",
     "subtitle": "Світ усередині сплячого велета",

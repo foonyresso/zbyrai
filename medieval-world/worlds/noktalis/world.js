@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "noktalis",
   "name": "Нокталіс",
   "order": 41,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "ostanky"
+    "theme": "noktalis", "cities": "r"
   },
   "description": "Світ, де час перетворився на матерію, а цілі долини застигли всередині окремих митей історії.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "mista-povtorennya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "2",
     "subtitle": "Архіпелаг останніх митей",

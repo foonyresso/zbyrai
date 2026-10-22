@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "eshkariya",
   "name": "Ешкарія",
   "order": 45,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.4,
     "riverDensity": 0.5,
-    "theme": "island"
+    "theme": "eshkariya", "cities": "r"
   },
   "description": "Вимір, де блискавки залишаються в землі у вигляді твердих кристалічних гілок, утворюючи цілі електричні ліси та мінеральні бурі.",
   "biomes": {
@@ -30,7 +29,6 @@ Atlas.registerWorld({
       "dolyny-blyskavychnoho-kamenyu"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "6 + 54",
     "subtitle": "Степи кристалічного грому",

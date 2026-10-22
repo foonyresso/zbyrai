@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "ternaviya",
   "name": "Тернавія",
   "order": 73,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.5,
     "riverDensity": 0.7,
-    "theme": "vershynnytsia"
+    "theme": "ternaviya", "cities": "r"
   },
   "description": "Дикий вимір, де агресивні рослини поступово захоплюють покинуті землі, руїни й дороги.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "sukhi-shypasti-stepy"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "38",
     "subtitle": "Королівство колючих хащів",

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "ferroks",
   "name": "Феррокс",
   "order": 51,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 1,
     "riverDensity": 0.4,
-    "theme": "midnokryl"
+    "theme": "ferroks", "cities": "r"
   },
   "description": "Вимір, у якому магнітні полюси формують географію: гори злітають у небо, залізні острови дрейфують, а металеві піски створюють живі бурі.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "polyarni-kratery"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "13",
     "subtitle": "Земля магнітних материків",

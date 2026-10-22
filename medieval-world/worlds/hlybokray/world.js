@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "hlybokray",
   "name": "Глибокрай",
   "order": 84,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "pangea"
+    "theme": "hlybokray", "cities": "r"
   },
   "description": "Світ вузьких каньйонів, вертикальних скель і підвісних доріг, де основна пригода полягає у дослідженні висот і пошуку безпечних маршрутів.",
   "biomes": {
@@ -29,7 +28,6 @@ Atlas.registerWorld({
       "zabuti-mostovi-mista"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "51 + 73",
     "subtitle": "Країна бездонних ущелин",

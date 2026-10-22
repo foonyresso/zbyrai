@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "vespern",
   "name": "Весперн",
   "order": 50,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.5,
     "riverDensity": 0.5,
-    "theme": "pangea"
+    "theme": "vespern", "cities": "r"
   },
   "description": "Планета, де сонце навіки застрягло на горизонті, а температура, рослинність і поведінка істот змінюються залежно від відстані до останнього променя.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "kray-chornoho-sontsya"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "12",
     "subtitle": "Світ вічного заходу",

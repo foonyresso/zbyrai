@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "zhornoverkh",
   "name": "Жорноверх",
   "order": 97,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0,
     "ruggedness": 0.3,
     "riverDensity": 0.5,
-    "theme": "continent"
+    "theme": "zhornoverkh", "cities": "n"
   },
   "description": "Відкритий світ пагорбів і вітряних рівнин, де стародавні млини перемелювали чарівне зерно, забезпечуючи магічною енергією цілі поселення.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "zernoskhovyshcha-pidzemel"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "70",
     "subtitle": "Земля тисячі млинів",

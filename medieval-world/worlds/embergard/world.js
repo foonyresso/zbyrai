@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "embergard",
   "name": "Емберґард",
   "order": 60,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.4,
     "ruggedness": 1,
     "riverDensity": 0.3,
-    "theme": "krovostep"
+    "theme": "embergard", "cities": "n"
   },
   "description": "Вимір, у якому гори є стародавніми кузнями, а вулканічні процеси створюють не просто лаву, а нові мінерали, живих істот і цілі архітектурні форми.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "kryshtalevi-horny"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "23",
     "subtitle": "Світ вічних кузень",

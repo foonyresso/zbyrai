@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "rzhavar",
   "name": "Ржавар",
   "order": 82,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.2,
     "ruggedness": 0.8,
     "riverDensity": 0.4,
-    "theme": "krovostep"
+    "theme": "rzhavar", "cities": "n"
   },
   "description": "Вимір, де залізна руда проростає із землі у вигляді металевих рослин, а іржа покриває камені, дерева й старі фортеці.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "chorni-kuzni"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "49",
     "subtitle": "Країна іржавих лісів",
