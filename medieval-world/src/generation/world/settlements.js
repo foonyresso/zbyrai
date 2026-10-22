@@ -1,5 +1,7 @@
 /* ---- села: тип (хутір/село/велике село) і позиція; саму забудову будує генератор міст ---- */
 const BC = 3000;
+/* частота міст (параметр виміру «Міста»): імовірність міста в клітинці сітки; «немає» лишає лише села й хутори */
+const CITY_P = { n: .62, r: .17, 0: 0 };
 function nearBig(x, y, r) {
   for (
     let a = Math.floor((x - 700) / BC);
@@ -23,7 +25,7 @@ function bigC(i, j) {
   if (m.has(key)) return m.get(key);
   let v = null;
   const s = WLD.s;
-  if (H2(i, j, s + 141) < .62) {
+  if (H2(i, j, s + 141) < (CITY_P[$("#wcities").value] ?? .62)) {
     const u = H2(i, j, s + 146),
       t0 = u < .45 ? 3 : u < .75 ? 4 : u < .92 ? 5 : 6;
     for (let t = 0; t < 3 && !v; t++) {

@@ -41,6 +41,10 @@
       return b;
     }) : [];
     for (const k in base) $("#" + k).title = (isFrame() && src.titles && src.titles[k]) || base[k];
+    if (!isFrame() && world.preset && world.preset.cities && $("#wcities")) {
+      $("#wcities").value = world.preset.cities; /* частота міст виміру: n, r або 0 */
+      $("#wcities").dispatchEvent(new Event("change"));
+    }
     if (isFrame()) ensureFrame(world, hash, fresh);
     else window.dispatchEvent(new Event("resize"));
     try { localStorage.setItem(KEY, world.id); } catch { /* сховище недоступне */ }

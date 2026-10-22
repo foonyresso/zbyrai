@@ -376,7 +376,7 @@ $("#won").onclick = () => {
   $("#won").classList.toggle("on", WON);
   redraw();
 };
-$("#wtype").onchange = $("#wseed").onchange = () => {
+$("#wtype").onchange = $("#wcities").onchange = $("#wseed").onchange = () => {
   WLD = null;
   bdirty = true;
   redraw();
@@ -464,7 +464,7 @@ resize();
 gen(false);
 
 /* ---------- збереження й обмін (верхня панель) ---------- */
-const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", "wseed"];
+const SAVE_IDS = ["size", "seed", "lay", "bio", "shore", "riv", "sea", "wtype", "wcities", "wseed"];
 const SAVE_LAYERS = {
   mag: () => MAG, nit: () => F.nit, lbl: () => F.lbl, ugr: () => F.ugr, rel: () => F.rel,
   won: () => WON, wrd: () => WRD, wbd: () => WBD,
