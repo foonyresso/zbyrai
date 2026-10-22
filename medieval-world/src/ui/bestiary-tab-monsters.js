@@ -22,7 +22,7 @@
     const shown = arr.slice(0, PAGE * ((st.page || 0) + 1));
     const out = shown.map((m) => {
       const l = m.lore || {}, k = K[m.kind] || {};
-      const inner = (l.description ? "<p>" + esc(l.description) + "</p>" : "") + H.kv("Де зустрічається", where(m, c)) + H.kv("Поведінка", l.behavior) + H.kv("Здібності", l.abilities) + H.kv("Здобич", l.drops) +
+      const inner = (l.description ? "<p>" + esc(l.description) + "</p>" : "") + H.kv("Як виглядає", BestiaryGen.look(m)) + H.kv("Де зустрічається", where(m, c)) + H.kv("Поведінка", l.behavior) + H.kv("Здібності", l.abilities) + H.kv("Здобич", l.drops) +
         H.kv("Ранг", k.name) + H.kv("Природа", NAT[m.nature]) + (k.city ? H.kv("Віддаль від людей", "не ближче " + k.village + " од. від сіл, " + k.city + " од. від міст") : "");
       return H.card(m.name, H.chip(k.name || m.kind) + H.chip(NAT[m.nature] || ""), inner);
     }).join("");
