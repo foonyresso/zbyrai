@@ -23,8 +23,8 @@
 index.html, style.css, app.js     сторінка, стилі, точка входу інтерфейсу
 core/    генерація без DOM (rng, noise, grid, terrain, climate, rivers, politics, settlements, pois, lairs, router, roads, searoutes, features, planner, serialize, ...)
 data/    біоми, типи місць, назви, бестіарій гір/лісів/морів, шаблони зачіпок
-render/  малювання на canvas: шари, значки, підписи, сцена
-ui/      панелі (світ, шари, подорож, довідник), картка об'єкта, збереження й обмін
+render/  малювання на canvas: шари, значки, сцена (підписів немає)
+ui/      панелі (світ, шари, подорож, довідник), картка об’єкта, tooltip.js (спільна підказка при наведенні), збереження й обмін
 test/    тести: node medieval-world/worlds/continent/test/run-all.js
 ```
 

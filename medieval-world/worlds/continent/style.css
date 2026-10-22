@@ -46,7 +46,14 @@ main { position: relative; min-width: 0; border: 1px solid var(--line); border-r
 #hud { position: absolute; left: 10px; top: 10px; font-size: 12px; color: #1f1710; background: rgba(244, 234, 210, .88); padding: 5px 9px; border-radius: 6px; pointer-events: none; font-family: var(--ff-mono); max-width: 60%; }
 #busy { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(9, 9, 12, .55); color: var(--accent-hi); font-weight: 600; z-index: 5; }
 #busy[hidden], #tip[hidden], #card[hidden] { display: none; }
-#tip { position: absolute; pointer-events: none; z-index: 6; background: rgba(20, 20, 26, .95); border: 1px solid var(--accent); color: var(--text); padding: 6px 9px; border-radius: 6px; font-size: 12.5px; max-width: 260px; line-height: 1.45; }
+#tip { position: absolute; pointer-events: none; z-index: 6; background: rgba(19, 19, 24, .97); border: 1px solid var(--line); border-top: 3px solid var(--tip-accent, var(--accent)); color: var(--text); padding: 9px 12px 10px; border-radius: 8px; font-size: 12.5px; width: max-content; max-width: 300px; line-height: 1.4; box-shadow: 0 6px 20px rgba(0, 0, 0, .45); }
+#tip .tt-title { font-size: 15px; font-weight: 600; color: var(--accent-hi); }
+#tip .tt-kind { font-size: 11.5px; color: var(--faint); margin-bottom: 4px; }
+#tip .tt-group { margin-top: 7px; padding-top: 5px; border-top: 1px solid var(--line); }
+#tip .tt-gname { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--tip-accent, var(--accent)); margin-bottom: 2px; }
+#tip dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+#tip dt { color: var(--faint); } #tip dd { margin: 0; color: var(--text); }
+#tip .tt-hook { margin-top: 7px; color: var(--muted); font-style: italic; border-left: 2px solid var(--tip-accent, var(--accent)); padding-left: 8px; }
 #card { position: absolute; right: 10px; top: 10px; width: min(330px, calc(100% - 20px)); max-height: calc(100% - 20px); overflow-y: auto; z-index: 4; background: rgba(19, 19, 24, .96); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; box-shadow: var(--shadow-2); }
 #card h3 { margin: 0 24px 2px 0; font-size: 16px; color: var(--accent-hi); }
 #card .sub { font-size: 12px; color: var(--faint); margin-bottom: 8px; }

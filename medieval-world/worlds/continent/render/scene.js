@@ -7,7 +7,7 @@
     political: true, provinceBorders: true, regionBorders: true, rivers: true, relief: true,
     road_major: true, road_medium: true, road_minor: true, road_trail: true, sea: true,
     settlements: true, pois: true, lairs: true, danger: false,
-    names_provinces: true, names_regions: true, names_settlements: true, names_nature: true, scale: true,
+    scale: true,
   };
   const iconK = k => Math.max(0.65, Math.min(2.3, Math.sqrt(k / 8)));
 
@@ -62,9 +62,8 @@
       if (L.lairs) for (const l of w.lairs) { if (l.tier === 1 && k < 6.5) continue; const x = l.x * k + view.tx, y = l.y * k + view.ty; if (!vis(x, y)) continue; R.IconsPlaces.drawLair(ctx, l, x, y, ik, t); hits.push({ t: 'l', o: l, x, y, r: (l.tier === 1 ? 7 : 11) * ik }); }
       if (L.settlements) {
         const order = w.settlements.slice().sort((a, b) => a.y - b.y);
-        for (const s of order) { if (!R.Labels.visibleRank(s.rank, k)) continue; const x = s.x * k + view.tx, y = s.y * k + view.ty; if (!vis(x, y)) continue; R.IconsSettlements.drawSettlement(ctx, s, x, y, ik); const sz = R.Data.ranks[s.rank].size * 2.2 * ik + 4; boxes.push([x - sz, y - sz * 1.6, x + sz, y + 3]); hits.push({ t: 's', o: s, x, y: y - 4 * ik, r: (4 + R.Data.ranks[s.rank].size * 2.2) * ik }); }
+        for (const s of order) { if (!R.Rank.visibleRank(s.rank, k)) continue; const x = s.x * k + view.tx, y = s.y * k + view.ty; if (!vis(x, y)) continue; R.IconsSettlements.drawSettlement(ctx, s, x, y, ik); const sz = R.Data.ranks[s.rank].size * 2.2 * ik + 4; boxes.push([x - sz, y - sz * 1.6, x + sz, y + 3]); hits.push({ t: 's', o: s, x, y: y - 4 * ik, r: (4 + R.Data.ranks[s.rank].size * 2.2) * ik }); }
       }
-      R.Labels.drawLabels(ctx, w, view, L, boxes);
       this.drawSelection(ctx, view, t);
       if (L.scale) this.drawScale(ctx, W, H, k);
       if (!opt || !opt.noHits) this.hits = hits;

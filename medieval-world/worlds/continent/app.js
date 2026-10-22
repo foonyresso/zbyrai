@@ -48,26 +48,16 @@
   const up = e => { ptrs.delete(e.pointerId); cv.classList.remove('drag'); if (!ptrs.size) { if (moved < 5 && drag) click(e); drag = null; } pinch = 0; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); drag = null; cv.classList.remove('drag'); });
   cv.addEventListener('wheel', e => { e.preventDefault(); App.scene.zoomAt(e.offsetX, e.offsetY, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
-  cv.addEventListener('pointerleave', () => { $('tip').hidden = true; });
+  cv.addEventListener('pointerleave', () => { U.Tooltip.hide(); });
   $('btnFit').addEventListener('click', () => App.scene.fit());
   $('btnZoomIn').addEventListener('click', () => App.scene.zoomAt(App.scene.W / 2, App.scene.H / 2, 1.5));
   $('btnZoomOut').addEventListener('click', () => App.scene.zoomAt(App.scene.W / 2, App.scene.H / 2, 1 / 1.5));
   cv.addEventListener('dblclick', e => App.scene.zoomAt(e.offsetX, e.offsetY, 2));
 
-  function describeCell(c) {
-    const w = App.world; if (c < 0) return '';
-    const b = R.Data.biomes[w.bio[c]].name; if (w.water[c] !== 0) return b;
-    return w.provinces[w.province[c]].name + ' · ' + w.regions[w.region[c]].name + ' · ' + b + (w.roadLevel[c] ? ' · ' + Object.values(R.Data.roadClasses).find(r => r.level === w.roadLevel[c]).name.toLowerCase() : '');
-  }
   function hover(e) {
-    if (!App.world) return; const h = App.scene.hitAt(e.offsetX, e.offsetY), tip = $('tip');
-    if (h) {
-      const o = h.o; let t = '';
-      if (h.t === 's') t = o.name + ' · ' + R.Data.ranks[o.rank].name.toLowerCase() + (o.state !== 'normal' ? ' · ' + R.Data.states[o.state].name.toLowerCase() : '');
-      else if (h.t === 'p') t = o.name + ' · ' + R.Data.poi[o.type].name.toLowerCase(); else t = o.name + ' · ' + R.Data.tierNames[o.tier];
-      tip.textContent = t; tip.style.left = Math.min(e.offsetX + 14, App.scene.W - 270) + 'px'; tip.style.top = (e.offsetY + 14) + 'px'; tip.hidden = false; cv.style.cursor = 'pointer';
-    } else { tip.hidden = true; cv.style.cursor = ''; }
-    const c = App.scene.screenToCell(e.offsetX, e.offsetY); $('hud').textContent = describeCell(c);
+    if (!App.world) return; const h = App.scene.hitAt(e.offsetX, e.offsetY), d = U.Tooltip.describe(h, h ? -1 : App.scene.screenToCell(e.offsetX, e.offsetY));
+    if (d) U.Tooltip.show(d, e.offsetX, e.offsetY); else U.Tooltip.hide();
+    cv.style.cursor = h ? 'pointer' : '';
   }
   function click(e) {
     if (!App.world) return; const sc = App.scene, c = sc.screenToCell(e.offsetX, e.offsetY);
