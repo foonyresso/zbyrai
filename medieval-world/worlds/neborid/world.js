@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "neborid",
   "name": "Неборід",
   "order": 34,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.15,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "neborid"
+    "theme": "neborid", "cities": "r"
   },
   "description": "Світ, де гори ростуть із хмар: плато, мости й гірські монастирі.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "old-cloud-fortresses"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "135",
     "subtitle": "Світ, де гори ростуть із хмар",

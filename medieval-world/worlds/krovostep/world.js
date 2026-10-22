@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "krovostep",
   "name": "Кровостеп",
   "order": 32,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.55,
     "riverDensity": 0.3,
-    "theme": "krovostep"
+    "theme": "krovostep", "cities": "r"
   },
   "description": "Світ червоного голоду: сухі рівнини, кістяні фортеці й війни за колодязі.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "blood-wells"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "133",
     "subtitle": "Світ червоного голоду",

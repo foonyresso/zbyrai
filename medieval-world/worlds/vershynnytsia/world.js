@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "vershynnytsia",
   "name": "Вершинниця",
   "order": 33,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "m",
@@ -15,7 +14,7 @@ Atlas.registerWorld({
     "ruggedness": 0.3,
     "riverDensity": 1.4,
     "density": 1.2,
-    "theme": "vershynnytsia"
+    "theme": "vershynnytsia", "cities": "n"
   },
   "description": "Тропічний материк із деревами заввишки з гору: міста на гілках над хмарами.",
   "biomes": {
@@ -27,7 +26,6 @@ Atlas.registerWorld({
       "upper-light-gardens"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "134",
     "subtitle": "Світ дерев заввишки з гору",

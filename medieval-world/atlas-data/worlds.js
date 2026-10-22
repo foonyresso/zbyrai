@@ -134,12 +134,10 @@ Atlas.registerWorld({
   id: "archipelago",
   name: "Архіпелаг",
   order: 20,
-  runner: "iframe",
-  entry: "worlds/continent/index.html?embed=1",
-  preset: {"worldType": "archipelago", "size": "l", "provinces": 4, "warm": 0.15, "wet": 0.1, "ruggedness": 0.35, "riverDensity": 0.8, "theme": "archipelago"},
+  runner: "builtin",
+  preset: {"worldType": "archipelago", "size": "l", "provinces": 4, "warm": 0.15, "wet": 0.1, "ruggedness": 0.35, "riverDensity": 0.8, "theme": "archipelago", "cities": "r"},
   description: "Скінченний світ із багатьма островами: морські шляхи між портами важливіші за дороги.",
   biomes: { allow: "all", deny: "tag:exclusive" },
-  inherit: "continent",
 });
 
 /* worlds/arkhelor/world.js */
@@ -438,8 +436,7 @@ Atlas.registerWorld({
   "id": "astrakor",
   "name": "Астракор",
   "order": 30,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -448,7 +445,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.55,
     "riverDensity": 0.8,
-    "theme": "astrakor"
+    "theme": "astrakor", "cities": "r"
   },
   "description": "Континент на коренях космічного дерева, що дрейфує в зоряній порожнечі.",
   "biomes": {
@@ -462,7 +459,6 @@ Atlas.registerWorld({
       "star-caverns"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "131",
     "subtitle": "Континент, що тримається на коренях космічного гігантського дерева",
@@ -843,10 +839,9 @@ Atlas.registerWorld({
   id: "continent",
   name: "Материк (скінченний)",
   order: 10,
-  runner: "iframe",
-  entry: "worlds/continent/index.html?embed=1",
+  runner: "builtin",
   description: "Скінченна карта: провінції, регіони, міста, чотири типи доріг, морські шляхи, лігва монстрів.",
-  preset: {"worldType": "continent", "theme": "continent"},
+  preset: {"worldType": "continent", "theme": "continent", "cities": "n"},
   biomes: { allow: "all", deny: "tag:exclusive" },
   extraActions: [
     { id: "btnWorld", label: "Експорт світу (.json)", title: "Завантажити повний експорт світу для гри: провінції, регіони, міста, дороги, лігва, шари біомів" },
@@ -2686,12 +2681,10 @@ Atlas.registerWorld({
   id: "island",
   name: "Один острів",
   order: 21,
-  runner: "iframe",
-  entry: "worlds/continent/index.html?embed=1",
-  preset: {"worldType": "island", "size": "s", "provinces": 3, "warm": -0.12, "wet": 0.05, "ruggedness": 0.8, "density": 0.8, "theme": "island"},
+  runner: "builtin",
+  preset: {"worldType": "island", "size": "s", "provinces": 3, "warm": -0.12, "wet": 0.05, "ruggedness": 0.8, "density": 0.8, "theme": "island", "cities": "r"},
   description: "Малий скінченний світ: один острів, три провінції, гори й річки.",
   biomes: { allow: "all", deny: "tag:exclusive" },
-  inherit: "continent",
 });
 
 /* worlds/kaldras/world.js */
@@ -3199,8 +3192,7 @@ Atlas.registerWorld({
   "id": "krovostep",
   "name": "Кровостеп",
   "order": 32,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "l",
@@ -3209,7 +3201,7 @@ Atlas.registerWorld({
     "wet": -0.3,
     "ruggedness": 0.55,
     "riverDensity": 0.3,
-    "theme": "krovostep"
+    "theme": "krovostep", "cities": "r"
   },
   "description": "Світ червоного голоду: сухі рівнини, кістяні фортеці й війни за колодязі.",
   "biomes": {
@@ -3221,7 +3213,6 @@ Atlas.registerWorld({
       "blood-wells"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "133",
     "subtitle": "Світ червоного голоду",
@@ -4012,8 +4003,7 @@ Atlas.registerWorld({
   "id": "midnokryl",
   "name": "Міднокрил",
   "order": 35,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -4021,7 +4011,7 @@ Atlas.registerWorld({
     "warm": -0.1,
     "wet": 0.0,
     "ruggedness": 1.0,
-    "theme": "midnokryl"
+    "theme": "midnokryl", "cities": "r"
   },
   "description": "Королівство гірських птахів: гніздові платформи, мисливці й приручені крилаті звірі.",
   "biomes": {
@@ -4033,7 +4023,6 @@ Atlas.registerWorld({
       "windy-meadows"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "116",
     "subtitle": "Королівство гірських птахів",
@@ -4465,8 +4454,7 @@ Atlas.registerWorld({
   "id": "neborid",
   "name": "Неборід",
   "order": 34,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -4475,7 +4463,7 @@ Atlas.registerWorld({
     "wet": 0.15,
     "ruggedness": 0.9,
     "riverDensity": 0.3,
-    "theme": "neborid"
+    "theme": "neborid", "cities": "r"
   },
   "description": "Світ, де гори ростуть із хмар: плато, мости й гірські монастирі.",
   "biomes": {
@@ -4487,7 +4475,6 @@ Atlas.registerWorld({
       "old-cloud-fortresses"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "135",
     "subtitle": "Світ, де гори ростуть із хмар",
@@ -5414,8 +5401,7 @@ Atlas.registerWorld({
   "id": "ostanky",
   "name": "Останки",
   "order": 31,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -5424,7 +5410,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.4,
-    "theme": "ostanky"
+    "theme": "ostanky", "cities": "0"
   },
   "description": "Світ, складений з уламків інших реальностей: кладовище цивілізацій.",
   "biomes": {
@@ -5436,7 +5422,6 @@ Atlas.registerWorld({
       "ownerless-garden"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "132",
     "subtitle": "Світ, складений із мертвих історій",
@@ -5558,12 +5543,10 @@ Atlas.registerWorld({
   id: "pangea",
   name: "Суходіл із морями",
   order: 22,
-  runner: "iframe",
-  entry: "worlds/continent/index.html?embed=1",
-  preset: {"worldType": "pangea", "size": "l", "provinces": 7, "warm": 0.2, "wet": -0.25, "ruggedness": 0.3, "theme": "pangea"},
+  runner: "builtin",
+  preset: {"worldType": "pangea", "size": "l", "provinces": 7, "warm": 0.2, "wet": -0.25, "ruggedness": 0.3, "theme": "pangea", "cities": "n"},
   description: "Великий суходіл із внутрішніми морями й довгими сухопутними дорогами.",
   biomes: { allow: "all", deny: "tag:exclusive" },
-  inherit: "continent",
 });
 
 /* worlds/paperon/world.js */
@@ -8273,8 +8256,7 @@ Atlas.registerWorld({
   "id": "vershynnytsia",
   "name": "Вершинниця",
   "order": 33,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "pangea",
     "size": "m",
@@ -8284,7 +8266,7 @@ Atlas.registerWorld({
     "ruggedness": 0.3,
     "riverDensity": 1.4,
     "density": 1.2,
-    "theme": "vershynnytsia"
+    "theme": "vershynnytsia", "cities": "n"
   },
   "description": "Тропічний материк із деревами заввишки з гору: міста на гілках над хмарами.",
   "biomes": {
@@ -8296,7 +8278,6 @@ Atlas.registerWorld({
       "upper-light-gardens"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "134",
     "subtitle": "Світ дерев заввишки з гору",

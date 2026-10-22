@@ -49,7 +49,7 @@ function wdet(c, X0, Y0, TW, P) {
     c.lineCap = "round";
     for (
       const [w, col] of pts.length > 1
-        ? [[rw + 3, "#6f9fbd"], [rw, "#a8cde3"]]
+        ? [[rw + 3, WSTYLE.riverEdge], [rw, WSTYLE.river]]
         : []
     ) {
       c.strokeStyle = col;
@@ -315,12 +315,12 @@ function drawRoads() {
       strokeRoad(
         g,
         Math.max(1.2, 3 * S),
-        "#e2c27f",
+        ROAD_STYLE.major[1],
         Math.max(2, 7 * S),
         "#8a6a45",
         null,
         Math.max(2, 5 * S),
-        "#2e2113",
+        ROAD_STYLE.major[5],
       );
     }
   }

@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "ostanky",
   "name": "Останки",
   "order": 31,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "archipelago",
     "size": "l",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": -0.1,
     "ruggedness": 0.7,
     "riverDensity": 0.4,
-    "theme": "ostanky"
+    "theme": "ostanky", "cities": "0"
   },
   "description": "Світ, складений з уламків інших реальностей: кладовище цивілізацій.",
   "biomes": {
@@ -26,7 +25,6 @@ Atlas.registerWorld({
       "ownerless-garden"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "132",
     "subtitle": "Світ, складений із мертвих історій",

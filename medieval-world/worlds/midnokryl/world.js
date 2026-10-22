@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "midnokryl",
   "name": "Міднокрил",
   "order": 35,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "continent",
     "size": "m",
@@ -13,7 +12,7 @@ Atlas.registerWorld({
     "warm": -0.1,
     "wet": 0.0,
     "ruggedness": 1.0,
-    "theme": "midnokryl"
+    "theme": "midnokryl", "cities": "r"
   },
   "description": "Королівство гірських птахів: гніздові платформи, мисливці й приручені крилаті звірі.",
   "biomes": {
@@ -25,7 +24,6 @@ Atlas.registerWorld({
       "windy-meadows"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "116",
     "subtitle": "Королівство гірських птахів",

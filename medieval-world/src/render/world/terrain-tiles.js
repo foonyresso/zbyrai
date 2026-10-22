@@ -14,10 +14,11 @@ const PCL = {},
   CONT = [190, 181, 156];
 function pal(bk) {
   if (PCL[bk]) return PCL[bk];
-  const b = BIOS[bk], g = hx(b.g), f = hx(b.f);
+  const T = WSTYLE.theme, tn = (c) => hx(T ? RealmMap.Palette.tint(c) : c),
+    b = BIOS[bk], g = tn(b.g), f = tn(b.f);
   return PCL[bk] = [
-    [168, 205, 227],
-    [156, 197, 222],
+    T ? hx(T.sea[1]) : [168, 205, 227],
+    T ? hx(T.sea[4]) : [156, 197, 222],
     f,
     g.map((v) => Math.round(v * .955)),
     bk == "snow" ? [226, 230, 229] : [218, 212, 192],

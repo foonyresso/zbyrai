@@ -27,6 +27,17 @@
     frame.src = w.entry + "&world=" + w.id + (hash ? "#p=" + hash : "");
     box.append(frame);
   }
+  /* вимір на спільному рушії: тип суші, частота міст і тема оформлення з preset; без preset стандартний вигляд */
+  const WT = { continent: "cont", island: "cont", archipelago: "arch", pangea: "land" };
+  function applyBuiltin(w, fresh) {
+    const p = w.preset || {}, sty = typeof WSTYLE != "undefined" ? WSTYLE : null;
+    if (sty) sty.apply(p.theme);
+    if (w.preset && fresh) { $("#seed").value = Math.floor(Math.random() * 99999); $("#seed").dispatchEvent(new Event("change")); }
+    if (!w.preset && fresh) { $("#wtype").value = "cont"; $("#wcities").value = "n"; }
+    if (p.worldType && $("#wtype")) $("#wtype").value = WT[p.worldType] || "cont";
+    if (p.cities && $("#wcities")) $("#wcities").value = p.cities; /* частота міст виміру: n, r або 0 */
+    if ($("#wtype")) $("#wtype").dispatchEvent(new Event("change"));
+  }
   function setWorld(id, hash, fresh) {
     world = byId(id) || Atlas.worlds.find((w) => w.default) || Atlas.worlds[0];
     sel.value = world.id;
@@ -41,10 +52,7 @@
       return b;
     }) : [];
     for (const k in base) $("#" + k).title = (isFrame() && src.titles && src.titles[k]) || base[k];
-    if (!isFrame() && world.preset && world.preset.cities && $("#wcities")) {
-      $("#wcities").value = world.preset.cities; /* частота міст виміру: n, r або 0 */
-      $("#wcities").dispatchEvent(new Event("change"));
-    }
+    if (!isFrame()) applyBuiltin(world, fresh);
     if (isFrame()) ensureFrame(world, hash, fresh);
     else window.dispatchEvent(new Event("resize"));
     try { localStorage.setItem(KEY, world.id); } catch { /* сховище недоступне */ }

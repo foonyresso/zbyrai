@@ -4,8 +4,7 @@ Atlas.registerWorld({
   "id": "astrakor",
   "name": "Астракор",
   "order": 30,
-  "runner": "iframe",
-  "entry": "worlds/continent/index.html?embed=1",
+  "runner": "builtin",
   "preset": {
     "worldType": "island",
     "size": "m",
@@ -14,7 +13,7 @@ Atlas.registerWorld({
     "wet": 0.1,
     "ruggedness": 0.55,
     "riverDensity": 0.8,
-    "theme": "astrakor"
+    "theme": "astrakor", "cities": "r"
   },
   "description": "Континент на коренях космічного дерева, що дрейфує в зоряній порожнечі.",
   "biomes": {
@@ -28,7 +27,6 @@ Atlas.registerWorld({
       "star-caverns"
     ]
   },
-  "inherit": "continent",
   "lore": {
     "ref": "131",
     "subtitle": "Континент, що тримається на коренях космічного гігантського дерева",
