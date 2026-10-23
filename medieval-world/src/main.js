@@ -3,6 +3,7 @@ function drawBase() {
   raceEnter(null, true);
   OPS = 0;
   WPEND = false;
+  ctx.globalAlpha = 1;
   if (WON) drawWorld();
   else {
     ctx.fillStyle = BIO.g;
