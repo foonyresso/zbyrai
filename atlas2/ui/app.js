@@ -11,7 +11,7 @@
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
   function resetView() { const k = Math.min(cv.width / W.w, cv.height / W.h) * 0.96; view = { k, tx: (cv.width - W.w * k) / 2, ty: (cv.height - W.h * k) / 2 }; }
   // повне перемальовування; під час руху лише дешево зсуваємо/масштабуємо вже намальований кадр (CSS), а справжній кадр малюємо, коли рух стих
-  function redraw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover); }); }
+  function redraw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover); hoverKey = ''; if (last) hoverAt(last); }); }
   function moving() {
     const s = view.k / shown.k, q = 1 / devicePixelRatio; cv.style.transform = `translate(${(view.tx - shown.tx * s) * q}px, ${(view.ty - shown.ty * s) * q}px) scale(${s})`;
     ov.getContext('2d').clearRect(0, 0, ov.width, ov.height); clearTimeout(settle); settle = setTimeout(redraw, 140);
@@ -32,17 +32,27 @@
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointerup', () => { drag = null; });
+  let last = null;
   cv.addEventListener('pointermove', e => {
+    last = e;
     if (drag) { view.tx = drag.tx + (e.clientX - drag.x) * devicePixelRatio; view.ty = drag.ty + (e.clientY - drag.y) * devicePixelRatio; moving(); return; }
-    const r = cv.getBoundingClientRect(), x = Math.floor(((e.clientX - r.left) * devicePixelRatio - view.tx) / view.k), y = Math.floor(((e.clientY - r.top) * devicePixelRatio - view.ty) / view.k);
-    const reg = W && x >= 0 && y >= 0 && x < W.w && y < W.h ? W.region[y * W.w + x] : -1;
-    const nv = reg >= 0 ? reg : null; if (nv !== hover) { hover = nv; A.draw.drawHover(ov, W, view, hover); showInfo(nv); }
+    hoverAt(e);
   });
-  cv.addEventListener('pointerleave', () => { hover = null; showInfo(null); A.draw.drawHover(ov, W, view, null); });
-  function showInfo(id) {
+  // наведення: найближче поселення (до 10 px) або регіон під курсором; підсвітка регіону й картка
+  function hoverAt(e) {
+    if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
+    const reg = x >= 0 && y >= 0 && x < W.w && y < W.h ? W.region[y * W.w + x] : -1;
+    let near = null, bd = (10 * devicePixelRatio / view.k) ** 2; for (const s of W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
+    const id = near ? near.region : reg >= 0 ? reg : null, key = id + '|' + (near ? near.id : '');
+    if (key !== hoverKey) { hoverKey = key; hover = id; A.draw.drawHover(ov, W, view, hover); showInfo(id, near); }
+  }
+  let hoverKey = '';
+  function showInfo(id, s) {
     if (id == null) { info.hidden = true; return; }
     const g = W.regions[id], p = W.provinces[g.prov], km = (g.area || 0) * W.params.kmPerCell ** 2;
-    info.innerHTML = `<h4>${p.name || 'Провінція ' + (p.id + 1)}<br>${g.name || 'Регіон ' + (g.id + 1)}</h4><dl><dt>Головне місто</dt><dd>${g.centerName || '—'}</dd><dt>Населення</dt><dd>${g.pop ? g.pop.toLocaleString('uk') : '—'}</dd><dt>Місцевість</dt><dd>${g.terrain || '—'}</dd><dt>Площа</dt><dd>${km.toLocaleString('uk')} км²</dd></dl>`;
+    const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };
+    const city = s ? `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>${RN[s.rank]}${s.port ? ', порт' : ''}</dd><dt>Населення</dt><dd>${s.pop.toLocaleString('uk')}</dd><dt>Біля річки</dt><dd>${s.river ? 'так' : 'ні'}</dd></dl><hr>` : '';
+    info.innerHTML = city + `<h4>${p.name || 'Провінція ' + (p.id + 1)}<br>${g.name || 'Регіон ' + (g.id + 1)}</h4><dl><dt>Головне місто</dt><dd>${g.centerName || '—'}</dd><dt>Населення</dt><dd>${g.pop ? g.pop.toLocaleString('uk') : '—'}</dd><dt>Місцевість</dt><dd>${g.terrain || '—'}</dd><dt>Площа</dt><dd>${km.toLocaleString('uk')} км²</dd></dl>`;
     info.hidden = false;
   }
 

@@ -4,7 +4,7 @@
   const A = globalThis.Atlas2, { DX, DY } = A.Grid;
   const RANKS = ['capital', 'regional', 'town', 'village', 'hamlet'];
   const POP = { capital: [14000, 38000], regional: [3500, 13000], town: [900, 3200], village: [120, 650], hamlet: [20, 110] };
-  const MIND = { town: 8, village: 4.5, hamlet: 3.5 };
+  const MIND = { town: 24, village: 14, hamlet: 9 }; // мінімальні відстані в клітинах (1 клітина = 2 км); кожному поселенню — випадковий множник
 
   function settlements(W) {
     const { w, h } = W, N = w * h, r = A.Rng.stream(W.params.seed, 'settle'), names = A.Names.make(W.params.seed), S = [], buckets = new Map();
@@ -23,11 +23,11 @@
     // міста, села, хутори: за придатністю з мінімальними відстанями
     const byRegion = W.regions.map(() => []);
     for (let i = 0; i < N; i++) if (W.region[i] >= 0 && W.land[i] && !W.lake[i] && !W.river[i] && W.suit[i] >= 0.28) byRegion[W.region[i]].push(i);
-    const DIV = { town: 140, village: 55, hamlet: 120 };
+    const DIV = { town: 520, village: 200, hamlet: 380 };
     for (const rank of ['town', 'village', 'hamlet']) W.regions.forEach(g => {
       const cells = byRegion[g.id], want = Math.round(cells.length / DIV[rank] * W.params.density * (0.8 + 0.4 * r()));
       const sc = cells.map(i => [W.suit[i] * (0.5 + r()), i]).sort((a, b) => b[0] - a[0]); let got = 0;
-      for (const [, i] of sc) { if (got >= want) break; const x = i % w, y = (i / w) | 0; if (near(x, y, MIND[rank])) continue; add(i, rank); got++; }
+      for (const [, i] of sc) { if (got >= want) break; const x = i % w, y = (i / w) | 0; if (near(x, y, MIND[rank] * (0.7 + 0.7 * r()))) continue; add(i, rank); got++; }
     });
     // зведення
     const regs = W.regions.map(g => ({ area: 0, bio: {} }));

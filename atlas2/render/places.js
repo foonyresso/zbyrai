@@ -41,7 +41,8 @@
       if (k < MINK[rank]) continue; const r = R[rank] * px;
       for (const s of W.settlements) {
         if (s.rank !== rank) continue; const x = s.x + 0.5, y = s.y + 0.5;
-        ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = rank === 'capital' ? '#fff3c4' : '#fff'; ctx.fill(); ctx.strokeStyle = '#2a2018'; ctx.lineWidth = (rank === 'capital' ? 2 : 1.3) * px; ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = s.port ? '#bfe0ff' : rank === 'capital' ? '#fff3c4' : '#fff'; ctx.fill(); ctx.strokeStyle = s.port ? '#1f5f9f' : '#2a2018'; ctx.lineWidth = (rank === 'capital' ? 2 : 1.3) * px; ctx.stroke();
+        if (s.port && k >= 3) { ctx.beginPath(); ctx.arc(x, y, r + 2.2 * px, 0, 6.2832); ctx.strokeStyle = '#1f5f9f'; ctx.lineWidth = 1 * px; ctx.stroke(); }
         if (rank === 'capital') { ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, 6.2832); ctx.fillStyle = '#2a2018'; ctx.fill(); }
         if (L.labels && k >= LBLK[rank]) { ctx.font = `${rank === 'capital' ? 700 : 600} ${(rank === 'capital' ? 13 : rank === 'regional' ? 11.5 : 10.5) * px}px sans-serif`; ctx.fillStyle = '#20180f'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name, x + r + 2 * px, y); ctx.fillText(s.name, x + r + 2 * px, y); ctx.textAlign = 'center'; }
       }
