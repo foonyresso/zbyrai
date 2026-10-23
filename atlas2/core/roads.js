@@ -34,46 +34,36 @@
       }
       return null;
     }
-    const cellOwner = new Map(); // клітина поселення → поселення
-    for (const s of S) cellOwner.set(s.i, s);
-    // правило вузла: з міста виходить щонайбільше 3 дороги і лише в різні боки (кут ≥ 60°); решта відгалужується від існуючої дороги на відстані від міста
-    const deps = new Map(), D = id => deps.get(id) || deps.set(id, []).get(id);
-    const ang = (a, b) => Math.atan2(((b / w) | 0) - ((a / w) | 0), (b % w) - (a % w));
-    const adiff = (a, b) => { const d = Math.abs(a - b) % (2 * Math.PI); return d > Math.PI ? 2 * Math.PI - d : d; };
-    const conflict = (list, a) => list.length >= 3 || list.some(d => adiff(d.ang, a) < 1.05);
-    const tail = list => { const out = []; for (const d of list) for (let k = 4; k < d.cells.length; k++) out.push(d.cells[k]); return out; };
-    function connect(s, isTarget, lvl) {
-      let p = route([s.i], isTarget); if (!p) return false; p.reverse(); // від s до цілі
-      const dS = D(s.id), aS = ang(s.i, p[Math.min(4, p.length - 1)]); let branch = false;
-      if (dS.length && conflict(dS, aS)) { const src = tail(dS); if (src.length) { const q = route(src, isTarget); if (q) { p = q.reverse(); branch = true; } } }
-      const t = cellOwner.get(p[p.length - 1]);
-      if (t && t !== s) {
-        const dT = D(t.id), back = p.slice().reverse(), aT = ang(t.i, back[Math.min(4, back.length - 1)]);
-        if (dT.length && conflict(dT, aT)) { const near = new Set(tail(dT)), idx = p.findIndex(c => near.has(c)); if (idx > 0) p = p.slice(0, idx + 1); }
-        else dT.push({ ang: aT, cells: back });
-      }
-      if (!branch) dS.push({ ang: aS, cells: p });
+    // мережа — граф: кожне поселення з'єднується з найближчим уже під'єднаним, що має вільний «слот» (степінь ≤ 3);
+    // тому кожна дорога починається і закінчується в місті, а з міста виходить не більше трьох доріг
+    const deg = new Map(), dg = id => deg.get(id) || 0, MAXD = 3;
+    const dst = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    function connect(s, t, lvl) {
+      const p = route([s.i], i => i === t.i); if (!p) return false; p.reverse(); // від s до t
+      deg.set(s.id, dg(s.id) + 1); deg.set(t.id, dg(t.id) + 1);
       for (const c of p) { if (!level[c] || lvl < level[c]) level[c] = lvl; if (W.river[c]) bridges.add(c); }
-      list.push({ level: lvl, from: s.id, to: t ? t.id : -1, cells: p }); return true;
+      list.push({ level: lvl, from: s.id, to: t.id, cells: p }); return true;
     }
     const byLm = new Map(); for (const s of S) (byLm.get(s.landmass) || byLm.set(s.landmass, []).get(s.landmass)).push(s);
     for (const group of byLm.values()) {
       group.sort((a, b) => rank(a) - rank(b) || b.pop - a.pop);
       const hub = group[0], connected = [hub];
-      const rest = group.slice(1).sort((a, b) => rank(a) - rank(b) || Math.hypot(a.x - hub.x, a.y - hub.y) - Math.hypot(b.x - hub.x, b.y - hub.y));
+      const rest = group.slice(1).sort((a, b) => rank(a) - rank(b) || dst(a, hub) - dst(b, hub));
       for (const s of rest) {
-        const tcells = new Set(connected.filter(t => rank(t) <= rank(s) || (s.rank === 'hamlet' && rank(t) <= 3)).map(t => t.i));
-        if (!tcells.size) connected.forEach(t => tcells.add(t.i));
-        if (connect(s, i => tcells.has(i), LEVEL[s.rank])) connected.push(s);
+        const free = connected.filter(t => dg(t.id) < MAXD), pool = free.length ? free : connected;
+        const near = pool.filter(t => rank(t) <= rank(s) || s.rank === 'hamlet').sort((a, b) => dst(a, s) - dst(b, s));
+        const cand = near.length ? near : pool.slice().sort((a, b) => dst(a, s) - dst(b, s));
+        let ok = false; for (const t of cand.slice(0, 3)) if (connect(s, t, LEVEL[s.rank])) { ok = true; break; }
+        if (ok) connected.push(s);
       }
     }
-    // додаткові зв'язки: міста з'єднуються не лише деревом, а й сусідніми містами (петлі мережі); тільки якщо вузол ще має вільний напрямок
+    // додаткові зв'язки: сусідні міста вищого рангу з'єднуються ще й напряму (петлі мережі), якщо в обох є вільний слот
     const linked = new Set(list.map(r => Math.min(r.from, r.to) + '-' + Math.max(r.from, r.to)));
     for (const s of S) {
-      if (rank(s) > 2 || rr() < 0.35 || D(s.id).length >= 3) continue;
-      const cand = S.filter(t => t !== s && t.landmass === s.landmass && rank(t) <= 2 && D(t.id).length < 3 && Math.hypot(t.x - s.x, t.y - s.y) < 40 && !linked.has(Math.min(s.id, t.id) + '-' + Math.max(s.id, t.id))).sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y));
+      if (rank(s) > 2 || rr() < 0.35 || dg(s.id) >= MAXD) continue;
+      const cand = S.filter(t => t !== s && t.landmass === s.landmass && rank(t) <= 2 && dg(t.id) < MAXD && dst(t, s) < 40 && !linked.has(Math.min(s.id, t.id) + '-' + Math.max(s.id, t.id))).sort((a, b) => dst(a, s) - dst(b, s));
       const t = cand[Math.floor(rr() * Math.min(2, cand.length))]; if (!t) continue;
-      if (connect(s, i => i === t.i, 3)) linked.add(Math.min(s.id, t.id) + '-' + Math.max(s.id, t.id));
+      if (connect(s, t, 3)) linked.add(Math.min(s.id, t.id) + '-' + Math.max(s.id, t.id));
     }
     W.roadLevel = level; W.roads = list; W.bridges = Array.from(bridges);
   }

@@ -7,12 +7,13 @@
     const { w, h } = W, nz = A.Noise.make(W.params.seed + '|wave'), near = new Float32Array(w * h).fill(99), q = [];
     for (const s of W.settlements) { near[s.i] = 0; q.push(s.i); } // біля поселень дорога не зміщується: вузли лишаються на місці
     for (let k = 0; k < q.length; k++) { const i = q[k]; if (near[i] >= 4) continue; const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (near[j] > near[i] + 1) { near[j] = near[i] + 1; q.push(j); } } }
-    const off = (x, y) => (nz.fbm(x * 0.11 + 3, y * 0.11 + 7, 2) - 0.5) * 3.4 + (nz.fbm(x * 0.29 + 50, y * 0.29, 1) - 0.5) * 0.9;
+    // зсув — гладке двовимірне поле від місця (не від напрямку дороги), тож дороги на спільних клітинах збігаються точно
+    const ox = (x, y) => (nz.fbm(x * 0.11 + 3, y * 0.11 + 7, 2) - 0.5) * 3.2 + (nz.fbm(x * 0.29 + 50, y * 0.29, 1) - 0.5) * 0.8;
+    const oy = (x, y) => (nz.fbm(x * 0.11 + 91, y * 0.11 + 13, 2) - 0.5) * 3.2 + (nz.fbm(x * 0.29, y * 0.29 + 70, 1) - 0.5) * 0.8;
     function wavy(cells, amp, fixedEnds) {
-      const P = []; cells.forEach((i, n) => {
-        const x = (i % w) + 0.5, y = ((i / w) | 0) + 0.5, pi = cells[Math.max(0, n - 1)], ni = cells[Math.min(cells.length - 1, n + 1)];
-        let dx = (ni % w) - (pi % w), dy = ((ni / w) | 0) - ((pi / w) | 0); const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
-        const t = Math.min(1, near[i] / 3), o = off(x, y) * amp * (fixedEnds ? t : 1); P.push(x - dy * o, y + dx * o);
+      const P = []; cells.forEach(i => {
+        const x = (i % w) + 0.5, y = ((i / w) | 0) + 0.5, t = fixedEnds ? Math.min(1, near[i] / 3) : 1;
+        P.push(x + ox(x, y) * amp * t, y + oy(x, y) * amp * t);
       });
       return C.chaikin(C.relaxOpen(P, 3), 2, false);
     }
