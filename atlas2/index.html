@@ -27,8 +27,8 @@
     <button id="btnRandom" title="Підібрати випадкове зерно і створити новий світ">Випадкове</button>
     <label title="Основний світ: один материк з островами; Острівний: архіпелаг із багатьох островів">Тип світу<select id="worldType"><option value="continent">Основний світ</option><option value="islands">Острівний світ</option></select></label>
     <label title="Розмір карти в клітинах; одна клітина дорівнює 2 км">Розмір<select id="size"><option value="small">Мала</option><option value="medium" selected>Середня</option><option value="large">Велика</option></select></label>
-    <label title="Кількість провінцій (як країн): від 1 до 10">Провінцій<input id="provinces" type="number" min="1" max="10" value="6"></label>
-    <label title="Скільки регіонів (як областей) у середньому в провінції: від 2 до 9">Регіонів у провінції<input id="regionsPerProvince" type="number" min="2" max="9" value="5"></label>
+    <label title="Кількість провінцій (як країн): від 1 до 30; розміри різні">Провінцій<input id="provinces" type="number" min="1" max="30" value="12"></label>
+    <label title="Скільки регіонів (як областей) у середньому в провінції: від 2 до 24; у кожної провінції число своє">Регіонів у провінції<input id="regionsPerProvince" type="number" min="2" max="24" value="8"></label>
     <label title="Скільки міст і сіл: менше значення дає менше поселень, більше дає більше">Щільність поселень<input id="density" type="range" min="0.3" max="2.2" step="0.1" value="1"></label>
     <label title="Висота й різкість гір">Гірськість<input id="rugged" type="range" min="0" max="2" step="0.1" value="1"></label>
     <label title="Скільки річок: більше значення дає більше річок">Річки<input id="riverDensity" type="range" min="0.1" max="2.5" step="0.1" value="1"></label>
@@ -41,11 +41,11 @@
       <label class="chk" title="Підписи провінцій, регіонів і міст"><input type="checkbox" data-layer="labels" checked>Підписи</label>
     </fieldset>
     <p id="stats" class="stats"></p>
-    <p class="stats" title="Умовні позначки поселень">Позначки: ◉ столиця, ● центр регіону, ○ місто/село/хутір (за розміром кружка). Блакитне коло з обводкою — порт на морі. Суцільна товста лінія — головна дорога, пунктир — путівець; блакитний пунктир — морський шлях.</p>
+    <p class="stats" title="Умовні позначки поселень">Позначки: ◉ столиця, ● центр регіону, ○ місто/село/хутір (за розміром кружка). Значок якоря — порт (на морі чи великому озері). Суцільна товста лінія — головна дорога, пунктир — путівець; білий пунктир — водний шлях між портами.</p>
   </aside>
   <div class="stage" id="stage"><canvas id="map"></canvas><canvas id="over"></canvas><div id="info" class="info" hidden></div></div>
 </section>
 <script src="core/rng.js"></script><script src="core/noise.js"></script><script src="core/heap.js"></script><script src="core/grid.js"></script><script src="core/params.js"></script><script src="core/terrain.js"></script><script src="core/hydrology.js"></script><script src="core/climate.js"></script><script src="core/names.js"></script><script src="core/settle.js"></script><script src="core/grow.js"></script><script src="core/politics.js"></script><script src="core/settlements.js"></script><script src="core/roads.js"></script><script src="core/searoutes.js"></script><script src="core/generate.js"></script><script src="core/serialize.js"></script>
-<script src="render/contours.js"></script><script src="render/raster.js"></script><script src="render/draw.js"></script><script src="render/places.js"></script><script src="ui/app.js"></script>
+<script src="render/contours.js"></script><script src="render/raster.js"></script><script src="render/draw.js"></script><script src="render/roadgeom.js"></script><script src="render/places.js"></script><script src="ui/app.js"></script>
 </body>
 </html>

@@ -93,5 +93,5 @@
     }
     return res;
   }
-  A.Contours = { net, polys, loops, chaikin, smoothLoops: (w, h, inside, it = 3) => loops(w, h, inside).map(p => chaikin(relax(p, 3), it, true)) };
+  A.Contours = { net, polys, relaxOpen, loops, chaikin, smoothLoops: (w, h, inside, it = 3) => loops(w, h, inside).map(p => chaikin(relax(p, 3), it, true)) };
 })();

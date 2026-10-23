@@ -8,11 +8,11 @@
   function makeSpines(p) {
     const r = A.Rng.stream(p.seed, 'shape'), { w, h } = p, out = [], rr = (a, b) => a + (b - a) * r();
     const ang0 = rr(-0.7, 0.7) + (r() < 0.25 ? Math.PI / 2 : 0), len0 = rr(0.4, 0.62) * (Math.abs(Math.cos(ang0)) > 0.6 ? w : h * 1.3), cx = w * rr(0.4, 0.6), cy = h * rr(0.4, 0.6);
-    out.push({ x0: cx - Math.cos(ang0) * len0 / 2, y0: cy - Math.sin(ang0) * len0 / 2, x1: cx + Math.cos(ang0) * len0 / 2, y1: cy + Math.sin(ang0) * len0 / 2, w0: rr(0.07, 0.13), w1: rr(0.07, 0.13) });
+    out.push({ x0: cx - Math.cos(ang0) * len0 / 2, y0: cy - Math.sin(ang0) * len0 / 2, x1: cx + Math.cos(ang0) * len0 / 2, y1: cy + Math.sin(ang0) * len0 / 2, w0: rr(0.11, 0.18), w1: rr(0.11, 0.18) });
     for (let k = 0, n = 2 + Math.floor(r() * 3); k < n; k++) {
       const par = out[Math.floor(r() * out.length)], t = rr(0.15, 0.85), sx = par.x0 + (par.x1 - par.x0) * t, sy = par.y0 + (par.y1 - par.y0) * t;
       const a = Math.atan2(par.y1 - par.y0, par.x1 - par.x0) + (r() < 0.5 ? 1 : -1) * rr(0.5, 1.4), len = rr(0.18, 0.4) * w;
-      out.push({ x0: sx, y0: sy, x1: sx + Math.cos(a) * len, y1: sy + Math.sin(a) * len, w0: rr(0.06, 0.1), w1: rr(0.035, 0.07) });
+      out.push({ x0: sx, y0: sy, x1: sx + Math.cos(a) * len, y1: sy + Math.sin(a) * len, w0: rr(0.08, 0.13), w1: rr(0.05, 0.09) });
     }
     return out;
   }

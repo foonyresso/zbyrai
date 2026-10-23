@@ -47,7 +47,7 @@
     const { w, h } = W, N = w * h, r = A.Rng.stream(W.params.seed, 'politics'), land = i => W.land[i] === 1 && !W.lake[i];
     W.suit = A.suitability(W); W.lm = A.landmasses(W); W.landmass = W.lm.id;
     const caps = pickCapitals(W, r), P = caps.length;
-    let prov = G.grow(W, caps.map((c, k) => ({ i: c, label: k })), land);
+    let prov = G.grow(W, caps.map((c, k) => ({ i: c, label: k, mul: 0.65 + 0.9 * r() })), land); // різний «апетит» провінцій: є великі й малі
     // суходоли без столиці: найближча провінція через воду
     const un = []; for (let i = 0; i < N; i++) if (land(i) && prov[i] < 0) un.push(i);
     if (un.length) for (let g = 0; g < 80 && un.some(i => prov[i] < 0); g++) {
@@ -67,7 +67,7 @@
     const region = new Int16Array(N).fill(-1), regions = [];
     for (let k = 0; k < P; k++) {
       const cells = []; for (let i = 0; i < N; i++) if (prov[i] === k) cells.push(i);
-      const part = components(w, h, i => prov[i] === k), kk = Math.max(1, Math.min(9, Math.round(W.params.regionsPerProvince * (0.75 + 0.5 * r())), Math.floor(cells.length / 90)));
+      const part = components(w, h, i => prov[i] === k); let kk = Math.max(1, Math.min(24, Math.max(Math.round(W.params.regionsPerProvince * (0.45 + 1.1 * r())), Math.floor(cells.length / 1600)), Math.floor(cells.length / 200))); if (cells.length >= 600) kk = Math.max(3, kk); // регіон не менший ~200 клітин; у провінції зі столицею щонайменше 3 регіони
       const parts = part.sizes.map((s, id) => ({ id, s })).filter(p => p.s >= 40).sort((a, b) => b.s - a.s);
       const cpart = part.id[caps[k]], order = parts.filter(p => p.id === cpart).concat(parts.filter(p => p.id !== cpart));
       const tot = order.reduce((s, p) => s + p.s, 0) || 1; let left = Math.max(kk, order.length);
@@ -79,9 +79,10 @@
         if (!first.length) first.push(...farthest(W, pc, [], r, W.suit, 1));
         centers.push(...first, ...farthest(W, pc, first, r, W.suit, take[q] - 1));
       });
+      const wts = centers.map(() => 0.85 + 0.4 * r());
       let mulCap = 0.55, lab;
       for (let t = 0; t < 5; t++) {
-        lab = G.grow(W, centers.map((c, q) => ({ i: c, label: q, mul: c === caps[k] ? mulCap : 1 })), i => prov[i] === k);
+        lab = G.grow(W, centers.map((c, q) => ({ i: c, label: q, mul: c === caps[k] ? mulCap : wts[q] })), i => prov[i] === k);
         const area = new Array(centers.length).fill(0); for (const i of cells) if (lab[i] >= 0) area[lab[i]]++;
         const ci = centers.indexOf(caps[k]), same = centers.map((c, q) => W.landmass[c] === W.landmass[caps[k]] ? area[q] : 0); if (area[ci] >= Math.max(...same)) break; mulCap *= 0.6;
       }
@@ -107,6 +108,20 @@
         const lmArea = W.lm.list.find(m => m.id === W.landmass[cells[0]]); if (lmArea && lmArea.area <= cells.length + 2) continue;
         for (const i of cells) { const t = G.topNeighbor(region, w, h, i, q => regions[q].prov !== L, true); if (t.label >= 0) { region[i] = t.label; prov[i] = regions[t.label].prov; } }
       }
+    }
+    // надто малі регіони (<150 клітин, окрім регіону столиці) зливаються з найбільшим сусідом у тій самій провінції
+    {
+      const area = new Array(regions.length).fill(0); for (let i = 0; i < N; i++) if (region[i] >= 0) area[region[i]]++;
+      const dead = new Set();
+      for (let it = 0; it < regions.length; it++) {
+        let sm = -1; regions.forEach((g, id) => { if (!dead.has(id) && !g.isCapitalRegion && area[id] < 150 && (sm < 0 || area[id] < area[sm])) sm = id; });
+        if (sm < 0) break; const adj = new Map();
+        for (let i = 0; i < N; i++) if (region[i] === sm) { const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const L = region[ny * w + nx]; if (L >= 0 && L !== sm && !dead.has(L) && regions[L].prov === regions[sm].prov) adj.set(L, (adj.get(L) || 0) + 1); } }
+        let to = -1, bc = 0; for (const [L, c] of adj) if (c > bc) { bc = c; to = L; }
+        if (to < 0) { area[sm] = 1e9; continue; } // острівний регіон без сусіда лишається
+        for (let i = 0; i < N; i++) if (region[i] === sm) region[i] = to; area[to] += area[sm]; dead.add(sm);
+      }
+      if (dead.size) { const map = new Map(), keep = []; regions.forEach((g, id) => { if (!dead.has(id)) { map.set(id, keep.length); g.id = keep.length; keep.push(g); } }); for (let i = 0; i < N; i++) if (region[i] >= 0) region[i] = map.get(region[i]); regions.length = 0; regions.push(...keep); }
     }
     for (const g of regions) { region[g.centerCell] = g.id; prov[g.centerCell] = g.prov; } // центр регіону завжди у своєму регіоні
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));

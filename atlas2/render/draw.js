@@ -9,10 +9,11 @@
     let c = cache.get(W); if (c) return c; const { w, h } = W;
     const pn = C.net(w, h, i => W.province[i]), rn = C.net(w, h, i => W.region[i]);
     c = { pn, rn, land: C.polys(pn, l => l >= 0), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: W.provinces.map(p => C.polys(pn, l => l === p.id)), regs: W.regions.map(g => C.polys(rn, l => l === g.id)) };
+    c.geom = A.RoadGeom.build(W);
     const S = 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
     const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };
     c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
-    c.maxAcc = Math.max(1, ...Array.from(W.acc)); cache.set(W, c); return c;
+    c.maxAcc = 1; for (let i = 0; i < W.acc.length; i++) if (W.acc[i] > c.maxAcc) c.maxAcc = W.acc[i]; cache.set(W, c); return c;
   }
   const path = (ctx, loops) => { ctx.beginPath(); for (const p of loops) { ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); ctx.closePath(); } };
 
@@ -36,7 +37,7 @@
     ctx.restore();
     if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші; озера малюються поверх, тож річка входить у озеро й виходить з нього
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
-    if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k);
+    if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k, c.geom);
     if (A.drawPlaces && (L.places || L.labels)) A.drawPlaces(ctx, W, px, k, L, PALETTE);
   }
   // лінійка відстані (екранні координати): «гарне» число кілометрів, довжина смуги ~ 110–200 пікселів

@@ -1,34 +1,45 @@
-// Атлас 2.0, етап 7: морські шляхи між портами різних суходолів (дороги по воді не прокладаються).
+// Атлас 2.0, етап 7: водні шляхи. Одна мережа на водойму (море або велике озеро): порти з'єднуються в дерево, а не парами.
+// Маршрут тримається ~1 км від берега, існуючий шлях дешевший, тож нові порти приєднуються до спільної траси й виходять тим самим шляхом.
 (function () {
   'use strict';
   const A = globalThis.Atlas2, { DX, DY } = A.Grid;
+  const BIG_LAKE = 80; // клітин (≈5 км²): менші озера без портів
+
   function searoutes(W) {
-    const { w, h } = W, N = w * h, S = W.settlements, ports = S.filter(s => s.port), routes = [];
-    const byLm = new Map(); for (const s of ports) (byLm.get(s.landmass) || byLm.set(s.landmass, []).get(s.landmass)).push(s);
-    const lms = Array.from(byLm.keys()); if (lms.length < 2) { W.seaRoutes = routes; return; }
-    const dist = new Float32Array(N), prev = new Int32Array(N), heap = new A.Heap();
-    // океанська клітина біля порту
-    const wet = s => { let b = -1, bd = 1e9; for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const x = s.x + dx, y = s.y + dy; if (x >= 0 && y >= 0 && x < w && y < h && W.ocean[y * w + x] && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; b = y * w + x; } } return b; };
-    function sea(a, bcell) {
-      dist.fill(1e30); prev.fill(-1); heap.k.length = 0; heap.v.length = 0; dist[a] = 0; heap.push(0, a);
-      while (heap.size) {
-        const i = heap.pop(); if (i === bcell) { const p = []; for (let c = i; c >= 0; c = prev[c]) p.push(c); return p.reverse(); }
-        const x = i % w, y = (i / w) | 0;
-        for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (!W.ocean[j]) continue; const nd = dist[i] + (d >= 4 ? 1.41 : 1) * (W.landDistNear && W.landDistNear[j] ? 1 : 1); if (nd < dist[j]) { dist[j] = nd; prev[j] = i; heap.push(nd, j); } }
+    const { w, h } = W, N = w * h, S = W.settlements, routes = [];
+    const lakeOf = W.lakeOf, bodyOf = i => W.ocean[i] ? -1 : lakeOf[i];
+    // відстань від суші в клітинах через воду (для утримання траси ~1 км = 4 клітини від берега)
+    const land = new Float32Array(N).fill(1e9), q = [];
+    for (let i = 0; i < N; i++) if (!W.ocean[i] && !W.lake[i]) { land[i] = 0; q.push(i); }
+    for (let k = 0; k < q.length; k++) { const i = q[k], x = i % w, y = (i / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (land[j] > land[i] + 1) { land[j] = land[i] + 1; q.push(j); } } }
+    const dist = new Float32Array(N), prev = new Int32Array(N), heap = new A.Heap(), net = new Uint8Array(N);
+    const wet = (s, body) => { let b = -1, bd = 1e9; for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const x = s.x + dx, y = s.y + dy; if (x < 0 || y < 0 || x >= w || y >= h) continue; const i = y * w + x; if ((W.ocean[i] || W.lake[i]) && bodyOf(i) === body && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; b = i; } } return b; };
+    const byBody = new Map();
+    for (const s of S) if (s.port) (byBody.get(s.body) || byBody.set(s.body, []).get(s.body)).push(s);
+    for (const [body, ports] of byBody) {
+      if (ports.length < 2) continue;
+      const cells = ports.map(p => ({ p, c: wet(p, body) })).filter(o => o.c >= 0); if (cells.length < 2) continue;
+      cells.sort((a, b) => a.p.x - b.p.x || a.p.y - b.p.y); const connected = [cells[0]]; net[cells[0].c] = 1;
+      // порти приєднуються від найближчого до вже з'єднаних
+      const rest = cells.slice(1); while (rest.length) {
+        let bi = 0, bd = 1e9; rest.forEach((o, k) => { for (const c of connected) { const d = Math.hypot(o.p.x - c.p.x, o.p.y - c.p.y); if (d < bd) { bd = d; bi = k; } } });
+        const o = rest.splice(bi, 1)[0];
+        dist.fill(1e30); prev.fill(-1); heap.k.length = 0; heap.v.length = 0; dist[o.c] = 0; heap.push(0, o.c); let found = -1;
+        while (heap.size) {
+          const i = heap.pop(); if (i !== o.c && net[i]) { found = i; break; } const x = i % w, y = (i / w) | 0;
+          for (let d = 0; d < 8; d++) {
+            const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx;
+            if (!(W.ocean[j] || W.lake[j]) || bodyOf(j) !== body) continue;
+            let c = (1 + 0.25 * Math.abs(Math.min(land[j], 14) - 4)) * (d >= 4 ? 1.41 : 1); if (net[j]) c *= 0.12;
+            const nd = dist[i] + c; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; heap.push(nd, j); }
+          }
+        }
+        if (found < 0) continue; const path = []; for (let c = found; c >= 0; c = prev[c]) path.push(c); path.reverse(); path.reverse();
+        for (const c of path) net[c] = 1; routes.push({ from: o.p.id, to: -1, body, cells: path }); connected.push(o);
       }
-      return null;
-    }
-    // Прім по суходолах: кожен суходіл з'єднується з найближчим уже з'єднаним
-    const done = [lms[0]], todo = lms.slice(1);
-    while (todo.length) {
-      let best = null;
-      for (const t of todo) for (const a of byLm.get(t)) for (const lm of done) for (const b of byLm.get(lm)) { const d = Math.hypot(a.x - b.x, a.y - b.y); if (!best || d < best.d) best = { d, a, b, t }; }
-      todo.splice(todo.indexOf(best.t), 1); done.push(best.t);
-      const ca = wet(best.a), cb = wet(best.b); if (ca < 0 || cb < 0) continue;
-      const p = sea(ca, cb); if (p) routes.push({ from: best.a.id, to: best.b.id, cells: p });
     }
     W.seaRoutes = routes;
   }
-  A.searoutes = searoutes;
+  A.searoutes = searoutes; A.BIG_LAKE = BIG_LAKE;
   (A.stages = A.stages || []).push(searoutes);
 })();

@@ -15,6 +15,6 @@ for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 
   const comp = new Map(); for (const s of S) { const k = s.landmass; (comp.get(k) || comp.set(k, new Set()).get(k)).add(f(s.id)); }
   for (const [k, set] of comp) assert.equal(set.size, 1, `${t}: суходіл ${k} має ${set.size} роз'єднаних мереж доріг`);
   // морські шляхи лише по океану
-  for (const r of W.seaRoutes) for (const c of r.cells) assert.ok(W.ocean[c], `${t}: морський шлях по суші`);
+  for (const r of W.seaRoutes) for (const c of r.cells) assert.ok(W.ocean[c] || W.lake[c], `${t}: водний шлях по суші`);
 }
 console.log('roads.test.js ok');

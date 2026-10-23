@@ -8,12 +8,13 @@
 
   function settlements(W) {
     const { w, h } = W, N = w * h, r = A.Rng.stream(W.params.seed, 'settle'), names = A.Names.make(W.params.seed), S = [], buckets = new Map();
+    W.lakeOf = new Int32Array(N).fill(-1); const bigLake = new Set(); for (const l of W.lakes) { for (const c of l.cells) W.lakeOf[c] = l.id; if (l.size >= A.BIG_LAKE) bigLake.add(l.id); }
     const bk = (x, y) => ((y / 8) | 0) * 1000 + ((x / 8) | 0);
     const near = (x, y, d) => { for (let by = Math.floor((y - d) / 8); by <= Math.floor((y + d) / 8); by++) for (let bx = Math.floor((x - d) / 8); bx <= Math.floor((x + d) / 8); bx++) for (const s of buckets.get(by * 1000 + bx) || []) if (Math.hypot(s.x - x, s.y - y) < d) return true; return false; };
     function add(i, rank) {
-      const x = i % w, y = (i / w) | 0, pr = POP[rank]; let coast = 0;
-      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < w && ny < h && W.ocean[ny * w + nx]) coast = 1; }
-      const s = { id: S.length, name: names.town(), rank, i, x, y, prov: W.province[i], region: W.region[i], landmass: W.landmass[i], port: coast && RANKS.indexOf(rank) <= 2, river: false, pop: Math.round(pr[0] + (pr[1] - pr[0]) * Math.pow(r(), 1.5)) };
+      const x = i % w, y = (i / w) | 0, pr = POP[rank]; let coast = 0, body = null;
+      for (let dy = -2; dy <= 2 && body === null; dy++) for (let dx = -2; dx <= 2; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (W.ocean[j]) { coast = 1; body = -1; break; } if (W.lake[j] && bigLake.has(W.lakeOf[j])) { coast = 1; body = W.lakeOf[j]; } }
+      const s = { id: S.length, name: names.town(), rank, i, x, y, prov: W.province[i], region: W.region[i], landmass: W.landmass[i], port: !!coast && RANKS.indexOf(rank) <= 2, body, river: false, pop: Math.round(pr[0] + (pr[1] - pr[0]) * Math.pow(r(), 1.5)) };
       for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && W.river[ny * w + nx]) s.river = true; }
       S.push(s); const k = bk(x, y); (buckets.get(k) || buckets.set(k, []).get(k)).push(s); return s;
     }
@@ -33,6 +34,10 @@
     const regs = W.regions.map(g => ({ area: 0, bio: {} }));
     for (let i = 0; i < N; i++) if (W.region[i] >= 0) { const a = regs[W.region[i]]; a.area++; a.bio[W.bio[i]] = (a.bio[W.bio[i]] || 0) + 1; }
     W.regions.forEach((g, k) => { g.area = regs[k].area; g.pop = 0; const top = Object.entries(regs[k].bio).sort((a, b) => b[1] - a[1]).slice(0, 2).map(e => A.BIOMES[+e[0]].name); g.terrain = top.join(' та ').toLowerCase().replace(/^./, c => c.toUpperCase()); });
+    // розмір міста-центру від площі регіону (великий регіон — велике головне місто); столиця більша за центри своєї провінції
+    W.regions.forEach(g => { const c = S[g.center], k = 0.75 + 0.5 * r(); c.pop = Math.round(g.isCapitalRegion ? (4000 + g.area * 9) * k : (600 + g.area * 5.5) * k); });
+    W.provinces.forEach(p => { const reg = p.regions.map(id => S[W.regions[id].center]).filter(c => c.rank === 'regional'), mx = Math.max(0, ...reg.map(c => c.pop)), cap = S[p.capital]; if (cap.pop < mx * 1.5) cap.pop = Math.round(mx * 1.5 * (1 + 0.2 * r())); });
+    for (const s of S) if (s.rank === 'town') { const cap = S[W.regions[s.region].center].pop; s.pop = Math.min(s.pop, Math.round(cap * 0.55)); }
     for (const s of S) { W.regions[s.region].pop += s.pop; }
     const maxPop = Math.max(1, ...W.regions.map(g => g.pop));
     W.regions.forEach(g => { g.level = Math.max(1, Math.round(1 + 9 * g.pop / maxPop)); });
