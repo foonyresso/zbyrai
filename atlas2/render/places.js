@@ -48,9 +48,13 @@
   // локації: форма й колір за категорією; більші небезпеки видно здалеку, дрібні — лише зблизька
   const SC = { m: '#c0392b', b: '#d9822b', r: '#8a8578', n: '#4f9a52', e: '#8b6b3e', k: '#d4b13a' };
   A.drawSites = function (ctx, W, px, k, L) {
-    if (!W.sites) return; const minTier = k >= 5 ? 0 : k >= 3 ? 3 : k >= 1.2 ? 4 : 99; ctx.lineJoin = 'round';
+    if (!W.sites) return; const minTier = k >= 3 ? 0 : k >= 1.2 ? 3 : 99, full = k >= 6; ctx.lineJoin = 'round';
     for (const s of W.sites) {
-      if (s.tier < minTier && !(s.tier >= 3 && k >= 3)) continue; const x = s.x + 0.5, y = s.y + 0.5, r = (s.tier >= 4 ? 5.2 : s.tier >= 3 ? 4.4 : 3.4) * px;
+      if (s.tier < minTier) continue; const x = s.x + 0.5, y = s.y + 0.5;
+      if (!full) { // здалеку: непомітні маленькі тьмяні крапки
+        ctx.beginPath(); ctx.arc(x, y, (s.tier >= 3 ? 1.9 : 1.4) * px, 0, 6.2832); ctx.globalAlpha = s.tier >= 3 ? 0.6 : 0.4; ctx.fillStyle = SC[s.cat]; ctx.fill(); ctx.globalAlpha = 1; continue;
+      }
+      const r = (s.tier >= 4 ? 5.2 : s.tier >= 3 ? 4.4 : 3.4) * px;
       ctx.beginPath();
       if (s.cat === 'm') { ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r, y); ctx.closePath(); }
       else if (s.cat === 'b') { ctx.moveTo(x, y - r * 1.15); ctx.lineTo(x + r * 1.05, y + r * 0.8); ctx.lineTo(x - r * 1.05, y + r * 0.8); ctx.closePath(); }
