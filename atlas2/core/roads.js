@@ -2,7 +2,7 @@
 // Маршрут шукається по вартості рельєфу; існуючі дороги дешевші, тож нові зливаються з мережею, а не плутаються. Вода: броди й мости.
 (function () {
   'use strict';
-  const A = globalThis.Atlas2, { DX, DY } = A.Grid, LEVEL = { capital: 1, regional: 2, town: 3, village: 4, hamlet: 4 };
+  const A = globalThis.Atlas2, { DX, DY } = A.Grid, LEVEL = { capital: 1, regional: 1, town: 2, village: 3, hamlet: 4 };
 
   function roads(W) {
     const { w, h } = W, N = w * h, S = W.settlements, level = new Uint8Array(N), bridges = new Set(), list = [], big = (W.riverThr || 20) * 5;
@@ -34,36 +34,56 @@
       }
       return null;
     }
-    // мережа — граф: кожне поселення з'єднується з найближчим уже під'єднаним, що має вільний «слот» (степінь ≤ 3);
-    // тому кожна дорога починається і закінчується в місті, а з міста виходить не більше трьох доріг
-    const deg = new Map(), dg = id => deg.get(id) || 0, MAXD = 3;
+    // Принцип: головні дороги — між великими містами (столиці, центри регіонів); середні — від міст до головної мережі або до інших міст;
+    // малі — від сіл і хуторів до найближчої дороги будь-якого рангу. Нова дорога кінчається на першій же існуючій (Т-стик) і не дублює її:
+    // у мережу додаються лише нові відрізки.
     const dst = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-    function connect(s, t, lvl) {
-      const p = route([s.i], i => i === t.i); if (!p) return false; p.reverse(); // від s до t
-      deg.set(s.id, dg(s.id) + 1); deg.set(t.id, dg(t.id) + 1);
-      for (const c of p) { if (!level[c] || lvl < level[c]) level[c] = lvl; if (W.river[c]) bridges.add(c); }
-      list.push({ level: lvl, from: s.id, to: t.id, cells: p }); return true;
+    function commit(p, lvl) { // p — шлях від поселення до цілі; нові відрізки (клітини без дороги) + по одній клітині з боків, щоб стик був у дорозі
+      let n = 0, k = 0;
+      while (k < p.length) {
+        if (level[p[k]]) { k++; continue; }
+        let e = k; while (e + 1 < p.length && !level[p[e + 1]]) e++;
+        const cells = p.slice(Math.max(0, k - 1), Math.min(p.length, e + 2));
+        for (let q = k; q <= e; q++) { level[p[q]] = lvl; if (W.river[p[q]]) bridges.add(p[q]); }
+        list.push({ level: lvl, cells }); n += e - k + 1; k = e + 1;
+      }
+      return n;
+    }
+    const roadNear = s => { let n = 0; const x = s.i % w, y = (s.i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && level[ny * w + nx]) n++; } return n; };
+    function connect(s, isTarget, lvl, minNew) {
+      const p = route([s.i], isTarget); if (!p) return false; p.reverse();
+      if (minNew) { let n = 0; for (const c of p) if (!level[c]) n++; if (n < minNew) return false; }
+      commit(p, lvl); return true;
     }
     const byLm = new Map(); for (const s of S) (byLm.get(s.landmass) || byLm.set(s.landmass, []).get(s.landmass)).push(s);
     for (const group of byLm.values()) {
       group.sort((a, b) => rank(a) - rank(b) || b.pop - a.pop);
-      const hub = group[0], connected = [hub];
-      const rest = group.slice(1).sort((a, b) => rank(a) - rank(b) || dst(a, hub) - dst(b, hub));
-      for (const s of rest) {
-        const free = connected.filter(t => dg(t.id) < MAXD), pool = free.length ? free : connected;
-        const near = pool.filter(t => rank(t) <= rank(s) || s.rank === 'hamlet').sort((a, b) => dst(a, s) - dst(b, s));
-        const cand = near.length ? near : pool.slice().sort((a, b) => dst(a, s) - dst(b, s));
-        let ok = false; for (const t of cand.slice(0, 3)) if (connect(s, t, LEVEL[s.rank])) { ok = true; break; }
-        if (ok) connected.push(s);
+      const cellsOf = new Set(); // клітини під'єднаних поселень
+      // один етап: поселення групи по порядку «найближче до вже під'єднаних»; ціль — дороги потрібного рангу або під'єднані поселення
+      function stage(nodes, maxRoad, maxRank, lvl) {
+        const todo = nodes.filter(s => !level[s.i]); for (const s of nodes) if (level[s.i]) cellsOf.add(s.i);
+        const con = group.filter(t => cellsOf.has(t.i)), md = new Map();
+        for (const s of todo) md.set(s, con.length ? Math.min(...con.map(t => dst(s, t))) : 0);
+        while (todo.length) {
+          let bi = 0; for (let i = 1; i < todo.length; i++) if (md.get(todo[i]) < md.get(todo[bi])) bi = i;
+          const s = todo.splice(bi, 1)[0];
+          const conn = s2 => cellsOf.has(s2.i) && rank(s2) <= maxRank;
+          const okSet = new Set(group.filter(conn).map(t => t.i));
+          if (level[s.i]) { cellsOf.add(s.i); } else if (connect(s, i => (level[i] && level[i] <= maxRoad) || okSet.has(i), lvl)) cellsOf.add(s.i); else continue;
+          for (const t of todo) md.set(t, Math.min(md.get(t), dst(t, s)));
+        }
       }
-    }
-    // додаткові зв'язки: сусідні міста вищого рангу з'єднуються ще й напряму (петлі мережі), якщо в обох є вільний слот
-    const linked = new Set(list.map(r => Math.min(r.from, r.to) + '-' + Math.max(r.from, r.to)));
-    for (const s of S) {
-      if (rank(s) > 2 || rr() < 0.35 || dg(s.id) >= MAXD) continue;
-      const cand = S.filter(t => t !== s && t.landmass === s.landmass && rank(t) <= 2 && dg(t.id) < MAXD && dst(t, s) < 40 && !linked.has(Math.min(s.id, t.id) + '-' + Math.max(s.id, t.id))).sort((a, b) => dst(a, s) - dst(b, s));
-      const t = cand[Math.floor(rr() * Math.min(2, cand.length))]; if (!t) continue;
-      if (connect(s, t, 3)) linked.add(Math.min(s.id, t.id) + '-' + Math.max(s.id, t.id));
+      const main = group.filter(s => rank(s) <= 1), mid = group.filter(s => rank(s) === 2), small = group.filter(s => rank(s) > 2);
+      cellsOf.add(group[0].i);
+      stage(main, 1, 1, 1); stage(mid, 2, 2, 2);
+      stage(small.filter(s => s.rank === 'village'), 9, 9, 3); stage(small.filter(s => s.rank === 'hamlet'), 9, 9, 4);
+      // петлі: сусідні міста вищого рангу з'єднуються ще й напряму, якщо це дає помітний новий відрізок
+      for (const s of main.concat(mid)) {
+        if (rr() < 0.4 || roadNear(s) >= 3) continue;
+        const cand = main.concat(mid).filter(t => t !== s && dst(t, s) < 45 && (rank(s) > 1 || rank(t) <= 1 || rr() < 0.3)).sort((a, b) => dst(a, s) - dst(b, s));
+        const t = cand[1 + Math.floor(rr() * 2)] || cand[0]; if (!t || roadNear(t) >= 3) continue;
+        connect(s, i => i === t.i, Math.max(LEVEL[s.rank], LEVEL[t.rank]) === 1 ? 1 : 2, 8);
+      }
     }
     W.roadLevel = level; W.roads = list; W.bridges = Array.from(bridges);
   }
