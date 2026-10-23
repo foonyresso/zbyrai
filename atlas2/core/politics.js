@@ -47,14 +47,14 @@
   // «територіальні води»: озеро чи море належить провінції/регіону лише на відстані до R клітин (2 км) від їхнього берега, далі вода нічия.
   // Лише для підсвітки й наведення: W.provW/W.regW (суша + прибережна вода); W.province/W.region лишаються по суші.
   function waters(W, R) {
-    const { w, h } = W, N = w * h, pw = new Int16Array(N).fill(-1), rw = new Int16Array(N).fill(-1), dist = new Float32Array(N).fill(1e9), heap = new A.Heap();
+    const { w, h } = W, N = w * h, pw = new Int16Array(N).fill(-1), rw = new Int16Array(N).fill(-1), dist = new Float32Array(N).fill(1e9), heap = new A.Heap(), wob = G.wobble(W);
     const lc = A.Grid.components(w, h, i => W.land[i] && !W.lake[i] && W.province[i] >= 0); // острівці менші за 20 клітин води не «приносять»
     for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i] && W.province[i] >= 0) { pw[i] = W.province[i]; if (lc.sizes[lc.id[i]] < 20) continue; rw[i] = W.region[i]; dist[i] = 0; heap.push(0, i); }
     while (heap.size) {
       const i = heap.pop(), d0 = dist[i]; if (d0 > dist[i]) continue; const x = i % w, y = (i / w) | 0;
       for (let d = 0; d < 8; d++) {
         const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-        const j = ny * w + nx; if (W.land[j] && !W.lake[j]) continue; const nd = d0 + (d >= 4 ? 1.41 : 1); if (nd > R || nd >= dist[j]) continue;
+        const j = ny * w + nx; if (W.land[j] && !W.lake[j]) continue; const nd = d0 + (d >= 4 ? 1.41 : 1) * wob[j]; if (nd > R || nd >= dist[j]) continue;
         dist[j] = nd; pw[j] = pw[i]; rw[j] = rw[i]; heap.push(nd, j);
       }
     }
@@ -82,7 +82,7 @@
     }
     G.smooth(prov, w, h, () => true, 2);
     G.fixFragments(prov, w, h, caps, 25, () => true);
-    G.trimArms(prov, w, h, caps);
+    G.trimArms(prov, w, h, caps, W);
     G.fixFragments(prov, w, h, caps, 25, () => true);
     // регіони всередині кожної провінції
     const region = new Int16Array(N).fill(-1), regions = [];

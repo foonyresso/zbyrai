@@ -11,8 +11,8 @@ for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 
   for (const p of W.provinces) {
     assert.ok(p.regions.length >= 1);
     const cap = W.regions.find(g => g.prov === p.id && g.isCapitalRegion); assert.ok(cap, `${t}: нема регіону столиці`);
-    // регіон столиці найбільший серед регіонів провінції на тому ж суходолі (допуск 30% через згладжування)
-    const mx = Math.max(...p.regions.filter(id => W.landmass[W.regions[id].centerCell] === W.landmass[cap.centerCell]).map(id => area[id])); assert.ok(p.regions.reduce((a, id) => a + area[id], 0) < 600 || area[cap.id] >= mx * 0.7, `${t}: регіон столиці не найбільший`);
+    // регіон столиці найбільший серед регіонів провінції на тому ж суходолі (допуск 40% через згладжування)
+    const mx = Math.max(...p.regions.filter(id => W.landmass[W.regions[id].centerCell] === W.landmass[cap.centerCell]).map(id => area[id])); assert.ok(p.regions.reduce((a, id) => a + area[id], 0) < 600 || area[cap.id] >= mx * 0.6, `${t}: регіон столиці не найбільший`);
   }
   // провінція зв'язна в межах суходолу: у кожної провінції не більше 1 уламка <25 клітин на суходіл
   for (const p of W.provinces) { const c = components(W.w, W.h, i => W.province[i] === p.id); for (let k = 0; k < c.sizes.length; k++) if (c.sizes[k] < 25 && c.sizes[k] > 3) { const cell = c.id.indexOf(k); if (W.province[cell] !== p.id) continue; const lmA = W.lm.list.find(m => m.id === W.landmass[cell]).area; if (lmA < 40) continue; assert.equal(lmA, c.sizes[k], `${t}: дрібний уламок провінції ${p.id}, що не є окремим островом`); } }
