@@ -59,14 +59,14 @@
   function showInfo(cell, rid, s, site) {
     if (cell < 0 && !s) { info.hidden = true; return; }
     const D = A.Danger, fmt = n => n.toLocaleString('uk'), kmc = W.params.kmPerCell ** 2, K = W.params.kmPerCell, sg = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(1).replace('.', ',');
-    const row = (a, b) => `<dt>${a}</dt><dd>${b}</dd>`, blk = (lb, body) => `<div class="blk"><div class="lb">${lb}</div>${body}</div>`;
+    const row = (a, b) => `<dt>${a}</dt><dd>${b}</dd>`, blk = (lb, body, title, cls) => `<div class="blk">${title ? `<div class="hd"><span class="lb">${lb}</span><h4${cls ? ' class="' + cls + '"' : ''}>${title}</h4></div>` : `<div class="lb">${lb}</div>`}${body}</div>`;
     const lv = (v, mn, mx) => `${v} <span class="muted">(${mn}–${mx})</span>`;
     const px = s ? s.x + 0.5 : cell % W.w + 0.5, py = s ? s.y + 0.5 : ((cell / W.w) | 0) + 0.5, i = cell >= 0 ? cell : s.i;
     const g = rid != null ? W.regions[rid] : null, p = g ? W.provinces[g.prov] : null, out = [];
     // 1. провінція
-    out.push(blk('Провінція', p ? `<h4>${esc(p.name)}</h4><dl>${row('Столиця', esc(W.settlements[p.capital].name))}${row('Рівень (сер.)', lv(p.level, p.levelMin, p.levelMax))}${row('Регіонів · площа', p.regions.length + ' · ' + fmt(Math.round(p.area * kmc)) + ' км²')}${row('Населення', fmt(p.pop))}</dl>` : `<h4 class="muted">${W.land[i] ? 'Нічия земля' : 'Нічия вода'}</h4>`));
+    out.push(blk('Провінція', p ? `<dl>${row('Столиця', esc(W.settlements[p.capital].name))}${row('Рівень (сер.)', lv(p.level, p.levelMin, p.levelMax))}${row('Регіонів · площа', p.regions.length + ' · ' + fmt(Math.round(p.area * kmc)) + ' км²')}${row('Населення', fmt(p.pop))}</dl>` : '', p ? esc(p.name) : W.land[i] ? 'Нічия земля' : 'Нічия вода', p ? '' : 'muted'));
     // 2. регіон
-    if (g) out.push(blk('Регіон', `<h4>${esc(g.name)}</h4><dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення · площа', (g.pop ? fmt(g.pop) : '—') + ' · ' + fmt(Math.round(g.area * kmc)) + ' км²')}${row('Місцевість', esc(g.terrain || '—'))}</dl>`));
+    if (g) out.push(blk('Регіон', `<dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення · площа', (g.pop ? fmt(g.pop) : '—') + ' · ' + fmt(Math.round(g.area * kmc)) + ' км²')}${row('Місцевість', esc(g.terrain || '—'))}</dl>`, esc(g.name)));
     // 3. координати від нульової точки (центр карти): X на схід, Y на північ
     const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K;
     out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span></div>`));

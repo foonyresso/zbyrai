@@ -143,9 +143,9 @@
     const pickIdx = p => p[Math.floor(r() * p.length)];
     const bandits = idx => B.list.map((e, k) => BANDIT.test(e[0]) && e[1] === idx ? k : -1).filter(k => k >= 0);
     const banditPool = [0, 1, 3, 4].map(bandits);
-    function crew(type, tier, g, i) {
+    function crew(type, tier, g, i, force) {
       if (!type.mon || tier < 1) return [];
-      let k = KT[tier]; if (tier >= 2 && r() < 0.3) k = KT[tier - 1]; if (type.cap != null && k > type.cap) k = type.cap;
+      let k = force != null ? force : KT[tier]; if (force == null && tier >= 2 && r() < 0.3) k = KT[tier - 1]; if (type.cap != null && k > type.cap) k = type.cap;
       const lead = [], lk = [0, 1, 3, 4].indexOf(k) >= 0 ? k : 1;
       if (type.bandits) {
         const bp = banditPool[[0, 1, 3, 4].indexOf(Math.min(lk, 4))] || [];
@@ -166,7 +166,29 @@
       q.monsters = crew({ mon: 1, bandits: q.occupier === 'bandits', big: q.rank === 'town', pack: [5, 10] }, tier, g, q.i); const lead = q.monsters[0];
       q.level = lead ? Math.max(1, W.level[q.i] + KIND_BONUS[lead.kindIdx]) : W.level[q.i];
     }
-    const target = Math.round(landCells.length / 130);
+    // гарантовані сильні мешканці: міні-боси 1–2 на регіон, боси 2–4 на провінцію, супербос 1 на 2–4 провінції (не менше мінімумів 1–3 і 1 на 3–7); навколо лігва небезпека не нижча за його рівень
+    const byReg = W.regions.map(() => []), byProv = W.provinces.map(() => []);
+    for (const i of landCells) { const rg = W.region[i]; if (rg >= 0) { byReg[rg].push(i); byProv[W.regions[rg].prov].push(i); } }
+    const raise = (x, y, R, floor) => { for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue; const j = yy * w + xx, d = Math.hypot(dx, dy); if (d > R * 1.8 || !W.land[j] || W.lake[j] || nearS(xx, yy, 4)) continue; const f = d <= R ? floor : floor - 1; if (W.tier[j] < f) W.tier[j] = f; } };
+    function force(cells, kind, spacing, R) { // kind: 3 міні-бос, 4 бос, 5 супербос
+      let best = -1, bs = -1;
+      for (let n = 0; n < 60 && cells.length; n++) {
+        const i = cells[Math.floor(r() * cells.length)], x = i % w, y = (i / w) | 0; if (W.group[i] === 255 || W.river[i] || nearS(x, y, 4) || near(x, y, spacing)) continue;
+        const sc = W.tier[i] + r() * 1.5; if (sc > bs) { bs = sc; best = i; }
+      }
+      if (best < 0) return;
+      const x = best % w, y = (best / w) | 0; raise(x, y, R, kind); const tier = Math.max(kind, W.tier[best]), g = W.group[best], gname = B.GROUPS[g];
+      const opts = TYPES.filter(T => T.mon && T.cap == null && !T.river && tier >= T.t[0] && tier <= T.t[1] && (!T.g || T.g.indexOf(gname) >= 0)); if (!opts.length) return;
+      let tw = opts.reduce((a, T) => a + T.w, 0), pick = r() * tw, type = opts[0]; for (const T of opts) { pick -= T.w; if (pick <= 0) { type = T; break; } }
+      const monsters = crew(type, tier, g, best, KT[kind]), lead = monsters[0];
+      const site = { id: out.length, type: type.id, typeName: type.name, cat: type.cat, name: type.name + ' ' + names.town(names.lang()), i: best, x, y, tier: W.tier[best], group: gname, level: lead ? Math.max(1, W.level[best] + KIND_BONUS[lead.kindIdx]) : W.level[best], monsters, forced: true };
+      out.push(site); const k = bk(x, y); (buckets.get(k) || buckets.set(k, []).get(k)).push(site);
+    }
+    for (let q = 0; q < W.provinces.length; q++) { const nb = 2 + Math.floor(r() * 3); for (let n = 0; n < nb; n++) force(byProv[q], 4, 14, 6); }
+    const nsb = Math.max(1, Math.round(W.provinces.length / (2 + 2 * r()))), order = W.provinces.map((_, q) => q).sort(() => r() - 0.5);
+    for (let n = 0; n < nsb; n++) force(byProv[order[n % order.length]], 5, 40, 8);
+    for (let q = 0; q < W.regions.length; q++) { const nm = 1 + (r() < 0.6 ? 1 : 0); for (let n = 0; n < nm; n++) force(byReg[q], 3, 5, 4); }
+    const target = Math.round(landCells.length / 130) + out.length;
     for (let t = 0; t < target * 14 && out.length < target; t++) {
       const wantRiver = r() < 0.04 && riverCells.length, i = wantRiver ? riverCells[Math.floor(r() * riverCells.length)] : landCells[Math.floor(r() * landCells.length)];
       const x = i % w, y = (i / w) | 0, tier = W.tier[i], g = W.group[i]; if (g === 255 || W.river[i] && !wantRiver) continue;

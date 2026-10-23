@@ -23,3 +23,4 @@ dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px;
 .info .blk > .lb { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; opacity: .55; margin-bottom: 1px; }
 .info .blk h4 { margin: 0 0 2px; } .info .muted { opacity: .65; } .info .mon { margin: 3px 0 0; padding: 3px 6px; background: rgba(0,0,0,.05); border-radius: 5px; } .info .coord { font-weight: 600; }
 .info .mon small { display: block; opacity: .7; font-size: 10.5px; } .info .tier { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: baseline; }
+.info .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 2px; } .info .hd .lb { margin: 0; flex: none; } .info .hd h4 { margin: 0; font-size: 15px; text-align: right; line-height: 1.15; }

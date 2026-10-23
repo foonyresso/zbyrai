@@ -36,6 +36,13 @@ for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['
     for (const m of s.monsters) { assert.ok(m.name && m.count >= 1 && m.level >= 1); }
     for (const q of W.settlements) assert.ok(Math.hypot(q.x - s.x, q.y - s.y) >= 4, `${t}: локація впритул до поселення`);
   }
+  // гарантовані мінімуми сильних мешканців
+  const lead = x => x.monsters.length ? Math.max(...x.monsters.map(m => m.kindIdx)) : -1, regOf = x => W.region[x.i], provOf = x => W.regions[W.region[x.i]].prov;
+  const rc = W.regions.map(() => 0), bc = W.provinces.map(() => 0); let sup = 0;
+  for (const x of W.sites) { const l = lead(x); if (l === 3 && regOf(x) >= 0) rc[regOf(x)]++; if (l >= 4 && regOf(x) >= 0) bc[provOf(x)]++; if (l >= 5) sup++; }
+  W.regions.forEach((g, k) => { if (g.area >= 40) assert.ok(rc[k] >= 1, `${t}: регіон ${k} без міні-боса`); });
+  W.provinces.forEach((p, k) => assert.ok(bc[k] >= 1, `${t}: провінція ${k} без боса`));
+  assert.ok(sup >= Math.max(1, Math.floor(W.provinces.length / 7)), `${t}: супербосів ${sup}`);
   // чим далі від поселень, тим сильніші монстри: середній рівень типу монстра за небезпекою не спадає
   const avg = [0, 0, 0, 0, 0, 0, 0], c2 = [0, 0, 0, 0, 0, 0, 0]; for (const s of W.sites) if (s.monsters.length) { avg[s.tier] += Math.max(...s.monsters.map(m => m.kindIdx)); c2[s.tier]++; }
   let prev = -1; for (let k = 1; k < 7; k++) if (c2[k] >= 5) { const v = avg[k] / c2[k]; assert.ok(v >= prev - 0.05, `${t}: сила монстрів спадає на небезпеці ${k}`); prev = v; }
