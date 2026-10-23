@@ -88,8 +88,19 @@
     var ok;
     G.smooth(region, w, h, ok, 2); G.fixFragments(region, w, h, anchors, 40, ok);
     // озера всередині суші: мітка найближчого берега, щоб заливка меж була суцільною
-    for (let g = 0; g < 6; g++) for (let i = 0; i < N; i++) if (W.lake[i] && region[i] < 0) { const t = G.topNeighbor(region, w, h, i, () => true, true); if (t.label >= 0) region[i] = t.label; }
+    for (let g = 0; g < 6; g++) for (let i = 0; i < N; i++) if (W.lake[i] && region[i] < 0) { const t = G.topNeighbor(region, w, h, i, () => true, false); if (t.label >= 0) region[i] = t.label; }
     for (let i = 0; i < N; i++) prov[i] = region[i] >= 0 ? regions[region[i]].prov : -1;
+    // уламки провінції (<25 клітин) на великому суходолі віддаємо сусідній провінції разом із регіоном
+    for (let pass = 0; pass < 3; pass++) {
+      const pc = components(w, h, i => prov[i] >= 0 && false), seen = new Int32Array(N).fill(-1); let n = 0;
+      for (let s0 = 0; s0 < N; s0++) {
+        if (prov[s0] < 0 || seen[s0] >= 0) continue; const L = prov[s0], cells = [s0], st = [s0]; seen[s0] = n;
+        while (st.length) { const i = st.pop(), x = i % w, y = (i / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (prov[j] === L && seen[j] < 0) { seen[j] = n; cells.push(j); st.push(j); } } }
+        n++; if (cells.length >= 25 || cells.includes(caps[L])) continue;
+        const lmArea = W.lm.list.find(m => m.id === W.landmass[cells[0]]); if (lmArea && lmArea.area <= cells.length + 2) continue;
+        for (const i of cells) { const t = G.topNeighbor(region, w, h, i, q => regions[q].prov !== L, true); if (t.label >= 0) { region[i] = t.label; prov[i] = regions[t.label].prov; } }
+      }
+    }
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));
     for (const g of regions) provinces[g.prov].regions.push(g.id);
     W.province = prov; W.region = region; W.provinces = provinces; W.regions = regions;

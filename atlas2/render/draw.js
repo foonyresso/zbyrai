@@ -21,13 +21,12 @@
   function draw(cv, W, view, opts) {
     const c = prep(W), ctx = cv.getContext('2d'), L = opts.layers, { k, tx, ty } = view, px = 1 / k;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height);
-    ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
     ctx.drawImage(c.ocean, 0, 0, W.w, W.h);
     // берег: світле сяйво
     ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
     ctx.save(); path(ctx, c.land); ctx.clip(); ctx.drawImage(c.landImg, 0, 0, W.w, W.h);
     if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });
-    if (opts.hoverRegion != null && c.regs[opts.hoverRegion]) { path(ctx, c.regs[opts.hoverRegion]); ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fill('evenodd'); }
     if (L.borders) {
       ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(70,50,30,.45)'; ctx.lineWidth = 1 * px; ctx.setLineDash([4 * px, 3 * px]);
       c.regs.forEach(l => { path(ctx, l); ctx.stroke(); }); ctx.setLineDash([]);
@@ -36,20 +35,28 @@
     ctx.restore();
     // озера
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
-    if (L.rivers) drawRivers(ctx, W, c, px);
+    if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші: частина ландшафту, не малюнок поверх моря
     if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k);
     if (A.drawPlaces && (L.places || L.labels)) A.drawPlaces(ctx, W, px, k, L, PALETTE);
   }
+  // річки пакетами за товщиною (кілька шляхів canvas замість тисяч окремих відрізків)
   function drawRivers(ctx, W, c, px) {
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#5b94cf';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#5b94cf'; const B = 5, paths = Array.from({ length: B }, () => new Path2D());
     for (const cells of W.rivers) {
-      let pts = []; cells.forEach((i, n) => { let x = (i % W.w) + 0.5, y = ((i / W.w) | 0) + 0.5; if (W.ocean[i] && n) { const j = cells[n - 1]; x = (x + (j % W.w) + 0.5) / 2; y = (y + ((j / W.w) | 0) + 0.5) / 2; } pts.push(x, y); });
+      const pts = []; cells.forEach(i => pts.push((i % W.w) + 0.5, ((i / W.w) | 0) + 0.5));
       const sm = C.chaikin(pts, 2, false), m = sm.length / 2;
       for (let q = 1; q < m; q++) {
         const ci = cells[Math.min(cells.length - 1, Math.floor(q / m * cells.length))]; if (W.lake[ci]) continue;
-        ctx.lineWidth = (0.9 + 3.2 * Math.sqrt(W.acc[ci] / c.maxAcc)) * px * 1.6; ctx.beginPath(); ctx.moveTo(sm[(q - 1) * 2], sm[(q - 1) * 2 + 1]); ctx.lineTo(sm[q * 2], sm[q * 2 + 1]); ctx.stroke();
+        const b = Math.min(B - 1, Math.floor(Math.sqrt(W.acc[ci] / c.maxAcc) * B * 1.6)); paths[b].moveTo(sm[(q - 1) * 2], sm[(q - 1) * 2 + 1]); paths[b].lineTo(sm[q * 2], sm[q * 2 + 1]);
       }
     }
+    paths.forEach((pa, b) => { ctx.lineWidth = (1.4 + b * 1.1) * px * 1.5; ctx.stroke(pa); });
   }
-  A.draw = { draw, prep, PALETTE };
+  // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
+  function drawHover(cv, W, view, id) {
+    const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+    const c = prep(W); if (id == null || !c.regs[id]) return;
+    ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty); path(ctx, c.regs[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
+  }
+  A.draw = { draw, drawHover, prep, PALETTE };
 })();

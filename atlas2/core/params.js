@@ -3,7 +3,7 @@
   'use strict';
   const A = globalThis.Atlas2;
   const SIZES = { small: [200, 130], medium: [300, 200], large: [420, 280] };
-  const DEF = { seed: 'atlas', size: 'medium', worldType: 'continent', provinces: 6, regionsPerProvince: 5, density: 1, rugged: 1, riverDensity: 1, landFrac: 0, lakeDepth: 0.014, kmPerCell: 2 };
+  const DEF = { seed: 'atlas', size: 'medium', worldType: 'continent', provinces: 6, regionsPerProvince: 5, density: 1, rugged: 1, riverDensity: 1, landFrac: 0, lakeDepth: 0.014, lakeFlow: 40, kmPerCell: 2 };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   function normalize(inp) {
     const p = Object.assign({}, DEF, inp || {});

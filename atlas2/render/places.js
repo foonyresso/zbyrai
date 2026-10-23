@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2;
-  const STYLE = { 1: ['#5a3d22', 3.2], 2: ['#7a5a38', 2.4], 3: ['#8f7048', 1.7], 4: ['#a28a64', 1.1] };
+  const STYLE = { 1: ['#5a3d22', 3.2, []], 2: ['#7a4f2a', 2.2, []], 3: ['#8a6a44', 1.5, []], 4: ['#a3855a', 1.1, [3, 2.5]] }; // дрібні шляхи — пунктиром
   const cxy = (W, i) => [(i % W.w) + 0.5, ((i / W.w) | 0) + 0.5];
   function smoothPath(ctx, W, cells) {
     const P = cells.map(i => cxy(W, i)); if (P.length < 2) return;
@@ -13,10 +13,10 @@
   A.drawRoads = function (ctx, W, px, k) {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const lvl of [4, 3, 2, 1]) {
-      const [col, wd] = STYLE[lvl];
+      const [col, wd, dash] = STYLE[lvl];
       for (const pass of [0, 1]) { // обвідка, потім лінія
         ctx.beginPath(); for (const r of W.roads) if (r.level === lvl) smoothPath(ctx, W, r.cells);
-        ctx.strokeStyle = pass ? col : 'rgba(255,248,230,.75)'; ctx.lineWidth = (pass ? wd : wd + 1.6) * px; ctx.stroke();
+        ctx.strokeStyle = pass ? col : 'rgba(255,248,230,.6)'; ctx.lineWidth = (pass ? wd : wd + (dash.length ? 0 : 1.4)) * px; ctx.setLineDash(pass ? dash.map(v => v * px * 1.4) : []); ctx.stroke(); ctx.setLineDash([]);
       }
     }
     ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.1 * px; ctx.setLineDash([5 * px, 4 * px]);
