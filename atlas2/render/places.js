@@ -25,17 +25,30 @@
   };
   const R = { capital: 5.2, regional: 3.8, town: 2.8, village: 1.9, hamlet: 1.3 }, MINK = { capital: 0, regional: 0, town: 3, village: 5.5, hamlet: 8 };
   const LBLK = { capital: 0, regional: 3.2, town: 5.5, village: 9, hamlet: 99 };
+  // назви провінцій: один розмір для всіх, у клітинах карти (масштабуються разом з картою, ніби написані по ній), літери з розрідженням уздовж осі провінції
+  const PS = 5.2, RS = 1.7;
+  function alongPath(ctx, pts, text, S, spacing, alpha, fill, halo) {
+    const seg = []; let L = 0; for (let i = 2; i < pts.length; i += 2) { const d = Math.hypot(pts[i] - pts[i - 2], pts[i + 1] - pts[i - 1]); seg.push(d); L += d; }
+    const ws = Array.from(text).map(ch => ctx.measureText(ch).width + spacing), tw = ws.reduce((a, b) => a + b, 0) - spacing; if (tw > L * 1.05) return false;
+    let pos = (L - tw) / 2, si = 0, acc = 0; ctx.globalAlpha = alpha; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    Array.from(text).forEach((ch, n) => {
+      const mid = pos + ws[n] / 2 - spacing / 2 * 0; while (si < seg.length - 1 && acc + seg[si] < mid) { acc += seg[si]; si++; }
+      const t = Math.min(1, Math.max(0, (mid - acc) / (seg[si] || 1))), x = pts[si * 2] + (pts[si * 2 + 2] - pts[si * 2]) * t, y = pts[si * 2 + 1] + (pts[si * 2 + 3] - pts[si * 2 + 1]) * t, ang = Math.atan2(pts[si * 2 + 3] - pts[si * 2 + 1], pts[si * 2 + 2] - pts[si * 2]);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.strokeStyle = halo; ctx.lineWidth = S * 0.16; ctx.strokeText(ch, 0, 0); ctx.fillStyle = fill; ctx.fillText(ch, 0, 0); ctx.restore(); pos += ws[n];
+    });
+    ctx.globalAlpha = 1; return true;
+  }
+  function drawNames(ctx, W, px, k) {
+    const fade = (v, a, b, c, d) => v < a || v > d ? 0 : v < b ? (v - a) / (b - a) : v > c ? (d - v) / (d - c) : 1; // плавна поява й зникнення за екранним розміром літер
+    const ps = PS * k, pa = fade(ps, 8, 14, 60, 110);
+    if (pa > 0.02) { ctx.font = `700 ${PS}px Georgia, 'Times New Roman', serif`; for (const p of W.provinces) if (p.label && p.label.line) alongPath(ctx, p.label.line, p.name.toUpperCase(), PS, PS * 0.42, pa * 0.82, 'rgba(48,32,64,1)', 'rgba(255,255,255,.55)'); }
+    const rs = RS * k, ra = fade(rs, 9, 14, 40, 70);
+    if (ra > 0.02) { ctx.font = `italic 600 ${RS}px Georgia, 'Times New Roman', serif`; for (const g of W.regions) if (g.label) { const wd = ctx.measureText(g.name).width; if (wd > Math.sqrt(g.label.size) * 1.9) continue; alongPath(ctx, [g.label.x - wd / 2, g.label.y, g.label.x + wd / 2, g.label.y], g.name, RS, 0.08, ra * 0.8, 'rgba(60,44,30,1)', 'rgba(255,255,255,.6)'); } }
+  }
   A.drawPlaces = function (ctx, W, px, k, L, PAL) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     const halo = (t, x, y) => { ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };
-    if (L.labels) {
-      W.provinces.forEach(p => {
-        if (!p.label || k > 9) return; const t = p.name.toUpperCase().split('').join('\u200a'), maxW = Math.sqrt(p.label.size) * 1.7;
-        ctx.font = `700 ${22 * px}px sans-serif`; const wd = ctx.measureText(t).width, sz = Math.min(22, 22 * maxW / (wd / px));
-        ctx.font = `700 ${Math.max(8, sz) * px}px sans-serif`; ctx.fillStyle = 'rgba(40,30,50,.62)'; ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2.5 * px; ctx.strokeText(t, p.label.x, p.label.y); ctx.fillText(t, p.label.x, p.label.y);
-      });
-      if (k >= 5) W.regions.forEach(g => { if (!g.label) return; ctx.font = `italic 600 ${11 * px}px sans-serif`; ctx.fillStyle = 'rgba(50,40,30,.7)'; halo(g.name, g.label.x, g.label.y + 2.2); });
-    }
+    if (L.labels) drawNames(ctx, W, px, k);
     if (!L.places) return;
     for (const rank of ['hamlet', 'village', 'town', 'regional', 'capital']) {
       if (k < MINK[rank]) continue; const r = R[rank] * px;

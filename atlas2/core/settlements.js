@@ -40,16 +40,31 @@
     W.settlements = S;
     labelAnchors(W);
   }
-  // точка підпису: клітина області, найближча до центра найбільшої зв'язної частини
+  // підпис провінції: ламана вздовж головної осі найбільшої частини (як літери, написані по карті); регіону: точка біля центру
   function labelAnchors(W) {
-    const { w, h } = W, put = (obj, test) => {
+    const { w, h } = W, put = (obj, test, line) => {
       const c = A.Grid.components(w, h, test); if (!c.sizes.length) return; let big = 0; c.sizes.forEach((s, k) => { if (s > c.sizes[big]) big = k; });
-      let cx = 0, cy = 0, n = 0; for (let i = 0; i < w * h; i++) if (c.id[i] === big) { cx += i % w; cy += (i / w) | 0; n++; } cx /= n; cy /= n;
-      let best = -1, bd = 1e9; for (let i = 0; i < w * h; i++) if (c.id[i] === big) { const d = Math.hypot((i % w) - cx, ((i / w) | 0) - cy); if (d < bd) { bd = d; best = i; } }
-      obj.label = { x: (best % w) + 0.5, y: ((best / w) | 0) + 0.5, size: n };
+      const xs = [], ys = []; for (let i = 0; i < w * h; i++) if (c.id[i] === big) { xs.push((i % w) + 0.5); ys.push(((i / w) | 0) + 0.5); }
+      const n = xs.length; let cx = 0, cy = 0; for (let k = 0; k < n; k++) { cx += xs[k]; cy += ys[k]; } cx /= n; cy /= n;
+      let best = 0, bd = 1e9; for (let k = 0; k < n; k++) { const d = Math.hypot(xs[k] - cx, ys[k] - cy); if (d < bd) { bd = d; best = k; } }
+      obj.label = { x: xs[best], y: ys[best], size: n };
+      if (!line) return;
+      let sxx = 0, syy = 0, sxy = 0; for (let k = 0; k < n; k++) { const dx = xs[k] - cx, dy = ys[k] - cy; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+      let ang = 0.5 * Math.atan2(2 * sxy, sxx - syy); if (Math.abs(ang) > 1.05) ang = ang > 0 ? 1.05 : -1.05; // не крутіше ~60°, щоб текст читався
+      const ax = Math.cos(ang), ay = Math.sin(ang), nx = -ay, ny = ax, B = 9, bins = Array.from({ length: B }, () => [0, 0]);
+      let tmin = 1e9, tmax = -1e9; const T = new Float32Array(n);
+      for (let k = 0; k < n; k++) { const t = (xs[k] - cx) * ax + (ys[k] - cy) * ay; T[k] = t; if (t < tmin) tmin = t; if (t > tmax) tmax = t; }
+      const lo = tmin + (tmax - tmin) * 0.12, hi = tmax - (tmax - tmin) * 0.12, bw = (hi - lo) / B;
+      for (let k = 0; k < n; k++) { const q = (xs[k] - cx) * nx + (ys[k] - cy) * ny, bi = Math.floor((T[k] - lo) / bw); if (bi >= 0 && bi < B) { bins[bi][0] += q; bins[bi][1]++; } }
+      const pts = []; let prev = 0;
+      for (let bI = 0; bI < B; bI++) { const q = bins[bI][1] > 3 ? bins[bI][0] / bins[bI][1] : prev; prev = q; const t = lo + (bI + 0.5) * bw; pts.push([cx + ax * t + nx * q * 0.8, cy + ay * t + ny * q * 0.8]); }
+      const ext = (a, b2) => [a[0] + (a[0] - b2[0]) * 0.8, a[1] + (a[1] - b2[1]) * 0.8];
+      pts.unshift(ext(pts[0], pts[1])); pts.push(ext(pts[pts.length - 1], pts[pts.length - 2]));
+      if (pts[0][0] > pts[pts.length - 1][0]) pts.reverse();
+      obj.label.line = pts.flat().map(v => Math.round(v * 100) / 100);
     };
-    W.provinces.forEach(p => put(p, i => W.province[i] === p.id));
-    W.regions.forEach(g => put(g, i => W.region[i] === g.id));
+    W.provinces.forEach(p => put(p, i => W.province[i] === p.id, true));
+    W.regions.forEach(g => put(g, i => W.region[i] === g.id, false));
   }
   A.RANKS = RANKS;
   (A.stages = A.stages || []).push(settlements);

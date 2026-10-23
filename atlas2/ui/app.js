@@ -19,7 +19,7 @@
   function build() {
     const p = readParams(); W = A.generate(p); writeParams(W.params); fit(); resetView(); redraw();
     const s = W.settlements ? W.settlements.length : 0, land = W.land.reduce((a, v) => a + v, 0);
-    $('stats').textContent = `Суша ${(land * W.params.kmPerCell ** 2).toLocaleString('uk')} км²; провінцій ${W.provinces.length}, регіонів ${W.regions.length}, річок ${W.rivers.length}, озер ${W.lakes.length}${s ? ', поселень ' + s : ''}.`;
+    $('stats').textContent = `Суша ${Math.round(land * W.params.kmPerCell ** 2).toLocaleString('uk')} км²; провінцій ${W.provinces.length}, регіонів ${W.regions.length}, річок ${W.rivers.length}, озер ${W.lakes.length}${s ? ', поселень ' + s : ''}.`;
     try { history.replaceState(null, '', '#p=' + btoa(unescape(encodeURIComponent(JSON.stringify(A.Save.paramsToJSON(W.params)))))); } catch (e) { /* не критично */ }
   }
   const later = () => { clearTimeout(timer); timer = setTimeout(build, 250); };
