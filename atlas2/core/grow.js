@@ -110,5 +110,30 @@
     // обрізання не повинно відрізати столицю від решти провінції: інакше провінція повертається як була
     anchors.forEach((c, L) => { if (c == null || lab[c] !== L) return; const now = csize(lab, c); if (now < 40 || now < 0.5 * base[L]) for (let i = 0; i < N; i++) if (first[i] === L) lab[i] = L; });
   }
-  A.Grow = { wobble, trimArms, grow, smooth, fixFragments, topNeighbor, stepCost };
+  // суцільність: у межах одного суходолу кожна мітка має одну частину (ту, де «якір», або найбільшу); решту віддаємо сусідній мітці, яку дозволяє ok(від, до)
+  function joinParts(lab, w, h, landmass, anchorOf, ok) {
+    const N = w * h, D = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    for (let pass = 0; pass < 6; pass++) {
+      const seen = new Uint8Array(N), comps = new Map(); // ключ мітка|суходіл → [{cells}]
+      for (let s = 0; s < N; s++) {
+        const L = lab[s], lm = landmass[s]; if (L < 0 || lm < 0 || seen[s]) continue;
+        const cells = [s], st = [s]; seen[s] = 1;
+        while (st.length) { const i = st.pop(), x = i % w, y = (i / w) | 0; for (const [dx, dy] of D) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (!seen[j] && lab[j] === L && landmass[j] === lm) { seen[j] = 1; cells.push(j); st.push(j); } } }
+        const key = L + '|' + lm; (comps.get(key) || comps.set(key, []).get(key)).push(cells);
+      }
+      let moved = 0;
+      for (const [key, list] of comps) {
+        if (list.length < 2) continue; const L = +key.split('|')[0], a = anchorOf(L);
+        let main = list.findIndex(c => a != null && c.includes(a)); if (main < 0) { main = 0; list.forEach((c, k) => { if (c.length > list[main].length) main = k; }); }
+        list.forEach((cells, k) => {
+          if (k === main) return; const cnt = new Map();
+          for (const i of cells) { const x = i % w, y = (i / w) | 0; for (const [dx, dy] of D) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = lab[ny * w + nx]; if (q >= 0 && q !== L && landmass[ny * w + nx] >= 0 && ok(L, q)) cnt.set(q, (cnt.get(q) || 0) + 1); } }
+          let best = -1, bc = 0; for (const [q, c] of cnt) if (c > bc) { bc = c; best = q; }
+          if (best >= 0) { for (const i of cells) lab[i] = best; moved++; }
+        });
+      }
+      if (!moved) break;
+    }
+  }
+  A.Grow = { joinParts, wobble, trimArms, grow, smooth, fixFragments, topNeighbor, stepCost };
 })();

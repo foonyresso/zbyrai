@@ -84,6 +84,7 @@
     G.fixFragments(prov, w, h, caps, 25, () => true);
     G.trimArms(prov, w, h, caps, W);
     G.fixFragments(prov, w, h, caps, 25, () => true);
+    G.joinParts(prov, w, h, W.landmass, L => caps[L], () => true); // кожна провінція в межах суходолу — суцільна
     // регіони всередині кожної провінції
     const region = new Int16Array(N).fill(-1), regions = [];
     for (let k = 0; k < P; k++) {
@@ -118,6 +119,7 @@
     G.smooth(region, w, h, ok, 2); G.fixFragments(region, w, h, anchors, 40, ok);
     // озера всередині суші: мітка найближчого берега, щоб заливка меж була суцільною
     for (let g = 0; g < 6; g++) for (let i = 0; i < N; i++) if (W.lake[i] && region[i] < 0) { const t = G.topNeighbor(region, w, h, i, () => true, false); if (t.label >= 0) region[i] = t.label; }
+    G.joinParts(region, w, h, W.landmass, id => regions[id] ? regions[id].centerCell : null, (a, b) => regions[a].prov === regions[b].prov); // кожен регіон — суцільний
     for (let i = 0; i < N; i++) prov[i] = region[i] >= 0 ? regions[region[i]].prov : -1;
     // уламки провінції (<25 клітин) на великому суходолі віддаємо сусідній провінції разом із регіоном
     for (let pass = 0; pass < 3; pass++) {

@@ -14,6 +14,14 @@ for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 
     // регіон столиці найбільший серед регіонів провінції на тому ж суходолі (допуск 40% через згладжування)
     const mx = Math.max(...p.regions.filter(id => W.landmass[W.regions[id].centerCell] === W.landmass[cap.centerCell]).map(id => area[id])); assert.ok(p.regions.reduce((a, id) => a + area[id], 0) < 600 || area[cap.id] >= mx * 0.6, `${t}: регіон столиці не найбільший`);
   }
+  // суцільність: регіон і провінція в межах одного суходолу — одна частина
+  for (const [name, lab] of [['регіон', W.region], ['провінція', W.province]]) {
+    const seen = new Uint8Array(N), parts = new Set();
+    for (let s0 = 0; s0 < N; s0++) {
+      if (lab[s0] < 0 || W.landmass[s0] < 0 || seen[s0]) continue; const key = lab[s0] + '|' + W.landmass[s0]; assert.ok(!parts.has(key), `${t}: ${name} ${lab[s0]} розірваний на шматки`); parts.add(key);
+      const st = [s0]; seen[s0] = 1; while (st.length) { const i = st.pop(), x = i % W.w, y = (i / W.w) | 0; for (let d = 0; d < 4; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= W.w || ny >= W.h) continue; const j = ny * W.w + nx; if (!seen[j] && lab[j] === lab[s0] && W.landmass[j] === W.landmass[s0]) { seen[j] = 1; st.push(j); } } }
+    }
+  }
   // провінція зв'язна в межах суходолу: у кожної провінції не більше 1 уламка <25 клітин на суходіл
   for (const p of W.provinces) { const c = components(W.w, W.h, i => W.province[i] === p.id); for (let k = 0; k < c.sizes.length; k++) if (c.sizes[k] < 25 && c.sizes[k] > 3) { const cell = c.id.indexOf(k); if (W.province[cell] !== p.id) continue; const lmA = W.lm.list.find(m => m.id === W.landmass[cell]).area; if (lmA < 40) continue; assert.equal(lmA, c.sizes[k], `${t}: дрібний уламок провінції ${p.id}, що не є окремим островом`); } }
 }
