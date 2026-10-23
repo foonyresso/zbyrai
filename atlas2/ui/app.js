@@ -56,17 +56,8 @@
     info.hidden = false;
   }
 
-  // збереження й обмін
-  const file = (name, text, type) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
-  const pj = () => JSON.stringify(A.Save.paramsToJSON(W.params), null, 2);
-  $('btnCopy').onclick = () => navigator.clipboard.writeText(pj());
-  $('btnLink').onclick = () => navigator.clipboard.writeText(location.href);
-  $('btnJson').onclick = () => file('atlas2.json', pj(), 'application/json');
-  $('btnWorld').onclick = () => file('atlas2-world.json', JSON.stringify(A.Save.exportWorld(W)), 'application/json');
-  $('btnImport').onclick = () => $('fileImport').click();
-  $('fileImport').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { writeParams(A.Save.paramsFromJSON(JSON.parse(await f.text()))); build(); } catch (err) { alert(err.message); } e.target.value = ''; };
-  $('btnPng').onclick = () => { const o = document.createElement('canvas'); o.width = W.w * 8; o.height = W.h * 8; A.draw.draw(o, W, { k: 8, tx: 0, ty: 0 }, { layers }); o.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'atlas2.png'; a.click(); }); };
-  $('btnPrint').onclick = () => print();
+  $('btnHelp').onclick = () => $('help').showModal();
+  $('help').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   addEventListener('resize', () => { if (W) { fit(); resetView(); redraw(); } });
 
   const m = /#p=(.+)$/.exec(location.hash);
