@@ -1,6 +1,6 @@
 /* Підсвітка при наведенні: на великій відстані світиться вся провінція під курсором, при наближенні лише регіон. Дикий океан не підсвічується.
-   Маска рахується малим растром (крок HR_STEP пікселів) і кешується, поки курсор у тій самій області й камера не рушила. */
-const HR_STEP = 6, HR_PROV_S = .04, HR_MAX_S = .5;
+   Вимикається, коли лінійка показує 500 м і ближче (S >= HR_MAX_S), та поки світ рухається (зум/перетяг). Маска рахується малим растром (крок HR_STEP) і кешується. */
+const HR_STEP = 6, HR_PROV_S = .04, HR_MAX_S = .1;
 let hrCv = null, hrKey = "", hrTarget = null;
 function hrTargetAt(x, y) {
   const h = bTerr(x, y);
@@ -8,7 +8,7 @@ function hrTargetAt(x, y) {
   return S < HR_PROV_S ? PV(h) : h;
 }
 function drawHoverRegion() {
-  if (!hov || S >= HR_MAX_S || !WLD || !WBD) return;
+  if (!hov || S >= HR_MAX_S || !WLD || !WBD || moving()) return;
   const t = hrTargetAt(hov[0], hov[1]);
   if (!t) return;
   const prov = S < HR_PROV_S, key = [prov ? "p" : "r", t.x, t.y, S, Math.round(ox), Math.round(oy), W, H, WLD.hk].join("|");
