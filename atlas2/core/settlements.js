@@ -22,11 +22,11 @@
     W.regions.forEach(g => { g.name = names.region(); const s = add(g.centerCell, g.isCapitalRegion ? 'capital' : 'regional'); g.center = s.id; g.centerName = s.name; if (g.isCapitalRegion) W.provinces[g.prov].capital = s.id; });
     // міста, села, хутори: за придатністю з мінімальними відстанями
     const byRegion = W.regions.map(() => []);
-    for (let i = 0; i < N; i++) if (W.region[i] >= 0 && W.land[i] && !W.lake[i] && !W.river[i] && W.suit[i] >= 0.28) byRegion[W.region[i]].push(i);
-    const DIV = { town: 520, village: 200, hamlet: 380 };
+    for (let i = 0; i < N; i++) if (W.region[i] >= 0 && W.land[i] && !W.lake[i] && !W.river[i] && W.suit[i] >= 0.12) byRegion[W.region[i]].push(i);
+    const DIV = { town: 330, village: 120, hamlet: 220 };
     for (const rank of ['town', 'village', 'hamlet']) W.regions.forEach(g => {
       const cells = byRegion[g.id], want = Math.round(cells.length / DIV[rank] * W.params.density * (0.8 + 0.4 * r()));
-      const sc = cells.map(i => [W.suit[i] * (0.5 + r()), i]).sort((a, b) => b[0] - a[0]); let got = 0;
+      const sc = cells.map(i => [Math.pow(W.suit[i], 0.4) * (0.25 + r()) * (W.waterDist && W.waterDist[i] <= 2 && !W.river[i] ? 0.5 : 1), i]).sort((a, b) => b[0] - a[0]); let got = 0;
       for (const [, i] of sc) { if (got >= want) break; const x = i % w, y = (i / w) | 0; if (near(x, y, MIND[rank] * (0.7 + 0.7 * r()))) continue; add(i, rank); got++; }
     });
     // зведення

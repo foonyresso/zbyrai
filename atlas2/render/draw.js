@@ -7,9 +7,8 @@
 
   function prep(W) {
     let c = cache.get(W); if (c) return c; const { w, h } = W;
-    c = { land: C.smoothLoops(w, h, i => W.land[i] === 1 && !W.lake[i] || W.lake[i] === 1 && W.region[i] >= 0, 3), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: [], regs: [] };
-    W.provinces.forEach(p => c.provs.push(C.smoothLoops(w, h, i => W.province[i] === p.id, 3)));
-    W.regions.forEach(g => c.regs.push(C.smoothLoops(w, h, i => W.region[i] === g.id, 3)));
+    const pn = C.net(w, h, i => W.province[i]), rn = C.net(w, h, i => W.region[i]);
+    c = { pn, rn, land: C.polys(pn, l => l >= 0), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: W.provinces.map(p => C.polys(pn, l => l === p.id)), regs: W.regions.map(g => C.polys(rn, l => l === g.id)) };
     const S = 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
     const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };
     c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
@@ -29,13 +28,14 @@
     if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });
     if (L.borders) {
       ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(70,50,30,.45)'; ctx.lineWidth = 1 * px; ctx.setLineDash([4 * px, 3 * px]);
-      c.regs.forEach(l => { path(ctx, l); ctx.stroke(); }); ctx.setLineDash([]);
-      c.provs.forEach((l, n) => { path(ctx, l); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 4.2 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(60,40,70,.75)'; ctx.lineWidth = 1.8 * px; ctx.stroke(); });
+      const strokeChains = (chains, ok) => { ctx.beginPath(); for (const ch of chains) { if (!ok(ch)) continue; const p = ch.pts; ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); if (ch.closed) ctx.closePath(); } ctx.stroke(); };
+      strokeChains(c.rn, ch => ch.lo >= 0 && ch.hi >= 0 && W.regions[ch.lo].prov === W.regions[ch.hi].prov); ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 4.2 * px; strokeChains(c.pn, ch => ch.lo >= 0 && ch.hi >= 0);
+      ctx.strokeStyle = 'rgba(60,40,70,.75)'; ctx.lineWidth = 1.8 * px; strokeChains(c.pn, ch => ch.lo >= 0 && ch.hi >= 0);
     }
     ctx.restore();
-    // озера
+    if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші; озера малюються поверх, тож річка входить у озеро й виходить з нього
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
-    if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші: частина ландшафту, не малюнок поверх моря
     if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k);
     if (A.drawPlaces && (L.places || L.labels)) A.drawPlaces(ctx, W, px, k, L, PALETTE);
   }
@@ -52,15 +52,21 @@
   function drawRivers(ctx, W, c, px) {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#5b94cf'; const B = 5, paths = Array.from({ length: B }, () => new Path2D());
     for (const cells of W.rivers) {
-      const pts = []; cells.forEach(i => pts.push((i % W.w) + 0.5, ((i / W.w) | 0) + 0.5));
+      const pts = []; // русло звивається: точки зсуваються впоперек течії на стабільну «випадкову» величину від клітини
+      cells.forEach((i, n) => {
+        const x = (i % W.w) + 0.5, y = ((i / W.w) | 0) + 0.5, pi = cells[Math.max(0, n - 1)], ni = cells[Math.min(cells.length - 1, n + 1)];
+        let dx = (ni % W.w) - (pi % W.w), dy = ((ni / W.w) | 0) - ((pi / W.w) | 0); const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+        const hsh = ((Math.imul(i, 2654435761) >>> 8) & 1023) / 1023 - 0.5, off = (n === 0 || n === cells.length - 1) ? 0 : hsh * 1.1;
+        pts.push(x - dy * off, y + dx * off);
+      });
       const sm = C.chaikin(pts, 2, false), m = sm.length / 2;
       for (let q = 1; q < m; q++) {
-        const ci = cells[Math.min(cells.length - 1, Math.floor(q / m * cells.length))]; if (W.lake[ci]) continue;
-        const b = Math.min(B - 1, Math.floor(Math.sqrt(W.acc[ci] / c.maxAcc) * B * 1.6)); paths[b].moveTo(sm[(q - 1) * 2], sm[(q - 1) * 2 + 1]); paths[b].lineTo(sm[q * 2], sm[q * 2 + 1]);
+        const ci = cells[Math.min(cells.length - 1, Math.floor(q / m * cells.length))];
+        const b = Math.min(B - 1, Math.floor(Math.log2(1 + W.acc[ci] / (W.riverThr || 20)) * 0.9)); paths[b].moveTo(sm[(q - 1) * 2], sm[(q - 1) * 2 + 1]); paths[b].lineTo(sm[q * 2], sm[q * 2 + 1]);
       }
     }
     // товщина в клітинах карти (росте й зменшується разом з масштабом), але не тонша за 1 піксель
-    paths.forEach((pa, b) => { ctx.lineWidth = Math.max(1.2 * px, 0.2 + b * 0.12); ctx.stroke(pa); });
+    paths.forEach((pa, b) => { ctx.lineWidth = Math.max(1.7 * px, 0.12 + b * 0.07); ctx.stroke(pa); });
   }
   // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
   function drawHover(cv, W, view, id) {

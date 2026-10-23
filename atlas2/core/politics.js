@@ -54,6 +54,13 @@
       const snap = prov.slice(); for (const i of un) if (prov[i] < 0) { const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d] * (g + 1), ny = y + A.Grid.DY[d] * (g + 1); if (nx >= 0 && ny >= 0 && nx < w && ny < h && snap[ny * w + nx] >= 0) { prov[i] = snap[ny * w + nx]; break; } } }
     }
     for (let i = 0; i < N; i++) if (!land(i)) prov[i] = -1;
+    // малий острів належить одній провінції (не ділиться): віддаємо його провінції з найбільшою часткою (або тій, чия столиця на ньому)
+    for (const m of W.lm.list) {
+      if (m.area >= 700) continue; const cnt = new Map(), cells = []; for (let i = 0; i < N; i++) if (W.landmass[i] === m.id) { cells.push(i); cnt.set(prov[i], (cnt.get(prov[i]) || 0) + 1); }
+      const capHere = caps.findIndex(c => W.landmass[c] === m.id); let best = capHere, bc = -1;
+      if (best < 0) for (const [L, c] of cnt) if (L >= 0 && c > bc) { bc = c; best = L; }
+      if (best >= 0) for (const i of cells) prov[i] = best;
+    }
     G.smooth(prov, w, h, () => true, 2);
     G.fixFragments(prov, w, h, caps, 25, () => true);
     // регіони всередині кожної провінції
@@ -65,7 +72,7 @@
       const cpart = part.id[caps[k]], order = parts.filter(p => p.id === cpart).concat(parts.filter(p => p.id !== cpart));
       const tot = order.reduce((s, p) => s + p.s, 0) || 1; let left = Math.max(kk, order.length);
       const take = order.map(() => 1); left -= order.length;
-      for (let q = 0; left > 0; q = (q + 1) % order.length, left--) if (order[q].s / tot * kk > take[q] - 0.4 || q === 0) take[q]++;
+      for (let q = 0; left > 0; q = (q + 1) % order.length, left--) if (order[q].s >= 200 && (order[q].s / tot * kk > take[q] - 0.4 || q === 0)) take[q]++; else if (q === 0) take[0]++;
       let centers = [];
       order.forEach((p, q) => {
         const pc = cells.filter(i => part.id[i] === p.id), first = p.id === cpart ? [caps[k]] : [];
@@ -101,6 +108,7 @@
         for (const i of cells) { const t = G.topNeighbor(region, w, h, i, q => regions[q].prov !== L, true); if (t.label >= 0) { region[i] = t.label; prov[i] = regions[t.label].prov; } }
       }
     }
+    for (const g of regions) { region[g.centerCell] = g.id; prov[g.centerCell] = g.prov; } // центр регіону завжди у своєму регіоні
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));
     for (const g of regions) provinces[g.prov].regions.push(g.id);
     W.province = prov; W.region = region; W.provinces = provinces; W.regions = regions;

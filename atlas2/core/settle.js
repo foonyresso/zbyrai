@@ -16,7 +16,7 @@
       }
       const wd = W.waterDist ? W.waterDist[i] : 9;
       let s = A.BIOMES[W.bio[i]].live * (1 - Math.min(1, slope * 14));
-      s += 0.3 * (river || W.river[i] ? 1 : 0) + 0.1 * coast + 0.15 * lake + 0.12 * Math.exp(-wd / 5);
+      s += 0.3 * (river || W.river[i] ? 1 : 0) + 0.0 * coast + 0.15 * lake + 0.12 * Math.exp(-wd / 5);
       suit[i] = Math.min(1, Math.max(0, s));
     }
     return suit;
