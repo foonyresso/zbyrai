@@ -6,7 +6,7 @@
   // вартість кроку i→j: гори, болота, лісу й великі річки «дорожчі», тож межі лягають по хребтах і річках
   function stepCost(W, j, diag) {
     const slope = Math.abs(W.elev[j] - W.elev[j - (diag ? 0 : 0)]);
-    return A.BIOMES[W.bio[j]].move * (1 + slope * 0) * (W.river[j] && W.acc[j] > 60 ? 2.2 : 1) * (diag ? 1.41 : 1);
+    return (1 + (A.BIOMES[W.bio[j]].move - 1) * 0.6) * (1 + slope * 0) * (W.river[j] && W.acc[j] > 60 ? 2.2 : 1) * (diag ? 1.41 : 1);
   }
   // seeds: [{i,label,mul}]; allowed(i) → bool; повертає Int16Array міток (-1 без мітки)
   function grow(W, seeds, allowed) {
@@ -63,5 +63,35 @@
       }
     }
   }
-  A.Grow = { grow, smooth, fixFragments, topNeighbor, stepCost };
+  // довгі тонкі «щупальця» провінцій: ядро = клітини глибше R від межі провінції; усе, що далі R від ядра, віддаємо сусідній провінції
+  function trimArms(lab, w, h, anchors) {
+    const N = w * h, D = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    const nb = (i, f) => { const x = i % w, y = (i / w) | 0; for (const [dx, dy] of D) { const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < w && ny < h) f(ny * w + nx); } };
+    const area = new Map(); for (let i = 0; i < N; i++) if (lab[i] >= 0) area.set(lab[i], (area.get(lab[i]) || 0) + 1);
+    for (let pass = 0; pass < 3; pass++) {
+      // глибина від межі провінції (берег теж межа)
+      const dep = new Int16Array(N).fill(-1), q = [];
+      for (let i = 0; i < N; i++) if (lab[i] >= 0) { let edge = false; const x = i % w, y = (i / w) | 0; for (const [dx, dy] of D) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h || lab[ny * w + nx] !== lab[i]) { edge = true; break; } } if (edge) { dep[i] = 0; q.push(i); } }
+      for (let a = 0; a < q.length; a++) { const i = q[a]; nb(i, j => { if (lab[j] === lab[i] && dep[j] < 0) { dep[j] = dep[i] + 1; q.push(j); } }); }
+      const R = new Map(); for (const [L, a] of area) R.set(L, Math.max(3, Math.min(16, Math.round(0.2 * Math.sqrt(a / Math.PI)))));
+      // ядро й його розширення на R клітин
+      const near = new Int16Array(N).fill(-1), q2 = [];
+      for (let i = 0; i < N; i++) if (lab[i] >= 0 && dep[i] >= R.get(lab[i])) { near[i] = 0; q2.push(i); }
+      for (let a = 0; a < q2.length; a++) { const i = q2[a]; if (near[i] >= R.get(lab[i])) continue; nb(i, j => { if (lab[j] === lab[i] && near[j] < 0) { near[j] = near[i] + 1; q2.push(j); } }); }
+      const hasCore = new Set(); for (const i of q2) if (near[i] === 0) hasCore.add(lab[i]);
+      // «щупальця» віддаються сусідам хвилею від межі всередину
+      const arm = new Uint8Array(N), inq = new Uint8Array(N); let fr = [], ch = 0;
+      for (let i = 0; i < N; i++) { const L = lab[i]; if (L >= 0 && near[i] < 0 && hasCore.has(L) && anchors[L] !== i) arm[i] = 1; }
+      for (let i = 0; i < N; i++) if (arm[i]) { fr.push(i); inq[i] = 1; }
+      for (let g = 0; g < 400 && fr.length; g++) {
+        const nx = [], mv = [];
+        for (const i of fr) { inq[i] = 0; if (!arm[i]) continue; const t = topNeighbor(lab, w, h, i, X => X !== lab[i], false); if (t.label >= 0) mv.push([i, t.label]); }
+        for (const [i, L] of mv) { lab[i] = L; arm[i] = 0; ch++; nb(i, j => { if (arm[j] && !inq[j]) { inq[j] = 1; nx.push(j); } }); }
+        fr = nx;
+      }
+      if (!ch) break;
+      area.clear(); for (let i = 0; i < N; i++) if (lab[i] >= 0) area.set(lab[i], (area.get(lab[i]) || 0) + 1);
+    }
+  }
+  A.Grow = { trimArms, grow, smooth, fixFragments, topNeighbor, stepCost };
 })();

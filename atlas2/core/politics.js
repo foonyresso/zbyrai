@@ -66,6 +66,8 @@
     }
     G.smooth(prov, w, h, () => true, 2);
     G.fixFragments(prov, w, h, caps, 25, () => true);
+    G.trimArms(prov, w, h, caps);
+    G.fixFragments(prov, w, h, caps, 25, () => true);
     // регіони всередині кожної провінції
     const region = new Int16Array(N).fill(-1), regions = [];
     for (let k = 0; k < P; k++) {
