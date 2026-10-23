@@ -22,13 +22,13 @@
       if (RANKS.indexOf(rank) <= 2 && r() < 0.65) { const j = snap(i); if (j >= 0) i = j; }
       const x = i % w, y = (i / w) | 0, pr = POP[rank]; let coast = 0, body = null;
       for (let dy = -1; dy <= 1 && body === null; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (W.ocean[j]) { coast = 1; body = -1; break; } if (W.lake[j] && bigLake.has(W.lakeOf[j])) { coast = 1; body = W.lakeOf[j]; } }
-      const s = { id: S.length, name: names.town(W.province[i] >= 0 ? names.mix(W.provinces[W.province[i]].culture) : names.culture()), rank, i, x, y, prov: W.province[i], region: W.region[i], landmass: W.landmass[i], port: !!coast && RANKS.indexOf(rank) <= 2, body, river: false, pop: Math.round(pr[0] + (pr[1] - pr[0]) * Math.pow(r(), 1.5)) };
+      const s = { id: S.length, name: names.town(names.lang()), rank, i, x, y, prov: W.province[i], region: W.region[i], landmass: W.landmass[i], port: !!coast && RANKS.indexOf(rank) <= 2, body, river: false, pop: Math.round(pr[0] + (pr[1] - pr[0]) * Math.pow(r(), 1.5)) };
       for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && W.river[ny * w + nx]) s.river = true; }
       S.push(s); const k = bk(x, y); (buckets.get(k) || buckets.set(k, []).get(k)).push(s); return s;
     }
     // провінції й регіони: назви, центри
-    W.provinces.forEach(p => { p.culture = names.culture(); p.cultureName = A.Names.CULTURES[p.culture].name; p.name = names.province(p.culture); });
-    W.regions.forEach(g => { g.name = names.region(W.provinces[g.prov].culture); const s = add(g.centerCell, g.isCapitalRegion ? 'capital' : 'regional'); g.centerCell = s.i; g.center = s.id; g.centerName = s.name; if (g.isCapitalRegion) W.provinces[g.prov].capital = s.id; });
+    W.provinces.forEach(p => { p.name = names.province(names.lang()); });
+    W.regions.forEach(g => { g.name = names.region(names.lang()); const s = add(g.centerCell, g.isCapitalRegion ? 'capital' : 'regional'); g.centerCell = s.i; g.center = s.id; g.centerName = s.name; if (g.isCapitalRegion) W.provinces[g.prov].capital = s.id; });
     // міста, села, хутори: за придатністю з мінімальними відстанями
     const byRegion = W.regions.map(() => []);
     for (let i = 0; i < N; i++) if (W.region[i] >= 0 && W.land[i] && !W.lake[i] && !W.river[i] && W.suit[i] >= 0.12) byRegion[W.region[i]].push(i);
@@ -56,7 +56,7 @@
       if (own.has(m.id) || m.area < 12) continue; const cells = []; let owned = false; for (let i = 0; i < N; i++) if (W.landmass[i] === m.id) { if (W.province[i] >= 0) owned = true; if (!W.lake[i] && !W.river[i] && W.suit[i] >= 0.1) cells.push(i); }
       if (owned) continue;
       const want = Math.min(12, Math.max(1, Math.round(cells.length / 500 * (0.6 + 0.8 * r())))), sc = cells.map(i => [Math.pow(W.suit[i], 0.4) * (0.3 + r()), i]).sort((a, b) => b[0] - a[0]); let got = 0;
-      for (const [, i] of sc) { if (got >= want) break; if (near(i % w, (i / w) | 0, 8 * (0.7 + 0.7 * r()))) continue; const rk = got === 0 && cells.length > 400 ? 'town' : got < 3 ? 'village' : 'hamlet', x = i % w, y = (i / w) | 0; const s = { id: S.length, name: names.town(names.culture()), rank: rk, i, x, y, prov: -1, region: -1, landmass: m.id, port: false, body: null, river: false, pop: 0, ruined: true }; S.push(s); (buckets.get(bk(x, y)) || buckets.set(bk(x, y), []).get(bk(x, y))).push(s); got++; }
+      for (const [, i] of sc) { if (got >= want) break; if (near(i % w, (i / w) | 0, 8 * (0.7 + 0.7 * r()))) continue; const rk = got === 0 && cells.length > 400 ? 'town' : got < 3 ? 'village' : 'hamlet', x = i % w, y = (i / w) | 0; const s = { id: S.length, name: names.town(names.lang()), rank: rk, i, x, y, prov: -1, region: -1, landmass: m.id, port: false, body: null, river: false, pop: 0, ruined: true }; S.push(s); (buckets.get(bk(x, y)) || buckets.set(bk(x, y), []).get(bk(x, y))).push(s); got++; }
     }
     W.settlements = S;
     labelAnchors(W);
