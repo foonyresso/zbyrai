@@ -15,6 +15,11 @@
     const S = 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
     const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };
     c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
+    if (W.tier) { // шар небезпеки: по пікселю на клітину, масштабується згладжено
+      const d = new ImageData(w, h), COL = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]];
+      for (let i = 0; i < w * h; i++) { const q = COL[W.tier[i]]; if (q) { d.data[i * 4] = q[0]; d.data[i * 4 + 1] = q[1]; d.data[i * 4 + 2] = q[2]; d.data[i * 4 + 3] = q[3]; } }
+      c.danger = toCanvas(d);
+    }
     c.maxAcc = 1; for (let i = 0; i < W.acc.length; i++) if (W.acc[i] > c.maxAcc) c.maxAcc = W.acc[i]; cache.set(W, c); return c;
   }
   const path = (ctx, loops) => { ctx.beginPath(); for (const p of loops) { ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); ctx.closePath(); } };
@@ -29,6 +34,7 @@
     ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
     ctx.save(); path(ctx, c.land); ctx.clip(); ctx.drawImage(c.landImg, 0, 0, W.w, W.h);
     if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });
+    if (L.danger && c.danger) ctx.drawImage(c.danger, 0, 0, W.w, W.h);
     if (L.borders) {
       ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(70,50,30,.45)'; ctx.lineWidth = 1 * px; ctx.setLineDash([4 * px, 3 * px]);
       const strokeChains = (chains, ok) => { ctx.beginPath(); for (const ch of chains) { if (!ok(ch)) continue; const p = ch.pts; ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); if (ch.closed) ctx.closePath(); } ctx.stroke(); };
@@ -40,6 +46,7 @@
     if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші; озера малюються поверх, тож річка входить у озеро й виходить з нього
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
     if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k, c.geom);
+    if (A.drawSites && L.sites) A.drawSites(ctx, W, px, k, L);
     if (A.drawPlaces && (L.places || L.labels)) A.drawPlaces(ctx, W, px, k, L, PALETTE);
   }
   // лінійка відстані (екранні координати): «гарне» число кілометрів, довжина смуги ~ 110–200 пікселів
@@ -72,11 +79,13 @@
     paths.forEach((pa, b) => { ctx.lineWidth = Math.max(1.7 * px, 0.12 + b * 0.07); ctx.stroke(pa); });
   }
   // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
-  function drawHover(cv, W, view, id, level) {
+  function drawHover(cv, W, view, id, level, mark) {
     const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     scaleBar(ctx, cv, W, view.k); // лінійка на шарі поверх карти: під час руху камери перераховується, а не їде разом із картинкою
+    ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty);
+    if (mark) { ctx.beginPath(); ctx.arc(mark.x + 0.5, mark.y + 0.5, 9 / view.k, 0, 6.2832); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 2.5 / view.k; ctx.stroke(); ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 1 / view.k; ctx.stroke(); }
     const c = prep(W), polys = level === 'prov' ? c.provs : c.regs; if (id == null || !level || !polys[id]) return;
-    ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty); path(ctx, polys[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
+    path(ctx, polys[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
   }
   A.draw = { draw, drawHover, prep, PALETTE };
 })();

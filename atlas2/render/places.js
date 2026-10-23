@@ -45,6 +45,22 @@
     const rs = RS * k, ra = fade(rs, 9, 14, 40, 70);
     if (ra > 0.02) { ctx.font = `italic 600 ${RS}px Georgia, 'Times New Roman', serif`; for (const g of W.regions) if (g.label) { const wd = ctx.measureText(g.name).width; if (wd > Math.sqrt(g.label.size) * 1.9) continue; alongPath(ctx, [g.label.x - wd / 2, g.label.y, g.label.x + wd / 2, g.label.y], g.name, RS, 0.08, ra * 0.8, 'rgba(60,44,30,1)', 'rgba(255,255,255,.6)'); } }
   }
+  // локації: форма й колір за категорією; більші небезпеки видно здалеку, дрібні — лише зблизька
+  const SC = { m: '#c0392b', b: '#d9822b', r: '#8a8578', n: '#4f9a52', e: '#8b6b3e', k: '#d4b13a' };
+  A.drawSites = function (ctx, W, px, k, L) {
+    if (!W.sites) return; const minTier = k >= 5 ? 0 : k >= 3 ? 3 : k >= 1.2 ? 4 : 99; ctx.lineJoin = 'round';
+    for (const s of W.sites) {
+      if (s.tier < minTier && !(s.tier >= 3 && k >= 3)) continue; const x = s.x + 0.5, y = s.y + 0.5, r = (s.tier >= 4 ? 5.2 : s.tier >= 3 ? 4.4 : 3.4) * px;
+      ctx.beginPath();
+      if (s.cat === 'm') { ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r, y); ctx.closePath(); }
+      else if (s.cat === 'b') { ctx.moveTo(x, y - r * 1.15); ctx.lineTo(x + r * 1.05, y + r * 0.8); ctx.lineTo(x - r * 1.05, y + r * 0.8); ctx.closePath(); }
+      else if (s.cat === 'r' || s.cat === 'e') ctx.rect(x - r * 0.85, y - r * 0.85, r * 1.7, r * 1.7);
+      else ctx.arc(x, y, r * 0.9, 0, 6.2832);
+      ctx.fillStyle = SC[s.cat]; ctx.fill(); ctx.strokeStyle = s.tier >= 3 ? '#2a0f0f' : 'rgba(30,20,10,.85)'; ctx.lineWidth = (s.tier >= 3 ? 1.6 : 1) * px; ctx.stroke();
+      if (L.labels && k >= 9) { ctx.font = `italic 600 ${9.5 * px}px sans-serif`; ctx.fillStyle = '#3a2a22'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name, x + r + 3 * px, y); ctx.fillText(s.name, x + r + 3 * px, y); }
+    }
+  };
+  A.SITE_COLORS = SC;
   A.drawPlaces = function (ctx, W, px, k, L, PAL) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     const halo = (t, x, y) => { ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };

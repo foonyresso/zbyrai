@@ -11,10 +11,10 @@
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
   function resetView() { const k = Math.min(cv.width / W.w, cv.height / W.h) * 0.96; view = { k, tx: (cv.width - W.w * k) / 2, ty: (cv.height - W.h * k) / 2 }; }
   // повне перемальовування; під час руху лише дешево зсуваємо/масштабуємо вже намальований кадр (CSS), а справжній кадр малюємо, коли рух стих
-  function redraw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover, W && levelNow()); hoverKey = ''; if (last) hoverAt(last); }); }
+  function redraw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover, W && levelNow()); hlKey = infoKey = ''; if (last) hoverAt(last); }); }
   function moving() {
     const s = view.k / shown.k, q = 1 / devicePixelRatio; cv.style.transform = `translate(${(view.tx - shown.tx * s) * q}px, ${(view.ty - shown.ty * s) * q}px) scale(${s})`;
-    A.draw.drawHover(ov, W, view, null, null); clearTimeout(settle); settle = setTimeout(redraw, 140);
+    A.draw.drawHover(ov, W, view, null, null); hlKey = infoKey = ''; clearTimeout(settle); settle = setTimeout(redraw, 140);
   }
   function build() {
     const p = readParams(); W = A.generate(p); writeParams(W.params); fit(); resetView(); redraw();
@@ -38,30 +38,61 @@
     if (drag) { view.tx = drag.tx + (e.clientX - drag.x) * devicePixelRatio; view.ty = drag.ty + (e.clientY - drag.y) * devicePixelRatio; moving(); return; }
     hoverAt(e);
   });
-  // наведення: найближче поселення (до 10 px) або регіон під курсором; підсвітка регіону й картка
+  // наведення: поселення або локація (до 10 px), інакше клітина під курсором; підсвітка регіону/провінції на верхньому шарі, а картка складається з блоків
   // рівень підсвітки від масштабу (довжина лінійки): далеко — провінції, ближче — регіони, зовсім близько — без підсвітки
   const levelNow = () => { const bar = 150 * devicePixelRatio * W.params.kmPerCell / view.k; return bar >= 10 ? 'prov' : bar >= 2 ? 'reg' : null; };
+  let hlKey = '', infoKey = '';
   function hoverAt(e) {
     if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
-    const reg = x >= 0 && y >= 0 && x < W.w && y < W.h ? W.regW[y * W.w + x] : -1, level = levelNow();
-    let near = null, bd = (10 * devicePixelRatio / view.k) ** 2; for (const s of W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
-    const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, key = level + '|' + id + '|' + (near ? near.id : '');
-    if (key !== hoverKey) { hoverKey = key; hover = id; A.draw.drawHover(ov, W, view, hover, level); showInfo(rid, near, level); }
+    const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
+    let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
+    let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
+    const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = near || site;
+    const k1 = level + '|' + id + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
+    if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, view, hover, level, mark); }
+    const k2 = (near ? near.id : '') + '|' + (site ? site.id : '') + '|' + (inside ? cell : -1);
+    if (k2 !== infoKey) { infoKey = k2; showInfo(inside ? cell : -1, rid, near, site); }
   }
-  let hoverKey = '';
-  function showInfo(id, s, level) {
-    if (s && s.ruined) { info.innerHTML = `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>Руїни${s.rank === 'town' ? ' міста' : s.rank === 'village' ? ' села' : ' хутора'}</dd><dt>Власник</dt><dd>нічия земля</dd><dt>Координати</dt><dd>X ${(s.x * W.params.kmPerCell + 0.1).toFixed(1).replace('.', ',')} · Y ${(s.y * W.params.kmPerCell + 0.1).toFixed(1).replace('.', ',')} км</dd></dl>`; info.hidden = false; return; }
-    if (id == null || (!s && !level)) { info.hidden = true; return; }
-    const g = W.regions[id], p = W.provinces[g.prov];
-    const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };
-    const kmx = n => (n * W.params.kmPerCell).toFixed(1).replace('.', ','), coord = s ? `<dt>Координати</dt><dd>X ${kmx(s.x + 0.5)} · Y ${kmx(s.y + 0.5)} км</dd>` : '';
-    const city = s ? `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>${RN[s.rank]}${s.port ? ', порт' : ''}</dd><dt>Провінція</dt><dd>${p.name}</dd><dt>Регіон</dt><dd>${g.name}</dd>${coord}<dt>Рівень</dt><dd>${g.level} з 10 (регіон)</dd><dt>Населення</dt><dd>${s.pop.toLocaleString('uk')}</dd><dt>Біля річки</dt><dd>${s.river ? 'так' : 'ні'}</dd></dl>${level ? '<hr>' : ''}` : '';
-    const fmt = n => n.toLocaleString('uk'), kmc = W.params.kmPerCell ** 2;
-    const body = level === 'prov' ? `<h4>${p.name}</h4><dl><dt>Столиця</dt><dd>${W.settlements[p.capital].name}</dd><dt>Регіонів</dt><dd>${p.regions.length}</dd><dt>Населення</dt><dd>${fmt(p.pop)}</dd><dt>Площа</dt><dd>${fmt(Math.round(p.area * kmc))} км²</dd></dl>`
-      : level === 'reg' ? `<h4>${g.name}<br><small>${p.name}</small></h4><dl><dt>Головне місто</dt><dd>${g.centerName || '—'}</dd><dt>Населення</dt><dd>${g.pop ? fmt(g.pop) : '—'}</dd><dt>Місцевість</dt><dd>${g.terrain || '—'}</dd><dt>Площа</dt><dd>${fmt(Math.round(g.area * kmc))} км²</dd></dl>` : '';
-    info.innerHTML = city + body;
-    info.hidden = false;
+  const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const TIER_COL = ['#7bbf6a', '#e6cf4a', '#f0a23c', '#e0642f', '#c0302f', '#8a1f58', '#3c0a4a'];
+  const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };
+  function showInfo(cell, rid, s, site) {
+    if (cell < 0 && !s) { info.hidden = true; return; }
+    const D = A.Danger, fmt = n => n.toLocaleString('uk'), kmc = W.params.kmPerCell ** 2, K = W.params.kmPerCell, sg = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(1).replace('.', ',');
+    const row = (a, b) => `<dt>${a}</dt><dd>${b}</dd>`, blk = (lb, body) => `<div class="blk"><div class="lb">${lb}</div>${body}</div>`;
+    const lv = (v, mn, mx) => `${v} <span class="muted">(${mn}–${mx})</span>`;
+    const px = s ? s.x + 0.5 : cell % W.w + 0.5, py = s ? s.y + 0.5 : ((cell / W.w) | 0) + 0.5, i = cell >= 0 ? cell : s.i;
+    const g = rid != null ? W.regions[rid] : null, p = g ? W.provinces[g.prov] : null, out = [];
+    // 1. провінція
+    out.push(blk('Провінція', p ? `<h4>${esc(p.name)}</h4><dl>${row('Столиця', esc(W.settlements[p.capital].name))}${row('Регіонів', p.regions.length)}${row('Рівень (сер.)', lv(p.level, p.levelMin, p.levelMax))}${row('Населення', fmt(p.pop))}${row('Площа', fmt(Math.round(p.area * kmc)) + ' км²')}</dl>` : `<h4 class="muted">${W.land[i] ? 'Нічия земля' : 'Нічия вода'}</h4>`));
+    // 2. регіон
+    if (g) out.push(blk('Регіон', `<h4>${esc(g.name)}</h4><dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення', g.pop ? fmt(g.pop) : '—')}${row('Місцевість', esc(g.terrain || '—'))}${row('Площа', fmt(Math.round(g.area * kmc)) + ' км²')}</dl>`));
+    // 3. координати від нульової точки (центр карти): X на схід, Y на північ
+    const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K;
+    out.push(blk('Координати', `<dl>${row('X (схід)', sg(dx) + ' км')}${row('Y (північ)', sg(dy) + ' км')}${row('Від центру', Math.hypot(dx, dy).toFixed(1).replace('.', ',') + ' км')}</dl>`));
+    // 4. місцевість у клітині
+    const land = W.land[i] && !W.lake[i], terr = [];
+    if (land) {
+      const gn = D.groupName(W, i), h = D.heightM(W, i); terr.push(row('Ландшафт', D.GROUP_UA[gn] || gn), row('Висота', fmt(h) + ' м'), row('Рівень місця', W.level[i]));
+      const tl = W.tier[i]; terr.push(row('Небезпека', `<span class="tier" style="background:${TIER_COL[tl]}"></span>${D.TIERS[tl]}`));
+      let nd = 1e18, ns = null; for (const q of W.settlements) { if (q.ruined) continue; const d = (q.x - px) ** 2 + (q.y - py) ** 2; if (d < nd) { nd = d; ns = q; } }
+      if (ns) terr.push(row('Найближче поселення', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
+      if (W.river[i]) terr.push(row('Річка', 'так'));
+    } else terr.push(row('Місцевість', W.lake[i] ? 'Озеро' : W.ocean[i] ? 'Море' : 'Вода'));
+    let enc = ''; if (land && W.tier[i] > 0) { const E = D.encounter(W, i); enc = `<p class="muted">Тут водяться: ${E.species.map(q => `${esc(q.name)} (${q.kind}, ${q.level} р.)`).join('; ')}</p>`; }
+    out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${enc}`));
+    // 5. деталі місця під курсором
+    if (s) {
+      const body = s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}</dl>`
+        : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення', fmt(s.pop))}${row('Рівень місця', s.level)}${row('Біля річки', s.river ? 'так' : 'ні')}</dl>`;
+      out.push(blk('Деталі місця', body));
+    } else if (site) {
+      const mons = site.monsters.map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}${m.desc ? ' · ' + esc(m.desc) : ''}</small></div>`).join('');
+      out.push(blk('Деталі місця', `<h4>${esc(site.name)}</h4><dl>${row('Вид', esc(D.CATS[site.cat]))}${row('Небезпека', `<span class="tier" style="background:${TIER_COL[site.tier]}"></span>${D.TIERS[site.tier]}`)}${row('Рівень', site.level)}${row('Висота', fmt(D.heightM(W, site.i)) + ' м')}</dl>${mons || '<p class="muted">Мешканців немає — місце безпечне.</p>'}`));
+    }
+    info.innerHTML = out.join(''); info.hidden = false;
   }
+  cv.addEventListener('pointerleave', () => { if (!drag) { info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
 
   $('btnHelp').onclick = () => $('help').showModal();
   $('help').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });

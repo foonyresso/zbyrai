@@ -6,7 +6,7 @@
 <title>Атлас 2.0</title>
 <meta name="description" content="Атлас 2.0: генератор світу з одного зерна: ландшафт, річки за правилами стоку, міста, провінції, регіони й дороги.">
 <link rel="stylesheet" href="../medieval-world/theme.css">
-<link rel="stylesheet" href="style.css?v=2026102303">
+<link rel="stylesheet" href="style.css?v=2026102304">
 </head>
 <body>
 <header class="top">
@@ -19,14 +19,14 @@
   <h2>Атлас 2.0</h2>
   <h3>Що це</h3><p>Генератор світу з одного зерна. Спочатку ландшафт і річки (завжди течуть до моря, озера лише в западинах), потім міста, провінції (як країни), регіони (як області) та дороги між поселеннями.</p>
   <h3>Для чого</h3><p>Основа для гри й кампаній. Кожне зерно дає унікальний світ, однакове зерно з тими самими параметрами завжди дає той самий світ.</p>
-  <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує поселення, регіон і провінцію.</li><li>Шари вмикаються в лівій панелі.</li></ol>
+  <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує блоками провінцію, регіон, координати, місцевість і деталі місця під курсором (поселення, лігво, табір, руїни тощо).</li><li>Нульові координати — центр карти. Рівень росте з відстанню від нього (приблизно 1 рівень на 2,5 км); рівень регіону — середній по його землях, провінції — середній по її регіонах. Чим далі від поселень, тим сильніші монстри (шар «Небезпека»).</li><li>Шари вмикаються в лівій панелі.</li></ol>
 </dialog>
 <section class="work">
   <aside class="panel">
     <label title="Зерно світу: будь-який текст чи число; те саме зерно дає той самий світ">Зерно<input id="seed" type="text"></label>
     <button id="btnRandom" title="Підібрати випадкове зерно і створити новий світ">Випадкове</button>
     <label title="Основний світ: один материк з островами; Острівний: архіпелаг із багатьох островів">Тип світу<select id="worldType"><option value="continent">Основний світ</option><option value="islands">Острівний світ</option></select></label>
-    <label title="Розмір карти в клітинах; одна клітина дорівнює 2 км">Розмір<select id="size"><option value="small">Мала</option><option value="medium" selected>Середня</option><option value="large">Велика</option></select></label>
+    <label title="Розмір карти в клітинах; одна клітина дорівнює 250 м">Розмір<select id="size"><option value="small">Мала</option><option value="medium" selected>Середня</option><option value="large">Велика</option></select></label>
     <label title="Кількість провінцій (як країн): від 2 до 50; розміри різні">Провінцій<input id="provinces" type="number" min="2" max="50" value="12"></label>
     <label title="Скільки регіонів (як областей) у середньому в провінції: від 2 до 24; у кожної провінції число своє">Регіонів у провінції<input id="regionsPerProvince" type="number" min="2" max="24" value="8"></label>
     <label title="Скільки міст і сіл: менше значення дає менше поселень, більше дає більше">Щільність поселень<input id="density" type="range" min="0.3" max="2.2" step="0.1" value="1"></label>
@@ -38,13 +38,15 @@
       <label class="chk" title="Річки"><input type="checkbox" data-layer="rivers" checked>Річки</label>
       <label class="chk" title="Дороги між поселеннями"><input type="checkbox" data-layer="roads" checked>Дороги</label>
       <label class="chk" title="Міста, села й хутори"><input type="checkbox" data-layer="places" checked>Поселення</label>
+      <label class="chk" title="Лігва монстрів, табори бандитів, руїни, печери, шахти, джерела й інші місця"><input type="checkbox" data-layer="sites" checked>Локації</label>
+      <label class="chk" title="Підсвітка небезпеки: що далі від поселень, то страшніші монстри"><input type="checkbox" data-layer="danger">Небезпека</label>
       <label class="chk" title="Підписи провінцій, регіонів і міст"><input type="checkbox" data-layer="labels" checked>Підписи</label>
     </fieldset>
     <p id="stats" class="stats"></p>
-    <p class="stats" title="Умовні позначки поселень">Позначки: ◉ столиця, ● центр регіону, ○ місто/село/хутір (за розміром кружка). Значок якоря — порт (на морі чи великому озері). Суцільна товста лінія — головна дорога, пунктир — путівець; білий пунктир — водний шлях між портами.</p>
+    <p class="stats" title="Умовні позначки поселень">Позначки: ◉ столиця, ● центр регіону, ○ місто/село/хутір (за розміром кружка). Значок якоря — порт (на морі чи великому озері). Суцільна товста лінія — головна дорога, пунктир — путівець; білий пунктир — водний шлях між портами. Локації: червоний ромб — місця монстрів, помаранчевий трикутник — бандити, сірий квадрат — руїни й давнина, зелене коло — природа, коричневий квадрат — покинуте господарство, жовте коло — святі місця; більший значок — небезпечніше місце.</p>
   </aside>
   <div class="stage" id="stage"><canvas id="map"></canvas><canvas id="over"></canvas><div id="info" class="info" hidden></div></div>
 </section>
-<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102303'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/generate','core/serialize','render/contours','render/raster','render/draw','render/roadgeom','render/places','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
+<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102304'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/bestiary','core/danger','core/generate','core/serialize','render/contours','render/raster','render/draw','render/roadgeom','render/places','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
 </body>
 </html>

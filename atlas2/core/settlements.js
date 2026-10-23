@@ -48,7 +48,7 @@
     for (const s of S) if (s.rank === 'town') { const cap = S[W.regions[s.region].center].pop; s.pop = Math.min(s.pop, Math.round(cap * 0.55)); }
     for (const s of S) { if (s.region >= 0) W.regions[s.region].pop += s.pop; }
     const maxPop = Math.max(1, ...W.regions.map(g => g.pop));
-    W.regions.forEach(g => { g.level = Math.max(1, Math.round(1 + 9 * g.pop / maxPop)); });
+    W.regions.forEach(g => { g.popLevel = Math.max(1, Math.round(1 + 9 * g.pop / maxPop)); });
     W.provinces.forEach(p => { p.pop = 0; p.area = 0; for (const id of p.regions) { p.pop += W.regions[id].pop; p.area += W.regions[id].area; } });
     // нічиї острови (далеко від провінцій): лише зруйновані поселення, без населення й доріг
     const own = new Set(); for (const g of S) own.add(g.landmass);
