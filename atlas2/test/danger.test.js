@@ -14,9 +14,17 @@ for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['
   W.regions.forEach((g, k) => { if (cnt[k]) assert.equal(g.level, Math.round(sum[k] / cnt[k]), `${t}: рівень регіону`); assert.ok(g.levelMin <= g.level && g.level <= g.levelMax); });
   for (const p of W.provinces) assert.equal(p.level, Math.round(p.regions.reduce((a, id) => a + W.regions[id].level, 0) / p.regions.length), `${t}: рівень провінції`);
   // небезпека: біля поселень безпечно, і навпаки — далеко від усіх живих поселень не буває «безпечно»
-  const live = W.settlements.filter(s => !s.ruined); let seen = 0;
+  const live = W.settlements.filter(s => !s.ruined && !s.fate); let seen = 0;
   for (let i = 0; i < N; i += 3) { if (!W.land[i] || W.lake[i]) continue; const x = i % w, y = i / w | 0; let d = 1e9; for (const s of live) d = Math.min(d, Math.hypot(s.x - x, s.y - y)); d *= K;
-    if (d > 6) { assert.ok(W.tier[i] >= 1, `${t}: безпечна клітина за ${d} км від поселень`); seen++; } if (d < 0.2) assert.equal(W.tier[i], 0, `${t}: небезпека біля поселення`); }
+    if (d > 6) { assert.ok(W.tier[i] >= 1, `${t}: безпечна клітина за ${d} км від поселень`); seen++; } if (d < 0.2 && !W.settlements.some(q => q.fate && Math.hypot(q.x - x, q.y - y) <= 9)) assert.equal(W.tier[i], 0, `${t}: небезпека біля поселення`); }
+  // доля поселень: деякі зруйновані чи окуповані, але не столиці й не центри регіонів; окуповані мають мешканців-монстрів
+  const fallen = W.settlements.filter(s => s.fate), nonRuin = W.settlements.filter(s => !s.ruined);
+  assert.ok(fallen.length >= nonRuin.length * 0.05 && fallen.length <= nonRuin.length * 0.3, `${t}: частка занепалих ${fallen.length}/${nonRuin.length}`);
+  for (const s of fallen) {
+    assert.ok(s.rank !== 'capital' && s.rank !== 'regional', `${t}: занепалий ${s.rank}`); assert.equal(s.pop, 0); assert.ok(s.popBefore > 0);
+    if (s.fate === 'occupied') { assert.ok(s.monsters.length > 0 && s.level >= 1, `${t}: окуповане без мешканців`); assert.ok(W.tier[s.i] >= 2, `${t}: окуповане в безпечній зоні`); } else assert.equal(s.fate, 'ruined');
+  }
+  for (const p of W.provinces) assert.equal(p.pop, p.regions.reduce((a, id) => a + W.regions[id].pop, 0), `${t}: населення провінції`);
   // локації
   assert.ok(W.sites.length > 20, `${t}: мало локацій`);
   const names = new Set();

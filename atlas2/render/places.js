@@ -70,7 +70,12 @@
       if (k < MINK[rank]) continue; const r = R[rank] * px;
       for (const s of W.settlements) {
         if (s.rank !== rank) continue; const x = s.x + 0.5, y = s.y + 0.5;
-        if (s.ruined) { // руїни: сіре порожнє коло із хрестиком
+        if (s.fate === 'occupied') { // окуповане: червоне коло із чорною обводкою й білим квадратиком
+          ctx.beginPath(); ctx.arc(x, y, Math.max(r * 1.2, 3.6 * px), 0, 6.2832); ctx.fillStyle = '#b3261e'; ctx.fill(); ctx.strokeStyle = '#1a0a08'; ctx.lineWidth = 1.8 * px; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect(x - r * 0.35, y - r * 0.35, r * 0.7, r * 0.7);
+          if (L.labels && k >= LBLK[rank]) { ctx.font = `italic 700 ${10 * px}px sans-serif`; ctx.fillStyle = '#7a1510'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name + ' (окуповано)', x + r + 2 * px, y); ctx.fillText(s.name + ' (окуповано)', x + r + 2 * px, y); ctx.textAlign = 'center'; }
+          continue;
+        }
+        if (s.ruined || s.fate === 'ruined') { // руїни: сіре порожнє коло із хрестиком
           ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = 'rgba(210,205,195,.85)'; ctx.fill(); ctx.strokeStyle = '#6a6358'; ctx.lineWidth = 1.2 * px; ctx.stroke();
           ctx.beginPath(); ctx.moveTo(x - r * 0.55, y - r * 0.55); ctx.lineTo(x + r * 0.55, y + r * 0.55); ctx.moveTo(x + r * 0.55, y - r * 0.55); ctx.lineTo(x - r * 0.55, y + r * 0.55); ctx.stroke();
           if (L.labels && k >= LBLK[rank]) { ctx.font = `italic 600 ${10 * px}px sans-serif`; ctx.fillStyle = '#5a5348'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name + ' (руїни)', x + r + 2 * px, y); ctx.fillText(s.name + ' (руїни)', x + r + 2 * px, y); ctx.textAlign = 'center'; }

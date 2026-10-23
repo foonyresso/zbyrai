@@ -10,8 +10,8 @@
   const KIND_UA = ['слабкий', 'звичайний', 'інший', 'міні-бос', 'бос', 'супербос', 'світовий бос'];
   const KT = [-1, 0, 1, 3, 4, 5, 6]; // небезпека → тип монстра в бестіарії (індекс у B.KINDS)
   const KIND_BONUS = [-2, 0, 0, 3, 6, 10, 15];
-  const REACH = { capital: 1.7, regional: 1.35, town: 1, village: 0.7, hamlet: 0.5 }; // у скільки разів поселення відсуває небезпеку
-  const THR = [0.5, 1.5, 3, 5, 8, 12]; // ефективні км до поселення, з яких починається рівень небезпеки 1..6
+  const REACH = { capital: 1.5, regional: 1.25, town: 1, village: 0.6, hamlet: 0.4 }; // у скільки разів поселення відсуває небезпеку
+  const THR = [0.35, 1, 2, 3.5, 5.5, 8]; // ефективні км до поселення, з яких починається рівень небезпеки 1..6
   const GI = {}; B.GROUPS.forEach((g, i) => GI[g] = i);
   const GROUP_UA = { peaks: 'Вершини', mountain: 'Гори', hills: 'Пагорби', grass: 'Рівнина', steppe: 'Степ', savanna: 'Савана', forest: 'Ліс', taiga: 'Тайга', jungle: 'Джунглі', swamp: 'Болото', desert: 'Пустеля', tundra: 'Тундра', snow: 'Сніги' };
   const CATS = { m: 'Монстри', b: 'Бандити', r: 'Руїни й давнина', n: 'Природа', e: 'Господарство', k: 'Святе місце' };
@@ -91,10 +91,18 @@
       group[i] = GI[g] != null ? GI[g] : GI.grass;
     }
     W.group = group;
+    // доля поселень: частина сіл і міст (не столиці й не центри регіонів) зруйнована або окупована монстрів/бандитами; чим далі від центру, тим частіше
+    const fr = A.Rng.stream(W.params.seed, 'fates'), dmax = Math.hypot(w, h) / 2, PF = { town: 0.1, village: 0.16, hamlet: 0.2 };
+    for (const s of W.settlements) {
+      if (s.ruined || !PF[s.rank]) continue;
+      if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;
+      s.fate = fr() < 0.4 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = fr() < 0.3 ? 'bandits' : 'monsters';
+      s.popBefore = s.pop; if (s.region >= 0) { W.regions[s.region].pop -= s.pop; W.provinces[W.regions[s.region].prov].pop -= s.pop; } s.pop = 0;
+    }
     // небезпека за відстанню до живих поселень
     const eff = new Float32Array(N).fill(1e9);
     for (const rank of Object.keys(REACH)) {
-      const srcs = []; for (const s of W.settlements) if (!s.ruined && s.rank === rank) srcs.push(s.i);
+      const srcs = []; for (const s of W.settlements) if (!s.ruined && !s.fate && s.rank === rank) srcs.push(s.i);
       if (!srcs.length) continue; const d = distField(w, h, srcs), k = km / REACH[rank];
       for (let i = 0; i < N; i++) { const v = d[i] * k; if (v < eff[i]) eff[i] = v; }
     }
@@ -104,6 +112,15 @@
       const e = eff[i] * Math.min(1.35, Math.max(0.7, 1 + (nz.fbm(x * 0.035 + 40, y * 0.035 + 7, 3) - 0.5) * 3));
       let t = 0; while (t < THR.length && e >= THR[t]) t++; tier[i] = t;
       dens[i] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + (nz.fbm(x * 0.02 + 90, y * 0.02 + 3, 3) - 0.5) * 4.5)));
+    }
+    // навколо окупованих і зруйнованих поселень небезпека не нижча за мінімум: у серці окупації найвища
+    const FR = { town: 8, village: 5, hamlet: 4 }, FB = { town: 4, village: 3, hamlet: 3 };
+    for (const s of W.settlements) {
+      if (!s.fate) continue; const R = FR[s.rank];
+      for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+        const x = s.x + dx, y = s.y + dy; if (x < 0 || y < 0 || x >= w || y >= h) continue; const i = y * w + x, d = Math.hypot(dx, dy); if (d > R || !W.land[i] || W.lake[i]) continue;
+        const f = s.fate === 'occupied' ? FB[s.rank] - (d > R / 2 ? 1 : 0) : (d <= R / 2 ? 2 : 1); if (tier[i] < f) tier[i] = f;
+      }
     }
     W.tier = tier; W.dens = dens;
     // середні рівні регіонів і провінцій
@@ -143,12 +160,18 @@
       if (k >= 3) { const ek = k === 3 ? 1 : k - 1, ep = pool(ek, g); if (ep.length) lead.push(mon(pickIdx(ep), ek <= 1 ? 2 + Math.floor(r() * 4) : 1 + Math.floor(r() * 2), W, i)); if (k >= 5) { const ep2 = pool(1, g); if (ep2.length) lead.push(mon(pickIdx(ep2), 3 + Math.floor(r() * 4), W, i)); } }
       return lead;
     }
-    const target = Math.round(landCells.length / 260);
-    for (let t = 0; t < target * 10 && out.length < target; t++) {
+    // окуповані поселення: мешканці-монстри (або бандити); сила за небезпекою навколо
+    for (const q of W.settlements) {
+      if (q.fate !== 'occupied') continue; const tier = Math.max(3, W.tier[q.i]), g = W.group[q.i];
+      q.monsters = crew({ mon: 1, bandits: q.occupier === 'bandits', big: q.rank === 'town', pack: [5, 10] }, tier, g, q.i); const lead = q.monsters[0];
+      q.level = lead ? Math.max(1, W.level[q.i] + KIND_BONUS[lead.kindIdx]) : W.level[q.i];
+    }
+    const target = Math.round(landCells.length / 130);
+    for (let t = 0; t < target * 14 && out.length < target; t++) {
       const wantRiver = r() < 0.04 && riverCells.length, i = wantRiver ? riverCells[Math.floor(r() * riverCells.length)] : landCells[Math.floor(r() * landCells.length)];
       const x = i % w, y = (i / w) | 0, tier = W.tier[i], g = W.group[i]; if (g === 255 || W.river[i] && !wantRiver) continue;
-      if (tier >= 1 && r() > 0.25 + 0.75 * W.dens[i] / 255) continue; // щільніші й порожніші частини світу
-      if (tier === 0 && r() > 0.35) continue;
+      if (tier >= 1 && r() > 0.45 + 0.55 * W.dens[i] / 255) continue; // щільніші й порожніші частини світу
+      if (tier === 0 && r() > 0.25) continue;
       const gname = B.GROUPS[g], opts = TYPES.filter(T => tier >= T.t[0] && tier <= T.t[1] && (!T.g || T.g.indexOf(gname) >= 0) && !!T.river === wantRiver);
       if (!opts.length) continue; let tw = opts.reduce((a, T) => a + T.w, 0), pick = r() * tw, type = opts[0]; for (const T of opts) { pick -= T.w; if (pick <= 0) { type = T; break; } }
       if (nearS(x, y, 4) || near(x, y, SP[tier])) continue;

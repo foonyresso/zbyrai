@@ -82,7 +82,9 @@
     out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${enc}`));
     // 5. деталі місця під курсором
     if (s) {
-      const body = s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}</dl>`
+      const nobody = s.fate === 'occupied' ? s.monsters.slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('') : '';
+      const body = s.fate ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.fate === 'occupied' ? ' — <b style="color:#b3261e">окуповане ' + (s.occupier === 'bandits' ? 'бандитами' : 'монстрами') + '</b>' : ' — <b>зруйноване</b>'))}${row('Було мешканців', fmt(s.popBefore))}${s.fate === 'occupied' ? row('Рівень загрози', s.level) : ''}</dl>${nobody}`
+        : s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}</dl>`
         : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>`;
       out.push(blk('Деталі місця', body));
     } else if (site) {
