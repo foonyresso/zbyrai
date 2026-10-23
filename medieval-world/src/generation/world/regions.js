@@ -259,22 +259,37 @@ function provIdx(p) {
 }
 const provCol = (p) => PAL[provIdx(p) % PAL.length];
 const RW = [0, 0, 0, 0, 250, 500, 800];
-/* регіон точки: найближче місто з адитивними вагами; координати «розхитані» шумом → межі органічні, а не прямі */
+/* регіон точки: найближче місто з адитивними вагами, до якого є суша без води по прямій (регіон не рветься на шматки); координати «розхитані» шумом → межі органічні, а не прямі */
 function regAt(x, y) {
   const sd = WLD.s,
     wx = x + (fbm(x / 2600 + 11, y / 2600, sd + 501, 3) - .5) * 3200,
     wy = y + (fbm(x / 2600, y / 2600 + 7, sd + 502, 3) - .5) * 3200;
-  let best = null, bd = 1e9;
+  const cand = [];
   for (const h of hlist(x, y)) {
     const dd = Math.hypot(h.x - wx, h.y - wy);
     if (dd > 10000) continue;
-    const d = dd - RW[h.tier] - (isCap(h) ? 400 : 0);
-    if (d < bd) {
-      bd = d;
-      best = h;
-    }
+    cand.push([dd - RW[h.tier] - (isCap(h) ? 400 : 0), h]);
   }
+  cand.sort((a, b) => a[0] - b[0]);
+  let best = cand.length ? cand[0][1] : null;
   if (best && eland(x, y) > 0) {
+    /* регіон суцільний: беремо найближче місто, до якого від точки є суходільна пряма; інакше (острів) — як було */
+    let pick = null;
+    for (const [, h] of cand.slice(0, 6)) {
+      const L = Math.hypot(h.x - x, h.y - y), n = Math.min(24, Math.max(5, Math.ceil(L / 400)));
+      let ok = true;
+      for (let t = 1; t < n; t++) {
+        if (eland(x + (h.x - x) * t / n, y + (h.y - y) * t / n) <= 0) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        pick = h;
+        break;
+      }
+    }
+    if (pick) return pick;
     let w = 0;
     for (let t = 1; t <= 5; t++) {
       if (eland(x + (best.x - x) * t / 6, y + (best.y - y) * t / 6) <= 0) w++;
