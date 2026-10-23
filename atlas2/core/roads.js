@@ -55,7 +55,7 @@
       if (minNew) { let n = 0; for (const c of p) if (!level[c]) n++; if (n < minNew) return false; }
       commit(p, lvl); return true;
     }
-    const byLm = new Map(); for (const s of S) (byLm.get(s.landmass) || byLm.set(s.landmass, []).get(s.landmass)).push(s);
+    const byLm = new Map(); for (const s of S) if (!s.ruined) (byLm.get(s.landmass) || byLm.set(s.landmass, []).get(s.landmass)).push(s);
     for (const group of byLm.values()) {
       group.sort((a, b) => rank(a) - rank(b) || b.pop - a.pop);
       const cellsOf = new Set(); // клітини під'єднаних поселень

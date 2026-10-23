@@ -4,7 +4,9 @@ const assert = require('node:assert/strict'), A = require('../core/index.js'), {
 for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
   const t = `${worldType}/${seed}`, W = A.generate({ seed, worldType, size: 'small' }), N = W.w * W.h;
   assert.ok(W.provinces.length >= 1, t);
-  for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i]) { assert.ok(W.region[i] >= 0, `${t}: суша без регіону`); assert.equal(W.province[i], W.regions[W.region[i]].prov, `${t}: регіон виходить за провінцію`); } else if (W.ocean[i]) assert.equal(W.region[i], -1);
+  const owned = new Set(); for (let i = 0; i < N; i++) if (W.province[i] >= 0) owned.add(W.landmass[i]);
+  for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i] && !owned.has(W.landmass[i])) assert.equal(W.region[i], -1, `${t}: нічия земля має регіон`); // нічиї острови без провінцій
+  for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i] && owned.has(W.landmass[i])) { assert.ok(W.region[i] >= 0, `${t}: суша без регіону`); assert.equal(W.province[i], W.regions[W.region[i]].prov, `${t}: регіон виходить за провінцію`); } else if (W.ocean[i]) assert.equal(W.region[i], -1);
   const area = new Array(W.regions.length).fill(0); for (let i = 0; i < N; i++) if (W.region[i] >= 0) area[W.region[i]]++;
   for (const p of W.provinces) {
     assert.ok(p.regions.length >= 1);

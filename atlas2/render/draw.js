@@ -7,8 +7,9 @@
 
   function prep(W) {
     let c = cache.get(W); if (c) return c; const { w, h } = W;
-    const pn = C.net(w, h, i => W.province[i]), rn = C.net(w, h, i => W.region[i]);
-    c = { pn, rn, land: C.polys(pn, l => l >= 0), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: W.provinces.map(p => C.polys(pn, l => l === p.id)), regs: W.regions.map(g => C.polys(rn, l => l === g.id)) };
+    const pn = C.net(w, h, i => W.province[i] >= 0 ? W.province[i] : W.land[i] && !W.lake[i] ? -2 : -1), // -2: нічия суша (без провінції)
+       rn = C.net(w, h, i => W.region[i]);
+    c = { pn, rn, land: C.polys(pn, l => l !== -1), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: W.provinces.map(p => C.polys(pn, l => l === p.id)), regs: W.regions.map(g => C.polys(rn, l => l === g.id)) };
     c.geom = A.RoadGeom.build(W);
     const S = 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
     const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };

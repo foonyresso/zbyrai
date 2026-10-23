@@ -45,11 +45,12 @@
     if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
     const reg = x >= 0 && y >= 0 && x < W.w && y < W.h ? W.region[y * W.w + x] : -1, level = levelNow();
     let near = null, bd = (10 * devicePixelRatio / view.k) ** 2; for (const s of W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
-    const rid = near ? near.region : reg >= 0 ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, key = level + '|' + id + '|' + (near ? near.id : '');
+    const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, key = level + '|' + id + '|' + (near ? near.id : '');
     if (key !== hoverKey) { hoverKey = key; hover = id; A.draw.drawHover(ov, W, view, hover, level); showInfo(rid, near, level); }
   }
   let hoverKey = '';
   function showInfo(id, s, level) {
+    if (s && s.ruined) { info.innerHTML = `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>Руїни${s.rank === 'town' ? ' міста' : s.rank === 'village' ? ' села' : ' хутора'}</dd><dt>Власник</dt><dd>нічия земля</dd></dl>`; info.hidden = false; return; }
     if (id == null || (!s && !level)) { info.hidden = true; return; }
     const g = W.regions[id], p = W.provinces[g.prov];
     const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };

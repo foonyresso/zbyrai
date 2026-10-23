@@ -54,6 +54,12 @@
       if (k < MINK[rank]) continue; const r = R[rank] * px;
       for (const s of W.settlements) {
         if (s.rank !== rank) continue; const x = s.x + 0.5, y = s.y + 0.5;
+        if (s.ruined) { // руїни: сіре порожнє коло із хрестиком
+          ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = 'rgba(210,205,195,.85)'; ctx.fill(); ctx.strokeStyle = '#6a6358'; ctx.lineWidth = 1.2 * px; ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x - r * 0.55, y - r * 0.55); ctx.lineTo(x + r * 0.55, y + r * 0.55); ctx.moveTo(x + r * 0.55, y - r * 0.55); ctx.lineTo(x - r * 0.55, y + r * 0.55); ctx.stroke();
+          if (L.labels && k >= LBLK[rank]) { ctx.font = `italic 600 ${10 * px}px sans-serif`; ctx.fillStyle = '#5a5348'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name + ' (руїни)', x + r + 2 * px, y); ctx.fillText(s.name + ' (руїни)', x + r + 2 * px, y); ctx.textAlign = 'center'; }
+          continue;
+        }
         ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = s.port ? '#bfe0ff' : rank === 'capital' ? '#fff3c4' : '#fff'; ctx.fill(); ctx.strokeStyle = s.port ? '#1f5f9f' : '#2a2018'; ctx.lineWidth = (rank === 'capital' ? 2 : 1.3) * px; ctx.stroke();
         if (s.port && k >= 2.5) anchor(ctx, x + (r + 8) * px, y - (r + 8) * px, px);
         if (rank === 'capital') { ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, 6.2832); ctx.fillStyle = '#2a2018'; ctx.fill(); }

@@ -49,10 +49,12 @@
     W.suit = A.suitability(W); W.lm = A.landmasses(W); W.landmass = W.lm.id;
     const caps = pickCapitals(W, r), P = caps.length;
     let prov = G.grow(W, caps.map((c, k) => ({ i: c, label: k, mul: 0.65 + 0.9 * r() })), land); // різний «апетит» провінцій: є великі й малі
-    // суходоли без столиці: найближча провінція через воду
-    const un = []; for (let i = 0; i < N; i++) if (land(i) && prov[i] < 0) un.push(i);
-    if (un.length) for (let g = 0; g < 80 && un.some(i => prov[i] < 0); g++) {
-      const snap = prov.slice(); for (const i of un) if (prov[i] < 0) { const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d] * (g + 1), ny = y + A.Grid.DY[d] * (g + 1); if (nx >= 0 && ny >= 0 && nx < w && ny < h && snap[ny * w + nx] >= 0) { prov[i] = snap[ny * w + nx]; break; } } }
+    // суходоли без столиці: ближче FAR клітин від провінції — належать найближчій; далі в океані — нічиї (prov -1)
+    const FAR = 36, un = new Map(); for (let i = 0; i < N; i++) if (land(i) && prov[i] < 0) (un.get(W.landmass[i]) || un.set(W.landmass[i], []).get(W.landmass[i])).push(i);
+    for (const cells of un.values()) {
+      let got = -1;
+      for (let g = 0; g < FAR && got < 0; g++) for (const i of cells) { const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d] * (g + 1), ny = y + A.Grid.DY[d] * (g + 1); if (nx >= 0 && ny >= 0 && nx < w && ny < h && prov[ny * w + nx] >= 0) { got = prov[ny * w + nx]; break; } } if (got >= 0) break; }
+      if (got >= 0) for (const i of cells) prov[i] = got;
     }
     for (let i = 0; i < N; i++) if (!land(i)) prov[i] = -1;
     // малий острів належить одній провінції (не ділиться): віддаємо його провінції з найбільшою часткою (або тій, чия столиця на ньому)

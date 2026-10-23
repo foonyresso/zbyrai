@@ -46,10 +46,18 @@
     W.regions.forEach(g => { const c = S[g.center], k = 0.75 + 0.5 * r(); c.pop = Math.round(g.isCapitalRegion ? (4000 + g.area * 9) * k : (600 + g.area * 5.5) * k); });
     W.provinces.forEach(p => { const reg = p.regions.map(id => S[W.regions[id].center]).filter(c => c.rank === 'regional'), mx = Math.max(0, ...reg.map(c => c.pop)), cap = S[p.capital]; if (cap.pop < mx * 1.5) cap.pop = Math.round(mx * 1.5 * (1 + 0.2 * r())); });
     for (const s of S) if (s.rank === 'town') { const cap = S[W.regions[s.region].center].pop; s.pop = Math.min(s.pop, Math.round(cap * 0.55)); }
-    for (const s of S) { W.regions[s.region].pop += s.pop; }
+    for (const s of S) { if (s.region >= 0) W.regions[s.region].pop += s.pop; }
     const maxPop = Math.max(1, ...W.regions.map(g => g.pop));
     W.regions.forEach(g => { g.level = Math.max(1, Math.round(1 + 9 * g.pop / maxPop)); });
     W.provinces.forEach(p => { p.pop = 0; p.area = 0; for (const id of p.regions) { p.pop += W.regions[id].pop; p.area += W.regions[id].area; } });
+    // нічиї острови (далеко від провінцій): лише зруйновані поселення, без населення й доріг
+    const own = new Set(); for (const g of S) own.add(g.landmass);
+    for (const m of W.lm.list) {
+      if (own.has(m.id) || m.area < 12) continue; const cells = []; let owned = false; for (let i = 0; i < N; i++) if (W.landmass[i] === m.id) { if (W.province[i] >= 0) owned = true; if (!W.lake[i] && !W.river[i] && W.suit[i] >= 0.1) cells.push(i); }
+      if (owned) continue;
+      const want = Math.min(12, Math.max(1, Math.round(cells.length / 500 * (0.6 + 0.8 * r())))), sc = cells.map(i => [Math.pow(W.suit[i], 0.4) * (0.3 + r()), i]).sort((a, b) => b[0] - a[0]); let got = 0;
+      for (const [, i] of sc) { if (got >= want) break; if (near(i % w, (i / w) | 0, 8 * (0.7 + 0.7 * r()))) continue; const rk = got === 0 && cells.length > 400 ? 'town' : got < 3 ? 'village' : 'hamlet', x = i % w, y = (i / w) | 0; const s = { id: S.length, name: names.town(), rank: rk, i, x, y, prov: -1, region: -1, landmass: m.id, port: false, body: null, river: false, pop: 0, ruined: true }; S.push(s); (buckets.get(bk(x, y)) || buckets.set(bk(x, y), []).get(bk(x, y))).push(s); got++; }
+    }
     W.settlements = S;
     labelAnchors(W);
   }
