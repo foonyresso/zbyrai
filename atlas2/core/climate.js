@@ -39,7 +39,7 @@
       if (H.lake[i]) { bio[i] = IDX.lake; continue; }
       const e = T.elev[i], t0 = temp[i], m = moist[i];
       let b;
-      if (e > 0.62 && t0 < 0.3 || e > 0.85) b = 'snow';
+      if (e > 0.6 && t0 < 0.18 || e > 0.88) b = 'snow';
       else if (e > 0.58) b = 'mountain';
       else if (t0 < 0.22) b = 'tundra';
       else if (t0 < 0.38) b = m > 0.42 ? 'taiga' : 'tundra';

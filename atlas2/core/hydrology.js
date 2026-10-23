@@ -11,20 +11,20 @@
     const fill = new Float64Array(N), down = new Int32Array(N).fill(-1), seen = new Uint8Array(N), order = [];
     const heap = new A.Heap();
     for (let i = 0; i < N; i++) if (T.ocean[i]) { fill[i] = T.height[i]; seen[i] = 1; heap.push(fill[i], i); }
-    const eps = 1e-7;
+    const eps = 4e-6, jr = A.Rng.stream(p.seed, 'flat');
     while (heap.size) {
       const c = heap.pop(); order.push(c); const x = c % w, y = (c / w) | 0;
       for (let d = 0; d < 8; d++) {
         const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
         const n = ny * w + nx; if (seen[n]) continue; seen[n] = 1;
-        fill[n] = Math.max(T.height[n], fill[c] + eps * (d < 4 ? 1 : 1.4)); down[n] = c; heap.push(fill[n], n);
+        fill[n] = Math.max(T.height[n], fill[c] + eps * (0.3 + 1.7 * jr()) * (d < 4 ? 1 : 1.4)); down[n] = c; heap.push(fill[n], n);
       }
     }
     // озера: западини глибше порога (і внутрішня вода нижче рівня моря), компоненти ≥ 4 клітин
     const depth = new Float32Array(N); for (let i = 0; i < N; i++) if (!T.ocean[i]) depth[i] = fill[i] - T.height[i];
     const cand = new Uint8Array(N); for (let i = 0; i < N; i++) cand[i] = !T.ocean[i] && (depth[i] > p.lakeDepth || !T.land[i]) ? 1 : 0;
     const lc = components(w, h, i => cand[i] === 1), lake = new Uint8Array(N), lakeId = new Int32Array(N).fill(-1), lakes = [];
-    lc.sizes.forEach((s, k) => { if (s >= 4) lakes.push({ id: lakes.length, cells: [], size: s, comp: k }); });
+    lc.sizes.forEach((s, k) => { if (s >= 6) lakes.push({ id: lakes.length, cells: [], size: s, comp: k }); });
     const byComp = new Map(lakes.map(l => [l.comp, l]));
     for (let i = 0; i < N; i++) { const l = byComp.get(lc.id[i]); if (cand[i] && l) { lake[i] = 1; lakeId[i] = l.id; l.cells.push(i); } }
     // накопичення стоку (у порядку від найвищих до океану)

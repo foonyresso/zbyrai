@@ -6,7 +6,7 @@
 
   function terrain(p) {
     const { w, h } = p, N = w * h, nz = A.Noise.make(p.seed + '|t');
-    const hh = new Float32Array(N), isl = p.worldType === 'islands';
+    const jr = A.Rng.stream(p.seed, 'micro'), hh = new Float32Array(N), isl = p.worldType === 'islands';
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const nx = x / w, ny = y / h;
       const wx = nx + 0.14 * (nz.fbm(nx * 2.3 + 7, ny * 2.3 + 3, 3) - 0.5), wy = ny + 0.14 * (nz.fbm(nx * 2.3 + 31, ny * 2.3 + 19, 3) - 0.5);
@@ -14,12 +14,13 @@
       let v;
       if (isl) { const m = nz.fbm(wx * 3.4 + 50, wy * 3.4 + 50, 4); v = 0.62 * m + 0.38 * base; }
       else {
-        const dd = Math.hypot((nx - 0.5) * 2, (ny - 0.5) * 2) + 0.55 * (nz.fbm(nx * 1.7 + 90, ny * 1.7 + 40, 4) - 0.5);
+        const dd = Math.hypot((nx - 0.5) * 2, (ny - 0.5) * 2) + 0.95 * (nz.fbm(nx * 2.1 + 90, ny * 2.1 + 40, 5) - 0.5);
         v = 0.65 * (1 - sstep(0.45, 1.0, dd)) + 0.5 * (base - 0.5) * (0.4 + 0.6 * (1 - sstep(0.3, 1.0, dd))) + 0.05;
       }
       const ridge = 1 - Math.abs(2 * nz.fbm(wx * 5 + 200, wy * 5 + 200, 4) - 1);
       v += p.rugged * 0.22 * Math.pow(ridge, 3) * sstep(0.4, 0.7, v);
       const edge = Math.min(nx, 1 - nx, ny, 1 - ny) * Math.min(w, h);
+      v += 0.012 * (jr() - 0.5); // мікрорельєф: річки не біжать рівними діагоналями
       hh[i2(x, y, w)] = v * sstep(2, Math.min(w, h) * 0.07, edge);
     }
     // рівень моря: квантиль під потрібну частку суші
@@ -34,7 +35,8 @@
     for (let y = 0; y < h; y++) { edgeIds.add(wc.id[y * w]); edgeIds.add(wc.id[y * w + w - 1]); }
     for (let i = 0; i < N; i++) if (!land[i] && edgeIds.has(wc.id[i])) ocean[i] = 1;
     // висота над морем 0..1 (для суші), під морем <0
-    const elev = new Float32Array(N), mx = 1 - sea || 1;
+    let top = sea + 0.01; for (let i = 0; i < N; i++) if (hh[i] > top) top = hh[i];
+    const elev = new Float32Array(N), mx = top - sea;
     for (let i = 0; i < N; i++) elev[i] = (hh[i] - sea) / mx;
     return { height: hh, elev, sea, land, ocean };
   }

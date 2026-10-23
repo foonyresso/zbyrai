@@ -4,15 +4,58 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Атлас 2.0</title>
-<meta name="description" content="Атлас 2.0: новий генератор світу з логічними річками, містами, дорогами, провінціями й регіонами. У розробці.">
+<meta name="description" content="Атлас 2.0: генератор світу з одного зерна: ландшафт, річки за правилами стоку, міста, провінції, регіони й дороги.">
 <link rel="stylesheet" href="../medieval-world/theme.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main style="max-width:640px;margin:48px auto;padding:0 16px">
-  <p><a href="../index.html">← Zbyr<b>AI</b></a></p>
-  <h1>Атлас 2.0</h1>
-  <p><b>Що це.</b> Новий генератор світу: спочатку ландшафт і річки, потім міста, провінції та регіони, потім дороги.</p>
-  <p><b>Статус.</b> У розробці: поки що лише каркас. Старий Атлас доступний за <a href="../medieval-world/index.html">прямим посиланням</a>.</p>
-</main>
+<header class="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai">← Zbyr<b>AI</b></a>
+  <div class="brand">Атлас <span>2.0</span></div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережені параметри світу з файлу .json: світ відновиться з тим самим зерном">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnLink" title="Скопіювати посилання, яке відкриє цей самий світ з усіма параметрами">Копіювати посилання</button>
+    <button id="btnCopy" title="Скопіювати параметри світу як JSON (потім вставити через «Імпорт»)">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити параметри світу як файл atlas2.json: за ними світ відновлюється точно">Зберегти .json</button>
+    <button id="btnWorld" title="Завантажити повний експорт світу (провінції, регіони, поселення, дороги) для гри">Експорт світу (.json)</button>
+    <button id="btnPng" class="btn-primary" title="Зберегти карту як зображення PNG з увімкненими шарами">Зберегти PNG</button>
+    <button id="btnPrint" title="Надрукувати карту: панелі приховуються, лишається лише карта">Друк</button>
+  </div>
+</header>
+<details class="how" open>
+  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div><h3>Що це</h3><p>Генератор світу з одного зерна. Спочатку ландшафт і річки (завжди течуть до моря, озера лише в западинах), потім міста, провінції (як країни), регіони (як області) та дороги між поселеннями.</p></div>
+    <div><h3>Для чого</h3><p>Основа для гри й кампаній. Кожне зерно дає унікальний світ, однакове зерно з тими самими параметрами завжди дає той самий світ.</p></div>
+    <div><h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує регіон.</li><li>Збережи чи поділись кнопками угорі.</li></ol></div>
+  </div>
+</details>
+<section class="work">
+  <aside class="panel">
+    <label title="Зерно світу: будь-який текст чи число; те саме зерно дає той самий світ">Зерно<input id="seed" type="text"></label>
+    <button id="btnRandom" title="Підібрати випадкове зерно і створити новий світ">Випадкове</button>
+    <label title="Основний світ: один материк з островами; Острівний: архіпелаг із багатьох островів">Тип світу<select id="worldType"><option value="continent">Основний світ</option><option value="islands">Острівний світ</option></select></label>
+    <label title="Розмір карти в клітинах; одна клітина дорівнює 2 км">Розмір<select id="size"><option value="small">Мала</option><option value="medium" selected>Середня</option><option value="large">Велика</option></select></label>
+    <label title="Кількість провінцій (як країн): від 1 до 10">Провінцій<input id="provinces" type="number" min="1" max="10" value="6"></label>
+    <label title="Скільки регіонів (як областей) у середньому в провінції: від 2 до 9">Регіонів у провінції<input id="regionsPerProvince" type="number" min="2" max="9" value="5"></label>
+    <label title="Скільки міст і сіл: менше значення дає менше поселень, більше дає більше">Щільність поселень<input id="density" type="range" min="0.3" max="2.2" step="0.1" value="1"></label>
+    <label title="Висота й різкість гір">Гірськість<input id="rugged" type="range" min="0" max="2" step="0.1" value="1"></label>
+    <label title="Скільки річок: більше значення дає більше річок">Річки<input id="riverDensity" type="range" min="0.3" max="2.5" step="0.1" value="1"></label>
+    <fieldset><legend title="Які шари показувати на карті">Шари</legend>
+      <label class="chk" title="Кольорові заливки провінцій"><input type="checkbox" data-layer="fill" checked>Провінції</label>
+      <label class="chk" title="Межі провінцій (суцільні) і регіонів (пунктир)"><input type="checkbox" data-layer="borders" checked>Межі</label>
+      <label class="chk" title="Річки"><input type="checkbox" data-layer="rivers" checked>Річки</label>
+      <label class="chk" title="Дороги між поселеннями"><input type="checkbox" data-layer="roads" checked>Дороги</label>
+      <label class="chk" title="Міста, села й хутори"><input type="checkbox" data-layer="places" checked>Поселення</label>
+      <label class="chk" title="Підписи провінцій, регіонів і міст"><input type="checkbox" data-layer="labels" checked>Підписи</label>
+    </fieldset>
+    <p id="stats" class="stats"></p>
+  </aside>
+  <div class="stage" id="stage"><canvas id="map"></canvas><div id="info" class="info" hidden></div></div>
+</section>
+<script src="core/rng.js"></script><script src="core/noise.js"></script><script src="core/heap.js"></script><script src="core/grid.js"></script><script src="core/params.js"></script><script src="core/terrain.js"></script><script src="core/hydrology.js"></script><script src="core/climate.js"></script><script src="core/names.js"></script><script src="core/settle.js"></script><script src="core/grow.js"></script><script src="core/politics.js"></script><script src="core/generate.js"></script><script src="core/serialize.js"></script>
+<script src="render/contours.js"></script><script src="render/raster.js"></script><script src="render/draw.js"></script><script src="ui/app.js"></script>
 </body>
 </html>
