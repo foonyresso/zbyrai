@@ -53,11 +53,24 @@
     }
     // річка закінчується в першій клітині біля океану (гирло): не йде вздовж берега й не виходить з океану в океан
     const oceanNb = i => { const x = i % w, y = (i / w) | 0; if (down[i] >= 0 && T.ocean[down[i]]) return down[i]; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && T.ocean[ny * w + nx]) return ny * w + nx; } return -1; };
-    const keep = [];
+    // усі шляхи обрізаються по гирлу; короткі зберігаються, якщо в них впадає інша річка (щоб притоки не обривались у порожнечі)
+    const cut = [];
     for (const pa of rivers) {
       const cells = []; let mouth = -1;
       for (const c of pa) { if (T.ocean[c]) break; cells.push(c); const o = oceanNb(c); if (o >= 0) { mouth = o; break; } }
-      if (cells.length >= 9) { if (mouth >= 0) cells.push(mouth); keep.push(cells); }
+      if (mouth >= 0) cells.push(mouth); if (cells.length >= 2) cut.push({ cells, ok: cells.length >= 9 });
+    }
+    for (let it = 0; it < 6; it++) {
+      const tgt = new Set(); for (const r of cut) if (r.ok) { const l = r.cells[r.cells.length - 1]; if (!T.ocean[l]) tgt.add(l); }
+      let ch = false; for (const r of cut) if (!r.ok && r.cells.some(c => tgt.has(c))) { r.ok = true; ch = true; } if (!ch) break;
+    }
+    const keep = cut.filter(r => r.ok).map(r => r.cells);
+    // кожна річка доходить до моря: якщо шлях закінчився на чужому руслі, воно вже веде до моря; якщо ні, добудовуємо вниз за стоком
+    const inKeep = new Set(); for (const c of keep) for (const x of c) inKeep.add(x);
+    for (const cells of keep) {
+      let c = cells[cells.length - 1], g = 0;
+      while (!T.ocean[c] && g++ < 4000) { const d = down[c]; if (d < 0) break; cells.push(d); if (T.ocean[d] || (inKeep.has(d) && d !== c && !cells.slice(0, -1).includes(d) && g > 0 && river[d])) break; c = d; }
+      for (const x of cells) inKeep.add(x);
     }
     const live = new Uint8Array(N); for (const pa of keep) for (const c of pa) live[c] = 1;
     for (let i = 0; i < N; i++) if (river[i] && !live[i]) river[i] = 0;
