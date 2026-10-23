@@ -32,7 +32,7 @@ image-converter/         Конвертер зображень (convert-core, zi
 <інструмент>/            index.html, app.js, *-core.js, style.css, theme.css, README.md, test/
 prompt-dice/             Кубик промптів: pools/styles/types (параметри), flux-*.js (Flux), mk-*.js (манекен: фігура, категорії, слоти), ui-mannequin.js і ui-workspace.js (інтерфейс), app.js (стан і збирання промптів)
 medieval-world/          «Проект Атлас»: src/ (нескінченний світ, render/world/style.js — тема виміру, місто, core/atlas.js реєстр), worlds/<id>/world.js (по світу на файл; continent/ має власний код), src/generation/world/settle-water.js (місто стає на берег моря/озера/річки: пошук води, SE з реального берега, русло з річок світу), src/render/world/hover-region.js (підсвітка провінції/регіону при наведенні), biomes/<id>.js (по біому на файл), monsters/<id>.js (по монстру), dungeons/<id>.js (по типу підземелля), registry.js (генерується)
-atlas2/                  Атлас 2.0 (каркас; старий `medieval-world/` схований з хабу, відкривається за прямим посиланням)
+atlas2/                  Атлас 2.0 (core/ логіка, render/, ui/, test/; README.md всередині; старий `medieval-world/` схований з хабу, відкривається за прямим посиланням)
 taste/                   закрита довідка про смаки автора (не інструмент)
 docs/                    ця документація; docs/edits/ — стиснуті правки автора по інструментах; docs/plans/ — плани розвитку; docs/atlas/ — документація Атласу
 README.md, ROADMAP.md    опис для людей; план і передача роботи між діалогами

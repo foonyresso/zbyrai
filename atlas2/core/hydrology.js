@@ -26,7 +26,7 @@
     const lc = components(w, h, i => cand[i] === 1), lake = new Uint8Array(N), lakeId = new Int32Array(N).fill(-1), lakes = [];
     lc.sizes.forEach((s, k) => { if (s >= 6) lakes.push({ id: lakes.length, cells: [], size: s, comp: k }); });
     const byComp = new Map(lakes.map(l => [l.comp, l]));
-    for (let i = 0; i < N; i++) { const l = byComp.get(lc.id[i]); if (cand[i] && l) { lake[i] = 1; lakeId[i] = l.id; l.cells.push(i); } }
+    for (let i = 0; i < N; i++) { const l = byComp.get(lc.id[i]); if (cand[i] && l) { lake[i] = 1; lakeId[i] = l.id; l.cells.push(i); } else if (!T.land[i] && !T.ocean[i]) lake[i] = 1; } // дрібна внутрішня вода теж озеро
     // накопичення стоку (у порядку від найвищих до океану)
     const acc = new Float32Array(N);
     for (let i = 0; i < N; i++) if (!T.ocean[i]) acc[i] = 0.4 + rain[i];

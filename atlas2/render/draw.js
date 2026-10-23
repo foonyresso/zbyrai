@@ -26,7 +26,7 @@
     // берег: світле сяйво
     ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
     ctx.save(); path(ctx, c.land); ctx.clip(); ctx.drawImage(c.landImg, 0, 0, W.w, W.h);
-    if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '55'; ctx.fill('evenodd'); });
+    if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });
     if (opts.hoverRegion != null && c.regs[opts.hoverRegion]) { path(ctx, c.regs[opts.hoverRegion]); ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fill('evenodd'); }
     if (L.borders) {
       ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(70,50,30,.45)'; ctx.lineWidth = 1 * px; ctx.setLineDash([4 * px, 3 * px]);
