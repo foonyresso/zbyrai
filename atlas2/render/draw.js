@@ -59,7 +59,8 @@
         const b = Math.min(B - 1, Math.floor(Math.sqrt(W.acc[ci] / c.maxAcc) * B * 1.6)); paths[b].moveTo(sm[(q - 1) * 2], sm[(q - 1) * 2 + 1]); paths[b].lineTo(sm[q * 2], sm[q * 2 + 1]);
       }
     }
-    paths.forEach((pa, b) => { ctx.lineWidth = (1.4 + b * 1.1) * px * 1.5; ctx.stroke(pa); });
+    // товщина в клітинах карти (росте й зменшується разом з масштабом), але не тонша за 1 піксель
+    paths.forEach((pa, b) => { ctx.lineWidth = Math.max(1.2 * px, 0.2 + b * 0.12); ctx.stroke(pa); });
   }
   // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
   function drawHover(cv, W, view, id) {

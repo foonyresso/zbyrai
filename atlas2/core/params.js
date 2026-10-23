@@ -13,7 +13,7 @@
     if (p.worldType !== 'islands') p.worldType = 'continent';
     p.provinces = clamp(Math.round(p.provinces), 1, 10);
     p.regionsPerProvince = clamp(Math.round(p.regionsPerProvince), 2, 9);
-    p.density = clamp(+p.density, 0.3, 2.2); p.rugged = clamp(+p.rugged, 0, 2); p.riverDensity = clamp(+p.riverDensity, 0.3, 2.5);
+    p.density = clamp(+p.density, 0.3, 2.2); p.rugged = clamp(+p.rugged, 0, 2); p.riverDensity = clamp(+p.riverDensity, 0.1, 2.5);
     if (!(p.landFrac > 0)) p.landFrac = p.worldType === 'islands' ? 0.3 : 0.42;
     p.landFrac = clamp(+p.landFrac, 0.15, 0.7);
     return p;

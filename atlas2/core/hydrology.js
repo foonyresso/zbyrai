@@ -35,7 +35,7 @@
     for (let i = 0; i < N; i++) if (!T.ocean[i]) acc[i] = 0.4 + rain[i];
     for (let k = order.length - 1; k >= 0; k--) { const c = order[k], d = down[c]; if (d >= 0 && !T.ocean[c]) acc[d] += acc[c]; }
     let landN = 0; for (let i = 0; i < N; i++) if (!T.ocean[i]) landN++;
-    const thr = Math.max(8, landN / (900 * p.riverDensity));
+    const thr = Math.max(8, landN / (320 * p.riverDensity));
     const river = new Uint8Array(N);
     for (let i = 0; i < N; i++) if (!T.ocean[i] && !lake[i] && acc[i] >= thr) river[i] = 1;
     // шляхи річок: від витоку вниз до океану або до вже накресленої річки
@@ -57,7 +57,7 @@
     for (const pa of rivers) {
       const cells = []; let mouth = -1;
       for (const c of pa) { if (T.ocean[c]) break; cells.push(c); const o = oceanNb(c); if (o >= 0) { mouth = o; break; } }
-      if (cells.length >= 6) { if (mouth >= 0) cells.push(mouth); keep.push(cells); }
+      if (cells.length >= 9) { if (mouth >= 0) cells.push(mouth); keep.push(cells); }
     }
     const live = new Uint8Array(N); for (const pa of keep) for (const c of pa) live[c] = 1;
     for (let i = 0; i < N; i++) if (river[i] && !live[i]) river[i] = 0;
