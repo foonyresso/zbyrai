@@ -14,10 +14,11 @@
     return out;
   }
   function pickCapitals(W, r) {
-    const lm = W.lm.list, n = W.params.provinces, elig = lm.filter(m => m.area >= 120); if (!elig.length) elig.push(lm[0]);
-    const tot = elig.reduce((s, m) => s + m.area, 0), cnt = elig.map(m => Math.floor(n * m.area / tot));
-    const rem = elig.map((m, k) => [n * m.area / tot - cnt[k], k]).sort((a, b) => b[0] - a[0]);
-    for (let left = n - cnt.reduce((a, b) => a + b, 0), k = 0; left > 0; left--, k = (k + 1) % rem.length) cnt[rem[k][1]]++;
+    const lm = W.lm.list, n = W.params.provinces, elig = lm.filter(m => m.area >= 500); if (!elig.length) elig.push(lm[0]);
+    const tot = elig.reduce((s, m) => s + m.area, 0), room = elig.map(m => Math.max(1, Math.floor(m.area / 900))), cnt = elig.map((m, k) => Math.min(room[k], Math.floor(n * m.area / tot)));
+    for (let left = n - cnt.reduce((a, b) => a + b, 0); left > 0; left--) { // решта: суходолу з найбільшою неврахованою часткою, де ще є місце (провінція не менша ~900 клітин)
+      let bk = -1, bv = -1; elig.forEach((m, k) => { const v = n * m.area / tot - cnt[k]; if (cnt[k] < room[k] && v > bv) { bv = v; bk = k; } }); if (bk < 0) break; cnt[bk]++;
+    }
     const caps = [], w = W.w;
     elig.forEach((m, k) => {
       if (!cnt[k]) return;
@@ -67,7 +68,7 @@
     const region = new Int16Array(N).fill(-1), regions = [];
     for (let k = 0; k < P; k++) {
       const cells = []; for (let i = 0; i < N; i++) if (prov[i] === k) cells.push(i);
-      const part = components(w, h, i => prov[i] === k); let kk = Math.max(1, Math.min(24, Math.max(Math.round(W.params.regionsPerProvince * (0.45 + 1.1 * r())), Math.floor(cells.length / 1600)), Math.floor(cells.length / 200))); if (cells.length >= 600) kk = Math.max(3, kk); // регіон не менший ~200 клітин; у провінції зі столицею щонайменше 3 регіони
+      const part = components(w, h, i => prov[i] === k); let kk = Math.max(1, Math.min(24, Math.max(Math.round(W.params.regionsPerProvince * (0.45 + 1.1 * r())), Math.floor(cells.length / 1600)), Math.floor(cells.length / 200))); if (cells.length >= 360) kk = Math.max(3, kk); // регіон не менший ~200 клітин; у провінції зі столицею щонайменше 3 регіони
       const parts = part.sizes.map((s, id) => ({ id, s })).filter(p => p.s >= 40).sort((a, b) => b.s - a.s);
       const cpart = part.id[caps[k]], order = parts.filter(p => p.id === cpart).concat(parts.filter(p => p.id !== cpart));
       const tot = order.reduce((s, p) => s + p.s, 0) || 1; let left = Math.max(kk, order.length);
@@ -114,7 +115,7 @@
       const area = new Array(regions.length).fill(0); for (let i = 0; i < N; i++) if (region[i] >= 0) area[region[i]]++;
       const dead = new Set();
       for (let it = 0; it < regions.length; it++) {
-        let sm = -1; regions.forEach((g, id) => { if (!dead.has(id) && !g.isCapitalRegion && area[id] < 150 && (sm < 0 || area[id] < area[sm])) sm = id; });
+        let sm = -1; regions.forEach((g, id) => { if (!dead.has(id) && !g.isCapitalRegion && area[id] < 150 && (sm < 0 || area[id] < area[sm]) && regions.filter((q, qi) => q.prov === g.prov && !dead.has(qi)).length > 3) sm = id; });
         if (sm < 0) break; const adj = new Map();
         for (let i = 0; i < N; i++) if (region[i] === sm) { const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const L = region[ny * w + nx]; if (L >= 0 && L !== sm && !dead.has(L) && regions[L].prov === regions[sm].prov) adj.set(L, (adj.get(L) || 0) + 1); } }
         let to = -1, bc = 0; for (const [L, c] of adj) if (c > bc) { bc = c; to = L; }
@@ -122,6 +123,24 @@
         for (let i = 0; i < N; i++) if (region[i] === sm) region[i] = to; area[to] += area[sm]; dead.add(sm);
       }
       if (dead.size) { const map = new Map(), keep = []; regions.forEach((g, id) => { if (!dead.has(id)) { map.set(id, keep.length); g.id = keep.length; keep.push(g); } }); for (let i = 0; i < N; i++) if (region[i] >= 0) region[i] = map.get(region[i]); regions.length = 0; regions.push(...keep); }
+    }
+    // у кожній провінції щонайменше 3 регіони: найбільший ділиться навпіл
+    for (let k = 0; k < P; k++) {
+      for (let guard = 0; guard < 4; guard++) {
+        const mine = regions.filter(g => g.prov === k); if (mine.length >= 3) break;
+        const ar = new Map(mine.map(g => [g.id, 0])); for (let i = 0; i < N; i++) if (ar.has(region[i])) ar.set(region[i], ar.get(region[i]) + 1);
+        const big = mine.sort((a, b) => ar.get(b.id) - ar.get(a.id))[0]; if (ar.get(big.id) < 120) break;
+        const cs = []; for (let i = 0; i < N; i++) if (region[i] === big.id) cs.push(i);
+        const nc = farthest(W, cs, [big.centerCell], r, W.suit, 1)[0]; if (nc == null) break;
+        const lab = G.grow(W, [{ i: big.centerCell, label: 0 }, { i: nc, label: 1 }], i => region[i] === big.id), nid = regions.length;
+        regions.push({ id: nid, prov: k, centerCell: nc, isCapitalRegion: false }); for (const i of cs) if (lab[i] === 1) region[i] = nid;
+      }
+    }
+    // центр регіону, що опинився поза власним регіоном (після згладжування/зливання), переноситься в його клітину, найближчу до колишнього центру
+    for (const g of regions) {
+      if (region[g.centerCell] === g.id) continue; const cx = g.centerCell % w, cy = (g.centerCell / w) | 0; let b = -1, bd = 1e18;
+      for (let i = 0; i < N; i++) if (region[i] === g.id) { const d = (i % w - cx) ** 2 + (((i / w) | 0) - cy) ** 2; if (d < bd) { bd = d; b = i; } }
+      if (b >= 0) g.centerCell = b;
     }
     for (const g of regions) { region[g.centerCell] = g.id; prov[g.centerCell] = g.prov; } // центр регіону завжди у своєму регіоні
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));
