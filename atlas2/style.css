@@ -9,8 +9,8 @@ body { margin: 0; }
 .panel fieldset { border: 1px solid rgba(128,128,128,.35); border-radius: 6px; } .stats { opacity: .8; font-size: 12px; }
 .stage { position: relative; height: calc(100vh - 150px); min-height: 420px; border-radius: 8px; overflow: hidden; background: #527aae; }
 .stage canvas { width: 100%; height: 100%; display: block; cursor: grab; }
-.info { position: absolute; right: 12px; top: 12px; width: 280px; max-height: calc(100% - 24px); overflow-y: auto; background: rgba(255,255,255,.95); color: #223; border-radius: 10px; padding: 12px 14px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
-.info h4 { margin: 0 0 6px; font-size: 14px; } .info dl { margin: 0; display: grid; grid-template-columns: auto auto; gap: 3px 10px; } .info dd { margin: 0; text-align: right; } .info p { margin: 8px 0 0; opacity: .8; }
+.info { position: absolute; right: 10px; top: 10px; width: 262px; background: rgba(255,255,255,.95); color: #223; border-radius: 8px; padding: 8px 10px; font-size: 11.5px; line-height: 1.25; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; }
+.info h4 { margin: 0 0 2px; font-size: 12.5px; } .info dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; } .info dd { margin: 0; text-align: right; } .info p { margin: 3px 0 0; opacity: .8; }
 @media (max-width: 760px) { .work { grid-template-columns: 1fr; } .stage { height: 70vh; } }
 @media print { .top, .panel { display: none; } .work { display: block; } .stage { height: auto; } }
 #over { position: absolute; inset: 0; pointer-events: none; }
@@ -19,7 +19,7 @@ dialog.help { max-width: 520px; width: calc(100% - 32px); border-radius: 12px; b
 dialog.help::backdrop { background: rgba(0,0,0,.55); } dialog.help h2 { margin: 0 0 6px; } dialog.help h3 { margin: 12px 0 4px; font-size: 14px; }
 dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px; line-height: 1; padding: 2px 9px; }
 
-.info .blk { padding: 8px 0 0; margin-top: 8px; border-top: 1px solid rgba(0,0,0,.14); } .info .blk:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
-.info .blk > .lb { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; opacity: .55; margin-bottom: 3px; }
-.info .blk h4 { margin: 0 0 4px; } .info .muted { opacity: .65; } .info .mon { margin: 5px 0 0; padding: 5px 7px; background: rgba(0,0,0,.05); border-radius: 6px; font-size: 12.5px; }
-.info .mon small { display: block; opacity: .7; } .info .tier { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: baseline; }
+.info .blk { padding: 4px 0 0; margin-top: 4px; border-top: 1px solid rgba(0,0,0,.14); } .info .blk:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.info .blk > .lb { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; opacity: .55; margin-bottom: 1px; }
+.info .blk h4 { margin: 0 0 2px; } .info .muted { opacity: .65; } .info .mon { margin: 3px 0 0; padding: 3px 6px; background: rgba(0,0,0,.05); border-radius: 5px; } .info .coord { font-weight: 600; }
+.info .mon small { display: block; opacity: .7; font-size: 10.5px; } .info .tier { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: baseline; }

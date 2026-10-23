@@ -64,31 +64,30 @@
     const px = s ? s.x + 0.5 : cell % W.w + 0.5, py = s ? s.y + 0.5 : ((cell / W.w) | 0) + 0.5, i = cell >= 0 ? cell : s.i;
     const g = rid != null ? W.regions[rid] : null, p = g ? W.provinces[g.prov] : null, out = [];
     // 1. провінція
-    out.push(blk('Провінція', p ? `<h4>${esc(p.name)}</h4><dl>${row('Столиця', esc(W.settlements[p.capital].name))}${row('Регіонів', p.regions.length)}${row('Рівень (сер.)', lv(p.level, p.levelMin, p.levelMax))}${row('Населення', fmt(p.pop))}${row('Площа', fmt(Math.round(p.area * kmc)) + ' км²')}</dl>` : `<h4 class="muted">${W.land[i] ? 'Нічия земля' : 'Нічия вода'}</h4>`));
+    out.push(blk('Провінція', p ? `<h4>${esc(p.name)}</h4><dl>${row('Столиця', esc(W.settlements[p.capital].name))}${row('Рівень (сер.)', lv(p.level, p.levelMin, p.levelMax))}${row('Регіонів · площа', p.regions.length + ' · ' + fmt(Math.round(p.area * kmc)) + ' км²')}${row('Населення', fmt(p.pop))}</dl>` : `<h4 class="muted">${W.land[i] ? 'Нічия земля' : 'Нічия вода'}</h4>`));
     // 2. регіон
-    if (g) out.push(blk('Регіон', `<h4>${esc(g.name)}</h4><dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення', g.pop ? fmt(g.pop) : '—')}${row('Місцевість', esc(g.terrain || '—'))}${row('Площа', fmt(Math.round(g.area * kmc)) + ' км²')}</dl>`));
+    if (g) out.push(blk('Регіон', `<h4>${esc(g.name)}</h4><dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення · площа', (g.pop ? fmt(g.pop) : '—') + ' · ' + fmt(Math.round(g.area * kmc)) + ' км²')}${row('Місцевість', esc(g.terrain || '—'))}</dl>`));
     // 3. координати від нульової точки (центр карти): X на схід, Y на північ
     const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K;
-    out.push(blk('Координати', `<dl>${row('X (схід)', sg(dx) + ' км')}${row('Y (північ)', sg(dy) + ' км')}${row('Від центру', Math.hypot(dx, dy).toFixed(1).replace('.', ',') + ' км')}</dl>`));
+    out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span></div>`));
     // 4. місцевість у клітині
     const land = W.land[i] && !W.lake[i], terr = [];
     if (land) {
-      const gn = D.groupName(W, i), h = D.heightM(W, i); terr.push(row('Ландшафт', D.GROUP_UA[gn] || gn), row('Висота', fmt(h) + ' м'), row('Рівень місця', W.level[i]));
-      const tl = W.tier[i]; terr.push(row('Небезпека', `<span class="tier" style="background:${TIER_COL[tl]}"></span>${D.TIERS[tl]}`));
+      const gn = D.groupName(W, i), h = D.heightM(W, i); terr.push(row('Ландшафт', (D.GROUP_UA[gn] || gn) + ' · ' + fmt(h) + ' м'));
+      const tl = W.tier[i]; terr.push(row('Рівень · небезпека', `${W.level[i]} · <span class="tier" style="background:${TIER_COL[tl]}"></span>${D.TIERS[tl]}`));
       let nd = 1e18, ns = null; for (const q of W.settlements) { if (q.ruined) continue; const d = (q.x - px) ** 2 + (q.y - py) ** 2; if (d < nd) { nd = d; ns = q; } }
-      if (ns) terr.push(row('Найближче поселення', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
-      if (W.river[i]) terr.push(row('Річка', 'так'));
+      if (ns) terr.push(row('Найближче', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
     } else terr.push(row('Місцевість', W.lake[i] ? 'Озеро' : W.ocean[i] ? 'Море' : 'Вода'));
-    let enc = ''; if (land && W.tier[i] > 0) { const E = D.encounter(W, i); enc = `<p class="muted">Тут водяться: ${E.species.map(q => `${esc(q.name)} (${q.kind}, ${q.level} р.)`).join('; ')}</p>`; }
+    let enc = ''; if (land && W.tier[i] > 0) { const E = D.encounter(W, i); enc = `<p class="muted">Водяться: ${E.species.map(q => `${esc(q.name)} (${q.level} р.)`).join(', ')}</p>`; }
     out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${enc}`));
     // 5. деталі місця під курсором
     if (s) {
       const body = s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}</dl>`
-        : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення', fmt(s.pop))}${row('Рівень місця', s.level)}${row('Біля річки', s.river ? 'так' : 'ні')}</dl>`;
+        : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>`;
       out.push(blk('Деталі місця', body));
     } else if (site) {
-      const mons = site.monsters.map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}${m.desc ? ' · ' + esc(m.desc) : ''}</small></div>`).join('');
-      out.push(blk('Деталі місця', `<h4>${esc(site.name)}</h4><dl>${row('Вид', esc(D.CATS[site.cat]))}${row('Небезпека', `<span class="tier" style="background:${TIER_COL[site.tier]}"></span>${D.TIERS[site.tier]}`)}${row('Рівень', site.level)}${row('Висота', fmt(D.heightM(W, site.i)) + ' м')}</dl>${mons || '<p class="muted">Мешканців немає — місце безпечне.</p>'}`));
+      const mons = site.monsters.slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('');
+      out.push(blk('Деталі місця', `<h4>${esc(site.name)}</h4><dl>${row('Вид', esc(D.CATS[site.cat]))}${row('Рівень · небезпека', `${site.level} · <span class="tier" style="background:${TIER_COL[site.tier]}"></span>${D.TIERS[site.tier]}`)}</dl>${mons || '<p class="muted">Мешканців немає — місце безпечне.</p>'}`));
     }
     info.innerHTML = out.join(''); info.hidden = false;
   }
