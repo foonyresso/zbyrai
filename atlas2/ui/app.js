@@ -50,13 +50,14 @@
   }
   let hoverKey = '';
   function showInfo(id, s, level) {
-    if (s && s.ruined) { info.innerHTML = `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>Руїни${s.rank === 'town' ? ' міста' : s.rank === 'village' ? ' села' : ' хутора'}</dd><dt>Власник</dt><dd>нічия земля</dd></dl>`; info.hidden = false; return; }
+    if (s && s.ruined) { info.innerHTML = `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>Руїни${s.rank === 'town' ? ' міста' : s.rank === 'village' ? ' села' : ' хутора'}</dd><dt>Власник</dt><dd>нічия земля</dd><dt>Координати</dt><dd>X ${(s.x * W.params.kmPerCell + 0.1).toFixed(1).replace('.', ',')} · Y ${(s.y * W.params.kmPerCell + 0.1).toFixed(1).replace('.', ',')} км</dd></dl>`; info.hidden = false; return; }
     if (id == null || (!s && !level)) { info.hidden = true; return; }
     const g = W.regions[id], p = W.provinces[g.prov];
     const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };
-    const city = s ? `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>${RN[s.rank]}${s.port ? ', порт' : ''}</dd><dt>Населення</dt><dd>${s.pop.toLocaleString('uk')}</dd><dt>Біля річки</dt><dd>${s.river ? 'так' : 'ні'}</dd></dl>${level ? '<hr>' : ''}` : '';
+    const kmx = n => (n * W.params.kmPerCell).toFixed(1).replace('.', ','), coord = s ? `<dt>Координати</dt><dd>X ${kmx(s.x + 0.5)} · Y ${kmx(s.y + 0.5)} км</dd>` : '';
+    const city = s ? `<h4>${s.name}</h4><dl><dt>Тип</dt><dd>${RN[s.rank]}${s.port ? ', порт' : ''}</dd><dt>Провінція</dt><dd>${p.name}</dd><dt>Регіон</dt><dd>${g.name}</dd>${coord}<dt>Рівень</dt><dd>${g.level} з 10 (регіон)</dd><dt>Населення</dt><dd>${s.pop.toLocaleString('uk')}</dd><dt>Біля річки</dt><dd>${s.river ? 'так' : 'ні'}</dd></dl>${level ? '<hr>' : ''}` : '';
     const fmt = n => n.toLocaleString('uk'), kmc = W.params.kmPerCell ** 2;
-    const body = level === 'prov' ? `<h4>${p.name}</h4><dl><dt>Столиця</dt><dd>${W.settlements[p.capital].name}</dd><dt>Регіонів</dt><dd>${p.regions.length}</dd><dt>Населення</dt><dd>${fmt(p.pop)}</dd><dt>Площа</dt><dd>${fmt(Math.round(p.area * kmc))} км²</dd></dl>`
+    const body = level === 'prov' ? `<h4>${p.name}</h4><dl><dt>Культура</dt><dd>${p.cultureName}</dd><dt>Столиця</dt><dd>${W.settlements[p.capital].name}</dd><dt>Регіонів</dt><dd>${p.regions.length}</dd><dt>Населення</dt><dd>${fmt(p.pop)}</dd><dt>Площа</dt><dd>${fmt(Math.round(p.area * kmc))} км²</dd></dl>`
       : level === 'reg' ? `<h4>${g.name}<br><small>${p.name}</small></h4><dl><dt>Головне місто</dt><dd>${g.centerName || '—'}</dd><dt>Населення</dt><dd>${g.pop ? fmt(g.pop) : '—'}</dd><dt>Місцевість</dt><dd>${g.terrain || '—'}</dd><dt>Площа</dt><dd>${fmt(Math.round(g.area * kmc))} км²</dd></dl>` : '';
     info.innerHTML = city + body;
     info.hidden = false;

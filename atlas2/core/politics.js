@@ -48,7 +48,8 @@
   // Лише для підсвітки й наведення: W.provW/W.regW (суша + прибережна вода); W.province/W.region лишаються по суші.
   function waters(W, R) {
     const { w, h } = W, N = w * h, pw = new Int16Array(N).fill(-1), rw = new Int16Array(N).fill(-1), dist = new Float32Array(N).fill(1e9), heap = new A.Heap();
-    for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i] && W.province[i] >= 0) { pw[i] = W.province[i]; rw[i] = W.region[i]; dist[i] = 0; heap.push(0, i); }
+    const lc = A.Grid.components(w, h, i => W.land[i] && !W.lake[i] && W.province[i] >= 0); // острівці менші за 20 клітин води не «приносять»
+    for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i] && W.province[i] >= 0) { pw[i] = W.province[i]; if (lc.sizes[lc.id[i]] < 20) continue; rw[i] = W.region[i]; dist[i] = 0; heap.push(0, i); }
     while (heap.size) {
       const i = heap.pop(), d0 = dist[i]; if (d0 > dist[i]) continue; const x = i % w, y = (i / w) | 0;
       for (let d = 0; d < 8; d++) {
