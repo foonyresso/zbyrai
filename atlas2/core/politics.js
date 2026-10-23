@@ -44,6 +44,21 @@
       for (const i of move.slice(0, want)) { lab[i] = ci; area[ci]++; area[rv]--; }
     }
   }
+  // «територіальні води»: озеро чи море належить провінції/регіону лише на відстані до R клітин (2 км) від їхнього берега, далі вода нічия.
+  // Лише для підсвітки й наведення: W.provW/W.regW (суша + прибережна вода); W.province/W.region лишаються по суші.
+  function waters(W, R) {
+    const { w, h } = W, N = w * h, pw = new Int16Array(N).fill(-1), rw = new Int16Array(N).fill(-1), dist = new Float32Array(N).fill(1e9), heap = new A.Heap();
+    for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i] && W.province[i] >= 0) { pw[i] = W.province[i]; rw[i] = W.region[i]; dist[i] = 0; heap.push(0, i); }
+    while (heap.size) {
+      const i = heap.pop(), d0 = dist[i]; if (d0 > dist[i]) continue; const x = i % w, y = (i / w) | 0;
+      for (let d = 0; d < 8; d++) {
+        const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+        const j = ny * w + nx; if (W.land[j] && !W.lake[j]) continue; const nd = d0 + (d >= 4 ? 1.41 : 1); if (nd > R || nd >= dist[j]) continue;
+        dist[j] = nd; pw[j] = pw[i]; rw[j] = rw[i]; heap.push(nd, j);
+      }
+    }
+    W.provW = pw; W.regW = rw;
+  }
   function politics(W) {
     const { w, h } = W, N = w * h, r = A.Rng.stream(W.params.seed, 'politics'), land = i => W.land[i] === 1 && !W.lake[i];
     W.suit = A.suitability(W); W.lm = A.landmasses(W); W.landmass = W.lm.id;
@@ -149,7 +164,7 @@
     for (const g of regions) { region[g.centerCell] = g.id; prov[g.centerCell] = g.prov; } // центр регіону завжди у своєму регіоні
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));
     for (const g of regions) provinces[g.prov].regions.push(g.id);
-    W.province = prov; W.region = region; W.provinces = provinces; W.regions = regions;
+    W.province = prov; W.region = region; waters(W, 8); W.provinces = provinces; W.regions = regions;
   }
   A.politics = politics;
   (A.stages = A.stages || []).push(politics);

@@ -43,7 +43,7 @@
   const levelNow = () => { const bar = 150 * devicePixelRatio * W.params.kmPerCell / view.k; return bar >= 10 ? 'prov' : bar >= 2 ? 'reg' : null; };
   function hoverAt(e) {
     if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
-    const reg = x >= 0 && y >= 0 && x < W.w && y < W.h ? W.region[y * W.w + x] : -1, level = levelNow();
+    const reg = x >= 0 && y >= 0 && x < W.w && y < W.h ? W.regW[y * W.w + x] : -1, level = levelNow();
     let near = null, bd = (10 * devicePixelRatio / view.k) ** 2; for (const s of W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, key = level + '|' + id + '|' + (near ? near.id : '');
     if (key !== hoverKey) { hoverKey = key; hover = id; A.draw.drawHover(ov, W, view, hover, level); showInfo(rid, near, level); }
