@@ -38,11 +38,10 @@
     if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші: частина ландшафту, не малюнок поверх моря
     if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k);
     if (A.drawPlaces && (L.places || L.labels)) A.drawPlaces(ctx, W, px, k, L, PALETTE);
-    scaleBar(ctx, cv, W, k);
   }
   // лінійка відстані (екранні координати): «гарне» число кілометрів, довжина смуги ~ 110–200 пікселів
   function scaleBar(ctx, cv, W, k) {
-    const dpr = cv.width / Math.max(1, cv.clientWidth || cv.width), kmPx = W.params.kmPerCell / k, target = 150 * dpr * kmPx;
+    const dpr = devicePixelRatio || 1, kmPx = W.params.kmPerCell / k, target = 150 * dpr * kmPx;
     const nice = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].filter(v => v <= target).pop() || 1, len = nice / kmPx, x = 18 * dpr, y = cv.height - 26 * dpr;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(x - 8 * dpr, y - 20 * dpr, len + 16 * dpr, 34 * dpr);
     ctx.strokeStyle = '#222'; ctx.fillStyle = '#222'; ctx.lineWidth = 2 * dpr; ctx.beginPath(); ctx.moveTo(x, y - 5 * dpr); ctx.lineTo(x, y + 4 * dpr); ctx.lineTo(x + len, y + 4 * dpr); ctx.lineTo(x + len, y - 5 * dpr); ctx.stroke();
@@ -65,6 +64,7 @@
   // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
   function drawHover(cv, W, view, id) {
     const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+    scaleBar(ctx, cv, W, view.k); // лінійка на шарі поверх карти: під час руху камери перераховується, а не їде разом із картинкою
     const c = prep(W); if (id == null || !c.regs[id]) return;
     ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty); path(ctx, c.regs[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
   }

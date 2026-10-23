@@ -14,7 +14,7 @@
   function redraw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover); hoverKey = ''; if (last) hoverAt(last); }); }
   function moving() {
     const s = view.k / shown.k, q = 1 / devicePixelRatio; cv.style.transform = `translate(${(view.tx - shown.tx * s) * q}px, ${(view.ty - shown.ty * s) * q}px) scale(${s})`;
-    ov.getContext('2d').clearRect(0, 0, ov.width, ov.height); clearTimeout(settle); settle = setTimeout(redraw, 140);
+    A.draw.drawHover(ov, W, view, null); clearTimeout(settle); settle = setTimeout(redraw, 140);
   }
   function build() {
     const p = readParams(); W = A.generate(p); writeParams(W.params); fit(); resetView(); redraw();
