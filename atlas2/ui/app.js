@@ -11,15 +11,23 @@
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
   function resetView() { const k = Math.min(cv.width / W.w, cv.height / W.h) * 0.96; view = { k, tx: (cv.width - W.w * k) / 2, ty: (cv.height - W.h * k) / 2 }; }
   // повне перемальовування; під час руху лише дешево зсуваємо/масштабуємо вже намальований кадр (CSS), а справжній кадр малюємо, коли рух стих
-  function redraw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover, W && levelNow()); hlKey = infoKey = ''; if (last) hoverAt(last); }); }
+  function redraw(done) { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover, W && levelNow()); hlKey = infoKey = ''; if (last) hoverAt(last); if (done) done(); }); }
   function moving() {
+    if (!W) return;
     const s = view.k / shown.k, q = 1 / devicePixelRatio; cv.style.transform = `translate(${(view.tx - shown.tx * s) * q}px, ${(view.ty - shown.ty * s) * q}px) scale(${s})`;
     A.draw.drawHover(ov, W, view, null, null); hlKey = infoKey = ''; clearTimeout(settle); settle = setTimeout(redraw, 140);
   }
-  function build() {
-    const p = readParams(); W = A.generate(p); writeParams(W.params); fit(); resetView(); redraw();
+  // смуга завантаження: кроки генерації з відсотками; кожна нова збірка скасовує попередню, яка ще йде
+  const load = $('load'), loadBar = $('loadBar'), loadTxt = $('loadTxt'); let buildId = 0;
+  const progress = (f, label) => { load.hidden = false; loadBar.style.width = Math.round(f * 100) + '%'; loadTxt.textContent = `${label}… ${Math.round(f * 100)} %`; };
+  async function build() {
+    const id = ++buildId, p = readParams(), t0 = performance.now();
+    const w2 = await A.generateAsync(p, (f, l) => { if (id !== buildId) return false; progress(f * 0.93, l); });
+    if (!w2 || id !== buildId) return; W = w2; writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
+    await new Promise(r => setTimeout(r, 0));
+    redraw(() => { if (id === buildId) load.hidden = true; });
     const s = W.settlements ? W.settlements.length : 0, land = W.land.reduce((a, v) => a + v, 0);
-    $('stats').textContent = `Суша ${Math.round(land * W.params.kmPerCell ** 2).toLocaleString('uk')} км²; провінцій ${W.provinces.length}, регіонів ${W.regions.length}, річок ${W.rivers.length}, озер ${W.lakes.length}${s ? ', поселень ' + s : ''}.`;
+    $('stats').textContent = `Суша ${Math.round(land * W.params.kmPerCell ** 2).toLocaleString('uk')} км²; провінцій ${W.provinces.length}, регіонів ${W.regions.length}, річок ${W.rivers.length}, озер ${W.lakes.length}${s ? ', поселень ' + s : ''}, локацій ${W.sites ? W.sites.length : 0}.`;
     try { history.replaceState(null, '', '#p=' + btoa(unescape(encodeURIComponent(JSON.stringify(A.Save.paramsToJSON(W.params)))))); } catch (e) { /* не критично */ }
   }
   const later = () => { clearTimeout(timer); timer = setTimeout(build, 250); };
