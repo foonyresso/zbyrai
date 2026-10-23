@@ -52,7 +52,7 @@
   // лінійка відстані (екранні координати): «гарне» число кілометрів, довжина смуги ~ 110–200 пікселів
   function scaleBar(ctx, cv, W, k) {
     const dpr = devicePixelRatio || 1, kmPx = W.params.kmPerCell / k, target = 150 * dpr * kmPx;
-    const nice = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].filter(v => v <= target).pop() || 0.02, len = nice / kmPx, x = 18 * dpr, y = cv.height - 26 * dpr;
+    const nice = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].filter(v => v <= target).pop() || 0.02, len = nice / kmPx, x = cv.width - 26 * dpr - len, y = cv.height - 26 * dpr;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(x - 8 * dpr, y - 20 * dpr, len + 16 * dpr, 34 * dpr);
     ctx.strokeStyle = '#222'; ctx.fillStyle = '#222'; ctx.lineWidth = 2 * dpr; ctx.beginPath(); ctx.moveTo(x, y - 5 * dpr); ctx.lineTo(x, y + 4 * dpr); ctx.lineTo(x + len, y + 4 * dpr); ctx.lineTo(x + len, y - 5 * dpr); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x + len / 2, y + 4 * dpr); ctx.lineTo(x + len / 2, y - 1 * dpr); ctx.stroke();
@@ -83,7 +83,7 @@
     const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     scaleBar(ctx, cv, W, view.k); // лінійка на шарі поверх карти: під час руху камери перераховується, а не їде разом із картинкою
     ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty);
-    if (mark) { ctx.beginPath(); ctx.arc(mark.x + 0.5, mark.y + 0.5, 9 / view.k, 0, 6.2832); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 2.5 / view.k; ctx.stroke(); ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 1 / view.k; ctx.stroke(); }
+    if (mark) { ctx.beginPath(); ctx.arc(mark.x + 0.5 + (mark.ox || 0), mark.y + 0.5 + (mark.oy || 0), 9 / view.k, 0, 6.2832); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 2.5 / view.k; ctx.stroke(); ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 1 / view.k; ctx.stroke(); }
     const c = prep(W), polys = level === 'prov' ? c.provs : c.regs; if (id == null || !level || !polys[id]) return;
     path(ctx, polys[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
   }

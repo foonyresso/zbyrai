@@ -23,7 +23,7 @@
   async function build() {
     const id = ++buildId, p = readParams(), t0 = performance.now();
     const w2 = await A.generateAsync(p, (f, l) => { if (id !== buildId) return false; progress(f * 0.93, l); });
-    if (!w2 || id !== buildId) return; W = w2; writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
+    if (!w2 || id !== buildId) return; W = w2; A.world = W; A.getView = () => view; writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
     await new Promise(r => setTimeout(r, 0));
     redraw(() => { if (id === buildId) load.hidden = true; });
     const s = W.settlements ? W.settlements.length : 0, land = W.land.reduce((a, v) => a + v, 0);
@@ -85,7 +85,8 @@
       const tl = W.tier[i]; terr.push(row('Рівень · небезпека', `${W.level[i]} · <span class="tier" style="background:${TIER_COL[tl]}"></span>${D.TIERS[tl]}`));
       let nd = 1e18, ns = null; for (const q of W.settlements) { if (q.ruined) continue; const d = (q.x - px) ** 2 + (q.y - py) ** 2; if (d < nd) { nd = d; ns = q; } }
       if (ns) terr.push(row('Найближче', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
-    } else terr.push(row('Місцевість', W.lake[i] ? 'Озеро' : W.ocean[i] ? 'Море' : 'Вода'));
+    } else { const wb = W.waterBodies && W.waterBody[i] >= 0 ? W.waterBodies[W.waterBody[i]] : null; terr.push(row('Водойма', wb ? esc(wb.name) : W.lake[i] ? 'Озеро' : 'Вода'));
+      if (wb && wb.kind === 'lake') terr.push(row('Площа озера', fmt(Math.round(wb.cells * kmc * 10) / 10) + ' км²')); else if (wb) terr.push(row('Вид', wb.kind === 'ocean' ? 'Океан' : 'Море')); }
     let enc = ''; if (land && W.tier[i] > 0) { const E = D.encounter(W, i); enc = `<p class="muted">Водяться: ${E.species.map(q => `${esc(q.name)} (${q.level} р.)`).join(', ')}</p>`; }
     out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${enc}`));
     // 5. деталі місця під курсором
@@ -103,6 +104,11 @@
   }
   cv.addEventListener('pointerleave', () => { if (!drag) { info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
 
+  // меню: іконки зліва відкривають панель із підменю, повторний клік чи × закриває; вибір запам'ятовується
+  const drawer = $('drawer'); let panel = ''; try { panel = localStorage.getItem('atlas2.panel') || ''; } catch (e) { panel = ''; }
+  function showPanel(n) { panel = n; try { localStorage.setItem('atlas2.panel', n || ''); } catch (e) { /* не критично */ } drawer.hidden = !n; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n)); drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n)); }
+  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); }); $('drawerX').onclick = () => showPanel('');
+  showPanel(panel);
   $('btnHelp').onclick = () => $('help').showModal();
   $('help').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   addEventListener('resize', () => { if (W) { fit(); resetView(); redraw(); } });

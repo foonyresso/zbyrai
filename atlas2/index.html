@@ -6,10 +6,10 @@
 <title>Атлас 2.0</title>
 <meta name="description" content="Атлас 2.0: генератор світу з одного зерна: ландшафт, річки за правилами стоку, міста, провінції, регіони й дороги.">
 <link rel="stylesheet" href="../medieval-world/theme.css">
-<link rel="stylesheet" href="style.css?v=2026102310">
+<link rel="stylesheet" href="style.css?v=2026102314">
 </head>
 <body>
-<header class="top">
+<header class="top" id="top">
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai">← Zbyr<b>AI</b></a>
   <div class="brand">Атлас <span>2.0</span></div>
   <button id="btnHelp" title="Що це за інструмент, для чого він і як ним користуватися">Що це, для чого, як користуватися</button>
@@ -21,32 +21,74 @@
   <h3>Для чого</h3><p>Основа для гри й кампаній. Кожне зерно дає унікальний світ, однакове зерно з тими самими параметрами завжди дає той самий світ.</p>
   <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує блоками провінцію, регіон, координати, місцевість і деталі місця під курсором (поселення, лігво, табір, руїни тощо).</li><li>Нульові координати — центр карти. Рівень росте з відстанню від нього (приблизно 1 рівень на 2,5 км); рівень регіону — середній по його землях, провінції — середній по її регіонах. Чим далі від поселень, тим сильніші монстри (шар «Небезпека»).</li><li>Шари вмикаються в лівій панелі.</li></ol>
 </dialog>
-<section class="work">
-  <aside class="panel">
-    <label title="Зерно світу: будь-який текст чи число; те саме зерно дає той самий світ">Зерно<input id="seed" type="text"></label>
-    <button id="btnRandom" title="Підібрати випадкове зерно і створити новий світ">Випадкове</button>
-    <label title="Основний світ: один материк з островами; Острівний: архіпелаг із багатьох островів">Тип світу<select id="worldType"><option value="continent">Основний світ</option><option value="islands">Острівний світ</option></select></label>
-    <label title="Розмір карти в клітинах; одна клітина дорівнює 250 м">Розмір<select id="size"><option value="small">Мала</option><option value="medium" selected>Середня</option><option value="large">Велика</option></select></label>
-    <label title="Кількість провінцій (як країн): від 2 до 50; розміри різні">Провінцій<input id="provinces" type="number" min="2" max="50" value="12"></label>
-    <label title="Скільки регіонів (як областей) у середньому в провінції: від 2 до 24; у кожної провінції число своє">Регіонів у провінції<input id="regionsPerProvince" type="number" min="2" max="24" value="8"></label>
-    <label title="Скільки міст і сіл: менше значення дає менше поселень, більше дає більше">Щільність поселень<input id="density" type="range" min="0.3" max="2.2" step="0.1" value="1"></label>
-    <label title="Висота й різкість гір">Гірськість<input id="rugged" type="range" min="0" max="2" step="0.1" value="1"></label>
-    <label title="Скільки річок: більше значення дає більше річок">Річки<input id="riverDensity" type="range" min="0.1" max="2.5" step="0.1" value="1"></label>
-    <fieldset><legend title="Які шари показувати на карті">Шари</legend>
+<main class="stage" id="stage"><canvas id="map"></canvas><canvas id="over"></canvas><div id="info" class="info" hidden></div><div id="load" class="load" hidden><div class="loadbox"><div id="loadTxt" class="loadtxt">Створення світу…</div><div class="loadtrack"><div id="loadBar" class="loadbar"></div></div></div></div></main>
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="world" title="Зерно, тип і розмір світу, провінції й регіони"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg><span>Світ</span></button>
+  <button data-panel="nature" title="Гірськість, річки, щільність поселень"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 9.5 8l4 6 2.5-3.5L21 19z"/><path d="m9.5 8 1.8 2.6"/></svg><span>Природа</span></button>
+  <button data-panel="layers" title="Які шари показувати на карті"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>Шари</span></button>
+  <button data-panel="about" title="Підсумок світу й умовні позначки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg><span>Позначки</span></button>
+</nav>
+<aside class="drawer" id="drawer" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="world">
+    <h2>Світ</h2>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span>Зерно</span></summary>
+      <label title="Зерно світу: будь-який текст чи число; те саме зерно дає той самий світ">Зерно<input id="seed" type="text"></label>
+      <button id="btnRandom" title="Підібрати випадкове зерно і створити новий світ">Випадкове зерно</button>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15c3-6 5-6 8-1s5 3 8-5"/><path d="M4 20h16"/></svg><span>Тип і розмір</span></summary>
+      <label title="Основний світ: один материк з островами; Острівний: архіпелаг із багатьох островів">Тип світу<select id="worldType"><option value="continent">Основний світ</option><option value="islands">Острівний світ</option></select></label>
+      <label title="Розмір карти в клітинах; одна клітина дорівнює 250 м">Розмір<select id="size"><option value="small">Мала</option><option value="medium" selected>Середня</option><option value="large">Велика</option></select></label>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5h11l-1.5 4L16 13H5"/></svg><span>Політика</span></summary>
+      <label title="Кількість провінцій (як країн): від 2 до 50; розміри різні">Провінцій<input id="provinces" type="number" min="2" max="50" value="12"></label>
+      <label title="Скільки регіонів (як областей) у середньому в провінції: від 2 до 24; у кожної провінції число своє">Регіонів у провінції<input id="regionsPerProvince" type="number" min="2" max="24" value="8"></label>
+    </details>
+  </section>
+  <section data-panel="nature">
+    <h2>Природа</h2>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 9.5 8l4 6 2.5-3.5L21 19z"/></svg><span>Рельєф</span></summary>
+      <label title="Висота й різкість гір">Гірськість<input id="rugged" type="range" min="0" max="2" step="0.1" value="1"></label>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6c4 0 4 4 8 4s4 4 8 4M4 12c4 0 4 4 8 4s4 3 8 3"/></svg><span>Води</span></summary>
+      <label title="Скільки річок: більше значення дає більше річок">Річки<input id="riverDensity" type="range" min="0.1" max="2.5" step="0.1" value="1"></label>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10l5-4 5 4v10M14 20v-6h6v6"/></svg><span>Поселення</span></summary>
+      <label title="Скільки міст і сіл: менше значення дає менше поселень, більше дає більше">Щільність поселень<input id="density" type="range" min="0.3" max="2.2" step="0.1" value="1"></label>
+    </details>
+  </section>
+  <section data-panel="layers">
+    <h2>Шари</h2>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5h11l-1.5 4L16 13H5"/></svg><span>Політика</span></summary>
       <label class="chk" title="Кольорові заливки провінцій"><input type="checkbox" data-layer="fill" checked>Провінції</label>
       <label class="chk" title="Межі провінцій (суцільні) і регіонів (пунктир)"><input type="checkbox" data-layer="borders" checked>Межі</label>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6c4 0 4 4 8 4s4 4 8 4M4 12c4 0 4 4 8 4s4 3 8 3"/></svg><span>Природа</span></summary>
       <label class="chk" title="Річки"><input type="checkbox" data-layer="rivers" checked>Річки</label>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10l5-4 5 4v10M14 20v-6h6v6"/></svg><span>Люди</span></summary>
       <label class="chk" title="Дороги між поселеннями"><input type="checkbox" data-layer="roads" checked>Дороги</label>
       <label class="chk" title="Міста, села й хутори"><input type="checkbox" data-layer="places" checked>Поселення</label>
-      <label class="chk" title="Лігва монстрів, табори бандитів, руїни, печери, шахти, джерела й інші місця"><input type="checkbox" data-layer="sites" checked>Локації</label>
-      <label class="chk" title="Підсвітка небезпеки: що далі від поселень, то страшніші монстри"><input type="checkbox" data-layer="danger">Небезпека</label>
-      <label class="chk" title="Підписи провінцій, регіонів і міст"><input type="checkbox" data-layer="labels" checked>Підписи</label>
-    </fieldset>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7z"/><path d="M9.5 11.5 12 14l3-4"/></svg><span>Небезпека</span></summary>
+      <label class="chk" title="Лігва монстрів, табори бандитів, руїни, печери, шахти, джерела й інші місця"><input type="checkbox" data-layer="sites" checked>Локації й монстри</label>
+      <label class="chk" title="Підсвітка небезпеки: що далі від поселень, то страшніші монстри"><input type="checkbox" data-layer="danger">Зони небезпеки</label>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14M12 6v13M9 19h6"/></svg><span>Підписи</span></summary>
+      <label class="chk" title="Підписи провінцій, регіонів, міст, морів, океанів і озер"><input type="checkbox" data-layer="labels" checked>Підписи</label>
+    </details>
+  </section>
+  <section data-panel="about">
+    <h2>Позначки</h2>
     <p id="stats" class="stats"></p>
-    <p class="stats" title="Умовні позначки поселень">Позначки: ◉ столиця, ● центр регіону, ○ місто/село/хутір (за розміром кружка), червоне коло — поселення, окуповане монстрами чи бандитами, сіре з хрестиком — руїни. Значок якоря — порт (на морі чи великому озері). Суцільна товста лінія — головна дорога, пунктир — путівець; білий пунктир — водний шлях між портами. Локації (на далекому масштабі — тьмяні крапки, зблизька — значки): червоний ромб — місця монстрів, помаранчевий трикутник — бандити, сірий квадрат — руїни й давнина, зелене коло — природа, коричневий квадрат — покинуте господарство, жовте коло — святі місця; більший значок — небезпечніше місце.</p>
-  </aside>
-  <div class="stage" id="stage"><canvas id="map"></canvas><canvas id="over"></canvas><div id="info" class="info" hidden></div><div id="load" class="load" hidden><div class="loadbox"><div id="loadTxt" class="loadtxt">Створення світу…</div><div class="loadtrack"><div id="loadBar" class="loadbar"></div></div></div></div></div>
-</section>
-<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102310'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/bestiary','core/danger','core/generate','core/serialize','render/contours','render/raster','render/draw','render/roadgeom','render/places','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="9"/></svg><span>Поселення й шляхи</span></summary>
+      <p class="hint" title="Умовні позначки поселень">◉ столиця, ● центр регіону, ○ місто/село/хутір (за розміром кружка). Якір — порт на березі моря чи великого озера. Червоне коло — поселення, окуповане монстрами чи бандитами, сіре з хрестиком — руїни. Суцільна товста лінія — головна дорога, пунктир — путівець; білий пунктир — водний шлях між портами.</p>
+    </details>
+    <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 21 12 12 21 3 12z"/></svg><span>Локації</span></summary>
+      <p class="hint">Здалеку локації — тьмяні крапки, зблизька — значки: червоний ромб — місця монстрів, помаранчевий трикутник — бандити, сірий квадрат — руїни й давнина, зелене коло — природа, коричневий квадрат — покинуте господарство, жовте коло — святі місця; більший значок — небезпечніше місце.</p>
+    </details>
+  </section>
+</aside>
+<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102314'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','render/contours','render/raster','render/draw','render/roadgeom','render/places','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
 </body>
 </html>

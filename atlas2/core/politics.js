@@ -165,6 +165,8 @@
       if (b >= 0) g.centerCell = b;
     }
     for (const g of regions) { region[g.centerCell] = g.id; prov[g.centerCell] = g.prov; } // центр регіону завжди у своєму регіоні
+    G.joinParts(region, w, h, W.landmass, id => regions[id].centerCell, (a, b) => regions[a].prov === regions[b].prov); // після переносу центрів і поділів: ніяких одиночних клітин-«ексклавів»
+    for (let i = 0; i < N; i++) prov[i] = region[i] >= 0 ? regions[region[i]].prov : -1;
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));
     for (const g of regions) provinces[g.prov].regions.push(g.id);
     W.province = prov; W.region = region; waters(W, 8); W.provinces = provinces; W.regions = regions;

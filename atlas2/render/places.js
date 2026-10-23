@@ -40,6 +40,16 @@
   }
   function drawNames(ctx, W, px, k) {
     const fade = (v, a, b, c, d) => v < a || v > d ? 0 : v < b ? (v - a) / (b - a) : v > c ? (d - v) / (d - c) : 1; // плавна поява й зникнення за екранним розміром літер
+    // назви водойм: океани крупними розрідженими літерами, моря менше, озера — за розміром озера; текст підганяється під ширину водойми
+    if (W.waterBodies) {
+      const SP = { ocean: [30, 0.28, 8, 14, 110, 200, 1.2], sea: [12, 0.2, 8, 14, 70, 130, 1.1], lake: [4.2, 0.06, 9, 14, 45, 80, 1.6] };
+      for (const b of W.waterBodies) {
+        if (!b.cells || b.radius < 2) continue; const [maxFs, sp, a0, a1, a2, a3, wide] = SP[b.kind], text = b.kind === 'lake' ? b.name : b.name.toUpperCase();
+        ctx.font = `italic 600 ${maxFs}px Georgia, 'Times New Roman', serif`; const w0 = ctx.measureText(text).width + maxFs * sp * (text.length - 1), fs = maxFs * Math.min(1, 2 * b.radius * wide / w0), al = fade(fs * k, a0, a1, a2, a3);
+        if (al < 0.02) continue; ctx.font = `italic 600 ${fs}px Georgia, 'Times New Roman', serif`; const wd = ctx.measureText(text).width + fs * sp * (text.length - 1);
+        alongPath(ctx, [b.cx + 0.5 - wd / 2, b.cy + 0.5, b.cx + 0.5 + wd / 2, b.cy + 0.5], text, fs, fs * sp, al * 0.9, 'rgba(240,248,255,1)', 'rgba(25,60,110,.55)');
+      }
+    }
     const ps = PS * k, pa = fade(ps, 8, 14, 60, 110);
     if (pa > 0.02) { ctx.font = `700 ${PS}px Georgia, 'Times New Roman', serif`; for (const p of W.provinces) if (p.label && p.label.line) alongPath(ctx, p.label.line, p.name.toUpperCase(), PS, PS * 0.42, pa * 0.82, 'rgba(48,32,64,1)', 'rgba(255,255,255,.55)'); }
     const rs = RS * k, ra = fade(rs, 9, 14, 40, 70);
@@ -73,7 +83,7 @@
     for (const rank of ['hamlet', 'village', 'town', 'regional', 'capital']) {
       if (k < MINK[rank]) continue; const r = R[rank] * px;
       for (const s of W.settlements) {
-        if (s.rank !== rank) continue; const x = s.x + 0.5, y = s.y + 0.5;
+        if (s.rank !== rank) continue; const x = s.x + 0.5 + (s.ox || 0), y = s.y + 0.5 + (s.oy || 0);
         if (s.fate === 'occupied') { // окуповане: червоне коло із чорною обводкою й білим квадратиком
           ctx.beginPath(); ctx.arc(x, y, Math.max(r * 1.2, 3.6 * px), 0, 6.2832); ctx.fillStyle = '#b3261e'; ctx.fill(); ctx.strokeStyle = '#1a0a08'; ctx.lineWidth = 1.8 * px; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect(x - r * 0.35, y - r * 0.35, r * 0.7, r * 0.7);
           if (L.labels && k >= LBLK[rank]) { ctx.font = `italic 700 ${10 * px}px sans-serif`; ctx.fillStyle = '#7a1510'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name + ' (окуповано)', x + r + 2 * px, y); ctx.fillText(s.name + ' (окуповано)', x + r + 2 * px, y); ctx.textAlign = 'center'; }
