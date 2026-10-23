@@ -65,6 +65,21 @@
       let ch = false; for (const r of cut) if (!r.ok && r.cells.some(c => tgt.has(c))) { r.ok = true; ch = true; } if (!ch) break;
     }
     const keep = cut.filter(r => r.ok).map(r => r.cells);
+    // річки не течуть упритул паралельно: шлях, що підійшов до клітини вже накресленої (більшої) річки, зливається з нею там
+    const claimed = new Uint8Array(N);
+    for (const cells of keep) {
+      const mine = new Set(cells.slice(0, 2)); let end = cells.length;
+      for (let k = 0; k < cells.length && end === cells.length; k++) {
+        const c = cells[k]; if (T.ocean[c]) break;
+        if (claimed[c]) { end = k + 1; break; }
+        if (k < 2) continue;
+        const x = c % w, y = (c / w) | 0;
+        for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (claimed[j] && !mine.has(j)) { cells.length = k + 1; cells.push(j); end = -1; break; } }
+        if (end === -1) break; mine.add(c);
+      }
+      if (end > 0 && end < cells.length) cells.length = end;
+      for (const c of cells) claimed[c] = 1;
+    }
     // кожна річка доходить до моря: якщо шлях закінчився на чужому руслі, воно вже веде до моря; якщо ні, добудовуємо вниз за стоком
     const inKeep = new Set(); for (const c of keep) for (const x of c) inKeep.add(x);
     for (const cells of keep) {

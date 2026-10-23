@@ -17,7 +17,14 @@
       });
       return C.chaikin(C.relaxOpen(P, 3), 2, false);
     }
-    return { roads: W.roads.map(r => ({ level: r.level, pts: wavy(r.cells, 1, true) })), sea: (W.seaRoutes || []).map(r => ({ pts: wavy(r.cells, 0.35, false) })) };
+    // стики: якщо відрізок кінчається в клітині, що є серединою іншого, той розрізається там — кінці згладжуються нерухомими, тож стик точний
+    const inner = new Map(); W.roads.forEach((r, n) => { for (let k = 1; k < r.cells.length - 1; k++) (inner.get(r.cells[k]) || inner.set(r.cells[k], []).get(r.cells[k])).push(n); });
+    const cuts = new Map(); for (const r of W.roads) for (const e of [r.cells[0], r.cells[r.cells.length - 1]]) for (const n of inner.get(e) || []) (cuts.get(n) || cuts.set(n, new Set()).get(n)).add(e);
+    const pieces = []; W.roads.forEach((r, n) => {
+      const cs = cuts.get(n); if (!cs) { pieces.push(r); return; }
+      let from = 0; for (let k = 1; k < r.cells.length; k++) if (cs.has(r.cells[k]) || k === r.cells.length - 1) { if (k - from >= 1) pieces.push({ level: r.level, cells: r.cells.slice(from, k + 1) }); from = k; }
+    });
+    return { roads: pieces.map(r => ({ level: r.level, pts: wavy(r.cells, 1, true) })), sea: (W.seaRoutes || []).map(r => ({ pts: wavy(r.cells, 0.35, false) })) };
   }
   A.RoadGeom = { build };
 })();

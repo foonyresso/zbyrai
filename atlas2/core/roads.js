@@ -77,6 +77,11 @@
       cellsOf.add(group[0].i);
       stage(main, 1, 1, 1); stage(mid, 2, 2, 2);
       stage(small.filter(s => s.rank === 'village'), 9, 9, 3); stage(small.filter(s => s.rank === 'hamlet'), 9, 9, 4);
+      // близькі міста й села без нормального зв'язку (мережею довше ніж у ~2.2 рази) з'єднуються напряму
+      const reach = (a, b, lim) => { const seen = new Set([a]); let fr = [a]; for (let st = 0; st < lim && fr.length; st++) { const nx = []; for (const i of fr) { if (i === b) return true; const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const X = x + DX[d], Y = y + DY[d]; if (X < 0 || Y < 0 || X >= w || Y >= h) continue; const j = Y * w + X; if ((level[j] || j === b) && !seen.has(j)) { seen.add(j); nx.push(j); } } } fr = nx; } return seen.has(b); };
+      const near = []; for (let a = 0; a < group.length; a++) for (let b = a + 1; b < group.length; b++) { const s = group[a], t = group[b], r = Math.max(rank(s), rank(t)), lim = r <= 2 ? 18 : r === 3 ? 11 : 0; if (lim && dst(s, t) < lim) near.push([dst(s, t), s, t, r]); }
+      near.sort((x, y) => x[0] - y[0]);
+      for (const [d, s, t, r] of near) if (!reach(s.i, t.i, Math.ceil(d * 2.2) + 4)) connect(s, i => i === t.i, r <= 2 ? Math.min(LEVEL[s.rank], LEVEL[t.rank]) === 1 && r <= 1 ? 1 : 2 : 3, 3);
       // петлі: сусідні міста вищого рангу з'єднуються ще й напряму, якщо це дає помітний новий відрізок
       for (const s of main.concat(mid)) {
         if (rr() < 0.4 || roadNear(s) >= 3) continue;
