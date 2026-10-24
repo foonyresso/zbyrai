@@ -109,13 +109,7 @@
   A.redraw = redraw; A.redrawOver = () => A.draw.drawHover(ov, W, view, hover, W && levelNow()); A.focusCell = (x, y, k) => { view.k = Math.min(450, k); view.tx = cv.width / 2 - x * view.k; view.ty = cv.height / 2 - y * view.k; redraw(); };
   cv.addEventListener('pointerleave', () => { if (!drag) { if (A.TownMap) A.TownMap.hover(null); curCt = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
 
-  // меню: іконки зліва відкривають панель із підменю, повторний клік чи × закриває; вибір запам'ятовується
-  const drawer = $('drawer'); let panel = ''; try { panel = localStorage.getItem('atlas2.panel') || ''; } catch (e) { panel = ''; }
-  function showPanel(n) { panel = n; try { localStorage.setItem('atlas2.panel', n || ''); } catch (e) { /* не критично */ } drawer.hidden = !n; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n)); drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n)); }
-  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); }); $('drawerX').onclick = () => showPanel('');
-  showPanel(panel);
-  $('btnHelp').onclick = () => $('help').showModal();
-  $('help').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+  // меню (іконки, панель, довідка «i») веде спільний кіт zb-ui.js; ключ збереження панелі: data-store на #drawer
   addEventListener('resize', () => { if (W) { fit(); resetView(); redraw(); } });
 
   const m = /#p=(.+)$/.exec(location.hash);

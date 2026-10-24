@@ -2,6 +2,7 @@
 
 - `shared/theme.css`: єдина дизайн-система «Обсидіан і золото» (змінні, шапка `header.top`, `.top-actions`, `details.how`, кнопки, заголовки). Правте тільки тут.
 - `shared/tool-chrome.js`: спільна «обв'язка»: кнопка «Інфо» після назви (спливаюче вікно з довідки `details.how`/`details.about`), якір «назад» (`../index.html#t-<папка>`), гарячі клавіші без залежності від розкладки (`window.zbKey`, за `e.code`). Копіюється у кожен інструмент тією ж `sync-theme.mjs`; підключається в кінці `index.html`.
+- `shared/ui/zb-ui.css`, `zb-ui.js`: UI-кіт інтерфейсу «як в Атласі 2.0» (docs/ui-kit.md); `sync-theme.mjs` копіює їх у інструменти, що підключають `zb-ui.css`.
 - `<інструмент>/theme.css`: копії; не правити вручну. Оновлення: `node tools/sync-theme.mjs` (копіює в кожну папку з `index.html`, окрім `shared`, `assets`, `tools`).
 - `<інструмент>/style.css`: акцент (`--accent` у `:root`) та специфіка інструмента.
 - `index.html` + `assets/hub.css` + `assets/hub.js`: головна. Картка інструмента + клас кольору `.c-…` у `hub.css`.

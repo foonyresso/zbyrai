@@ -1,4 +1,4 @@
-// Копіює shared/theme.css у theme.css і shared/tool-chrome.js у tool-chrome.js кожного інструмента.
+// Копіює shared/theme.css у theme.css і shared/tool-chrome.js у tool-chrome.js кожного інструмента (і shared/ui/zb-ui.* там, де підключено кіт).
 // Інструмент = підпапка кореня з index.html, окрім shared, assets, tools.
 // Запуск: node tools/sync-theme.mjs   (з будь-якої папки)
 import { readdirSync, existsSync, copyFileSync, readFileSync } from 'node:fs';
@@ -19,6 +19,8 @@ for (const e of readdirSync(root, { withFileTypes: true })) {
   const same = existsSync(dest) && readFileSync(dest).equals(src);
   copyFileSync(source, dest);
   if (e.name !== 'taste') copyFileSync(chromeSrc, join(root, e.name, 'tool-chrome.js'));
+  // UI-кіт (shared/ui): лише в інструменти, що підключають zb-ui.css
+  if (readFileSync(join(root, e.name, 'index.html'), 'utf8').includes('zb-ui.css')) for (const f of ['zb-ui.css', 'zb-ui.js']) copyFileSync(join(root, 'shared', 'ui', f), join(root, e.name, f));
   console.log(`${same ? '=' : '✓'} ${e.name}/theme.css${same ? ' (без змін)' : ' оновлено'}`);
   n++;
 }

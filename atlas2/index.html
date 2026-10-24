@@ -6,7 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Атлас 2.0</title>
 <meta name="description" content="Атлас 2.0: генератор світу з одного зерна: ландшафт, річки за правилами стоку, міста, провінції, регіони й дороги.">
-<link rel="stylesheet" href="../medieval-world/theme.css">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="zb-ui.css">
 <link rel="stylesheet" href="style.css?v=2026102415">
 <link rel="stylesheet" href="town.css?v=2026102415">
 <link rel="stylesheet" href="dungeon.css?v=2026102415">
@@ -31,7 +32,7 @@
   <button data-panel="layers" title="Які шари показувати на карті"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>Шари</span></button>
   <button data-panel="about" title="Підсумок світу й умовні позначки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg><span>Позначки</span></button>
 </nav>
-<aside class="drawer" id="drawer" hidden>
+<aside class="drawer" id="drawer" data-store="atlas2.panel" hidden>
   <button class="x" id="drawerX" title="Закрити меню">×</button>
   <section data-panel="world">
     <h2>Світ</h2>
@@ -96,6 +97,7 @@
     </details>
   </section>
 </aside>
+<script src="zb-ui.js"></script>
 <script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102415'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/landmarks','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','core/citydata','core/citytext','core/townenv','core/townstreets','core/townsites','core/townsites2','core/townroads','core/townfields','core/townkeep','core/town','core/townquery','core/dungeondata','core/dungeon','core/dungeonplace','render/contours','render/raster','render/draw','render/roadgeom','render/landmarks','render/places','render/townmask','render/town','render/dungeon','ui/town','ui/dungeon','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
 </body>
 </html>

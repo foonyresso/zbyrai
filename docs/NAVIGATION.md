@@ -17,6 +17,7 @@
 | [atlas/continent/README.md](atlas/continent/README.md) | Атлас, світ «Материк» (колишня карта королівств): ієрархія, дороги, монстри гір/лісів/морів, алгоритм, перенесення в Godot C#, покращення |
 | [atlas2/DESIGN.md](atlas2/DESIGN.md) | Атлас 2.0: дизайн нового генератора світу (ландшафт, води, міста, провінції, дороги), етапи, чанки |
 | [data-versions.md](data-versions.md) | Версії форматів збережень і що в них змінилось |
+| [ui-kit.md](ui-kit.md), [ui-migration.md](ui-migration.md) | UI-кіт (інтерфейс як Атлас 2.0: `shared/ui/`), розмітка, як перевести інструмент; черга міграції й питання |
 | [plans/ui-rollout-queue.md](plans/ui-rollout-queue.md) | Черга: єдиний стиль інструментів (полотно + іконки) і доробки, статуси |
 | [plans/dungeon-sim-queue.md](plans/dungeon-sim-queue.md) | Черга задач симулятора підземель |
 | [plans/album-builder-queue.md](plans/album-builder-queue.md) | Черга закритого «Макетника альбомів» (`album-builder/`, не лінкується з хабу) |
@@ -31,6 +32,7 @@
 mechanics/               механіки окремо (rng, world-lite, trade, building, settlers, threats): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
 zakladyny/               гра «Закладини»: комбінує механіки; zk-game.js (доба), zk-save.js, zk-render.js, zk-panels.js, app.js
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
+shared/ui/               UI-кіт: zb-ui.css + zb-ui.js (верхня панель, іконки-меню, панелі, довідка «i»); копії в інструментах на кіті (atlas2, tessera)
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
 tools/                   sync-theme.mjs, ui-rules.test.js, build-world-themes.mjs (теми вимірів із палітр lore), build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
 image-converter/         Конвертер зображень (convert-core, zip-core, convert-render, воркер і пул, app.js)

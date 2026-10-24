@@ -122,17 +122,7 @@
   const fills = [0, 1, 2, 3, 4, 5].map(n => colorInput('Колір ' + (n + 1), 'Колір ' + (n + 1) + ' із палітри: використовується, якщо кількість кольорів не менша за ' + (n + 1), () => st.colors[n], v => { st.colors[n] = v; }));
   $('btnPalRand').addEventListener('click', () => { const p = T.randomPalette(Math.random); st.bg = p.bg; st.colors = p.colors; st.lineColor = p.bg; if (st.ncol < 2) st.ncol = 3; change(null, true); });
 
-  /* меню-іконки */
-  const drawer = $('drawer'); let panel = store.get('panel', 'pattern');
-  function showPanel(n) {
-    panel = n; store.set('panel', n || '');
-    drawer.hidden = !n; $('work').classList.toggle('shift', !!n);
-    document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
-    drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
-  }
-  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); });
-  $('drawerX').onclick = () => showPanel('');
-  showPanel(panel);
+  /* меню-іконки, довідка «i»: спільний кіт zb-ui.js */
 
   /* ---------- відображення ---------- */
   const cv = $('cv'), view = $('view'), meta = $('meta'); let raf = 0;
