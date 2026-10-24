@@ -22,13 +22,6 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Симуляція <span>колонії</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions">
-    <button id="btnImport" title="Завантажити збережену колонію з файлу .json (зерно, склад, замкнені колоністи)">Імпорт</button>
-    <input type="file" id="fileImport" accept="application/json,.json" hidden>
-    <button id="btnCopyJson" title="Скопіювати колонію як JSON">Копіювати JSON</button>
-    <button id="btnJson" title="Завантажити колонію як файл colonists.json (можна потім імпортувати назад)">Зберегти .json</button>
-    <button class="btn-primary" id="btnCsv" title="Завантажити таблицю колоністів у CSV (для Excel і Google Таблиць)">Зберегти .csv</button>
-  </div>
 </header>
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
@@ -49,7 +42,10 @@
   <button data-panel="people" title="Колоністи: список і докладна картка вибраного"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c.8-4.5 4-6.5 7.500-6.500S18.700 16.500 19.500 21"/></svg><span>Колоністи</span></button>
   <button data-panel="setup" title="Скільки людей, яке зерно, де стоїть поселення"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Колонія</span></button>
 </nav>
-<aside class="drawer" id="drawer" data-store="cf_panel" data-default="people" hidden>
+<div class="bar">
+    <button class="btn-primary" id="btnCsv" title="Завантажити таблицю колоністів у CSV (для Excel і Google Таблиць)">Зберегти .csv</button>
+  </div>
+  <aside class="drawer" id="drawer" data-store="cf_panel" data-default="people" hidden>
   <button class="x" id="drawerX" title="Закрити меню">×</button>
   <section data-panel="people"><h2>Колоністи</h2><div class="cbar" id="cbar" role="list" aria-label="Колоністи: натисніть, щоб відкрити"></div><aside id="detailHost" class="detail" aria-live="polite"></aside></section>
   <section data-panel="setup"><h2>Колонія й місце</h2><p class="hint" id="setupSummary"></p><div id="setup"><div class="setup-grid">

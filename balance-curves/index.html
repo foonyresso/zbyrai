@@ -22,15 +22,6 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Криві балансу <span>і хвилі</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions">
-    <label class="hdr-field" title="Скопіювати формулу вибраної кривої як код для гри"><span>Код</span><select id="selCodeCurve" aria-label="Крива для коду" title="Яку криву перетворити на код"></select><select id="selCodeLang" aria-label="Мова коду" title="Мова, у якій скопіювати формулу кривої. Вибір одразу копіює код"><option value="">Копіювати як…</option><option value="js">JavaScript</option><option value="py">Python</option><option value="cs">C#</option></select></label>
-    <button id="btnCopyJson" title="Скопіювати всі криві, хвилі й налаштування як JSON, щоб надіслати або вставити пізніше">Копіювати JSON</button>
-    <button id="btnImport" title="Завантажити збережений файл .json з кривими й хвилями">Імпорт JSON</button>
-    <button id="btnExport" title="Зберегти всі криві, хвилі й налаштування у файл balance-curves.json">Експорт JSON</button>
-    <button id="btnCsv" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як CSV для Excel">Таблиця CSV</button>
-    <button id="btnJson" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як JSON для гри">Таблиця JSON</button>
-    <input type="file" id="file" accept="application/json,.json" hidden>
-  </div>
 </header>
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
@@ -57,6 +48,8 @@
   
   
   <div class="bar">
+    <label class="hdr-field" title="Скопіювати формулу вибраної кривої як код для гри"><span>Код</span><select id="selCodeCurve" aria-label="Крива для коду" title="Яку криву перетворити на код"></select><select id="selCodeLang" aria-label="Мова коду" title="Мова, у якій скопіювати формулу кривої. Вибір одразу копіює код"><option value="">Копіювати як…</option><option value="js">JavaScript</option><option value="py">Python</option><option value="cs">C#</option></select></label>
+    <button id="btnCsv" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як CSV для Excel">Таблиця CSV</button>
     <label class="ctl-inline" title="З якого рівня (кроку) починати графік">Від <input type="number" id="nFrom" min="0" max="999" step="1" title="З якого рівня (кроку) починати графік"></label>
     <label class="ctl-inline" title="На якому рівні (кроці) закінчити графік, максимум 1000">До <input type="number" id="nTo" min="2" max="1000" step="1" title="На якому рівні (кроці) закінчити графік, максимум 1000"></label>
     <label class="ctl-inline" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок">Вигляд <select id="selView" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок"><option value="val">Значення</option><option value="cum">Накопичено</option><option value="gr">Приріст за крок, %</option></select></label>

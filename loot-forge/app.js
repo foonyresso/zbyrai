@@ -345,14 +345,7 @@
     ta.remove();
   }
   const exportText = () => L.exportJSON(cfg(), items);
-  $('btnCopy').addEventListener('click', () => copyText(exportText(), 'JSON скопійовано'));
-  $('btnSave').addEventListener('click', () => {
-    const url = URL.createObjectURL(new Blob([exportText()], { type: 'application/json' }));
-    const a = h('a', { href: url, download: 'items.json' }); document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000); toast('items.json збережено');
-  });
   const dlg = $('dlgImport');
-  $('btnImport').addEventListener('click', () => { $('importErr').textContent = ''; $('importText').value = ''; dlg.showModal(); });
   $('importFile').addEventListener('click', () => $('importFileInput').click());
   $('importFileInput').addEventListener('change', e => {
     const f = e.target.files[0]; if (!f) return;

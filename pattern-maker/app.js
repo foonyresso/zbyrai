@@ -648,20 +648,6 @@
   };
 
   // посилання на стан: #s=base64(JSON); зображення в посилання не входить
-  $('btnLink').onclick = async () => {
-    const url = location.href.split('#')[0] + '#s=' + btoa(unescape(encodeURIComponent(snap())));
-    try { history.replaceState(null, '', url); } catch {}
-    try { await navigator.clipboard.writeText(url); toast('Посилання зі станом скопійовано (без зображення)'); } catch { toast('Посилання у адресному рядку'); }
-  };
-  $('btnJson').onclick = () => { download(new Blob([JSON.stringify({ tool: 'pattern-maker', state: JSON.parse(snap()) }, null, 2)], { type: 'application/json' }), 'pattern-settings.json'); toast('Налаштування збережено'); };
-  $('btnImport').onclick = () => $('fileImport').click();
-  $('fileImport').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const d = JSON.parse(await f.text()); if (d.tool !== 'pattern-maker' || !d.state) throw new Error('bad');
-      applySnap(JSON.stringify(d.state)); syncControls(); drawSource(); requestRender(); saveSettings(); toast('Налаштування завантажено');
-    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом', 3200); }
-  };
   if (/^#s=/.test(location.hash)) { try { applySnap(decodeURIComponent(escape(atob(location.hash.slice(3))))); hist[0] = snap(); } catch {} }
 
   /* ---------- меню-іконки ---------- */

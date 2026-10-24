@@ -175,19 +175,12 @@
   }
   const slug = s => (s || 'skill').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/g, '-').replace(/^-|-$/g, '') || 'skill';
   const json = () => JSON.stringify(F.serialize(skill), null, 2);
-  $('btnCopyJson').addEventListener('click', () => copy(json(), 'JSON скопійовано'));
   $('btnCopyText').addEventListener('click', () => copy(E.describe(skill), 'Опис скопійовано'));
-  $('btnPrint').addEventListener('click', () => window.print());
   $('btnCopyTree').addEventListener('click', () => {
     const node = { id: slug(skill.name), name: skill.name, desc: skill.desc || E.summary(skill, E.evaluate(skill)), kind: 'notable', role: 'active', max: 1, cost: 1, need: 0, stats: {}, skill: F.serialize(skill) };
     copy(JSON.stringify(node, null, 2), 'Вузол для дерева скілів скопійовано');
   });
-  $('btnSave').addEventListener('click', () => {
-    const url = URL.createObjectURL(new Blob([json()], { type: 'application/json' }));
-    const a = h('a', { href: url, download: slug(skill.name) + '.skill.json' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
   const dlg = $('dlgImport');
-  $('btnImport').addEventListener('click', () => { $('importErr').textContent = ''; $('importText').value = ''; dlg.showModal(); });
   $('importFile').addEventListener('click', () => $('importFileInput').click());
   $('importFileInput').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { $('importText').value = t; }); e.target.value = ''; });
   $('importGo').addEventListener('click', () => {

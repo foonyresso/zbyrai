@@ -96,21 +96,6 @@
     store.set('custom', custom); pools = M.mergePools(custom);
     $('customText').value = ''; renderCustom(); toast('Додано до «' + M.SLOTS.find(s => s.id === slot).name + '»');
   });
-  $('customExport').addEventListener('click', () => {
-    if (!Object.keys(custom).length) { toast('Немає власних механік'); return; }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(M.exportCustom(custom), null, 2)], { type: 'application/json' }));
-    a.download = 'idea-mixer-custom.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  });
-  $('customImport').addEventListener('click', () => $('customFile').click());
-  $('customFile').addEventListener('change', async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    let data; try { data = JSON.parse(await f.text()); } catch { toast('Це не JSON'); return; }
-    const r = M.importCustom(data, custom);
-    if (r.error) { toast(r.error); return; }
-    custom = r.custom; store.set('custom', custom); pools = M.mergePools(custom); renderCustom();
-    toast('Додано: ' + r.added + (r.skipped ? ', пропущено: ' + r.skipped : ''));
-  });
   $('customText').addEventListener('keydown', e => { if (e.key === 'Enter') $('customAdd').click(); });
   $('btnMd').addEventListener('click', () => {
     const l = document.createElement('a');

@@ -131,10 +131,6 @@
   cv.addEventListener('contextmenu', e => { e.preventDefault(); ui.tool = 'select'; refresh(); });
 
   // ---------- збереження й обмін
-  $('btnJson').onclick = () => { if (!G) return; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(Sv.toJSON(G))], { type: 'application/json' })); a.download = 'zakladyny.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
-  $('btnCopyJson').onclick = () => { if (!G) return; const t = JSON.stringify(Sv.toJSON(G)); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('JSON скопійовано'), () => toast('Не вдалося скопіювати: збережіть файлом')); };
-  $('btnImport').onclick = () => $('fileImport').click();
-  $('fileImport').onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { try { const o = Sv.parse(JSON.parse(t)); startGame(o.params, o); toast('Гру завантажено'); } catch (err) { toast('Помилка імпорту: ' + err.message); } }); e.target.value = ''; };
   addEventListener('pagehide', save); document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 
   // ---------- цикл часу: доба = DAY_MS / швидкість; між добами каравани плавно їдуть

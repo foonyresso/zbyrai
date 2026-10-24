@@ -270,25 +270,6 @@
     o.tiles = st.tiles.map(function (t) { return { name: t.file.name, z: +t.z.toFixed(3), fx: +t.fx.toFixed(3), fy: +t.fy.toFixed(3) }; });
     return JSON.stringify(o, null, 2);
   }
-  $('btnJson').onclick = function () { dl('image-converter.json', new Blob([cfgJson()], { type: 'application/json' })); };
-  $('btnCopyJson').onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(cfgJson()) : Promise.reject()).then(function () { toast('Скопійовано!'); }, function () { toast('Не вдалося скопіювати'); }); };
-  $('btnImport').onclick = function () { $('fileImport').click(); };
-  $('fileImport').onchange = function () {
-    var f = this.files[0]; this.value = ''; if (!f) return;
-    var rd = new FileReader();
-    rd.onload = function () {
-      try {
-        var d = JSON.parse(rd.result); if (d.app !== 'image-converter') throw 0;
-        applyCfg(d); var n = 0;
-        if (Array.isArray(d.tiles)) d.tiles.forEach(function (q) {
-          st.tiles.forEach(function (t) { if (q && t.file.name === q.name) { t.z = C.clamp(+q.z || 1, 1, 5); t.fx = C.clamp(q.fx == null ? 0.5 : +q.fx, 0, 1); t.fy = C.clamp(q.fy == null ? 0.5 : +q.fy, 0, 1); n++; } });
-        });
-        syncUI(); save(); refreshAll(); syncSel();
-        toast('Налаштування завантажено' + (n ? ', кадрів: ' + n : ''));
-      } catch (e) { toast('Це не файл конвертера'); }
-    };
-    rd.readAsText(f);
-  };
 
   // ---- підтримка форматів браузером ----
   function probe(type) {

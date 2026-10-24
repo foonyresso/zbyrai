@@ -83,21 +83,6 @@
     const rel = sim.rel.map(r => ({ a: colony.colonists[r.a].name, b: colony.colonists[r.b].name, type: r.type }));
     return { tool: 'colonist-foundry', version: 2, state: { seed: st.seed, n: st.n, day: st.day, locks: st.locks, gen: st.gen, place: st.place, hours: st.hours }, seed: colony.seed, colonists: colony.colonists.map(c => Object.assign({}, c, { fullName: C.fullName(c), profession: C.profession(c), priorities: C.priorities(c) })), relations: rel };
   };
-  $('btnJson').onclick = () => { download(JSON.stringify(exportObj(), null, 2), 'colonists.json', 'application/json'); toast('Файл збережено'); };
-  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(exportObj(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
-  $('btnImport').onclick = () => $('fileImport').click();
-  $('fileImport').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const d = JSON.parse(await f.text()), s = d.state;
-      if (d.tool !== 'colonist-foundry' || !s || !s.seed) throw new Error('bad');
-      st.seed = String(s.seed).slice(0, 20); st.n = Math.min(24, Math.max(2, +s.n || 8)); st.day = Math.max(1, +s.day || 1);
-      st.locks = s.locks && typeof s.locks === 'object' ? s.locks : {}; st.gen = s.gen === 2 ? 2 : 1; // файли без gen створені до розширення даних
-      st.place = W.normPlace(s.place); st.hours = Math.max(0, Math.min(24 * 400, +s.hours || 0));
-      build(true); save(); refresh(true); toast('Колонію завантажено');
-    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
-  };
-  $('btnCsv').onclick = () => { download(C.toCsv(colony), 'colonists.csv', 'text/csv'); toast('Файл збережено'); };
   build(true); if (st.hours > 0) firstRun = false;
   refresh(true);
 })();

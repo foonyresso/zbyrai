@@ -22,26 +22,6 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Чистильник <span>спрайтів</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions" role="toolbar" aria-label="Файл, збереження й обмін">
-    <div class="grp" role="group" aria-label="Файл">
-      <button id="btnPick" title="Відкрити зображення з комп'ютера (PNG, JPG, WebP, GIF). Можна й просто перетягнути файл у вікно.">Відкрити…</button>
-      <button id="btnPaste" title="Вставити зображення з буфера обміну (те саме, що Ctrl+V)">Вставити</button>
-      <button id="btnDemo" title="Завантажити демо-спрайт-лист із шумним зеленим фоном, щоб випробувати інструмент">Демо</button>
-      <input type="file" id="file" accept="image/*" hidden>
-    </div>
-    <div class="grp" role="group" aria-label="Зберегти">
-      <button id="btnSheet" class="btn-primary" title="Завантажити весь очищений малюнок як PNG із прозорістю">Завантажити PNG</button>
-      <button id="btnCopyPng" title="Скопіювати очищений малюнок у буфер обміну як зображення, щоб вставити в інший застосунок">Копіювати PNG</button>
-      <button id="btnZip" title="Усі знайдені спрайти окремими PNG в одному ZIP-архіві">Спрайти (ZIP)</button>
-      <button id="btnAtlas" title="Один атлас-малюнок PNG + файл розмітки JSON (формат TexturePacker JSON Hash для Phaser, PixiJS тощо)">Атлас (PNG + JSON)</button>
-    </div>
-    <div class="grp" role="group" aria-label="Налаштування">
-      <button id="btnCopyJson" title="Скопіювати поточні налаштування (кольори фону, допуски, нарізка, палітра) як JSON у буфер обміну. Саме зображення й ручні правки не входять.">Копіювати JSON</button>
-      <button id="btnExportJson" title="Зберегти налаштування у файл .json, щоб застосувати їх до іншого зображення">Експорт JSON</button>
-      <button id="btnImportJson" title="Завантажити налаштування з файлу .json. Також можна вставити скопійований JSON через Ctrl+V">Імпорт JSON</button>
-      <input type="file" id="jsonFile" accept="application/json,.json" hidden>
-    </div>
-  </div>
 </header>
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
@@ -109,6 +89,16 @@
     <button data-panel="palette" title="Палітра: зменшити кількість кольорів (піксель-арт)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><circle cx="12" cy="16" r="2.5"/></svg><span>Палітра</span></button>
     <button data-panel="atlas" title="Префікс імені файлів і параметри атласу: відступ, степені двійки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg><span>Атлас</span></button>
   </nav>
+  <div class="bar">
+    <button id="btnPick" title="Відкрити зображення з комп'ютера (PNG, JPG, WebP, GIF). Можна й просто перетягнути файл у вікно.">Відкрити…</button>
+    <button id="btnPaste" title="Вставити зображення з буфера обміну (те саме, що Ctrl+V)">Вставити</button>
+    <button id="btnDemo" title="Завантажити демо-спрайт-лист із шумним зеленим фоном, щоб випробувати інструмент">Демо</button>
+    <input type="file" id="file" accept="image/*" hidden>
+    <button id="btnSheet" class="btn-primary" title="Завантажити весь очищений малюнок як PNG із прозорістю">Завантажити PNG</button>
+    <button id="btnCopyPng" title="Скопіювати очищений малюнок у буфер обміну як зображення, щоб вставити в інший застосунок">Копіювати PNG</button>
+    <button id="btnZip" title="Усі знайдені спрайти окремими PNG в одному ZIP-архіві">Спрайти (ZIP)</button>
+    <button id="btnAtlas" title="Один атлас-малюнок PNG + файл розмітки JSON (формат TexturePacker JSON Hash для Phaser, PixiJS тощо)">Атлас (PNG + JSON)</button>
+  </div>
   <aside class="drawer" id="drawer" hidden aria-label="Налаштування">
     <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="colors"><h2>Кольори фону</h2>

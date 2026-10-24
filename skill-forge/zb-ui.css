@@ -6,8 +6,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 /* верхня панель: назва, «i», посилання на головну, збереження/імпорт/експорт */
 .top { position: absolute; left: 10px; top: 10px; z-index: 6; display: flex; align-items: center; gap: 12px; padding: 6px 10px; border-radius: var(--r-md, 10px); background: color-mix(in srgb, var(--panel, #1c1c22) 92%, transparent); border: 1px solid var(--line, rgba(255,255,255,.12)); box-shadow: 0 4px 16px rgba(0,0,0,.3); max-width: calc(100vw - 20px); flex-wrap: wrap; }
 .top .brand { font-weight: 700; font-size: 17px; white-space: nowrap; } .top .brand span { opacity: .7; }
-.top .top-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-left: 4px; padding-left: 12px; border-left: 1px solid var(--line, rgba(255,255,255,.12)); }
-.top .top-actions button { padding: 4px 10px; font-size: 12.5px; }
 .info-btn { width: 26px; height: 26px; padding: 0; border-radius: 50%; font: italic 700 15px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .hub-back { text-decoration: none; color: inherit; opacity: .85; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
 
@@ -53,5 +51,5 @@ dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px;
 .toast { position: fixed; left: 50%; bottom: 70px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3, #2a2a33); color: var(--accent-hi); border: 1px solid var(--accent); font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: 0 6px 24px rgba(0,0,0,.4); transition: .25s; pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show, .toast.on { opacity: 1; transform: translateX(-50%); }
 
-@media (max-width: 760px) { .top .top-actions { border-left: 0; padding-left: 0; margin-left: 0; } }
+
 @media print { .top, .rail, .drawer, .bar, .zb-card { display: none; } html, body { height: auto; overflow: visible; } .stage { position: static; overflow: visible; } }

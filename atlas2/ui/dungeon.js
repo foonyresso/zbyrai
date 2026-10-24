@@ -61,10 +61,6 @@
 <div class="dsec"><div class="lb">Позначки</div><p class="hint">Червоні кола — монстри (темно-червоне — бос), жовті трикутники — пастки, ромби — скарби, коричневі квадрати — двері, фіолетові — потайні, сині кола — ходи в інші підземелля, сходи — значок зі сходинками.</p></div></aside>
 <canvas id="dcv"></canvas><aside id="dcard" class="tdet" hidden></aside>`;
     $('stage').appendChild(root); cvD = $('dcv'); cardD = $('dcard');
-    $('dBack').onclick = back; $('dRev').onchange = e => { rev = e.target.checked; paint(); }; $('dReroll').onclick = () => { variant[cur.id] = (variant[cur.id] || 0) + 1; open2(cur.id, true); };
-    $('dCopy').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(A.Dungeon.toJSON(cur))); msg('Скопійовано.'); } catch (e) { msg('Не вдалося скопіювати: завантажте файл.'); } };
-    $('dJson').onclick = () => dl(new Blob([JSON.stringify(A.Dungeon.toJSON(cur))], { type: 'application/json' }), 'json'); $('dPng').onclick = png;
-    $('dPrint').onclick = () => { document.body.classList.add('dprint'); paint(); setTimeout(() => { print(); document.body.classList.remove('dprint'); }, 60); };
     cvD.addEventListener('wheel', e => { e.preventDefault(); const r = cvD.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, k = Math.min(80, Math.max(2, view.k * Math.exp(-e.deltaY * 0.0015))), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; paint(); }, { passive: false });
     cvD.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty, moved: false }; cvD.setPointerCapture(e.pointerId); });
     cvD.addEventListener('pointermove', e => { if (drag) { if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; view.tx = drag.tx + (e.clientX - drag.x) * devicePixelRatio; view.ty = drag.ty + (e.clientY - drag.y) * devicePixelRatio; paint(); } hoverD(e); });

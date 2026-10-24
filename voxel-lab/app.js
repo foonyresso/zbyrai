@@ -289,18 +289,11 @@
 
   /* ---------- експорт ---------- */
   $('btnVox').onclick = () => { try { download(new Blob([V.toVox(world)], { type: 'application/octet-stream' }), `voxel-${st.seed}.vox`); toast('Збережено .vox: відкрийте в MagicaVoxel'); } catch (e) { toast(e.message); } };
-  $('btnJson').onclick = () => { download(new Blob([JSON.stringify(V.toJson(world))], { type: 'application/json' }), `voxel-${st.seed}.json`); toast('Збережено JSON'); };
   $('btnPng').onclick = () => { draw(); cv.toBlob(b => { download(b, `voxel-${st.seed}.png`); toast('Збережено картинку'); }); };
   $('btnHm').onclick = () => {
     const hm = V.heightmap(world), c = document.createElement('canvas'); c.width = world.sx; c.height = world.sz; const g = c.getContext('2d'), im = g.createImageData(world.sx, world.sz);
     for (let i = 0; i < hm.length; i++) { im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = hm[i]; im.data[i * 4 + 3] = 255; }
     g.putImageData(im, 0, 0); c.toBlob(b => { download(b, `heightmap-${st.seed}.png`); toast('Збережено карту висот'); });
-  };
-  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(V.toJson(world))); toast('JSON скопійовано'); } catch { toast('Не вдалося скопіювати: збережіть файл'); } };
-  $('btnImport').onclick = () => $('file').click();
-  $('file').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try { world = V.fromJson(JSON.parse(await f.text())); st.sx = world.sx; st.sy = world.sy; undo = []; cnt = V.counts(world); st.cut = world.sy - 1; lastSize = world.sx; hover = null; resetView(); resetChunks(); syncUi(); stats(); setStatus(); toast('Світ імпортовано'); } catch { toast('Не вдалося прочитати файл'); }
   };
   if (window.ResizeObserver) new ResizeObserver(() => { needDraw = true; }).observe(wrap);
   requestAnimationFrame(frame);

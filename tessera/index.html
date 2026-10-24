@@ -22,15 +22,6 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Моза<span>їка</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions">
-    <button id="btnImport" title="Завантажити збережені налаштування з файлу .json">Імпорт</button>
-    <input type="file" id="fileImport" accept="application/json,.json" hidden>
-    <button id="btnLink" title="Скопіювати посилання, яке відкриє цей самий візерунок з усіма налаштуваннями">Копіювати посилання</button>
-    <button id="btnCopyJson" title="Скопіювати налаштування візерунка як JSON (можна вставити в Імпорт)">Копіювати JSON</button>
-    <button id="btnJson" title="Завантажити налаштування як файл .json (потім його можна імпортувати)">Зберегти .json</button>
-    <button id="btnSvg" title="Зберегти векторну картинку SVG: чітка в будь-якому розмірі">Зберегти SVG</button>
-    <button id="btnPng" class="btn-primary" title="Зберегти картинку PNG у розмірі, вказаному в розділі «Полотно»">Зберегти PNG</button>
-  </div>
 </header>
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
@@ -63,6 +54,8 @@
   </aside>
 
   <div class="bar">
+    <button id="btnSvg" title="Зберегти векторну картинку SVG: чітка в будь-якому розмірі">Зберегти SVG</button>
+    <button id="btnPng" class="btn-primary" title="Зберегти картинку PNG у розмірі, вказаному в розділі «Полотно»">Зберегти PNG</button>
     <button id="btnRandom" class="btn-primary" title="Нова випадкова комбінація: фігура, розмір, відстань, поворот, кольори. Замкнене лишається (Пробіл)">Зарандомити</button>
     <button id="btnRandColors" title="Лише нова гармонійна палітра: фігури й розміри лишаються">Нові кольори</button>
     <button id="btnRandSeed" title="Нове зерно: перемішує випадкове чергування кольорів і хаос, решта не змінюється">Нове зерно</button>

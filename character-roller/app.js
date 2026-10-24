@@ -291,23 +291,7 @@
     const a = h('a', { href: url, download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 500);
   }
   $('btnRoll').addEventListener('click', roll);
-  $('btnPrint').addEventListener('click', () => window.print());
   const exportText = () => JSON.stringify(Object.assign(JSON.parse(C.exportJSON(ch)), { generator: { seed: S.seed, name: S.name, nameVariant: S.nameVariant, params: S.params } }), null, 2);
-  $('btnCopy').addEventListener('click', () => copyText(exportText(), 'JSON скопійовано'));
-  $('btnImport').addEventListener('click', () => $('fileImport').click());
-  $('fileImport').addEventListener('change', async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const d = JSON.parse(await f.text()), g = d.generator;
-      if (!g || !g.seed) throw new Error('bad');
-      S.seed = String(g.seed); S.name = typeof g.name === 'string' ? g.name : ''; S.nameVariant = +g.nameVariant || 0;
-      S.params = Object.assign(DEFAULTS(), g.params || {}); save(); renderParams(); regen(); toast('Персонажа завантажено');
-    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
-  });
-  $('btnSave').addEventListener('click', () => {
-    const base = (ch.name || `${ch.cls.id}-${ch.level}`).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'character';
-    download(base + '.json', exportText()); toast('Збережено ' + base + '.json');
-  });
   $('btnClear').addEventListener('click', () => { S.params = DEFAULTS(); save(); renderParams(); regen(); toast('Параметри скинуто'); });
   $('btnChaos').addEventListener('click', () => { S.params = Object.assign(DEFAULTS(), { method: 'any', assign: 'any' }); roll(); toast('Все випадково'); });
   $('btnPin').addEventListener('click', () => {

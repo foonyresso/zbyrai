@@ -581,17 +581,6 @@
   $('btnAnim').addEventListener('click', () => { animOn = !animOn; store.set('anim', animOn); syncAnim(); toast(animOn ? 'Анімацію увімкнено' : 'Анімацію вимкнено'); });
   syncAnim();
   $('btnUndo').addEventListener('click', undo); $('btnRedo').addEventListener('click', redo); syncUndo();
-  $('btnPng').addEventListener('click', () => {
-    const keep = view, keepR = ripples.splice(0); fit(); draw();
-    const out = document.createElement('canvas'); out.width = cv.width; out.height = cv.height;
-    const o = out.getContext('2d'); o.fillStyle = '#0b0b10'; o.fillRect(0, 0, out.width, out.height); o.drawImage(cv, 0, 0);
-    view = keep; ripples.push(...keepR); schedule();
-    out.toBlob(b => {
-      if (!b) { toast('Не вдалося створити PNG'); return; }
-      const url = URL.createObjectURL(b), a = h('a', { href: url, download: 'skill-tree.png' }); document.body.append(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000); toast('skill-tree.png збережено');
-    }, 'image/png');
-  });
   $('zoomIn').addEventListener('click', () => zoomAt(W / 2, H / 2, 1.3));
   $('zoomOut').addEventListener('click', () => zoomAt(W / 2, H / 2, 1 / 1.3));
   $('zoomFit').addEventListener('click', () => { fit(); schedule(); persist(); });
@@ -604,14 +593,7 @@
     ta.remove();
   }
   const exportText = () => JSON.stringify({ format: 'zbyrai.skill-tree', version: 1, tree, build: { ranks: build.ranks } }, null, 2);
-  $('btnCopy').addEventListener('click', () => copyText(exportText(), 'JSON скопійовано'));
-  $('btnSave').addEventListener('click', () => {
-    const url = URL.createObjectURL(new Blob([exportText()], { type: 'application/json' }));
-    const a = h('a', { href: url, download: 'skill-tree.json' }); document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000); toast('skill-tree.json збережено');
-  });
   const dlg = $('dlgImport');
-  $('btnImport').addEventListener('click', () => { $('importErr').textContent = ''; $('importText').value = ''; dlg.showModal(); });
   $('importFile').addEventListener('click', () => $('importFileInput').click());
   $('importFileInput').addEventListener('change', e => {
     const f = e.target.files[0]; if (!f) return;

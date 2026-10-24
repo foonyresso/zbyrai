@@ -11,7 +11,6 @@
   <a class="hub-back" href="../index.html" title="…" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Назва <span>2.0</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions"><button id="btnImport" title="…">Імпорт</button> … </div>   <!-- збереження, імпорт, експорт, обмін, друк -->
 </header>
 <dialog id="help" class="help">…<h3>Що це</h3>…<h3>Для чого</h3>…<h3>Як користуватися</h3>…</dialog>
 <main class="stage"> полотно(а) </main>                 <!-- .stage > canvas розтягується на весь екран -->
@@ -23,14 +22,14 @@
 <div class="bar">…</div>                              <!-- нижня панель дій (рандом, замки, скидання); за потреби -->
 <script src="./zb-ui.js"></script>
 ```
-- Збереження й обмін: лише в `.top-actions`. Редагування й рандом: у панелях і `.bar`.
+- У верхній панелі лише назва, «i» і повернення на головну. Універсальних кнопок «Імпорт», «Копіювати JSON», «Зберегти .json/.png», «Друк», «Копіювати посилання» немає і не додаються. Кнопки лише з власних механік інструмента (напр. експорт фото одним файлом чи ZIP) і рандом — у панелях і `.bar`.
 - Клас `.zb-card` — картка поверх полотна (дані під курсором, підсумки); `.toast` — спливаюче повідомлення.
 - Кожна кнопка й параметр мають `title`, увесь текст українською.
 - `zb-ui.js` сам: відкриває/закриває панель (клік по іконці, ×), пам'ятає її (`data-store`, інакше `zb.<папка>.panel`; `data-default` — початкова), відкриває довідку «i», показує посилання на головну. Для коду інструмента: `ZB.showPanel(id)`, `ZB.panel`, `ZB.onPanel = fn`.
 - Специфіка інструмента (акцент `--accent`, полотно, вміст панелей) лишається в його `style.css`; тло полотна: `--stage-bg`.
 
 ## Як перевести інструмент
-1. Шапка → `.top` (назва, «i», `.top-actions` з тими самими id кнопок), `details.how` → `dialog#help`.
+1. Шапка → `.top` (назва, «i»), `details.how` → `dialog#help`.
 2. Робочу зону → `main.stage` із полотном; форми й списки → секції `.drawer` з іконками в `.rail`; кнопки дій → `.bar`.
 3. Видалити старий CSS (шапка, сайдбари, кнопки, `.how`) і JS перемикання панелей; підключити кіт; `node tools/sync-theme.mjs`.
 4. Додати інструмент у `KIT_TOOLS`, пройти `node tools/ui-rules.test.js` і тести логіки.

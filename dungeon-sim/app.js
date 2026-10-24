@@ -217,19 +217,7 @@
   $('btnFit').onclick = () => animateFit();
   $('zIn').onclick = () => zoomAt(cv.width / 2, cv.height / 2, 1.4); $('zOut').onclick = () => zoomAt(cv.width / 2, cv.height / 2, 1 / 1.4);
   document.addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); rand(); } });
-  $('btnCopyJson').onclick = async () => toast(await copyText(C.toJSON(P)) ? 'JSON скопійовано' : 'Не вдалося скопіювати');
-  $('btnLink').onclick = async () => { const u = location.href.split('#')[0] + '#s=' + encodeURIComponent(b64(C.toJSON(P))); toast(await copyText(u) ? 'Посилання скопійовано' : 'Не вдалося скопіювати'); };
-  $('btnJson').onclick = () => { download(new Blob([C.toJSON(P)], { type: 'application/json' }), 'dungeon-' + P.seed + '.json'); toast('Файл збережено'); };
-  $('btnImport').onclick = () => $('fileImport').click();
-  $('fileImport').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { P = C.fromJSON(await f.text()); commit(true); toast('Імпортовано'); } catch { toast('Це не схоже на файл підземелля'); } };
   $('btnPng').onclick = () => R.toPNG(d, fi, { palette: 'stone', layers: ui.layers }, 16, b => { download(b, `dungeon-${P.seed}-p${fi + 1}.png`); toast('PNG збережено'); });
-  $('btnPrint').onclick = () => {
-    const box = $('printArea'); box.innerHTML = ''; let left = d.floors.length; const parts = [];
-    d.floors.forEach((f, i) => R.toPNG(d, i, { palette: 'print', layers: Object.assign({}, ui.layers, { secrets: false }) }, 10, b => {
-      const h = document.createElement('h3'); h.textContent = `${d.type ? d.type.name : 'Підземелля'}, поверх ${i + 1} (зерно ${P.seed})`; const im = document.createElement('img'); im.src = URL.createObjectURL(b); parts[i] = [h, im];
-      if (--left === 0) { parts.forEach(p => box.append(...p)); setTimeout(() => window.print(), 300); }
-    }));
-  };
   window.addEventListener('resize', resize);
 
   resize(); commit(true);

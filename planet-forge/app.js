@@ -209,7 +209,6 @@
   setTab(lastTab);
 
   /* ---------- експорт ---------- */
-  $('btnPng').onclick = () => cv.toBlob(b => { download(b, `planet-${st.seed}.png`); toast('Збережено картинку'); });
   function exportTexture(kind) {
     const W = +$('selMap').value, H = W / 2; toast('Готуємо карту…', 20000);
     setTimeout(() => {
@@ -219,23 +218,8 @@
       g.putImageData(im, 0, 0); c.toBlob(b => { download(b, `planet-${st.seed}-${kind}-${W}.png`); toast('Збережено'); });
     }, 30);
   }
-  $('btnMap').onclick = () => exportTexture('map'); $('btnHeight').onclick = () => exportTexture('height');
   const payload = () => (activeView() && activeView().payload) ? activeView().payload() : { tool: 'planet-forge', params: genParams(), passport: info };
-  $('btnJson').onclick = () => { if (!info) return; download(new Blob([JSON.stringify(payload(), null, 2)], { type: 'application/json' }), `planet-${st.seed}.json`); toast('Збережено паспорт'); };
 
-  $('btnCopyJson').onclick = async () => { if (!info) return; try { await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2)); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); } };
-  $('btnImport').onclick = () => $('fileImport').click();
-  $('fileImport').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const d = JSON.parse(await f.text()), p = d.params;
-      if (VIEWS.some(v => v.load && v.load(d))) { toast('Завантажено'); return; }
-      if (d.sky && !d.params) { st = Object.assign(PC.fromKind('skyarch', String(d.sky.seed || 'sky')), d.sky, { locks: st.locks }); st = Object.assign(st, PC.clampParams(st)); save(); sync(); regenerate(); toast('Небесний архіпелаг завантажено'); return; }
-      if (!p || !PC.KINDS[p.kind] || !p.seed) throw new Error('bad');
-      st = Object.assign(PC.fromKind(p.kind, String(p.seed)), p, { locks: st.locks });
-      st = Object.assign(st, PC.clampParams(st), PB.clampBg(st)); save(); sync(); regenerate(); toast('Планету завантажено');
-    } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
-  };
 
   /* ---------- цикл анімації ---------- */
   function frame(t) {

@@ -41,6 +41,10 @@ for (const t of KIT_TOOLS) {
   test(`${t}: кожна кнопка шапки має підказку`, () => {
     for (const m of header.matchAll(/<button\b[^>]*>/g)) assert.ok(/\btitle="/.test(m[0]), 'кнопка без title: ' + m[0].slice(0, 80));
   });
+  test(`${t}: без універсальних кнопок збереження/обміну у шапці`, () => {
+    assert.ok(!header.includes('top-actions'), 'у шапці не має бути top-actions');
+    assert.ok(!/id="(btnImport|fileImport|btnCopyJson|btnJson|btnLink|btnPrint)"/.test(html), 'універсальні Імпорт/JSON/посилання/друк не потрібні');
+  });
 }
 for (const t of TOOLS.concat(ABOUT_TOOLS)) {
   test(`${t}: кнопка «Інфо» (tool-chrome.js) після назви`, () => {

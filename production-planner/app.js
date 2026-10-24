@@ -134,21 +134,7 @@
   function commit(rebuild = false) { save(); if (rebuild) { renderTargets(); renderOpts(); renderRecipes(); } render(); }
   $('btnTarget').onclick = () => { st.targets.push({ res: allResources()[0] || '', rate: 10 }); commit(true); };
   $('btnRecipe').onclick = () => { st.recipes.push({ id: 'r' + Date.now().toString(36), name: 'Новий рецепт', building: 'Машина', time: 5, inputs: {}, outputs: { новий: 1 } }); commit(true); };
-  $('btnCopy').onclick = async () => { if (!last || !last.ok) return; try { await navigator.clipboard.writeText(PC.toText(last)); toast('Скопійовано'); } catch { toast('Не вдалося скопіювати'); } };
-  $('btnCsv').onclick = () => { if (last && last.ok) download(PC.toCsv(last), 'production-plan.csv', 'text/csv'); };
   const snapshot = () => ({ recipes: st.recipes, targets: st.targets, choose: st.choose, raw: st.raw, speed: st.speed });
-  $('btnExport').onclick = () => download(JSON.stringify(snapshot(), null, 2), 'production-chain.json', 'application/json');
-  $('btnCopyJson').onclick = async () => { const t = JSON.stringify(snapshot(), null, 2); try { await navigator.clipboard.writeText(t); toast('JSON скопійовано'); } catch { toast('Не вдалося скопіювати'); } };
-  $('btnExample').onclick = () => { st = fresh('medieval'); commit(true); toast('Завантажено приклад: середньовічне селище'); };
-  $('btnImport').onclick = () => $('file').click();
-  $('file').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const j = JSON.parse(await f.text()); if (!Array.isArray(j.recipes)) throw new Error('немає recipes');
-      st = { preset: 'custom', choose: j.choose || {}, raw: j.raw || [], speed: j.speed || {}, targets: j.targets || [], recipes: j.recipes.map((r, i) => ({ id: String(r.id || 'i' + i), name: String(r.name || r.id || 'Рецепт'), building: String(r.building || ''), time: +r.time || 1, inputs: r.inputs || {}, outputs: r.outputs || {} })) };
-      commit(true); toast('Імпортовано');
-    } catch { toast('Не вдалося прочитати файл'); }
-  };
   const sp = $('selPreset'); sp.replaceChildren(el('option', { value: '' }, 'Оберіть…'), ...Object.entries(PRESETS).map(([k, p]) => el('option', { value: k }, p.name)));
   sp.onchange = () => { if (!sp.value) return; st = fresh(sp.value); sp.value = ''; commit(true); toast('Приклад завантажено'); };
   addEventListener('resize', () => { if (last && last.ok) drawGraph(); });

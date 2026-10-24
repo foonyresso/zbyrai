@@ -76,14 +76,6 @@
     im.onerror = () => { URL.revokeObjectURL(url); toast('Не вдалося відкрити файл'); };
     im.src = url;
   }
-  $('btnPick').onclick = () => $('file').click();
-  $('file').onchange = e => { loadFile(e.target.files[0]); e.target.value = ''; };
-  $('btnPaste').onclick = async () => {
-    try {
-      for (const it of await navigator.clipboard.read()) { const t = it.types.find(x => x.startsWith('image/')); if (t) { loadFile(new File([await it.getType(t)], 'з буфера', { type: t })); return; } }
-      toast('У буфері немає зображення');
-    } catch { toast('Натисніть Ctrl+V на сторінці'); }
-  };
   addEventListener('paste', e => {
     const f = [...(e.clipboardData?.files || [])].find(x => /^image\//.test(x.type)); if (f) return loadFile(f);
     if (/^(input|textarea)$/i.test(e.target.tagName)) return;
@@ -109,7 +101,6 @@
     for (let i = 0; i < im.data.length; i += 4) { s = (s * 1664525 + 1013904223) >>> 0; const n = ((s >>> 24) % 9) - 4; im.data[i] += n; im.data[i + 1] += n; im.data[i + 2] += n; }
     g.putImageData(im, 0, 0); return c;
   }
-  $('btnDemo').onclick = () => setImage(makeDemo(), 'демо', true);
 
   /* ---------- конвеєр: кольори фону -> ручні правки -> палітра -> нарізка ---------- */
   let pending = null;
@@ -348,29 +339,6 @@
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   const nm = i => `${st.name}_${String(i + 1).padStart(String(rects.length).length < 2 ? 2 : String(rects.length).length, '0')}`;
 
-  $('btnSheet').onclick = async () => { if (!work) return toast('Спершу завантажте зображення'); download(await pngBlob(work), `${st.name}_sheet.png`); toast('PNG збережено'); };
-  $('btnCopyPng').onclick = async () => {
-    if (!work) return toast('Спершу завантажте зображення');
-    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob(work) })]); toast('PNG скопійовано в буфер'); } catch { toast('Браузер не дозволив копіювання: скористайтеся «Завантажити PNG»', 3000); }
-  };
-  $('btnZip').onclick = async () => {
-    if (!work) return toast('Спершу завантажте зображення');
-    if (!rects.length) return toast('Немає спрайтів: оберіть нарізку');
-    toast('Пакуємо…', 6000);
-    const files = []; for (let i = 0; i < rects.length; i++) files.push({ name: nm(i) + '.png', data: await pngBytes(C.crop(work, rects[i])) });
-    download(new Blob([C.zip(files)], { type: 'application/zip' }), `${st.name}_sprites.zip`); toast(`Збережено ${files.length} спрайтів`);
-  };
-  $('btnAtlas').onclick = async () => {
-    if (!work) return toast('Спершу завантажте зображення');
-    if (!rects.length) return toast('Немає спрайтів: оберіть нарізку');
-    const sizes = rects.map(r => ({ w: r.w, h: r.h })), { pos, W, H } = C.packShelf(sizes, { pad: st.pad, pow2: st.pow2 });
-    const atlas = { data: new Uint8ClampedArray(W * H * 4), width: W, height: H };
-    rects.forEach((r, i) => C.blit(atlas, C.crop(work, r), pos[i].x, pos[i].y));
-    const names = rects.map((r, i) => nm(i));
-    download(await pngBlob(atlas), `${st.name}_atlas.png`);
-    setTimeout(() => download(new Blob([JSON.stringify(C.atlasJson(names, sizes, pos, W, H, `${st.name}_atlas.png`), null, 2)], { type: 'application/json' }), `${st.name}_atlas.json`), 250);
-    toast(`Атлас ${W}×${H}: ${rects.length} спрайтів`);
-  };
 
   /* ---------- JSON налаштувань ---------- */
   const settingsJson = () => JSON.stringify({ format: 'zbyrai-sprite-cleaner', version: 1, settings: st }, null, 2);
@@ -379,10 +347,6 @@
     if (!j || j.format !== 'zbyrai-sprite-cleaner' || !j.settings) return toast('Це не налаштування Sprite Sheet Cleaner');
     Object.assign(st, sanitize(j.settings)); save(); sync(); renderColors(); commit(); schedule(true); toast('Налаштування застосовано');
   }
-  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(settingsJson()); toast('JSON налаштувань скопійовано'); } catch { toast('Браузер не дозволив копіювання: скористайтеся «Експорт JSON»', 3000); } };
-  $('btnExportJson').onclick = () => { download(new Blob([settingsJson()], { type: 'application/json' }), `${st.name}_settings.json`); toast('Налаштування збережено'); };
-  $('btnImportJson').onclick = () => $('jsonFile').click();
-  $('jsonFile').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (f) importJson(await f.text()); };
 
   sync(); renderColors(); setTool('pipette'); updUndo(); resize();
   $('btnDemo').click();

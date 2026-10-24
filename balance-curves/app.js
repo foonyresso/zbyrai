@@ -184,21 +184,7 @@
   const wavesJson = () => download(JSON.stringify({ seed: st.waves.seed, waves: wavesCache }, null, 2), 'waves.json', 'application/json');
   const curTab = () => store.get('tab', 'curves');
   $('btnCsv').onclick = () => (curTab() === 'curves' ? curvesCsv() : wavesCsv());
-  $('btnJson').onclick = () => (curTab() === 'curves' ? curvesJson() : wavesJson());
   const snapshot = () => JSON.parse(JSON.stringify(st));
-  $('btnExport').onclick = () => download(JSON.stringify(snapshot(), null, 2), 'balance-curves.json', 'application/json');
-  $('btnCopyJson').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(snapshot(), null, 2)); toast('JSON скопійовано'); } catch { toast('Не вдалося скопіювати'); } };
-  $('btnImport').onclick = () => $('file').click();
-  $('file').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const j = JSON.parse(await f.text()); if (!Array.isArray(j.curves)) throw new Error('немає curves');
-      const d = DEFAULTS(); for (const k of Object.keys(st)) delete st[k];
-      Object.assign(st, d, j); st.waves = Object.assign(d.waves, j.waves || {});
-      st.curves = j.curves.map((c, i) => ({ id: c.id || Date.now() + i, name: String(c.name || 'Крива ' + (i + 1)), type: B.TYPES[c.type] ? c.type : 'linear', a: +c.a || 0, b: +c.b || 0, p: +c.p || 0, expr: c.type === 'custom' ? String(c.expr || 'x').slice(0, 400) : undefined, pl: c.type === 'custom' && c.pl ? { a: String(c.pl.a || ''), b: String(c.pl.b || ''), p: String(c.pl.p || '') } : undefined, color: c.color || COLORS[i % COLORS.length], on: c.on !== false }));
-      save(); renderCurves(); renderWaveUi(); tab(curTab()); toast('Імпортовано');
-    } catch { toast('Не вдалося прочитати файл'); }
-  };
   $('selCodeLang').onchange = async e => { const lang = e.target.value; e.target.value = ''; const c = curveById($('selCodeCurve').value) || st.curves[0]; if (!lang || !c) return; const t = B.toCode(c, lang); try { await navigator.clipboard.writeText(t); toast('Скопійовано: ' + c.name + ' (' + lang.toUpperCase() + ')'); } catch { toast(t, 5000); } };
 
   /* меню-іконки й довідка «i»: спільний кіт zb-ui.js; панелі видно за вкладкою (data-view) */

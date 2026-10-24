@@ -175,32 +175,6 @@
       tiles: st.tiles.map(function (t) { return { x: t.x, y: t.y, w: t.w, h: t.h, z: +t.z.toFixed(3), fx: +t.fx.toFixed(3), fy: +t.fy.toFixed(3) }; })
     }, null, 2);
   }
-  $('btnJson').onclick = function () { dl('photo-collage.json', new Blob([cfgJson()], { type: 'application/json' })); };
-  $('btnCopyJson').onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(cfgJson()) : Promise.reject()).then(function () { toast('Скопійовано!'); }, function () { toast('Не вдалося скопіювати'); }); };
-  $('btnImport').onclick = function () { $('fileImport').click(); };
-  $('fileImport').onchange = function () {
-    var f = this.files[0]; this.value = ''; if (!f) return;
-    var rd = new FileReader();
-    rd.onload = function () {
-      try {
-        var d = JSON.parse(rd.result); if (d.app !== 'photo-collage') throw 0;
-        st.w = Math.min(6000, Math.max(200, d.w | 0)); st.h = Math.min(6000, Math.max(200, d.h | 0));
-        st.gap = Math.min(80, Math.max(0, d.gap | 0)); st.bg = /^#[0-9a-f]{6}$/i.test(d.bg) ? d.bg : st.bg; st.preset = d.preset || 'custom'; st.seed = d.seed | 0;
-        st.mode = C.MODES[d.mode] ? d.mode : 'tree'; st.blank = d.blank === true;
-        syncUI(); save(); relayout();
-        if (Array.isArray(d.tiles) && d.tiles.length === st.tiles.length) {
-          d.tiles.forEach(function (q, i) {
-            var t = st.tiles[i]; if (!q) return;
-            t.x = q.x | 0; t.y = q.y | 0; t.w = q.w > 0 ? q.w : t.w; t.h = q.h > 0 ? q.h : t.h;
-            t.z = Math.min(5, Math.max(1, +q.z || 1)); t.fx = Math.min(1, Math.max(0, q.fx == null ? 0.5 : +q.fx)); t.fy = Math.min(1, Math.max(0, q.fy == null ? 0.5 : +q.fy));
-          });
-          draw(); syncUI();
-        }
-        toast('Налаштування завантажено');
-      } catch (e) { toast('Це не файл колажу'); }
-    };
-    rd.readAsText(f);
-  };
   $('btnPng').onclick = function () { if (!st.tiles.length) return toast('Спершу додай фото'); draw(true); cv.toBlob(function (b) { dl(st.blank ? 'collage-layout.png' : 'collage.png', b); draw(); }, 'image/png'); };
 
   syncUI(); draw();

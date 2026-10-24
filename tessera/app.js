@@ -165,17 +165,6 @@
     try { T.draw(c.getContext('2d'), sc, 1); c.toBlob(b => { if (!b) return toast('Не вдалося створити PNG: спробуй менший розмір'); download(b, fname('png')); toast('PNG збережено'); }, 'image/png'); } catch { toast('Не вдалося створити PNG: спробуй менший розмір'); }
   });
   $('btnSvg').addEventListener('click', () => { download(new Blob([T.toSVG(T.buildScene(st))], { type: 'image/svg+xml' }), fname('svg')); toast('SVG збережено'); });
-  $('btnJson').addEventListener('click', () => { download(new Blob([JSON.stringify(T.toJSON(st), null, 2)], { type: 'application/json' }), fname('json')); toast('JSON збережено'); });
-  $('btnCopyJson').addEventListener('click', async () => toast(await copyText(JSON.stringify(T.toJSON(st), null, 2)) ? 'JSON скопійовано' : 'Не вдалося скопіювати'));
-  $('btnLink').addEventListener('click', async () => {
-    const url = location.href.split('#')[0] + '#s=' + encodeURIComponent(b64(JSON.stringify(T.toJSON(st).params)));
-    try { history.replaceState(null, '', url); } catch {} toast(await copyText(url) ? 'Посилання скопійовано' : 'Не вдалося скопіювати');
-  });
-  $('btnImport').addEventListener('click', () => $('fileImport').click());
-  $('fileImport').addEventListener('change', async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try { st = T.fromJSON(await f.text()); syncAll(); toast('Налаштування завантажено'); } catch (err) { toast('Не вдалося імпортувати: ' + err.message, 3200); }
-  });
   window.addEventListener('paste', e => { if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return; const t = e.clipboardData && e.clipboardData.getData('text'); if (t && t.trim().startsWith('{')) { try { st = T.fromJSON(t); syncAll(); toast('Налаштування вставлено з буфера'); } catch {} } });
 
   syncAll();

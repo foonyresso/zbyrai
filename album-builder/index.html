@@ -18,10 +18,6 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Макетник <span>альбомів</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions">
-    <button class="btn-copy" id="btnJpg" title="Завантажити поточний розворот як JPG (300 dpi)">Зберегти розворот .jpg</button>
-    <button class="btn-copy" id="btnZip" title="Усі розвороти JPG в одному архіві .zip: cover_01, 01_01, 02, 03…">Зберегти все .zip</button>
-  </div>
 </header>
 
 <dialog id="help" class="help">
@@ -60,6 +56,8 @@
     <canvas id="cv" title="Клік вибирає фото. Перетягування: поміняти фото місцями (з Alt: зсунути кадр). Колесо: наблизити кадр. Подвійний клік: скинути кадр. Правий клік: меню (видалити, перемістити, текст, об'єднати)"></canvas>
     <div class="menu addmenu" id="addMenu" hidden><button data-add="portrait" title="Додати ще один розворот із портретами">Портрети</button><button data-add="group" title="Додати розворот із груповими фото">Групові фото</button></div>
   <div class="bar">
+    <button class="btn-copy" id="btnJpg" title="Завантажити поточний розворот як JPG (300 dpi)">Зберегти розворот .jpg</button>
+    <button class="btn-copy" id="btnZip" title="Усі розвороти JPG в одному архіві .zip: cover_01, 01_01, 02, 03…">Зберегти все .zip</button>
     <button class="btn-main" id="btnAdd" title="Вибрати фото з комп'ютера: портрети підтягнуться за номерами, на груповий розворот лягуть по порядку">＋ Додати фото</button>
     <input type="file" id="fileImg" accept="image/*" multiple hidden>
     <button id="btnLeftPhotos" hidden title="Додати фото на ліву сторінку першого розвороту: вчителі (за номерами або по порядку), а якщо вчителів нема, загальне фото">＋ Загальне фото</button>

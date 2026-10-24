@@ -22,15 +22,6 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Воксельна <span>лабораторія</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="top-actions">
-    <button id="btnImport" title="Завантажити збережений світ із файлу .json">Імпорт</button>
-    <input type="file" id="file" accept="application/json,.json" hidden>
-    <button id="btnCopyJson" title="Скопіювати світ як JSON у буфер обміну (великі світи можуть бути важкими)">Копіювати JSON</button>
-    <button id="btnJson" title="Завантажити світ як файл .json (можна імпортувати назад)">Зберегти .json</button>
-    <button id="btnPng" title="Зберегти поточний вигляд світу як зображення PNG">Картинка PNG</button>
-    <button id="btnHm" title="Зберегти карту висот у відтінках сірого">Висоти PNG</button>
-    <button id="btnVox" class="btn-primary" title="Зберегти світ для MagicaVoxel (.vox). Не більше 256 блоків на сторону">MagicaVoxel .vox</button>
-  </div>
 </header>
 
 <dialog id="help" class="help">
@@ -80,6 +71,9 @@
 
   <div class="palette" id="palette" title="Блок, який ставитиме інструмент «Ставити»" role="group" aria-label="Блок для будівництва"></div>
   <div class="bar">
+    <button id="btnPng" title="Зберегти поточний вигляд світу як зображення PNG">Картинка PNG</button>
+    <button id="btnHm" title="Зберегти карту висот у відтінках сірого">Висоти PNG</button>
+    <button id="btnVox" class="btn-primary" title="Зберегти світ для MagicaVoxel (.vox). Не більше 256 блоків на сторону">MagicaVoxel .vox</button>
     <button id="btnNew" class="btn-primary" title="Новий випадковий світ (Пробіл)">Новий світ</button>
     <div class="seg" id="tools" title="Що робить клік по світу" role="group" aria-label="Інструмент"><button data-tool="look" class="on" title="Крутити камеру: перетягни світ, колесо наближає">Дивитись</button><button data-tool="place" title="Ставити вибраний блок кліком">Ставити</button><button data-tool="break" title="Ламати блок кліком">Ламати</button></div>
     <button id="btnRotL" title="Повернути вліво (Q)">⟲</button><button id="btnRotR" title="Повернути вправо (E)">⟳</button><button id="btnReset" title="Скинути ракурс (R)">Скинути вид</button><button id="btnProj" title="Перспектива чи ізометрія"></button>
