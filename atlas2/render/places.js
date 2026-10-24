@@ -83,7 +83,7 @@
     for (const rank of ['hamlet', 'village', 'town', 'regional', 'capital']) {
       if (k < MINK[rank]) continue; const r = R[rank] * px;
       for (const s of W.settlements) {
-        if (s.rank !== rank) continue; const x = s.x + 0.5 + (s.ox || 0), y = s.y + 0.5 + (s.oy || 0);
+        if (s.rank !== rank) continue; ctx.globalAlpha = A.TownMap ? A.TownMap.fade(s, k) : 1; if (ctx.globalAlpha < 0.02) continue; /* значок згасає, коли проявляється місто */ const x = s.x + 0.5 + (s.ox || 0), y = s.y + 0.5 + (s.oy || 0);
         if (s.fate === 'occupied') { // окуповане: червоне коло із чорною обводкою й білим квадратиком
           ctx.beginPath(); ctx.arc(x, y, Math.max(r * 1.2, 3.6 * px), 0, 6.2832); ctx.fillStyle = '#b3261e'; ctx.fill(); ctx.strokeStyle = '#1a0a08'; ctx.lineWidth = 1.8 * px; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect(x - r * 0.35, y - r * 0.35, r * 0.7, r * 0.7);
           if (L.labels && k >= LBLK[rank]) { ctx.font = `italic 700 ${10 * px}px sans-serif`; ctx.fillStyle = '#7a1510'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name + ' (окуповано)', x + r + 2 * px, y); ctx.fillText(s.name + ' (окуповано)', x + r + 2 * px, y); ctx.textAlign = 'center'; }

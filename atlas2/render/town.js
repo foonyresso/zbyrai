@@ -16,7 +16,7 @@
   }
   function districtLayer(c) {
     if (c._dist) return c._dist; const E = c.R * 1.35, PX = 8, n = Math.ceil(E * 2 / PX), cv = document.createElement('canvas'); cv.width = cv.height = n; const g = cv.getContext('2d'), im = g.createImageData(n, n), d = im.data, WK = c.env.waterKind, cols = c.districts.map(q => { const h = q.col.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; });
-    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = -E + (i + 0.5) * PX, y = -E + (j + 0.5) * PX, o = (j * n + i) * 4; if (Math.hypot(x - c.c0[0], y - c.c0[1]) > c.R * 1.25 || WK(x, y) !== 0) continue; const k = c.districtOf(x, y); if (k < 0) continue; d[o] = cols[k][0]; d[o + 1] = cols[k][1]; d[o + 2] = cols[k][2]; d[o + 3] = 255; }
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = -E + (i + 0.5) * PX, y = -E + (j + 0.5) * PX, o = (j * n + i) * 4; const dd = Math.hypot(x - c.c0[0], y - c.c0[1]); if (dd > c.R * 1.25 || WK(x, y) !== 0) continue; const k = c.districtOf(x, y); if (k < 0) continue; d[o] = cols[k][0]; d[o + 1] = cols[k][1]; d[o + 2] = cols[k][2]; d[o + 3] = Math.round(255 * Math.min(1, (c.R * 1.25 - dd) / (c.R * 0.3))); }
     g.putImageData(im, 0, 0); return (c._dist = { cv, E });
   }
   const poly = (g, p, k) => { g.beginPath(); g.moveTo(p[0] * k, p[1] * k); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i] * k, p[i + 1] * k); };
@@ -26,13 +26,12 @@
   // view: {k px/м, tx, ty — де в пікселях центр міста}; opt: {districts, names, hover, sel, hoverDistrict}
   function draw(cv, c, view, opt) {
     const g = cv.getContext('2d'), k = view.k, W = cv.width, H = cv.height; opt = opt || {};
-    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = GROUND[c.group] || GROUND.grass; g.fillRect(0, 0, W, H);
-    g.save(); g.translate(view.tx, view.ty); g.lineCap = 'round'; g.lineJoin = 'round';
-    const wl = waterLayer(c); g.imageSmoothingEnabled = true; g.drawImage(wl.cv, -wl.E * k, -wl.E * k, wl.E * 2 * k, wl.E * 2 * k);
+    g.setTransform(1, 0, 0, 1, 0, 0); if (!opt.map) { g.fillStyle = GROUND[c.group] || GROUND.grass; g.fillRect(0, 0, W, H); }
+    g.save(); if (opt.alpha != null) g.globalAlpha = opt.alpha; g.translate(view.tx, view.ty); g.lineCap = 'round'; g.lineJoin = 'round';
+    if (!opt.map) { const wl = waterLayer(c); g.imageSmoothingEnabled = true; g.drawImage(wl.cv, -wl.E * k, -wl.E * k, wl.E * 2 * k, wl.E * 2 * k); }
     const vis = (x, y, r) => { const sx = x * k + view.tx, sy = y * k + view.ty, rr = r * k; return sx + rr > 0 && sy + rr > 0 && sx - rr < W && sy - rr < H; };
     for (const f of c.fields) { if (!vis(f.x, f.y, Math.max(f.w, f.h))) continue; g.save(); g.translate(f.x * k, f.y * k); g.rotate(f.a); g.fillStyle = c.fate ? '#c5c88f' : '#dccf84'; g.fillRect(-f.w / 2 * k, -f.h / 2 * k, f.w * k, f.h * k); if (k > 0.35) { g.strokeStyle = 'rgba(120,100,50,.35)'; g.lineWidth = 1; g.beginPath(); for (let y = -f.h / 2; y < f.h / 2; y += 5) { g.moveTo(-f.w / 2 * k, y * k); g.lineTo(f.w / 2 * k, y * k); } g.stroke(); } g.restore(); }
-    if (opt.districts && c.districts.length) { const dl = districtLayer(c); g.globalAlpha = 0.34; g.drawImage(dl.cv, -dl.E * k, -dl.E * k, dl.E * 2 * k, dl.E * 2 * k); g.globalAlpha = 1; }
-    if (opt.hoverDistrict != null && opt.hoverDistrict >= 0) { const E = c.R * 1.35, PX = 8, n = Math.ceil(E * 2 / PX); if (!c._hm || c._hm.id !== opt.hoverDistrict) { const m = document.createElement('canvas'); m.width = m.height = n; const mg = m.getContext('2d'), im = mg.createImageData(n, n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = -E + (i + 0.5) * PX, y = -E + (j + 0.5) * PX; if (Math.hypot(x - c.c0[0], y - c.c0[1]) < c.R * 1.25 && c.env.waterKind(x, y) === 0 && c.districtOf(x, y) === opt.hoverDistrict) { const o = (j * n + i) * 4; im.data[o] = 255; im.data[o + 1] = 255; im.data[o + 2] = 255; im.data[o + 3] = 255; } } mg.putImageData(im, 0, 0); c._hm = { id: opt.hoverDistrict, cv: m }; } g.globalAlpha = 0.35; g.drawImage(c._hm.cv, -E * k, -E * k, E * 2 * k, E * 2 * k); g.globalAlpha = 1; }
+    if (opt.districts && c.districts.length) { const dl = districtLayer(c); const ga = g.globalAlpha; g.globalAlpha = 0.34 * ga; g.drawImage(dl.cv, -dl.E * k, -dl.E * k, dl.E * 2 * k, dl.E * 2 * k); g.globalAlpha = ga; }
     for (const f of c.features) { if (!vis(f.x, f.y, f.r)) continue; g.beginPath(); g.arc(f.x * k, f.y * k, f.r * k, 0, TAU); g.fillStyle = f.t === 'plaza' ? '#e6dec9' : f.t === 'park' ? '#97c47e' : '#a9b49a'; g.fill(); g.lineWidth = Math.max(1, 1.2 * k); g.strokeStyle = f.t === 'plaza' ? '#a99a78' : f.t === 'park' ? '#6f9a5a' : '#7c8870'; g.stroke();
       if (f.t === 'plaza' && k > 0.5) { g.strokeStyle = 'rgba(150,135,100,.5)'; g.lineWidth = 1; g.beginPath(); g.arc(f.x * k, f.y * k, f.r * 0.62 * k, 0, TAU); g.stroke(); }
       if (f.t === 'cemetery' && k > 0.7) { g.fillStyle = '#6d786a'; for (let i = 0; i < 18; i++) { const a = i * 2.4, d = Math.sqrt((i + 1) / 18) * f.r * 0.8; g.fillRect((f.x + Math.cos(a) * d) * k - k * 0.6, (f.y + Math.sin(a) * d) * k - k * 0.9, k * 1.2, k * 1.8); } } }
@@ -55,7 +54,6 @@
         if (b.type === 'cathedral' || b.type === 'temple') { g.strokeStyle = '#8a8570'; g.lineWidth = Math.max(1, 0.8 * k); g.beginPath(); g.moveTo(0, -h * 0.4); g.lineTo(0, h * 0.4); g.moveTo(-w * 0.3, -h * 0.1); g.lineTo(w * 0.3, -h * 0.1); g.stroke(); } }
       g.restore();
     }
-    for (const b of [opt.hover, opt.sel]) if (b && b.type) { g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); g.lineWidth = Math.max(2, 1.6 * k); g.strokeStyle = b === opt.sel ? '#ffd34a' : '#ffffff'; const w = b.w * k + 4, h = b.h * k + 4; g.strokeRect(-w / 2, -h / 2, w, h); g.restore(); }
     // стіна, вежі, брами
     if (c.wall.on) { for (const run of c.wall.runs) { poly(g, run, k); g.strokeStyle = '#4c4c58'; g.lineWidth = Math.max(2, 4 * k); g.stroke(); g.strokeStyle = '#a4a4b2'; g.lineWidth = Math.max(1, 2.2 * k); g.stroke(); }
       for (const q of c.wall.towers) { g.beginPath(); g.arc(q[0] * k, q[1] * k, Math.max(2, 4.6 * k), 0, TAU); g.fillStyle = '#9090a2'; g.fill(); g.strokeStyle = '#3f3f4c'; g.lineWidth = Math.max(1, 0.9 * k); g.stroke(); }
@@ -72,18 +70,34 @@
     // підписи
     g.textAlign = 'center'; g.textBaseline = 'middle';
     const halo = (txt, x, y, col) => { g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.85)'; g.strokeText(txt, x, y); g.fillStyle = col || '#2b2218'; g.fillText(txt, x, y); };
-    if (opt.names) for (const st of c.streets) {
+    if (opt.names && c.R * k > 90) for (const st of c.streets) {
       if (st.kind === 'lane' && k < 1.2) continue; const p = st.pts, fs = Math.max(9, Math.min(15, 4.6 * k)); g.font = `600 ${fs}px sans-serif`; const wtxt = g.measureText(st.name).width / k; if (st.len < wtxt * 1.05 || k < 0.55) continue;
       let acc = 0, mx = 0, my = 0, half = st.len / 2, mi = 2; for (; mi < p.length; mi += 2) { const l = Math.hypot(p[mi] - p[mi - 2], p[mi + 1] - p[mi - 1]); if (acc + l >= half) { const t = (half - acc) / l; mx = p[mi - 2] + (p[mi] - p[mi - 2]) * t; my = p[mi - 1] + (p[mi + 1] - p[mi - 1]) * t; break; } acc += l; }
       if (!vis(mx, my, wtxt)) continue; const ptAt = d => { let q = 0; for (let i = 2; i < p.length; i += 2) { const l = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]); if (q + l >= d) { const t = (d - q) / l; return [p[i - 2] + (p[i] - p[i - 2]) * t, p[i - 1] + (p[i + 1] - p[i - 1]) * t]; } q += l; } return [p[p.length - 2], p[p.length - 1]]; };
       const a0 = ptAt(Math.max(0, half - wtxt / 2)), a1 = ptAt(Math.min(st.len, half + wtxt / 2)); let a = Math.atan2(a1[1] - a0[1], a1[0] - a0[0]); if (a > Math.PI / 2 || a < -Math.PI / 2) a += Math.PI; g.save(); g.translate(mx * k, my * k); g.rotate(a); halo(st.name, 0, 0, '#4a3b22'); g.restore(); }
     if (opt.labels && k > 1.5) for (const b of c.buildings) { if (!vis(b.x, b.y, 20) || (!b.uniq && (k < 4.5 && T[b.type].cat === 'Житлова')) || (b.cond === 'ruined' && !b.uniq)) continue; if (b.w * k < 30 && k < 3.2) continue; g.font = `${Math.max(9, Math.min(13, 2.8 * k))}px sans-serif`; halo(b.name, b.x * k, b.y * k, '#1d1a14'); }
-    if (opt.districts) for (const d of c.districts) { if (!vis(d.x, d.y, 50)) continue; const fs = Math.max(11, Math.min(20, 0.1 * c.R * k * 0.45)); g.font = `700 ${fs}px sans-serif`; halo(d.name.toUpperCase(), d.x * k, d.y * k, '#222'); }
+    if (opt.districts && c.R * k > 110) for (const d of c.districts) { if (!vis(d.x, d.y, 50)) continue; const fs = Math.max(11, Math.min(20, 0.1 * c.R * k * 0.45)); g.font = `700 ${fs}px sans-serif`; halo(d.name.toUpperCase(), d.x * k, d.y * k, '#222'); }
     for (const f of c.features) if (f.t !== 'plaza' || opt.names) { if (!vis(f.x, f.y, f.r) || k < 0.6) continue; g.font = `600 ${Math.max(9, Math.min(13, 3.4 * k))}px sans-serif`; halo(f.name, f.x * k, f.y * k + (f.t === 'plaza' ? f.r * 0.5 * k : 0), f.t === 'park' ? '#1f4a22' : '#3a2f1a'); }
     for (const q of c.wall.gates) if (opt.names && k > 0.9) { g.font = `600 ${Math.max(9, Math.min(12, 3 * k))}px sans-serif`; halo(q.name, q.x * k, q.y * k - 14 * k, '#2b2b3a'); }
-    g.restore();
+    if (opt.map) { const fs = Math.max(12, Math.min(22, c.R * k * 0.09)); g.font = `700 ${fs}px sans-serif`; halo(c.name, c.c0[0] * k, (c.c0[1] - c.R * 1.18) * k, '#201810'); }
+    g.restore(); if (opt.map) return;
     // масштабна лінійка
     const nice = [5, 10, 20, 50, 100, 200, 500, 1000], target = 120 / k, m = nice.find(v => v >= target * 0.6) || 1000, px = m * k; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(12, H - 34, px + 70, 24); g.fillStyle = '#222'; g.fillRect(18, H - 20, px, 3); g.fillRect(18, H - 25, 2, 8); g.fillRect(18 + px - 2, H - 25, 2, 8); g.font = '12px sans-serif'; g.textAlign = 'left'; g.fillText(m + ' м', 26 + px, H - 20);
   }
-  A.TownDraw = { draw };
+  // підсвітка наведеного району й споруд на верхньому шарі (без перемальовування карти)
+  function overlay(cv, c, view, opt) {
+    const g = cv.getContext('2d'), k = view.k; g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(view.tx, view.ty); g.globalAlpha = opt.alpha == null ? 1 : opt.alpha;
+    if (opt.hoverDistrict != null && opt.hoverDistrict >= 0) { const E = c.R * 1.35, PX = 8, n = Math.ceil(E * 2 / PX); if (!c._hm || c._hm.id !== opt.hoverDistrict) { const m = document.createElement('canvas'); m.width = m.height = n; const mg = m.getContext('2d'), im = mg.createImageData(n, n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = -E + (i + 0.5) * PX, y = -E + (j + 0.5) * PX; if (Math.hypot(x - c.c0[0], y - c.c0[1]) < c.R * 1.25 && c.env.waterKind(x, y) === 0 && c.districtOf(x, y) === opt.hoverDistrict) { const o = (j * n + i) * 4; im.data[o] = 255; im.data[o + 1] = 255; im.data[o + 2] = 255; im.data[o + 3] = 255; } } mg.putImageData(im, 0, 0); c._hm = { id: opt.hoverDistrict, cv: m }; } const ga = g.globalAlpha; g.globalAlpha = 0.35 * ga; g.drawImage(c._hm.cv, -E * k, -E * k, E * 2 * k, E * 2 * k); g.globalAlpha = ga; }
+    for (const b of [opt.hover, opt.sel]) if (b && b.type) { g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); g.lineWidth = Math.max(2, 1.6 * k); g.strokeStyle = b === opt.sel ? '#ffd34a' : '#ffffff'; const w = b.w * k + 4, h = b.h * k + 4; g.strokeRect(-w / 2, -h / 2, w, h); g.restore(); }
+    g.restore();
+  }
+  // місто на карті: на карті воно проявляється з наближенням; view — карта (k пікселів на клітинку)
+  const sm = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+  const morph = (s, k, CS) => { const z = A.Town.sizeOf(s); return sm((z.R * k / CS - 26) / 40); };
+  function onMap(cv, W, view, L, list) {
+    const g = cv.getContext('2d'), CS = W.params.kmPerCell * 1000; g.save();
+    for (const [s, c] of list) { const t = morph(s, view.k, CS); if (t <= 0.01) continue; const tx = view.tx + (s.x + 0.5) * view.k, ty = view.ty + (s.y + 0.5) * view.k, r = c.Rmap * view.k / CS; if (tx + r < 0 || ty + r < 0 || tx - r > cv.width || ty - r > cv.height) continue; draw(cv, c, { k: view.k / CS, tx, ty }, { map: true, alpha: t, districts: L.cdist !== false, names: L.cnames !== false, labels: L.clabels !== false }); }
+    g.restore();
+  }
+  A.TownDraw = { draw, onMap, overlay, morph };
 })();

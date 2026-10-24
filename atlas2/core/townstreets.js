@@ -27,10 +27,9 @@
       }
       return st;
     }
-    // 1. проспекти: від центру до воріт
-    let gates = o.gates.slice(); if (!gates.length && tier >= 1) { const a = r() * TAU; gates = [{ a, level: 2 }, { a: a + Math.PI * (0.8 + 0.4 * r()), level: 2 }]; if (tier >= 3) gates.push({ a: a + Math.PI * 0.5, level: 2 }); }
-    if (tier === 0 && gates.length < 2) { const a = gates.length ? gates[0].a + Math.PI : r() * TAU; gates.push({ a, level: 3 }); }
-    for (const g of gates) { const st = mkSt('avenue', tier === 0 ? 3 : g.level === 1 || tier >= 3 ? 7 : 5.5); st.gate = g.a; grow(st, x0, y0, g.a, o.Rmax, 0.2, false); }
+    // 1. дороги карти проходять через місто тими самими лініями; решта вибудовується від них
+    for (const rn of o.runs) { const st = mkSt('avenue', rn.level === 1 ? 7 : rn.level === 2 ? 5.5 : rn.level === 3 ? 4.2 : 3); st.level = rn.level; const p = rn.pts; for (let i = 0; i < p.length; i += 2) { const br = i > 0 && (WK((p[i] + p[i - 2]) / 2, (p[i + 1] + p[i - 1]) / 2) !== 0 || WK(p[i], p[i + 1]) !== 0); push(st, p[i], p[i + 1], br); } let far = 0; for (let i = 0; i < p.length; i += 2) { const d = Math.hypot(p[i] - x0, p[i + 1] - y0); if (d > far) { far = d; st.gate = Math.atan2(p[i + 1] - y0, p[i] - x0); } } }
+    if (!streets.length && tier >= 1) for (let k = 0; k < 2; k++) { const st = mkSt('street', 4.2); grow(st, x0, y0, r() * TAU, R * 1.1, 0.2, false); }
     // 2. кільцеві вулиці (дуги між водою)
     const addPoly = (kind, hw, pts, min) => { if (pts.length < min) return null; const st = mkSt(kind, hw); for (const q of pts) push(st, q[0], q[1], q[2]); return st; };
     const rings = tier >= 4 ? [0.3, 0.55, 0.8] : tier === 3 ? [0.38, 0.7] : tier === 2 ? [0.5] : [];

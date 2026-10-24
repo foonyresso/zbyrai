@@ -12,6 +12,9 @@ for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'zbyr
     if (c.tier >= 2) assert.ok(c.districts.length >= 2, t + ': мало районів'); if (c.tier === 0) assert.equal(c.districts.length, 0, t + ': хутір з районами');
     const c2 = A.Town.build(W, s); assert.equal(c2.buildings.length, c.buildings.length, t + ': недетерміновано'); assert.equal(c2.buildings[0] && c2.buildings[0].name, c.buildings[0] && c.buildings[0].name);
     if (c.buildings[0]) { const b = c.buildings[0], h = A.Town.hit(c, b.x, b.y); assert.ok(h && A.Town.describe(c, h).title, t + ': опис споруди'); }
+    // дороги карти проходять через місто тими самими точками: кожна вершина проспекту лежить на лінії дороги карти
+    const CS = W.params.kmPerCell * 1000, segs = []; for (const rd of W.roads) for (let i = 1; i < rd.cells.length; i++) { const a = rd.cells[i - 1], b = rd.cells[i]; segs.push([((a % W.w) + 0.5 - s.x - 0.5) * CS, (((a / W.w) | 0) + 0.5 - s.y - 0.5) * CS, ((b % W.w) + 0.5 - s.x - 0.5) * CS, (((b / W.w) | 0) + 0.5 - s.y - 0.5) * CS]); }
+    for (const st of c.streets) if (st.kind === 'avenue') for (let i = 0; i < st.pts.length; i += 2) { let m = 1e9; for (const g of segs) { const d = c.env.segDist(st.pts[i], st.pts[i + 1], g[0], g[1], g[2], g[3]); if (d < m) m = d; } assert.ok(m < 0.5, t + ': проспект відхилився від дороги карти на ' + m); }
     for (const d of c.districts) assert.ok(A.Town.describe(c, { kind: 'district', o: d }).title);
   }
 }

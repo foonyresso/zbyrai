@@ -7,7 +7,7 @@
 <meta name="description" content="Атлас 2.0: генератор світу з одного зерна: ландшафт, річки за правилами стоку, міста, провінції, регіони й дороги.">
 <link rel="stylesheet" href="../medieval-world/theme.css">
 <link rel="stylesheet" href="style.css?v=2026102314">
-<link rel="stylesheet" href="town.css?v=2026102401">
+<link rel="stylesheet" href="town.css?v=2026102402">
 </head>
 <body>
 <header class="top" id="top">
@@ -20,7 +20,7 @@
   <h2>Атлас 2.0</h2>
   <h3>Що це</h3><p>Генератор світу з одного зерна. Спочатку ландшафт і річки (завжди течуть до моря, озера лише в западинах), потім міста, провінції (як країни), регіони (як області) та дороги між поселеннями.</p>
   <h3>Для чого</h3><p>Основа для гри й кампаній. Кожне зерно дає унікальний світ, однакове зерно з тими самими параметрами завжди дає той самий світ.</p>
-  <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує блоками провінцію, регіон, координати, місцевість і деталі місця під курсором (поселення, лігво, табір, руїни тощо).</li><li>Нульові координати — центр карти. Рівень росте з відстанню від нього (приблизно 1 рівень на 2,5 км); рівень регіону — середній по його землях, провінції — середній по її регіонах. Чим далі від поселень, тим сильніші монстри (шар «Небезпека»).</li><li>Шари вмикаються в лівій панелі.</li><li>Клік на місті, селі чи хуторі відкриває детальний план: райони, вулиці, площі, парки, споруди; наведення показує подробиці споруди чи району.</li></ol>
+  <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує блоками провінцію, регіон, координати, місцевість і деталі місця під курсором (поселення, лігво, табір, руїни тощо).</li><li>Нульові координати — центр карти. Рівень росте з відстанню від нього (приблизно 1 рівень на 2,5 км); рівень регіону — середній по його землях, провінції — середній по її регіонах. Чим далі від поселень, тим сильніші монстри (шар «Небезпека»).</li><li>Шари вмикаються в лівій панелі.</li><li>Місто, село чи хутір при наближенні перетворюються зі значка на детальне поселення просто на карті (дороги карти йдуть крізь нього); наведення показує подробиці споруди, вулиці чи району, клік закріплює; клік на значку наближає до міста.</li></ol>
 </dialog>
 <main class="stage" id="stage"><canvas id="map"></canvas><canvas id="over"></canvas><div id="info" class="info" hidden></div><div id="load" class="load" hidden><div class="loadbox"><div id="loadTxt" class="loadtxt">Створення світу…</div><div class="loadtrack"><div id="loadBar" class="loadbar"></div></div></div></div></main>
 <nav class="rail" id="rail" aria-label="Меню">
@@ -70,6 +70,9 @@
     <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10l5-4 5 4v10M14 20v-6h6v6"/></svg><span>Люди</span></summary>
       <label class="chk" title="Дороги між поселеннями"><input type="checkbox" data-layer="roads" checked>Дороги</label>
       <label class="chk" title="Міста, села й хутори"><input type="checkbox" data-layer="places" checked>Поселення</label>
+      <label class="chk" title="Колір і назви районів при наближенні до міста"><input type="checkbox" data-layer="cdist" checked>Райони міст</label>
+      <label class="chk" title="Назви вулиць, площ і парків у місті"><input type="checkbox" data-layer="cnames" checked>Назви вулиць</label>
+      <label class="chk" title="Підписи споруд при сильному наближенні"><input type="checkbox" data-layer="clabels" checked>Підписи споруд</label>
     </details>
     <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7z"/><path d="M9.5 11.5 12 14l3-4"/></svg><span>Небезпека</span></summary>
       <label class="chk" title="Лігва монстрів, табори бандитів, руїни, печери, шахти, джерела й інші місця"><input type="checkbox" data-layer="sites" checked>Локації й монстри</label>
@@ -90,6 +93,6 @@
     </details>
   </section>
 </aside>
-<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102401'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','core/citydata','core/citytext','core/townenv','core/townstreets','core/town','core/townquery','render/contours','render/raster','render/draw','render/roadgeom','render/places','render/town','ui/town','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
+<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102402'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','core/citydata','core/citytext','core/townenv','core/townstreets','core/town','core/townquery','render/contours','render/raster','render/draw','render/roadgeom','render/places','render/townmask','render/town','ui/town','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
 </body>
 </html>

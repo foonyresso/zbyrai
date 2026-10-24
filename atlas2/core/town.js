@@ -21,16 +21,18 @@
     return true;
   }
   const caches = new WeakMap();
-  const get = (W, s) => { let m = caches.get(W); if (!m) caches.set(W, m = new Map()); let c = m.get(s.id); if (!c) m.set(s.id, c = build(W, s)); return c; };
+  const get = (W, s, extra) => { let m = caches.get(W); if (!m) caches.set(W, m = new Map()); let c = m.get(s.id); if (!c) m.set(s.id, c = build(W, s, extra)); return c; };
+  const has = (W, s) => !!(caches.get(W) && caches.get(W).has(s.id));
+  // орієнтовні розміри міста до побудови: радіус, радіус області, кількість споруд
+  const sizeOf = s => { const tier = TIER[s.rank], popEff = s.pop || s.popBefore || [60, 380, 2000, 8000, 26000][tier], target = clamp(Math.round(popEff / PPB[tier]), MINB[tier], MAXB[tier]), R = Math.sqrt(target * AREAB[tier] / Math.PI) * (tier >= 2 ? 1.12 : 1); return { tier, popEff, target, R, Rmap: R * 1.9 + 120 }; };
 
-  function build(W, s) {
+  function build(W, s, extra) {
     const seed = W.params.seed, r = A.Rng.stream(seed, 'town|' + s.id), si = A.Rng.hashSeed(seed + '|t' + s.id) & 0x7fffffff, names = A.Names.make(seed + '|town|' + s.id), lang = names.lang(), cname = () => { try { return names.region(lang); } catch (e) { return X.mkName(r); } };
-    const tier = TIER[s.rank], fate = s.ruined ? 'ruined' : s.fate || null, popEff = s.pop || s.popBefore || Math.round(((A.Settlements && 0) || 0) + [60, 380, 2000, 8000, 26000][tier]);
-    const target = clamp(Math.round(popEff / PPB[tier]), MINB[tier], MAXB[tier]), R = Math.sqrt(target * AREAB[tier] / Math.PI) * (tier >= 2 ? 1.12 : 1), Rmax = R * 1.45, Rmap = R * 1.9 + 120;
-    const env = A.TownEnv.make(W, s, R, Rmap, si), WK = env.waterKind;
-    // центр: найближча суха точка до клітини поселення
-    let x0 = 0, y0 = 0; if (WK(0, 0) !== 0) { let f = false; for (let d = 12; d < 260 && !f; d += 12) for (let k = 0; k < 16 && !f; k++) { const x = Math.cos(k / 16 * TAU) * d, y = Math.sin(k / 16 * TAU) * d; if (WK(x, y) === 0) { x0 = x; y0 = y; f = true; } } }
-    const net = A.TownNet.build(env, r, { x0, y0, R, Rmax, tier, gates: env.gates, port: s.port }), { streets, near, grow, mkSt, shore } = net, d0 = (x, y) => Math.hypot(x - x0, y - y0);
+    const fate = s.ruined ? 'ruined' : s.fate || null, { tier, popEff, target, R, Rmap } = sizeOf(s), Rmax = R * 1.45;
+    extra = extra || {}; const env = A.TownEnv.make(W, s, R, Rmap, si, { geom: extra.geom, mask: extra.mask && extra.mask(Rmap + 200) }), WK = env.waterKind;
+    // центр міста лежить на дорозі карти (або в клітині поселення)
+    let [x0, y0] = env.c0 || [0, 0]; if (WK(x0, y0) !== 0) { let f = false; for (let d = 12; d < 260 && !f; d += 12) for (let k = 0; k < 16 && !f; k++) { const x = Math.cos(k / 16 * TAU) * d, y = Math.sin(k / 16 * TAU) * d; if (WK(x, y) === 0) { x0 = x; y0 = y; f = true; } } }
+    const net = A.TownNet.build(env, r, { x0, y0, R, Rmax, tier, runs: env.runs, port: s.port }), { streets, near, grow, mkSt, shore } = net, d0 = (x, y) => Math.hypot(x - x0, y - y0);
     // ---- бічні вулиці й провулки, що ростуть від основних
     const gap = [60, 60, 80, 88, 95][tier], lenR = [[40, 80], [55, 130], [90, 210], [120, 260], [140, 310]][tier], pb = [0.35, 0.75, 0.85, 0.9, 0.92][tier], queue = streets.map(st => [st, 0]);
     for (let qi = 0; qi < queue.length; qi++) {
@@ -166,7 +168,7 @@
     for (const f of F) if (f.t === 'park') for (let k = 0, n = Math.round(f.r * f.r / 70); k < n; k++) { const a = r() * TAU, d = Math.sqrt(r()) * f.r * 0.92; trees.push({ x: f.x + Math.cos(a) * d, y: f.y + Math.sin(a) * d, r: 2.5 + r() * 2.5, c: 0 }); }
     const wall = { on: walled, R: Rw, ph: wph, runs: [], towers: [], gates: [] };
     if (walled) { let run = []; const N = 160; for (let k = 0; k <= N; k++) { const th = k / N * TAU, rr = wallR(th), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr, ok = WK(x, y) === 0 && !(fate && fate !== 'occupied' && env.hash(k >> 2, si & 255, si) < 0.45) && !(fate === 'occupied' && env.hash(k >> 3, si & 255, si) < 0.15); if (ok) run.push(x, y); else { if (run.length >= 4) wall.runs.push(run); run = []; } if (ok && k % 8 === 0) wall.towers.push([x, y]); } if (run.length >= 4) wall.runs.push(run);
-      streets.filter(st => st.kind === 'avenue').forEach(st => { const rr = wallR(st.gate), x = x0 + Math.cos(st.gate) * rr, y = y0 + Math.sin(st.gate) * rr; if (WK(x, y) === 0) wall.gates.push({ x, y, a: st.gate, name: 'Брама «' + st.name.replace(/^Шлях на /, 'на ') + '»' }); }); }
+      streets.filter(st => st.kind === 'avenue').forEach(st => { const p = st.pts; for (let i = 2; i < p.length; i += 2) { const da = d0(p[i - 2], p[i - 1]) - wallR(Math.atan2(p[i - 1] - y0, p[i - 2] - x0)), db = d0(p[i], p[i + 1]) - wallR(Math.atan2(p[i + 1] - y0, p[i] - x0)); if ((da < 0) !== (db < 0)) { const t = da / (da - db), x = p[i - 2] + (p[i] - p[i - 2]) * t, y = p[i - 1] + (p[i + 1] - p[i - 1]) * t; wall.gates.push({ x, y, a: Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]), name: 'Брама «' + st.name.replace(/^Шлях на /, 'на ') + '»' }); break; } } }); }
     // ---- склад споруд: імена, стан, мешканці, описи
     const camps = [], addrN = {}, base = { hamlet: 1, village: 1, town: 1, regional: 1, capital: 1 };
     let sumPop = 0; B.forEach(b => { const t = T[b.type]; b.pop = fate ? 0 : t.pop[0] + Math.floor(r() * (t.pop[1] - t.pop[0] + 1)); sumPop += b.pop; });
@@ -193,5 +195,5 @@
     return { sid: s.id, name: s.name, rank: s.rank, tier, fate, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
   }
 
-  A.Town = { get, build, TIER };
+  A.Town = { get, has, build, TIER, sizeOf };
 })();

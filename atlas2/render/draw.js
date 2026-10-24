@@ -46,6 +46,7 @@
     if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші; озера малюються поверх, тож річка входить у озеро й виходить з нього
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
     if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k, c.geom);
+    if (A.TownMap) A.TownMap.draw(cv, W, view, L, c.geom); // міста з'являються на карті з наближенням, дороги збігаються з дорогами карти
     if (A.drawSites && L.sites) A.drawSites(ctx, W, px, k, L);
     if (A.drawPlaces && (L.places || L.labels)) A.drawPlaces(ctx, W, px, k, L, PALETTE);
   }
@@ -79,7 +80,7 @@
     paths.forEach((pa, b) => { ctx.lineWidth = Math.max(1.7 * px, 0.12 + b * 0.07); ctx.stroke(pa); });
   }
   // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
-  function drawHover(cv, W, view, id, level, mark) {
+  function drawHover0(cv, W, view, id, level, mark) {
     if (!W) return;
     const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     scaleBar(ctx, cv, W, view.k); // лінійка на шарі поверх карти: під час руху камери перераховується, а не їде разом із картинкою
@@ -88,5 +89,6 @@
     const c = prep(W), polys = level === 'prov' ? c.provs : c.regs; if (id == null || !level || !polys[id]) return;
     path(ctx, polys[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
   }
-  A.draw = { draw, drawHover, prep, PALETTE };
+  function drawHover(cv, W, view, id, level, mark) { drawHover0(cv, W, view, id, level, mark); if (W && A.TownMap) A.TownMap.drawOver(cv, W, view); }
+  A.draw = { draw, drawHover, prep, drawRivers, PALETTE };
 })();

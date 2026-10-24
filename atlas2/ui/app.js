@@ -23,7 +23,7 @@
   async function build() {
     const id = ++buildId, p = readParams(), t0 = performance.now();
     const w2 = await A.generateAsync(p, (f, l) => { if (id !== buildId) return false; progress(f * 0.93, l); });
-    if (!w2 || id !== buildId) return; W = w2; A.world = W; A.getView = () => view; writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
+    if (!w2 || id !== buildId) return; W = w2; A.world = W; if (A.TownMap) A.TownMap.reset(); A.getView = () => view; writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
     await new Promise(r => setTimeout(r, 0));
     redraw(() => { if (id === buildId) load.hidden = true; });
     const s = W.settlements ? W.settlements.length : 0, land = W.land.reduce((a, v) => a + v, 0);
@@ -39,8 +39,8 @@
   cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, f = Math.exp(-e.deltaY * 0.0015), k = Math.min(450, Math.max(0.5, view.k * f)), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; moving(); }, { passive: false });
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (!d || !A.TownView || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (curNear) A.TownView.open(W, curNear); }); // клік на поселенні відкриває план міста (core/town.js, ui/town.js)
-  let last = null, curNear = null;
+  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (!d || !A.TownMap || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (curCt) A.TownMap.click(curCt); else if (curNear) A.TownMap.focus(curNear); else A.TownMap.click(null); }); // клік на місті закріплює подробиці, клік на значку наближає до міста (ui/town.js)
+  let last = null, curNear = null, curCt = null;
   cv.addEventListener('pointermove', e => {
     last = e;
     if (drag) { view.tx = drag.tx + (e.clientX - drag.x) * devicePixelRatio; view.ty = drag.ty + (e.clientY - drag.y) * devicePixelRatio; moving(); return; }
@@ -51,13 +51,14 @@
   const levelNow = () => { const bar = 150 * devicePixelRatio * W.params.kmPerCell / view.k; return bar >= 10 ? 'prov' : bar >= 2 ? 'reg' : null; };
   let hlKey = '', infoKey = '';
   function hoverAt(e) {
-    if (!W || !e || (A.TownView && A.TownView.isOpen())) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
+    if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
     const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
-    curNear = near; cv.style.cursor = near ? 'pointer' : '';
-    const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = near || site;
-    const k1 = level + '|' + id + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
+    const ct = A.TownMap ? A.TownMap.at(W, view, fx, fy) : null; curCt = ct; if (ct) { near = ct.s; site = null; } // у межах видимого міста велике вікно лишається про це місто, а подробиці йдуть у вікно міста
+    curNear = ct ? null : near; cv.style.cursor = ct ? '' : near ? 'pointer' : ''; if (A.TownMap) A.TownMap.hover(ct);
+    const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = ct ? null : near || site;
+    const k1 = level + '|' + id + '|' + (ct && ct.h ? ct.h.kind + (ct.h.o.id == null ? '' : ct.h.o.id) : '') + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
     if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, view, hover, level, mark); }
     const k2 = (near ? near.id : '') + '|' + (site ? site.id : '') + '|' + (inside ? cell : -1);
     if (k2 !== infoKey) { infoKey = k2; showInfo(inside ? cell : -1, rid, near, site); }
@@ -103,8 +104,8 @@
     }
     info.innerHTML = out.join(''); info.hidden = false;
   }
-  A.showSettlementInfo = st => { infoKey = hlKey = ''; showInfo(st.i, st.region >= 0 ? st.region : null, st, null); }; // велике вікно поселення: те саме й у плані міста
-  cv.addEventListener('pointerleave', () => { if (A.TownView && A.TownView.isOpen()) return; if (!drag) { info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
+  A.redraw = redraw; A.redrawOver = () => A.draw.drawHover(ov, W, view, hover, W && levelNow()); A.focusCell = (x, y, k) => { view.k = Math.min(450, k); view.tx = cv.width / 2 - x * view.k; view.ty = cv.height / 2 - y * view.k; redraw(); };
+  cv.addEventListener('pointerleave', () => { if (!drag) { if (A.TownMap) A.TownMap.hover(null); curCt = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
 
   // меню: іконки зліва відкривають панель із підменю, повторний клік чи × закриває; вибір запам'ятовується
   const drawer = $('drawer'); let panel = ''; try { panel = localStorage.getItem('atlas2.panel') || ''; } catch (e) { panel = ''; }
