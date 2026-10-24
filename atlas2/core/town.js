@@ -133,7 +133,7 @@
       for (const f of F) { if (Math.hypot(f.x - b.x, f.y - b.y) < f.r + Math.hypot(b.w, b.h) / 2 + 1 && (f.t !== 'plaza' || true)) { if (rectHit(b, f.x, f.y, f.r)) return false; } }
       const nx = Math.max(2, Math.ceil(b.w / 9)), ny = Math.max(2, Math.ceil(b.h / 9)), c = Math.cos(b.a), sn = Math.sin(b.a);
       for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) { const u = (i / nx - 0.5) * b.w, v = (j / ny - 0.5) * b.h; if (!noSt && near(b.x + c * u - sn * v, b.y + sn * u + c * v, 8 + (big ? 6 : 0), -1, -2) < 1) return false; }
-      const pad = { x: b.x, y: b.y, w: b.w + 1.6, h: b.h + 1.6, a: b.a }, rad = Math.hypot(b.w, b.h) / 2 + 4;
+      const pp = b.type === 'slum' ? 0.5 : 1.6, pad = { x: b.x, y: b.y, w: b.w + pp, h: b.h + pp, a: b.a }, rad = Math.hypot(b.w, b.h) / 2 + 4;
       for (let gx = Math.floor((b.x - rad) / BK); gx <= Math.floor((b.x + rad) / BK); gx++) for (let gy = Math.floor((b.y - rad) / BK); gy <= Math.floor((b.y + rad) / BK); gy++) { const g = bgrid.get(gx * 100003 + gy); if (g) for (const id of g) { const o = B[id]; if (Math.abs(o.x - b.x) < rad + o.w && Math.abs(o.y - b.y) < rad + o.w && overlap(pad, o)) return false; } }
       return true;
     };
