@@ -1,0 +1,57 @@
+/* ZB UI-кіт (джерело): полотно на весь екран, мінімальна верхня панель, іконки-меню зліва з підменю, плаваючі панелі поверх полотна.
+   Підключення: <link rel="stylesheet" href="./zb-ui.css"> після theme.css; розмітка і правила: docs/ui-kit.md.
+   Копії в папках інструментів робить node tools/sync-theme.mjs; не правити копії вручну. */
+html, body { margin: 0; height: 100%; overflow: hidden; }
+
+/* верхня панель: назва, «i», посилання на головну, збереження/імпорт/експорт */
+.top { position: absolute; left: 10px; top: 10px; z-index: 6; display: flex; align-items: center; gap: 12px; padding: 6px 10px; border-radius: var(--r-md, 10px); background: color-mix(in srgb, var(--panel, #1c1c22) 92%, transparent); border: 1px solid var(--line, rgba(255,255,255,.12)); box-shadow: 0 4px 16px rgba(0,0,0,.3); max-width: calc(100vw - 20px); flex-wrap: wrap; }
+.top .brand { font-weight: 700; font-size: 17px; white-space: nowrap; } .top .brand span { opacity: .7; }
+.top .top-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-left: 4px; padding-left: 12px; border-left: 1px solid var(--line, rgba(255,255,255,.12)); }
+.top .top-actions button { padding: 4px 10px; font-size: 12.5px; }
+.info-btn { width: 26px; height: 26px; padding: 0; border-radius: 50%; font: italic 700 15px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.hub-back { text-decoration: none; color: inherit; opacity: .85; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+
+/* полотно */
+.stage { position: fixed; inset: 0; background: var(--stage-bg, #14141a); overflow: hidden; }
+.stage > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+/* іконки-меню зліва */
+.rail { position: absolute; left: 10px; top: 66px; z-index: 5; display: flex; flex-direction: column; gap: 6px; }
+.rail button { width: 62px; padding: 8px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; background: color-mix(in srgb, var(--panel, #1c1c22) 92%, transparent); }
+.rail button svg { width: 22px; height: 22px; }
+.rail button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+
+/* плаваюча панель з підменю */
+.drawer { position: absolute; left: 82px; top: 66px; max-height: calc(100vh - 76px); width: min(330px, calc(100vw - 100px)); z-index: 4; overflow: auto; background: color-mix(in srgb, var(--panel, #1c1c22) 96%, transparent); border: 1px solid var(--line, rgba(255,255,255,.12)); border-radius: var(--r-md, 10px); box-shadow: 0 8px 28px rgba(0,0,0,.4); padding: 12px 14px 16px; font-size: 13px; }
+.drawer[hidden] { display: none; }
+.drawer section { display: none; flex-direction: column; gap: 8px; } .drawer section.on { display: flex; }
+.drawer h2 { margin: 2px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
+.drawer > .x { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 18px; z-index: 2; }
+.drawer details.sub { border: 1px solid var(--line, rgba(255,255,255,.12)); border-radius: 8px; padding: 0 10px 10px; background: rgba(255,255,255,.03); display: flex; flex-direction: column; gap: 8px; }
+.drawer details.sub > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 9px 0 3px; font-weight: 600; user-select: none; }
+.drawer details.sub > summary::-webkit-details-marker { display: none; }
+.drawer details.sub > summary svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+.drawer details.sub > summary::after { content: '›'; margin-left: auto; opacity: .55; transition: transform .15s; font-size: 16px; } .drawer details.sub[open] > summary::after { transform: rotate(90deg); }
+.drawer label { display: flex; flex-direction: column; gap: 4px; color: var(--muted, #aab); } .drawer label.chk { flex-direction: row; align-items: center; gap: 8px; color: inherit; }
+.drawer .hint { margin: 0; font-size: 12px; color: var(--faint, #889); line-height: 1.4; }
+.drawer input[type=text], .drawer input[type=number], .drawer select { width: 100%; box-sizing: border-box; }
+
+/* картка-довідка поверх полотна (наприклад, дані під курсором) */
+.zb-card { position: absolute; z-index: 3; background: rgba(255,255,255,.95); color: #223; border-radius: 8px; padding: 8px 10px; font-size: 11.5px; line-height: 1.25; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+
+/* нижня плаваюча панель дій (рандом, замки, скидання) */
+.bar { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; justify-content: center; padding: 6px 12px; border-radius: var(--r-md, 10px); background: color-mix(in srgb, var(--panel, #1c1c22) 97%, transparent); border: 1px solid var(--line, rgba(255,255,255,.12)); max-width: calc(100% - 24px); }
+
+.zb-panel .bar, .zb-panel .palette { left: calc(50% + 206px); max-width: calc(100% - 440px); }
+@media (max-width: 760px) { .zb-panel .bar, .zb-panel .palette { left: 50%; max-width: calc(100% - 24px); } }
+
+/* довідка «Що це, для чого, як користуватися» (значок «i») */
+dialog.help { max-width: 520px; width: calc(100% - 32px); border-radius: 12px; border: 1px solid rgba(128,128,128,.4); background: var(--panel, #1c1c22); color: inherit; padding: 18px 22px; font-size: 14px; }
+dialog.help::backdrop { background: rgba(0,0,0,.55); } dialog.help h2 { margin: 0 0 6px; } dialog.help h3 { margin: 12px 0 4px; font-size: 14px; }
+dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px; line-height: 1; padding: 2px 9px; }
+
+.toast { position: fixed; left: 50%; bottom: 70px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3, #2a2a33); color: var(--accent-hi); border: 1px solid var(--accent); font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: 0 6px 24px rgba(0,0,0,.4); transition: .25s; pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show, .toast.on { opacity: 1; transform: translateX(-50%); }
+
+@media (max-width: 760px) { .top .top-actions { border-left: 0; padding-left: 0; margin-left: 0; } }
+@media print { .top, .rail, .drawer, .bar, .zb-card { display: none; } html, body { height: auto; overflow: visible; } .stage { position: static; overflow: visible; } }

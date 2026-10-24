@@ -54,8 +54,9 @@
     el.textContent = sell || buy ? `Продаж ${sell}/${Zk.CARGO_MAX}: ≈${gold} золота. Купівля ${buy}: ≈${cost} золота (з виручки). Дорога коштує ${T.CARAVAN_COST}.` : `Вкажіть, що продати й купити (до ${Zk.CARGO_MAX} одиниць). Дорога коштує ${T.CARAVAN_COST} золота.`;
     const path = G.world.routePath(G.world.start, ui.tradeTo); if (path && $('riskVal')) $('riskVal').textContent = Math.round(T.riskOf(G.world, path, $('escort').checked) * 100) + '%';
   }
-  function showPanel(n) { panel = n; try { localStorage.setItem('zk.panel', n || ''); localStorage.setItem('zk.seen', '1'); } catch (e) { /* не критично */ } $('drawer').hidden = !n; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n)); document.querySelectorAll('#drawer section').forEach(s => s.classList.toggle('on', s.dataset.panel === n)); if (n && G) refreshPanels(true); }
-  document.querySelectorAll('#rail button').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); }); $('drawerX').onclick = () => showPanel('');
+  // меню й довідка «i»: спільний кіт zb-ui.js
+  const showPanel = n => ZB.showPanel(n);
+  ZB.onPanel = n => { panel = n; try { localStorage.setItem('zk.seen', '1'); } catch (e) { /* не критично */ } if (n && G) refreshPanels(true); };
   document.querySelectorAll('[data-layer]').forEach(e => e.addEventListener('change', () => { layers[e.dataset.layer] = e.checked; view.redraw(); }));
   const setHint = t => { if (ui.hint !== t) { ui.hint = t; const e = $('barHint'); if (e) e.textContent = t || 'Оберіть будівлю й клікніть на карті біля доріг свого поселення'; } };
 
@@ -152,7 +153,7 @@
     try { await M.AtlasFiles.load('../atlas2/', VER); } catch (e) { toast(e.message); return; }
     const A = Atlas2; view = M.AtlasView.create({ stage, cv, ov, layers, getW: () => G && G.world.W, onOver: () => drawOver(), onClick, onMove });
     A.redraw = () => view.redraw(); A.redrawOver = () => drawOver(); A.getView = () => view.view; A.focusCell = (x, y, k) => view.focus(x, y, k, 900);
-    showPanel(panel); view.fit(); requestAnimationFrame(frame);
+    ZB.showPanel(ZB.panel); view.fit(); requestAnimationFrame(frame);
     let saved = null; try { saved = Sv.readLocal(); } catch (e) { saved = null; }
     startGame(saved ? saved.params : Zk.worldParams(''), saved);
   }

@@ -14,15 +14,17 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/zakladyny/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M9 15 16 8l7 7v6H9z%27 fill=%27none%27 stroke=%27%23d9a25a%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M16 30c0-4-6-4-6-8%27 fill=%27none%27 stroke=%27%23d9a25a%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="../atlas2/style.css">
 <link rel="stylesheet" href="../atlas2/town.css">
 <link rel="stylesheet" href="./game.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden title="Повернутись на головну сторінку Zbyrai"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Закла<span>дини</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
   <div class="top-actions">
     <button id="btnImport" title="Завантажити збережену гру з файлу .json">Імпорт</button>
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
@@ -30,21 +32,13 @@
     <button class="btn-primary" id="btnJson" title="Завантажити збереження як файл zakladyny.json (його можна потім імпортувати)">Зберегти .json</button>
   </div>
 </header>
-
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за гра й як у неї грати">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div><h3>Що це</h3><p>Гра про ріст поселення на карті світу Атласу 2.0. Ви починаєте з площі, кількох доріг і хати старости, а довкола справжні поселення, дороги, річки й лігва монстрів.</p></div>
-    <div><h3>Для чого</h3><p>Розвинути поселення: прогодувати людей, добути ресурси з околиць, торгувати з сусідами й відбивати набіги. Прогрес зберігається в браузері сам.</p></div>
-    <div><h3>Як користуватися</h3><ol>
-      <li>Колесо миші наближає й віддаляє карту, перетягування рухає її. Біля свого поселення карта показує вулиці й будинки.</li>
-      <li>Внизу оберіть будівлю й клікніть на карті біля доріг: нова вулиця виросте сама. «Знести» прибирає будівлі й зайві дороги.</li>
-      <li>«Люди»: прибульців оглядайте й поселяйте в будинки, давайте накази щодо роботи.</li>
-      <li>«Торгівля»: оберіть поселення, вкажіть що продати й купити, відправте караван (потрібен Караванний двір).</li>
-      <li>Пробіл ставить час на паузу. Збереження й обмін зверху.</li>
-    </ol></div>
-  </div>
-</details>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Закладини</h2>
+  <h3>Що це</h3><p>Гра про ріст поселення на карті світу Атласу 2.0. Ви починаєте з площі, кількох доріг і хати старости, а довкола справжні поселення, дороги, річки й лігва монстрів.</p>
+  <h3>Для чого</h3><p>Розвинути поселення: прогодувати людей, добути ресурси з околиць, торгувати з сусідами й відбивати набіги. Прогрес зберігається в браузері сам.</p>
+  <h3>Як користуватися</h3><ol> <li>Колесо миші наближає й віддаляє карту, перетягування рухає її. Біля свого поселення карта показує вулиці й будинки.</li> <li>Внизу оберіть будівлю й клікніть на карті біля доріг: нова вулиця виросте сама. «Знести» прибирає будівлі й зайві дороги.</li> <li>«Люди»: прибульців оглядайте й поселяйте в будинки, давайте накази щодо роботи.</li> <li>«Торгівля»: оберіть поселення, вкажіть що продати й купити, відправте караван (потрібен Караванний двір).</li> <li>Пробіл ставить час на паузу. Збереження й обмін зверху.</li> </ol>
+</dialog>
 
 <main class="stage" id="stage"><canvas id="map" title="Карта світу"></canvas><canvas id="over"></canvas>
   <div id="info" class="info" hidden></div>
@@ -62,7 +56,7 @@
   <button data-panel="layers" title="Які шари показувати на карті"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5"/></svg>Шари</button>
 </nav>
 
-<aside class="drawer" id="drawer" hidden>
+<aside class="drawer" id="drawer" data-store="zk.panel" data-default="" hidden>
   <button class="x" id="drawerX" title="Закрити меню">×</button>
   <section data-panel="people"><h2>Люди</h2><div id="pPeople"></div></section>
   <section data-panel="trade"><h2>Торгівля</h2><div id="pTrade"></div></section>
@@ -84,10 +78,7 @@
 <aside class="selcard" id="selcard" hidden></aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
+<script src="./zb-ui.js"></script>
 <script src="../mechanics/rng/index.js"></script>
 <script src="../mechanics/atlas-map/files.js"></script>
 <script src="../mechanics/atlas-map/world.js"></script>
@@ -107,6 +98,5 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./zk-panels.js"></script>
 <script src="./zk-overlay.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
