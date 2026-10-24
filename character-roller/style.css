@@ -1,26 +1,9 @@
 /* Character Roller: розмітка поверх спільної теми (theme.css, «Обсидіан і золото»). Акцент інструмента: багряний. */
 :root { --accent: #e5675f; --accent-hi: #f3a09a; --accent-glow: rgba(229, 103, 95, .16); }
-html, body { height: 100%; }
-body { display: flex; flex-direction: column;
-  background: radial-gradient(1200px 420px at 50% -120px, rgba(229, 103, 95, .10), transparent 70%), var(--bg); }
 
 /* ---------- шапка ---------- */
-header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 18px;
-  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
-header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .6; }
-.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; font-size: 20px; white-space: nowrap; letter-spacing: .07em; text-shadow: 0 0 14px color-mix(in srgb, var(--accent, var(--gold)) 50%, transparent); }
-.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
-.brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
-.spacer { flex: 1; }
 
 /* ---------- панелі ---------- */
-main.panes { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(330px, 4fr) minmax(480px, 9fr); gap: 14px; padding: 14px 18px 18px; }
-.pane { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); display: flex; flex-direction: column; min-height: 0; overflow: hidden; box-shadow: var(--shadow-1); }
-.pane-h { padding: 10px 14px 10px 16px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(255, 255, 255, .012); }
-.pane-h h2 { margin: 0; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
-.pane-b { overflow: auto; padding: 14px 16px 18px; flex: 1; min-height: 0; }
-.pane-f { padding: 10px 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--bg-elev); }
 .hint { font-size: 12px; color: var(--faint); margin: 8px 0 0; line-height: 1.5; }
 kbd { font-family: var(--ff-mono); font-size: 11px; padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--bg-elev); color: var(--muted); }
 .btn-forge { background: linear-gradient(180deg, var(--accent-hi), var(--accent) 55%, #c4504a); color: #200806; border-color: #f08a83; font-weight: 650; box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 6px 18px rgba(229, 103, 95, .2); }
@@ -143,9 +126,6 @@ li.sp small { color: var(--faint); font-size: 10.5px; margin-left: 5px; }
 .warn { padding: 9px 12px; border: 1px solid rgba(218, 181, 96, .4); border-left-width: 3px; border-radius: var(--r-sm); background: rgba(218, 181, 96, .07); color: #e6cf94; font-size: 13px; }
 
 /* ---------- тост ---------- */
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
-  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
-.toast.show { opacity: 1; transform: translateX(-50%); }
 
 @media (max-width: 1100px) { .sh-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sh-cols .col:last-child { grid-column: 1 / -1; } }
 @media (max-width: 980px) {
@@ -166,10 +146,8 @@ li.sp small { color: var(--faint); font-size: 10.5px; margin-left: 5px; }
   :root { color-scheme: light; }
   html, body { height: auto; background: #fff !important; color: #111 !important; }
   body::before { display: none !important; }
-  header.top, #paneParams, .toast, .hint:empty, .namebtn { display: none !important; }
-  main.panes { display: block; padding: 0; }
-  .pane { border: 0; box-shadow: none; background: none; overflow: visible; }
-  .pane-b { padding: 0; overflow: visible; }
+  .toast, .hint:empty, .namebtn { display: none !important; }
+  .outwrap { padding: 0; }
   #sheet { max-width: none; }
   * { color: #111 !important; text-shadow: none !important; box-shadow: none !important; background-image: none !important; }
   .stat-box, .abil, .slot, li.sp, .feat, details.log, .abil span { background: #fff !important; border-color: #888 !important; }
@@ -184,3 +162,12 @@ li.sp small { color: var(--faint); font-size: 10.5px; margin-left: 5px; }
   .feat, li.sp, tr { break-inside: avoid; }
   details.log { display: none; }
 }
+
+/* «полотно»: листок персонажа на весь екран, параметри в панелі (zb-ui.css) */
+.stage { --stage-bg: var(--bg); overflow: auto; }
+.outwrap { padding: 66px 16px 90px 88px; }
+.zb-panel .outwrap { padding-left: 440px; }
+.drawer { width: min(380px, calc(100vw - 100px)); }
+.drawer h2 { display: flex; gap: 8px; align-items: center; padding-right: 34px; }
+.drawer h2 button { margin-left: auto; padding: 3px 10px; font-size: 12px; letter-spacing: 0; text-transform: none; font-family: var(--ff-ui); }
+@media (max-width: 760px) { .outwrap, .zb-panel .outwrap { padding: 110px 10px 100px; } }

@@ -54,4 +54,4 @@ dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px;
 .toast.show, .toast.on { opacity: 1; transform: translateX(-50%); }
 
 @media (max-width: 760px) { .top .top-actions { border-left: 0; padding-left: 0; margin-left: 0; } }
-@media print { .top, .rail, .drawer, .bar, .zb-card { display: none; } }
+@media print { .top, .rail, .drawer, .bar, .zb-card { display: none; } html, body { height: auto; overflow: visible; } .stage { position: static; overflow: visible; } }
