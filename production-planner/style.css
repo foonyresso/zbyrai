@@ -1,17 +1,6 @@
 /* Production Chain Planner: розмітка поверх спільної теми (theme.css). Акцент інструмента: теракотовий. */
 :root { --accent: #d98c5f; --accent-hi: #f0b48c; --accent-glow: rgba(217, 140, 95, .14); }
-body { min-height: 100vh; display: flex; flex-direction: column;
-  background: radial-gradient(1200px 460px at 50% -120px, rgba(217, 140, 95, .10), transparent 70%), var(--bg); }
-header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 18px;
-  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
-header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .55; }
-.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; font-size: 20px; white-space: nowrap; letter-spacing: .07em; text-shadow: 0 0 14px color-mix(in srgb, var(--accent, var(--gold)) 50%, transparent); }
-.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
-.brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
-.spacer { flex: 1; }
 
-main.wrap { flex: 1; width: 100%; max-width: 1360px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 16px; padding: 16px 18px 32px; align-items: start; }
-.result, .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); padding: 12px 14px 14px; min-width: 0; }
 .card h2 { margin: 0 0 10px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; display: flex; gap: 8px; align-items: center; }
 .card h2 .sub { color: var(--faint); letter-spacing: .02em; text-transform: none; font-weight: 400; font-size: 12px; }
@@ -52,25 +41,21 @@ tr.bn td { color: var(--accent-hi); }
 .optrow select { max-width: 200px; }
 .sub-t { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--faint); margin: 10px 0 6px; }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
-  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
-.toast.show { opacity: 1; transform: translateX(-50%); }
 
-@media (max-width: 980px) {
-  main.wrap { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 28px; }
-  header.top { padding: 12px 16px; }
 }
 
 /* верхня панель: збереження й обмін */
 .hdr-field { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
 .hdr-field select { max-width: 230px; }
-header.top button { padding: 5px 12px; }
 
 /* довідка «Що це, для чого, як користуватися» */
-.about { width: calc(100% - 36px); max-width: 1324px; margin: 14px auto 0; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); box-shadow: var(--shadow-1); }
-.about summary { cursor: pointer; padding: 10px 16px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
-.about-body { padding: 0 18px 14px; color: var(--muted); line-height: 1.6; font-size: 14px; }
-.about-body p { margin: 0 0 8px; }
-.about-body b { color: var(--text); font-weight: 600; }
-.about-body ol { margin: 0 0 8px; padding-left: 22px; }
-.about-body li { margin-bottom: 3px; }
+
+/* «полотно»: розрахунок на весь екран, цілі, параметри й рецепти в панелях (zb-ui.css) */
+.stage { --stage-bg: var(--bg); overflow: auto; }
+.outwrap { padding: 66px 16px 40px 88px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.zb-panel .outwrap { padding-left: 440px; }
+.drawer { width: min(400px, calc(100vw - 100px)); }
+.drawer h2 { display: flex; gap: 8px; align-items: center; padding-right: 34px; }
+.drawer h2 button { margin-left: auto; padding: 3px 10px; font-size: 12px; letter-spacing: 0; text-transform: none; font-family: var(--ff-ui); }
+.hdr-field { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+@media (max-width: 760px) { .outwrap, .zb-panel .outwrap { padding: 110px 10px 40px; } }
