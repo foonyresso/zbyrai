@@ -13,72 +13,50 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/loot-forge/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23e8924a%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20 9l-8 12.5L4 9z"/><path d="M4 9h16M9 9l3 12.5L15 9M9 9l3-6.5L15 9"/></svg>
-    <div>Кузня <span>луту</span></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden>← Zbyr<b>AI</b></a>
+  <div class="brand">Кузня <span>луту</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережені правила й предмети: встав JSON або обери файл">Імпорт</button>
+    <button id="btnCopy" title="Скопіювати конфіг і поточні предмети як JSON">Копіювати JSON</button>
+    <button class="btn-primary" id="btnSave" title="Завантажити items.json">Зберегти .json</button>
   </div>
-  <div class="spacer"></div>
-  <label class="hdr-field" title="Готовий набір правил: фентезі, фантастика тощо або розширені правила (слоти, картки, руни)"><span>Набір</span><select id="selPreset" aria-label="Готовий набір правил"></select></label>
-  <button id="btnImport" title="Завантажити збережені правила й предмети: встав JSON або обери файл">Імпорт</button>
-  <button id="btnCopy" title="Скопіювати конфіг і поточні предмети як JSON">Копіювати JSON</button>
-  <button class="btn-primary" id="btnSave" title="Завантажити items.json">Зберегти .json</button>
 </header>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Кузня луту</h2>
+  <h3>Що це</h3><p>Кузня предметів для гри: випадково створює зброю, броню й прикраси з якістю, бонусами, зірками, гніздами для карток і рун. Режим «розширений режим» працює за тими самими правилами, що й сама гра.</p>
+  <h3>Для чого</h3><p>Щоб придумати й перевірити систему предметів до того, як вона потрапить у гру: які шанси рідкісних речей, наскільки сильними вони виходять, чи не ламають баланс. Готові правила й предмети виходять у JSON.</p>
+  <h3>Як користуватися</h3><ol> <li><b>Обери набір</b> угорі. Для розширеного режиму (слоти, картки, руни) вибери «Розширений».</li> <li><b>Натисни «Кинути»</b> (або Пробіл): предмети з’являться у слотах героя. Наведи мишку, щоб побачити бонуси (на телефоні торкнись).</li> <li><b>Клікни по предмету</b>, щоб відкрити його картку: зірки, точіння, гнізда, вставка карток і рун.</li> <li><b>Правила ліворуч</b> змінюють шанси й числа. Вкладки «Симуляція» і «Шанси» показують, що буде на тисячах кидків.</li> <li><b>Збережи або поділись</b> кнопками угорі: копіювати JSON, зберегти файл, імпорт.</li> </ol>
+  <h3>Слоти героя</h3><p>Предмет потрапляє у свій слот: шолом на голову, меч у руку. Два кільця й два аксесуари, дворучна зброя займає обидві руки. Що не вмістилося, лежить у рюкзаку. Перемикач «Картки» показує всі предмети списком.</p>
+</dialog>
 
-<details class="about" id="about">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="about-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Кузня предметів для гри: випадково створює зброю, броню й прикраси з якістю, бонусами, зірками, гніздами для карток і рун. Режим «розширений режим» працює за тими самими правилами, що й сама гра.</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Щоб придумати й перевірити систему предметів до того, як вона потрапить у гру: які шанси рідкісних речей, наскільки сильними вони виходять, чи не ламають баланс. Готові правила й предмети виходять у JSON.</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Обери набір</b> угорі. Для розширеного режиму (слоти, картки, руни) вибери «Розширений».</li>
-        <li><b>Натисни «Кинути»</b> (або Пробіл): предмети з’являться у слотах героя. Наведи мишку, щоб побачити бонуси (на телефоні торкнись).</li>
-        <li><b>Клікни по предмету</b>, щоб відкрити його картку: зірки, точіння, гнізда, вставка карток і рун.</li>
-        <li><b>Правила ліворуч</b> змінюють шанси й числа. Вкладки «Симуляція» і «Шанси» показують, що буде на тисячах кидків.</li>
-        <li><b>Збережи або поділись</b> кнопками угорі: копіювати JSON, зберегти файл, імпорт.</li>
-      </ol>
-    </div>
-    <div>
-      <h3>Слоти героя</h3>
-      <p>Предмет потрапляє у свій слот: шолом на голову, меч у руку. Два кільця й два аксесуари, дворучна зброя займає обидві руки. Що не вмістилося, лежить у рюкзаку. Перемикач «Картки» показує всі предмети списком.</p>
-    </div>
-  </div>
-</details>
-
-<main class="panes">
-  <!-- ЛІВА ПАНЕЛЬ: правила -->
-  <section class="pane" id="paneRules">
-    <div class="pane-h"><h2>Правила</h2><span class="spacer"></span><button id="btnReset" title="Повернути вибраний набір до початкових значень">Скинути набір</button></div>
-    <div class="pane-b" id="rules"></div>
+<main class="stage" id="stage"><div class="outwrap"><div id="out"></div></div></main>
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="rules" title="Правила випадіння: набір, рідкість, слоти, бонуси, шанси"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Правила</span></button>
+</nav>
+<aside class="drawer" id="drawer" data-store="lf_panel" data-default="rules" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="rules"><h2>Правила <button id="btnReset" title="Повернути вибраний набір до початкових значень">Скинути набір</button></h2>
+    <label class="hdr-field" title="Готовий набір правил: фентезі, фантастика тощо або розширені правила (слоти, картки, руни)"><span>Набір</span><select id="selPreset" aria-label="Готовий набір правил"></select></label>
+    <div id="rules"></div>
   </section>
-
-  <!-- ПРАВА ПАНЕЛЬ: результати -->
-  <section class="pane" id="paneOut">
-    <div class="pane-h">
-      <div class="seg" id="tabs" role="tablist" aria-label="Режим результатів">
+</aside>
+<div class="bar">
+  <div class="seg" id="tabs" role="tablist" aria-label="Режим результатів">
         <button role="tab" data-tab="items" title="Випалі предмети: слоти героя, бонуси, дії">Предмети</button>
         <button role="tab" data-tab="sim" title="Тисячі кидків: які предмети і як часто випадають">Симуляція</button>
         <button role="tab" data-tab="calc" title="Шанси кожної рідкості й скільки вбивств до потрібного предмета">Шанси</button>
         <button role="tab" data-tab="gcalc" title="Калькулятор формул гри: сила, точіння, гнізда" hidden>Калькулятор гри</button>
         <button role="tab" data-tab="gcat" title="Довідник усіх типів, ефектів, карток, рун і комплектів гри" hidden>Каталог гри</button>
       </div>
-    </div>
-    <div class="pane-b" id="out"></div>
-  </section>
-</main>
+</div>
 
 <dialog id="dlgImport" class="modal">
   <form method="dialog">
@@ -98,16 +76,12 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
+<script src="./zb-ui.js"></script>
 <script src="./loot-core.js"></script>
 <script src="./gdd-data.js"></script>
 <script src="./gdd-core.js"></script>
 <script src="./loot-ui.js"></script>
 <script src="./gdd-ui.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>

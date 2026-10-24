@@ -4,9 +4,9 @@ const fs = require('node:fs'), path = require('node:path'), assert = require('no
 const root = path.join(__dirname, '..');
 const TOOLS = ['medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'album-builder', 'zakladyny'];
 // інструменти зі старою довідкою details.about: перевіряємо лише кнопку «Інфо» (tool-chrome.js)
-const ABOUT_TOOLS = ['loot-forge', 'production-planner'];
+const ABOUT_TOOLS = ['production-planner'];
 // інструменти на UI-кіті (shared/ui, docs/ui-kit.md): довідка «i» у dialog#help, шапка .top, кіт підключено
-const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab', 'planet-forge', 'dungeon-sim', 'image-converter', 'skill-tree', 'skill-forge', 'sprite-cleaner', 'balance-curves'];
+const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab', 'planet-forge', 'dungeon-sim', 'image-converter', 'skill-tree', 'skill-forge', 'sprite-cleaner', 'balance-curves', 'loot-forge'];
 let failed = 0;
 const test = (name, fn) => { try { fn(); console.log('  ok  ', name); } catch (e) { failed++; console.log('  FAIL', name, '\n      ', e.message); } };
 for (const t of TOOLS) {
