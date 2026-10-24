@@ -61,7 +61,7 @@
     const rest = free.slice(), specials = ['treasury', 'shrine', 'lair', 'guard', 'store', 'library', 'cell', 'cell'];
     for (const id of rest) { const q = rooms[id]; q.type = r() < 0.3 ? 'hall' : specials[ri(r, 0, specials.length - 1)]; if (spec.kind === 'sewer' && r() < 0.25) q.type = 'cistern'; }
     // таємна кімната: кімната з одним входом, всі її двері стають секретними
-    for (const q of rooms) if (q.type !== 'entrance' && q.type !== 'stairs' && !q.boss && q.doors <= 1 && r() < 0.5) { q.secret = true; for (const d of fl.doors) if (d.room === q.id) d.secret = true; if (q.type === 'hall') q.type = 'secret'; }
+    for (const q of rooms) if (q.type !== 'entrance' && q.type !== 'stairs' && !q.boss && q.doors <= 1 && r() < 0.5) { q.secret = true; for (const c of fl.cors) if (c.a === q.id || c.b === q.id) c.secret = true; for (const d of fl.doors) if (d.room === q.id) d.secret = true; if (q.type === 'hall') q.type = 'secret'; }
     fl.monsters = []; fl.traps = []; fl.loot = [];
     const rmon = (q, boss) => { const base = (lvl / 12) * K.mons.length * 0.5 + r() * 2.2, count = boss ? 1 : ri(r, 1, 3 + (q.area > 60 ? 2 : 0)), name = boss ? (n === total - 1 ? K.boss : 'Страж ' + K.mons[tier(base)].toLowerCase()) : K.mons[tier(base - 1 + r() * 2)]; return { name, count, level: lvl + (boss ? 3 : ri(r, -1, 1)), boss: !!boss, room: q.id }; };
     for (const q of rooms) {

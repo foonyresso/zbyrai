@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../medieval-world/theme.css">
 <link rel="stylesheet" href="style.css?v=2026102404">
 <link rel="stylesheet" href="town.css?v=2026102402">
+<link rel="stylesheet" href="dungeon.css?v=2026102405">
 </head>
 <body>
 <header class="top" id="top">
@@ -78,6 +79,7 @@
     <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7z"/><path d="M9.5 11.5 12 14l3-4"/></svg><span>Небезпека</span></summary>
       <label class="chk" title="Лігва монстрів, табори бандитів, руїни, печери, шахти, джерела й інші місця"><input type="checkbox" data-layer="sites" checked>Локації й монстри</label>
       <label class="chk" title="Підсвітка небезпеки: що далі від поселень, то страшніші монстри"><input type="checkbox" data-layer="danger" checked>Зони небезпеки</label>
+      <label class="chk" title="Позначки входів у підземелля на карті міста (склепи, каналізації, льохи, копальні, катакомби); клік відкриває карту підземелля"><input type="checkbox" id="lyDungeons" data-layer="dungeons" checked>Входи в підземелля</label>
     </details>
     <details class="sub" open><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14M12 6v13M9 19h6"/></svg><span>Підписи</span></summary>
       <label class="chk" title="Підписи провінцій, регіонів, міст, морів, океанів і озер"><input type="checkbox" data-layer="labels" checked>Підписи</label>
@@ -94,6 +96,6 @@
     </details>
   </section>
 </aside>
-<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102406'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/landmarks','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','core/citydata','core/citytext','core/townenv','core/townstreets','core/townsites','core/townsites2','core/town','core/townquery','render/contours','render/raster','render/draw','render/roadgeom','render/landmarks','render/places','render/townmask','render/town','ui/town','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
+<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102407'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/landmarks','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','core/citydata','core/citytext','core/townenv','core/townstreets','core/townsites','core/townsites2','core/town','core/townquery','core/dungeondata','core/dungeon','core/dungeonplace','render/contours','render/raster','render/draw','render/roadgeom','render/landmarks','render/places','render/townmask','render/town','render/dungeon','ui/town','ui/dungeon','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
 </body>
 </html>

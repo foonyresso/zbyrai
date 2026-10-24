@@ -53,7 +53,8 @@
   }
   function hover(ct, lm) { ensure(); if (pinned) return; setHl(ct); if (!ct && lm) { landmarkCard(lm); return; } render(ct, false); if (!ct || !ct.h) card.hidden = true; }
   function click(ct) { ensure(); if (!ct || !ct.h || (pinned && pinned.h.o === ct.h.o)) { pinned = null; hl.sel = null; setHl(ct); render(ct, false); if (!ct || !ct.h) card.hidden = true; return; } pinned = ct; hl.sel = ct.h.kind === 'building' ? ct.h.o : null; setHl(ct); render(ct, true); }
-  function drawOver(cv, W, view) {
+  function drawOver(cv, W, view) { drawOver0(cv, W, view); if (A.DungeonUI) A.DungeonUI.markers(cv, W, view); } // входи в підземелля малює ui/dungeon.js
+  function drawOver0(cv, W, view) {
     if (hl.sid < 0 || !A.Town.has(W, W.settlements[hl.sid])) return; const s = W.settlements[hl.sid], CS = W.params.kmPerCell * 1000, t = A.TownDraw.morph(s, view.k, CS); if (t < 0.3) return;
     A.TownDraw.overlay(cv, A.Town.get(W, s), { k: view.k / CS, tx: view.tx + (s.x + 0.5) * view.k, ty: view.ty + (s.y + 0.5) * view.k }, { hover: hl.hover, sel: hl.sel, hoverDistrict: hl.hoverDistrict, alpha: t });
   }

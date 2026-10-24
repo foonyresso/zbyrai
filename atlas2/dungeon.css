@@ -13,3 +13,4 @@
 .dview .tdet { left: auto; right: 12px; bottom: 12px; } .dmapcard { left: 384px; }
 @media (max-width: 760px) { .dview { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; } .dbar { grid-column: 1; } .dtools { max-height: 30vh; border-right: 0; } }
 @media print { body.dprint > *:not(.stage), body.dprint .stage > *:not(.dview) { display: none !important; } body.dprint .dview { position: static; display: block; background: #fff; } body.dprint .dbar, body.dprint .dtools, body.dprint .tdet { display: none !important; } body.dprint .dview canvas { width: 100%; height: auto; } }
+.dmapcard { width: 330px; }
