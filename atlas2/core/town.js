@@ -57,8 +57,8 @@
       let bt = null, bd = 380; for (const av of streets) { if (av.kind !== 'avenue') continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd && d > 18) { bd = d; bt = [qx, qy]; } } }
       const hd = Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]);
       if (bt) { const ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, bt[0], bt[1], bd * 1.5 + 40, true); if (ch.pts.length < 4) streets.pop(); continue; }
-      if (outposts.length >= 1 + tier) continue; const L = 130 + r() * 110, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
-      if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd }); else streets.pop();
+      if (outposts.length >= 1 + tier) continue; const L = Math.max(130, R * 1.12 + 190 - d0(ex, ey)) + r() * 90, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
+      if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }
     // ---- стіна
     const walled = tier >= 2 && (tier >= 3 || r() < 0.7), Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.05 * Math.sin(3 * th + wph) + 0.035 * Math.sin(5 * th + 2 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
@@ -91,7 +91,32 @@
     else props.push({ t: 'well', x: x0, y: y0, r: 1.8, name: 'Колодязь хутора' });
     anchors.forEach(a => { if (tier < 2 || (a.kind !== 'trade' && a.kind !== 'temple' && !(a.kind === 'port' && tier >= 3))) return; const p = streetPtNear(a.x, a.y); if (p && circleFree(p[0], p[1], 22, 4)) { addPlaza(a.kind, p[0], p[1], a.kind === 'trade' ? 26 : 20, a.kind === 'trade' ? 'Ринкова площа' : a.kind === 'port' ? 'Портова площа' : 'Храмова площа'); if (a.kind === 'temple' && tier >= 3) props.push({ t: 'monument', x: p[0], y: p[1], r: 2.5, name: 'Пам’ятник ' + pick(r, MONU) }); } });
     if (tier >= 2) for (let n = [0, 0, 1 + (r() < 0.5), 3 + (r() < 0.5), 5 + (r() < 0.5)][tier] | 0, tries = 0; n > 0 && tries < 80; tries++) { const a = r() * TAU, d = R * (0.15 + 0.7 * r()), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d, rad = 22 + r() * 24, k = kindOf(districtOf(x, y)); if (k === 'poor' || k === 'craft' || k === 'port' || !circleFree(x, y, rad, 14)) continue; F.push({ t: 'park', x, y, r: rad, kind: k, name: pick(r, ['Парк', 'Сад', 'Гай', 'Скверик']) + ' «' + cname() + '»' }); n--; }
-    if (tier >= 1 && (tier >= 2 || popEff >= 200)) for (let tries = 0; tries < 40; tries++) { const a = r() * TAU, d = R * (0.8 + 0.4 * r()), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d, rad = 22 + r() * 14; if (circleFree(x, y, rad, 12) && near(x, y, rad, -1, -2) > rad * 0.6) { F.push({ t: 'cemetery', x, y, r: rad, name: 'Цвинтар «' + cname() + '»' }); break; } }
+    const sites = [], usedKinds = [];
+    let dgn = 0; const placeSite = (o, small, depth, pre) => {
+      let u0 = 0; const ca = Math.cos(o.a), sa = Math.sin(o.a), S = pre ? pre.S : 1.9, Wd = (u, v) => { u = (u - u0) * S; v *= S; return [o.x + u * ca - v * sa, o.y + u * sa + v * ca]; };
+      for (let tr = 0; tr < (pre ? 1 : 4); tr++) {
+        const sp = pre ? pre.spec : A.TownSites.make(r, { tier, small, ban: usedKinds.slice(-2) }); u0 = pre ? 0 : Math.min(...sp.ground.map(g => Math.min(...g.pts.filter((_, i) => i % 2 === 0)))); const cm = Wd(sp.ext * 0.5, 0), en = Wd(sp.ext, 0);
+        if (WK(cm[0], cm[1]) !== 0 || WK(en[0], en[1]) !== 0 || (!pre && B.some(b => Math.hypot(b.x - cm[0], b.y - cm[1]) < sp.ext * S * 0.8 + Math.max(b.w, b.h) / 2)) || (!pre && F.some(f => f.t === 'site' && Math.hypot(f.x - cm[0], f.y - cm[1]) < f.r + sp.ext * S * 0.6))) continue;
+        usedKinds.push(sp.kind);
+        const pts = p => { const q = []; for (let i = 0; i < p.length; i += 2) { const w = Wd(p[i], p[i + 1]); q.push(w[0], w[1]); } return q; };
+        const f = { t: 'site', kind: sp.kind, history: sp.history, x: cm[0], y: cm[1], r: sp.ext * S * 0.55, name: sp.name, sub: sp.sub, text: sp.text, rows: sp.rows, state: sp.state, paths: (sp.paths || []).map(q => ({ pts: pts(q.pts), w: q.w })), ground: sp.ground.map(g => ({ pts: pts(g.pts), col: g.col, edge: g.edge })), walls: sp.walls.map(w => ({ pts: pts(w.pts), w: w.w * (pre ? 1 : 1.4), col: w.col })), decos: sp.decos.map(d => { const w = Wd(d.u, d.v); return { t: d.t, x: w[0], y: w[1], r: (d.r || 1) * (pre ? 1 : S * 0.8), a: o.a + (d.rot || 0) }; }) };
+        F.push(f); sites.push(f);
+        sp.bl.forEach(q => { const w = Wd(q.u, q.v); if (WK(w[0], w[1]) !== 0) return; addB({ type: q.type, x: w[0], y: w[1], w: q.w * (pre ? 1 : S * 0.8), h: q.h * (pre ? 1 : S * 0.8), a: o.a + (q.rot || 0), st: -1, side: 1, far: 999, site: sp.name, pname: q.name, pdesc: q.desc || null, fixcond: q.cond || null, dungeon: q.dungeon || q.type === 'dungeon' ? { id: 'dg-' + s.id + '-' + (++dgn), kind: q.type } : null }); });
+        sp.props.forEach(q => { const w = Wd(q.u, q.v); props.push({ t: q.t, x: w[0], y: w[1], r: q.r * (pre ? 1 : S * 0.8), name: q.name }); });
+        if (!pre) for (let i = 0, n = 10 + Math.round(sp.ext / 6); i < n; i++) { const w = Wd(sp.ext * (-0.1 + 1.2 * r()), (r() - 0.5) * sp.ext * 1.3); if (WK(w[0], w[1]) === 0 && !B.some(b => Math.hypot(b.x - w[0], b.y - w[1]) < Math.max(b.w, b.h) * 0.8)) f.decos.push({ t: 'tree', x: w[0], y: w[1], r: 3.5 + r() * 3, a: 0 }); }
+        if (o.ch) o.ch.to = sp.name;
+        if (sp.exit && depth < 1 && tier >= 1 && r() < 0.65) { const ex = Wd(sp.exit[0], sp.exit[1]), hd = o.a + (r() - 0.5) * 1.1, L = 110 + r() * 90, tx = ex[0] + Math.cos(hd) * L, ty = ex[1] + Math.sin(hd) * L, ch = mkSt('path', 3.6, o.ch ? o.ch.id : -1); net.reach(ch, ex[0], ex[1], hd, tx, ty, L + 30, true); if (ch.joined && ch.pts.length >= 4) { if (!placeSite({ x: tx, y: ty, a: hd, ch }, true, depth + 1)) { streets.pop(); } } else streets.pop(); }
+        return sp.name;
+      } return null;
+    };
+        if (tier >= 1 && (tier >= 2 || popEff >= 200)) for (let cn = 0, ncem = tier >= 4 ? 2 : 1; cn < ncem; cn++) {
+      const nk = clamp((popEff < 60 ? 0 : popEff < 200 ? 1 : popEff < 700 ? 2 : popEff < 2500 ? 3 : 4) - cn, 0, 4), spec = A.TownSites.graveyard(r, nk, { nm: cname(), nm2: cname() }), rad = Math.hypot(spec.hl, spec.hw) + 4;
+      for (let tries = 0; tries < 50; tries++) { const a = r() * TAU, d = R * (0.8 + 0.4 * r()), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d;
+        if (!circleFree(x, y, rad, 10) || near(x, y, rad, -1, -2) < rad * 0.5) continue;
+        let q = null, qd = 1e9; for (const st of streets) { if (st.kind === 'path') continue; for (let i = 0; i < st.pts.length; i += 2) { const dd = Math.hypot(st.pts[i] - x, st.pts[i + 1] - y); if (dd < qd) { qd = dd; q = [st.pts[i], st.pts[i + 1]]; } } } if (!q || qd > 220) continue;
+        const ang = Math.atan2(y - q[1], x - q[0]), ox = x - Math.cos(ang) * spec.hl, oy = y - Math.sin(ang) * spec.hl, nsite = sites.length;
+        if (placeSite({ x: ox, y: oy, a: ang }, false, 1, { spec, S: 1 })) { const f = sites[nsite]; f.r = rad; f.x = x; f.y = y; f.paths.push({ pts: [q[0], q[1], ox, oy], w: 2.6 }); break; } }
+    }
     // ---- місця під забудову вздовж вулиць (фронтаж)
     const lots = []; streets.forEach(st => { if (st.kind === 'path') return; const p = st.pts; for (let i = 2; i < p.length; i += 2) { if (st.br[i / 2]) continue; const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), a = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]); for (let t = 0; t < L; t += 9) for (const sd of [1, -1]) { const x = p[i - 2] + Math.cos(a) * t, y = p[i - 1] + Math.sin(a) * t; if (st.kind === 'embankment' && ((x0 - x) * -Math.sin(a) + (y0 - y) * Math.cos(a)) * sd < 0) continue; lots.push({ x, y, a, nx: -Math.sin(a) * sd, ny: Math.cos(a) * sd, hw: st.hw, st: st.id, d: d0(x, y) }); } } });
     // ---- розміщення споруд
@@ -123,9 +148,8 @@
       placeNear(id, ax, ay, maxD);
     }
     // ---- кінець вулиці за містом: майданчик (торг, хутір, роздоріжжя) із кількома спорудами
-    outposts.forEach(o => { const nm = pick(r, ['Польовий торг', 'Караванний майдан', 'Роздоріжжя з колодязем', 'Хутірський майдан', 'Заїзд на роздоріжжі']); F.push({ t: 'plaza', x: o.x, y: o.y, r: 15, kind: 'outskirts', name: nm }); props.push({ t: 'well', x: o.x, y: o.y, r: 1.8, name: 'Колодязь: ' + nm.toLowerCase() });
-      const ids = tier >= 2 ? [pick(r, ['inn', 'barracks', 'mtower', 'farmstead']), 'farmstead', pick(r, ['farm', 'mill', 'inn'])] : ['farmstead', pick(r, ['farm', 'inn'])];
-      ids.forEach((id, i) => { for (let tr = 0; tr < 8; tr++) { const a = o.a + Math.PI + 0.9 + i * 1.9 + (r() - 0.5) * 0.5, tt = T[id], b = { type: id, x: o.x + Math.cos(a) * (15 + tt.h / 2 + 8), y: o.y + Math.sin(a) * (15 + tt.h / 2 + 8), w: tt.w, h: tt.h, a: a + Math.PI / 2, st: -1, side: 1, far: 400 }; if (canPlace(b, false)) { addB(b); break; } } }); });
+    outposts.forEach(o => { if (placeSite(o, false, 0)) return; if (sites.some(f => Math.hypot(f.x - o.x, f.y - o.y) < f.r * 1.3)) { o.ch.to = o.ch.to || sites[0].name; return; }
+      const nm = pick(r, ['Польовий торг', 'Караванний майдан', 'Роздоріжжя з колодязем']); F.push({ t: 'plaza', x: o.x, y: o.y, r: 15, kind: 'outskirts', name: nm }); props.push({ t: 'well', x: o.x, y: o.y, r: 1.8, name: 'Колодязь: ' + nm.toLowerCase() }); o.ch.to = nm; });
     // порт: причали, кораблі, маяк
     const piers = [], ships = [];
     if (shore.length && (s.port || tier <= 1) && tier >= 1 && !fate) {
@@ -163,7 +187,7 @@
     streets.forEach(st => {
       const mi = Math.floor(st.pts.length / 4) * 2, did = distId(st.pts[mi], st.pts[mi + 1]); st.district = did; const kind = did >= 0 ? dst[did].kind : (tier === 0 ? 'outskirts' : 'centre');
       if (st.kind === 'avenue') { let best = null, bd = 1e9; for (const q of nb.list || []) { const a = Math.atan2((q.y - s.y), (q.x - s.x)), df = Math.abs(Math.atan2(Math.sin(a - st.gate), Math.cos(a - st.gate))), d = Math.hypot(q.x - s.x, q.y - s.y); if (df < 0.5 && d < bd) { bd = d; best = q; } } st.name = best && !used2.has('Шлях на ' + best.name) ? 'Шлях на ' + best.name : nameSt(st, 'centre'); used2.add(st.name); }
-      else if (st.kind === 'embankment') st.name = 'Набережна «' + cname() + '»'; else st.name = nameSt(st, kind);
+      else if (st.kind === 'embankment') st.name = 'Набережна «' + cname() + '»'; else if (st.to) st.name = 'Дорога до «' + st.to + '»'; else st.name = nameSt(st, kind);
       st.len = 0; for (let i = 2; i < st.pts.length; i += 2) st.len += Math.hypot(st.pts[i] - st.pts[i - 2], st.pts[i + 1] - st.pts[i - 1]);
     });
     F.forEach(f => { f.district = distId(f.x, f.y); });
@@ -189,16 +213,17 @@
     const scale = !fate && sumPop ? clamp(popEff / sumPop, 0.5, 2) : 1, deity = cname();
     const lair = new Set(); if (fate === 'occupied') { const inner = B.filter(b => d0(b.x, b.y) < R * 0.35).sort(() => r() - 0.5).slice(0, Math.max(1, Math.round(B.length * 0.06))); inner.forEach(b => lair.add(b.id)); }
     B.forEach(b => {
-      const t = T[b.type], did = distId(b.x, b.y), kind = did >= 0 ? dst[did].kind : null; b.district = did; b.pop = Math.round(b.pop * scale);
+      const t = T[b.type], did = b.site ? -1 : distId(b.x, b.y), kind = did >= 0 ? dst[did].kind : null; b.district = did; b.pop = Math.round(b.pop * scale);
       const rich = ['estate', 'rich', 'castle', 'cathedral', 'academy', 'hall', 'theater', 'bank'].includes(b.type) || kind === 'rich', poor = b.type === 'slum' || kind === 'poor'; b.wealth = rich ? 'rich' : poor ? 'poor' : 'mid';
-      b.cond = fate === 'ruined' ? (r() < 0.88 ? 'ruined' : 'worn') : fate === 'occupied' ? (lair.has(b.id) ? 'lair' : r() < 0.14 ? 'burnt' : r() < 0.4 ? 'damaged' : 'worn') : r() < (poor ? 0.7 : 0.25) ? 'worn' : 'good';
+      b.cond = b.fixcond ? b.fixcond : fate === 'ruined' ? (r() < 0.88 ? 'ruined' : 'worn') : fate === 'occupied' ? (lair.has(b.id) ? 'lair' : r() < 0.14 ? 'burnt' : r() < 0.4 ? 'damaged' : 'worn') : r() < (poor ? 0.7 : 0.25) ? 'worn' : 'good';
       if (fate === 'occupied' && b.cond !== 'lair') b.pop = 0;
       const fl = FLOORS[b.type] || [1, 2]; b.floors = fl[0] + Math.floor(r() * (fl[1] - fl[0] + 1)); b.area = Math.round(b.w * b.h * b.floors);
       const nm = X.mkName(r); b.owner = CRAFT.has(b.type) && b.type !== 'well' ? pick(r, r() < 0.2 ? X.GIVENF : X.GIVEN) + ' ' + pick(r, X.FAM) : null;
       b.name = b.type === 'tavern' ? 'Таверна «' + pick(r, X.ADJ) + ' ' + pick(r, X.NOUN) + '»' : b.type === 'inn' ? 'Заїжджий двір «' + pick(r, X.ADJ) + ' ' + pick(r, X.NOUN) + '»' : b.type === 'temple' || b.type === 'cathedral' || b.type === 'chapel' ? t.n + ' ' + deity + 'а'.replace('а', '') + (b.type === 'chapel' ? ' «' + nm + '»' : '') : NAMED.has(b.type) ? t.n + ' «' + nm + '»' : t.n;
+      if (b.pname) b.name = b.pname;
       if (b.type === 'temple' || b.type === 'cathedral') b.name = t.n + ' «' + deity + '»';
-      const st = streets[b.st]; if (st) { const k = b.st + '|' + b.side; addrN[k] = (addrN[k] || 0) + 1; b.addr = st.name + ', ' + (addrN[k] * 2 - (b.side > 0 ? 1 : 0)); } else b.addr = 'у межах району';
-      const hooks = X.HOOKS[b.cond === 'ruined' ? 'Руїни' : b.cond === 'lair' ? 'Окупація' : t.cat] || []; b.hook = hooks.length && (t.cat !== 'Житлова' || r() < 0.2) && r() < 0.8 ? pick(r, hooks) : null;
+      const st = streets[b.st]; if (st) { const k = b.st + '|' + b.side; addrN[k] = (addrN[k] || 0) + 1; b.addr = st.name + ', ' + (addrN[k] * 2 - (b.side > 0 ? 1 : 0)); } else b.addr = b.site || 'у межах району';
+      const hooks = X.HOOKS[b.cond === 'ruined' ? 'Руїни' : b.cond === 'lair' ? 'Окупація' : t.cat] || []; b.hook = hooks.length && (t.cat !== 'Житлова' || r() < 0.2) && r() < 0.8 ? pick(r, hooks) : null; if (b.pdesc) b.hook = b.pdesc;
       const dd = did >= 0 ? dst[did] : null; if (dd) { dd.nb++; dd.pop += b.pop; dd.cats[t.cat] = (dd.cats[t.cat] || 0) + 1; dd.types[b.type] = (dd.types[b.type] || 0) + 1; if (b.uniq || (!['Житлова'].includes(t.cat) && b.w * b.h > 220)) dd.notable.push(b.id); }
     });
     if (fate === 'occupied') { const pls = F.filter(f => f.t === 'plaza').concat([{ x: x0, y: y0, r: 20 }]); for (let k = 0, n = 5 + Math.round(Math.sqrt(B.length) / 2); k < n; k++) { const pl = pick(r, pls), a = r() * TAU, d = pl.r * (0.3 + 0.8 * r()); camps.push({ t: pick(r, s.occupier === 'bandits' ? ['tent', 'tent', 'fire', 'barricade', 'banner'] : ['bones', 'fire', 'nest', 'barricade', 'banner']), x: pl.x + Math.cos(a) * d, y: pl.y + Math.sin(a) * d, a: r() * TAU }); } }
@@ -206,7 +231,7 @@
     dst.forEach(d => { d.notable = d.notable.sort((p, q) => B[q].w * B[q].h - B[p].w * B[p].h).slice(0, 7); });
     const stats = { buildings: B.length, streets: streets.length, lanes: streets.filter(q => q.kind === 'lane').length, squares: F.filter(f => f.t === 'plaza').length, parks: F.filter(f => f.t === 'park').length, fountains: props.filter(p => p.t === 'fountain').length, monuments: props.filter(p => p.t === 'monument').length, bridges: streets.reduce((a, st) => a + (st.br.some(Boolean) ? 1 : 0), 0), piers: piers.length, ships: ships.length, towers: wall.towers.length, gates: wall.gates.length };
     void base;
-    return { sid: s.id, name: s.name, rank: s.rank, tier, fate, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
+    return { sid: s.id, name: s.name, rank: s.rank, tier, fate, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), sites, features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
   }
 
   A.Town = { get, has, build, TIER, sizeOf };
