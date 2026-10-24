@@ -75,3 +75,5 @@ input.expr.bad { border-color: #e86a6a; }
 body[data-tab=curves] #rail [data-view=waves], body[data-tab=waves] #rail [data-view=curves] { display: none; }
 @media (max-width: 760px) { .view > .plot { inset: 110px 8px 130px; } .view > .legend { left: 10px; top: 110px; } }
 .drawer .side-h { padding-right: 34px; }
+.zb-panel .view > .legend { left: 490px; } .zb-panel .view > .plot { left: 490px; }
+@media (max-width: 760px) { .zb-panel .view > .legend, .zb-panel .view > .plot { left: 10px; } }
