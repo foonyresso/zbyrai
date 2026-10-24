@@ -23,11 +23,7 @@
   $('lkType').addEventListener('change', () => store.set('lockType', $('lkType').checked));
   const cv = $('cv'), ctx = cv.getContext('2d');
 
-  /* ---------- меню збоку ---------- */
-  const drawer = $('drawer'); let panel = store.get('panel', 'type');
-  function showPanel(n) { panel = n; store.set('panel', n || ''); drawer.hidden = !n; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n)); drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n)); $('work').classList.toggle('shift', !!n); resize(); if (d) animateFit(); }
-  document.querySelectorAll('#rail button').forEach(b => b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel));
-  $('drawerX').onclick = () => showPanel('');
+  /* меню збоку й довідка «i»: спільний кіт zb-ui.js (ZB.showPanel) */
 
   const sliderEl = (parent, label, min, max, title, get, set) => {
     const w = document.createElement('label'); w.className = 'ctl'; w.title = title;
@@ -236,6 +232,6 @@
   };
   window.addEventListener('resize', resize);
 
-  showPanel(panel); resize(); commit(true);
+  resize(); commit(true);
   if (window.DungeonMonsters) DungeonMonsters.ready.then(() => { lastType = null; if (!C.typeById(P.type)) P = Object.assign(P, { type: '' }); commit(false); });
 })();
