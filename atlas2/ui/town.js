@@ -59,7 +59,7 @@
     card.style.setProperty('--dc', A.LANDMARK_COL[lm.kind]);
     card.innerHTML = `<div class="dh"><i></i><b>${esc(lm.name)}</b></div><div class="ds">${esc(K.n)}</div><p>${esc(K.d)}</p><dl><dt>Біля міста</dt><dd>${esc(s.name)}</dd><dt>Відстань</dt><dd>${String(lm.km).replace('.', ',')} км</dd>${gn ? `<dt>Ландшафт</dt><dd>${esc(A.Danger.GROUP_UA[gn] || gn)}</dd>` : ''}</dl>`; card.hidden = false; place();
   }
-  function hover(ct, lm) { ensure(); if (pinned) return; if (A.DungeonUI && A.DungeonUI.hovering()) { card.hidden = true; return; } setHl(ct); if (!ct && lm) { landmarkCard(lm); return; } render(ct, false); if (!ct || !ct.h) card.hidden = true; }
+  function hover(ct, lm) { ensure(); if (pinned) return; if (A.DungeonUI && A.DungeonUI.hovering()) return; setHl(ct); if (!ct && lm) { landmarkCard(lm); return; } render(ct, false); if (!ct || !ct.h) card.hidden = true; }
   function click(ct) { ensure(); if (!ct || !ct.h || (pinned && pinned.h.o === ct.h.o)) { pinned = null; hl.sel = null; setHl(ct); render(ct, false); if (!ct || !ct.h) card.hidden = true; return; } pinned = ct; hl.sel = ct.h.kind === 'building' ? ct.h.o : null; setHl(ct); render(ct, true); }
   function drawOver(cv, W, view) { drawOver0(cv, W, view); if (A.DungeonUI) A.DungeonUI.markers(cv, W, view); } // входи в підземелля малює ui/dungeon.js
   function drawOver0(cv, W, view) {

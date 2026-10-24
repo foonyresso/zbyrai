@@ -39,9 +39,9 @@
     const W = A.world, v = A.getView && A.getView(), cv = $('map'); if (!W || !v) return null; const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * devicePixelRatio, y = (e.clientY - r.top) * devicePixelRatio; let best = null, bd = (13 * devicePixelRatio) ** 2;
     for (const m of list(W, v, cv)) { const d = (m.sx - x) ** 2 + (m.sy - y) ** 2; if (d < bd) { bd = d; best = m; } } return best;
   }
-  function ensureMapCard() { if (cardM) return; cardM = document.createElement('aside'); cardM.className = 'tdet dmapcard'; cardM.hidden = true; $('stage').appendChild(cardM); }
+  function ensureMapCard() { if (cardM) return; cardM = $('tdet'); if (!cardM) { cardM = document.createElement('aside'); cardM.id = 'tdet'; cardM.className = 'tdet'; cardM.hidden = true; $('stage').appendChild(cardM); } }
   function onMove(e) {
-    if (root && !root.hidden) return; ensureMapCard(); const m = hitAt(e), d = m && m.d; if (d) { const t = $('tdet'); if (t) t.hidden = true; } if (d === hov) return; hov = d;
+    if (root && !root.hidden) return; ensureMapCard(); if (cardM.classList.contains('pin')) return; const m = hitAt(e), d = m && m.d; if (d === hov) return; hov = d;
     show(cardM, m && markerCard(m), m && KCOL[d.kind]); if (A.redrawOver) A.redrawOver(); requestAnimationFrame(() => { if (hov) $('map').style.cursor = 'pointer'; });
   }
   let down = null;
