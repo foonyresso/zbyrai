@@ -42,8 +42,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 /* нижня плаваюча панель дій (рандом, замки, скидання) */
 .bar { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; justify-content: center; padding: 6px 12px; border-radius: var(--r-md, 10px); background: color-mix(in srgb, var(--panel, #1c1c22) 97%, transparent); border: 1px solid var(--line, rgba(255,255,255,.12)); max-width: calc(100% - 24px); }
 
-.drawer:not([hidden]) ~ .bar { left: calc(50% + 206px); max-width: calc(100% - 440px); }
-@media (max-width: 760px) { .drawer:not([hidden]) ~ .bar { left: 50%; max-width: calc(100% - 24px); } }
+.drawer:not([hidden]) ~ .bar, .drawer:not([hidden]) ~ .palette { left: calc(50% + 206px); max-width: calc(100% - 440px); }
+@media (max-width: 760px) { .drawer:not([hidden]) ~ .bar, .drawer:not([hidden]) ~ .palette { left: 50%; max-width: calc(100% - 24px); } }
 
 /* довідка «Що це, для чого, як користуватися» (значок «i») */
 dialog.help { max-width: 520px; width: calc(100% - 32px); border-radius: 12px; border: 1px solid rgba(128,128,128,.4); background: var(--panel, #1c1c22); color: inherit; padding: 18px 22px; font-size: 14px; }

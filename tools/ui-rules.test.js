@@ -2,11 +2,11 @@
 // Запуск: node tools/ui-rules.test.js
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert');
 const root = path.join(__dirname, '..');
-const TOOLS = ['medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'planet-forge', 'voxel-lab', 'image-converter', 'dungeon-sim', 'skill-forge', 'album-builder', 'zakladyny'];
+const TOOLS = ['medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'planet-forge', 'image-converter', 'dungeon-sim', 'skill-forge', 'album-builder', 'zakladyny'];
 // інструменти зі старою довідкою details.about: перевіряємо лише кнопку «Інфо» (tool-chrome.js)
 const ABOUT_TOOLS = ['balance-curves', 'loot-forge', 'production-planner', 'skill-tree', 'sprite-cleaner'];
 // інструменти на UI-кіті (shared/ui, docs/ui-kit.md): довідка «i» у dialog#help, шапка .top, кіт підключено
-const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage'];
+const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab'];
 let failed = 0;
 const test = (name, fn) => { try { fn(); console.log('  ok  ', name); } catch (e) { failed++; console.log('  FAIL', name, '\n      ', e.message); } };
 for (const t of TOOLS) {
