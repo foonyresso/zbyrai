@@ -9,6 +9,7 @@
 | `core/` | Логіка без DOM, по файлу на етап: `terrain`, `hydrology`, `climate`, `settle` (придатність), `grow` (ріст міток), `politics`, `settlements`, `roads`, `searoutes`, `serialize`, `index.js` (завантажувач для Node) |
 | `render/` | Малювання: `contours` (плавні межі), `raster` (рельєф), `draw` (шари), `places` (дороги, міста, підписи) |
 | `ui/app.js` | Інтерфейс: параметри, масштаб, збереження/імпорт/посилання/PNG |
+| `core/town*.js`, `core/city*.js` | Детальне місто за кліком на поселенні: `townenv` (вода, річки, дороги), `townstreets` (вулиці, провулки), `town` (райони, площі, парки, споруди, стіни, порт, руїни й окупація), `townquery` (пошук і тексти подробиць), `citydata`/`citytext` (типи споруд, райони, назви). Вікно: `render/town.js`, `ui/town.js`, `town.css` |
 | `test/` | `node atlas2/test/run-all.js` |
 
 Формати: параметри `atlas2-params` версії 1, повний світ `atlas2-world` версії 1 (див. [docs/data-versions.md](../docs/data-versions.md)).

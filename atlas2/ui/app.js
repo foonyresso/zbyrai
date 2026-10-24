@@ -39,8 +39,8 @@
   cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, f = Math.exp(-e.deltaY * 0.0015), k = Math.min(450, Math.max(0.5, view.k * f)), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; moving(); }, { passive: false });
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointerup', () => { drag = null; });
-  let last = null;
+  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (!d || !A.TownView || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (curNear) A.TownView.open(W, curNear); }); // клік на поселенні відкриває план міста (core/town.js, ui/town.js)
+  let last = null, curNear = null;
   cv.addEventListener('pointermove', e => {
     last = e;
     if (drag) { view.tx = drag.tx + (e.clientX - drag.x) * devicePixelRatio; view.ty = drag.ty + (e.clientY - drag.y) * devicePixelRatio; moving(); return; }
@@ -51,10 +51,11 @@
   const levelNow = () => { const bar = 150 * devicePixelRatio * W.params.kmPerCell / view.k; return bar >= 10 ? 'prov' : bar >= 2 ? 'reg' : null; };
   let hlKey = '', infoKey = '';
   function hoverAt(e) {
-    if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
+    if (!W || !e || (A.TownView && A.TownView.isOpen())) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
     const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
+    curNear = near; cv.style.cursor = near ? 'pointer' : '';
     const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = near || site;
     const k1 = level + '|' + id + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
     if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, view, hover, level, mark); }
@@ -102,7 +103,8 @@
     }
     info.innerHTML = out.join(''); info.hidden = false;
   }
-  cv.addEventListener('pointerleave', () => { if (!drag) { info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
+  A.showSettlementInfo = st => { infoKey = hlKey = ''; showInfo(st.i, st.region >= 0 ? st.region : null, st, null); }; // велике вікно поселення: те саме й у плані міста
+  cv.addEventListener('pointerleave', () => { if (A.TownView && A.TownView.isOpen()) return; if (!drag) { info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
 
   // меню: іконки зліва відкривають панель із підменю, повторний клік чи × закриває; вибір запам'ятовується
   const drawer = $('drawer'); let panel = ''; try { panel = localStorage.getItem('atlas2.panel') || ''; } catch (e) { panel = ''; }

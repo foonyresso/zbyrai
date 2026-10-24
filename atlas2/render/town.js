@@ -1,0 +1,89 @@
+// Атлас 2.0, місто: малювання плану міста (земля, вода, поля, дерева, райони, площі, вулиці, мости, стіни, споруди, порт, підписи).
+(function () {
+  'use strict';
+  const A = globalThis.Atlas2, T = A.CityData.T, TAU = Math.PI * 2;
+  const GROUND = { grass: '#d3dcab', steppe: '#dfd5a0', savanna: '#dccf94', forest: '#b9cc90', taiga: '#b4c79c', jungle: '#a9c486', hills: '#cfc9a0', mountain: '#c9c3ae', peaks: '#d8d6cc', swamp: '#a9b78d', desert: '#e8d9a6', tundra: '#cfd6c4', snow: '#eaf0f2' };
+  const ROAD = { avenue: ['#8b7a5a', '#f0e3bd'], street: ['#9a8a6a', '#ece0c4'], lane: ['#a89878', '#e6dac0'], ring: ['#9a8a6a', '#ece0c4'], embankment: ['#9c8d6c', '#dccfa8'] };
+  const CAT_COL = { 'Житлова': 0, 'Руїни': 0 };
+  // кеш: вода (растр 5 м), райони (растр 8 м)
+  function waterLayer(c) {
+    if (c._water) return c._water; const E = c.Rmap + 200, PX = Math.max(2.5, E * 2 / 900), n = Math.ceil(E * 2 / PX), cv = document.createElement('canvas'); cv.width = cv.height = n; const g = cv.getContext('2d'), im = g.createImageData(n, n), d = im.data, WK = c.env.waterKind, grid = new Uint8Array(n * n);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) grid[j * n + i] = WK(-E + (i + 0.5) * PX, -E + (j + 0.5) * PX);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const v = grid[j * n + i], o = (j * n + i) * 4;
+      if (v === 2) { d[o] = 79; d[o + 1] = 134; d[o + 2] = 184; d[o + 3] = 255; } else if (v === 1) { d[o] = 98; d[o + 1] = 152; d[o + 2] = 198; d[o + 3] = 255; }
+      else { let wet = false; for (let q = -1; q <= 1 && !wet; q++) for (let p = -1; p <= 1; p++) { const a = i + p, b = j + q; if (a >= 0 && b >= 0 && a < n && b < n && grid[b * n + a]) { wet = true; break; } } if (wet) { d[o] = 232; d[o + 1] = 222; d[o + 2] = 176; d[o + 3] = 255; } } }
+    g.putImageData(im, 0, 0); return (c._water = { cv, E });
+  }
+  function districtLayer(c) {
+    if (c._dist) return c._dist; const E = c.R * 1.35, PX = 8, n = Math.ceil(E * 2 / PX), cv = document.createElement('canvas'); cv.width = cv.height = n; const g = cv.getContext('2d'), im = g.createImageData(n, n), d = im.data, WK = c.env.waterKind, cols = c.districts.map(q => { const h = q.col.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; });
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = -E + (i + 0.5) * PX, y = -E + (j + 0.5) * PX, o = (j * n + i) * 4; if (Math.hypot(x - c.c0[0], y - c.c0[1]) > c.R * 1.25 || WK(x, y) !== 0) continue; const k = c.districtOf(x, y); if (k < 0) continue; d[o] = cols[k][0]; d[o + 1] = cols[k][1]; d[o + 2] = cols[k][2]; d[o + 3] = 255; }
+    g.putImageData(im, 0, 0); return (c._dist = { cv, E });
+  }
+  const poly = (g, p, k) => { g.beginPath(); g.moveTo(p[0] * k, p[1] * k); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i] * k, p[i + 1] * k); };
+  const COL = { good: 1, worn: 0.88, damaged: 0.8 };
+  function shade(hex, f) { const h = hex.replace('#', ''), v = [0, 2, 4].map(i => Math.max(0, Math.min(255, Math.round(parseInt(h.slice(i, i + 2), 16) * f)))); return `rgb(${v[0]},${v[1]},${v[2]})`; }
+  function buildingFill(b) { const t = T[b.type]; if (b.cond === 'ruined') return '#8d867a'; if (b.cond === 'burnt') return '#4a403a'; if (b.cond === 'lair') return '#9a3228'; return shade(t.col, COL[b.cond] || 1); }
+  // view: {k px/м, tx, ty — де в пікселях центр міста}; opt: {districts, names, hover, sel, hoverDistrict}
+  function draw(cv, c, view, opt) {
+    const g = cv.getContext('2d'), k = view.k, W = cv.width, H = cv.height; opt = opt || {};
+    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = GROUND[c.group] || GROUND.grass; g.fillRect(0, 0, W, H);
+    g.save(); g.translate(view.tx, view.ty); g.lineCap = 'round'; g.lineJoin = 'round';
+    const wl = waterLayer(c); g.imageSmoothingEnabled = true; g.drawImage(wl.cv, -wl.E * k, -wl.E * k, wl.E * 2 * k, wl.E * 2 * k);
+    const vis = (x, y, r) => { const sx = x * k + view.tx, sy = y * k + view.ty, rr = r * k; return sx + rr > 0 && sy + rr > 0 && sx - rr < W && sy - rr < H; };
+    for (const f of c.fields) { if (!vis(f.x, f.y, Math.max(f.w, f.h))) continue; g.save(); g.translate(f.x * k, f.y * k); g.rotate(f.a); g.fillStyle = c.fate ? '#c5c88f' : '#dccf84'; g.fillRect(-f.w / 2 * k, -f.h / 2 * k, f.w * k, f.h * k); if (k > 0.35) { g.strokeStyle = 'rgba(120,100,50,.35)'; g.lineWidth = 1; g.beginPath(); for (let y = -f.h / 2; y < f.h / 2; y += 5) { g.moveTo(-f.w / 2 * k, y * k); g.lineTo(f.w / 2 * k, y * k); } g.stroke(); } g.restore(); }
+    if (opt.districts && c.districts.length) { const dl = districtLayer(c); g.globalAlpha = 0.34; g.drawImage(dl.cv, -dl.E * k, -dl.E * k, dl.E * 2 * k, dl.E * 2 * k); g.globalAlpha = 1; }
+    if (opt.hoverDistrict != null && opt.hoverDistrict >= 0) { const E = c.R * 1.35, PX = 8, n = Math.ceil(E * 2 / PX); if (!c._hm || c._hm.id !== opt.hoverDistrict) { const m = document.createElement('canvas'); m.width = m.height = n; const mg = m.getContext('2d'), im = mg.createImageData(n, n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = -E + (i + 0.5) * PX, y = -E + (j + 0.5) * PX; if (Math.hypot(x - c.c0[0], y - c.c0[1]) < c.R * 1.25 && c.env.waterKind(x, y) === 0 && c.districtOf(x, y) === opt.hoverDistrict) { const o = (j * n + i) * 4; im.data[o] = 255; im.data[o + 1] = 255; im.data[o + 2] = 255; im.data[o + 3] = 255; } } mg.putImageData(im, 0, 0); c._hm = { id: opt.hoverDistrict, cv: m }; } g.globalAlpha = 0.35; g.drawImage(c._hm.cv, -E * k, -E * k, E * 2 * k, E * 2 * k); g.globalAlpha = 1; }
+    for (const f of c.features) { if (!vis(f.x, f.y, f.r)) continue; g.beginPath(); g.arc(f.x * k, f.y * k, f.r * k, 0, TAU); g.fillStyle = f.t === 'plaza' ? '#e6dec9' : f.t === 'park' ? '#97c47e' : '#a9b49a'; g.fill(); g.lineWidth = Math.max(1, 1.2 * k); g.strokeStyle = f.t === 'plaza' ? '#a99a78' : f.t === 'park' ? '#6f9a5a' : '#7c8870'; g.stroke();
+      if (f.t === 'plaza' && k > 0.5) { g.strokeStyle = 'rgba(150,135,100,.5)'; g.lineWidth = 1; g.beginPath(); g.arc(f.x * k, f.y * k, f.r * 0.62 * k, 0, TAU); g.stroke(); }
+      if (f.t === 'cemetery' && k > 0.7) { g.fillStyle = '#6d786a'; for (let i = 0; i < 18; i++) { const a = i * 2.4, d = Math.sqrt((i + 1) / 18) * f.r * 0.8; g.fillRect((f.x + Math.cos(a) * d) * k - k * 0.6, (f.y + Math.sin(a) * d) * k - k * 0.9, k * 1.2, k * 1.8); } } }
+    // вулиці: обводка, заливка; мости окремо
+    for (const pass of [0, 1]) for (const st of c.streets) { const rc = ROAD[st.kind] || ROAD.street, p = st.pts; if (p.length < 4) continue; g.strokeStyle = pass ? rc[1] : rc[0]; g.lineWidth = Math.max(pass ? 0.8 : 1.4, (st.hw * 2 + (pass ? 0 : 1.6)) * k); g.beginPath(); let pen = false; for (let i = 0; i < p.length; i += 2) { if (st.br[i / 2] && i) { pen = false; continue; } if (!pen) { g.moveTo(p[i] * k, p[i + 1] * k); pen = true; } else g.lineTo(p[i] * k, p[i + 1] * k); } g.stroke(); if (st.kind === 'avenue' && pass && k > 0.6) { g.strokeStyle = 'rgba(150,130,90,.45)'; g.setLineDash([k * 3, k * 4]); g.lineWidth = Math.max(1, 0.5 * k); g.stroke(); g.setLineDash([]); } }
+    for (const st of c.streets) { const p = st.pts; for (let i = 2; i < p.length; i += 2) if (st.br[i / 2]) { const ax = p[i - 2] * k, ay = p[i - 1] * k, bx = p[i] * k, by = p[i + 1] * k; g.strokeStyle = '#4a3a28'; g.lineWidth = Math.max(2, (st.hw * 2 + 2.4) * k); g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke(); g.strokeStyle = '#a98558'; g.lineWidth = Math.max(1, st.hw * 2 * k); g.stroke(); } }
+    for (const pr of c.piers) { g.strokeStyle = '#5d4630'; g.lineWidth = Math.max(2, 6.4 * k); g.beginPath(); g.moveTo(pr.x1 * k, pr.y1 * k); g.lineTo(pr.x2 * k, pr.y2 * k); g.stroke(); g.strokeStyle = '#a98558'; g.lineWidth = Math.max(1, 5 * k); g.stroke(); }
+    for (const sh of c.ships) { g.save(); g.translate(sh.x * k, sh.y * k); g.rotate(sh.a + Math.PI / 2); const L = sh.len * k, w = sh.w * k; g.beginPath(); g.moveTo(0, -L / 2); g.quadraticCurveTo(w, -L / 6, w * 0.7, L / 2); g.lineTo(-w * 0.7, L / 2); g.quadraticCurveTo(-w, -L / 6, 0, -L / 2); g.fillStyle = '#7b5a3a'; g.fill(); g.strokeStyle = '#3d2c1c'; g.lineWidth = Math.max(0.8, 0.5 * k); g.stroke(); if (k > 0.5) { g.fillStyle = '#f1ead8'; g.fillRect(-w * 0.55, -L * 0.18, w * 1.1, L * 0.36); } g.restore(); }
+    // дерева під спорудами, споруди зверху
+    for (const t of c.trees) { if (!vis(t.x, t.y, 6)) continue; g.beginPath(); g.arc(t.x * k, t.y * k, Math.max(0.8, t.r * k), 0, TAU); g.fillStyle = t.c ? '#4d7a52' : '#76a35a'; g.fill(); if (k > 0.4) { g.strokeStyle = 'rgba(40,70,40,.5)'; g.lineWidth = 0.8; g.stroke(); } }
+    const detail = k > 0.45;
+    for (const b of c.buildings) {
+      if (!vis(b.x, b.y, Math.max(b.w, b.h))) continue; g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); const w = b.w * k, h = b.h * k, t = T[b.type];
+      if (b.type === 'castle') { g.fillStyle = '#b9b9c4'; g.fillRect(-w / 2, -h / 2, w, h); g.lineWidth = Math.max(2, 3 * k); g.strokeStyle = '#5d5d6c'; g.strokeRect(-w / 2, -h / 2, w, h); g.fillStyle = '#8f8fa0'; g.fillRect(-w * 0.2, -h * 0.2, w * 0.4, h * 0.4); g.strokeStyle = '#3f3f4c'; g.lineWidth = Math.max(1, k); g.strokeRect(-w * 0.2, -h * 0.2, w * 0.4, h * 0.4); for (const sx of [-1, 1]) for (const sy of [-1, 1]) { g.beginPath(); g.arc(sx * w / 2, sy * h / 2, Math.max(2, 6 * k), 0, TAU); g.fillStyle = '#a1a1b2'; g.fill(); g.stroke(); } if (b.cond === 'lair') { g.fillStyle = 'rgba(154,50,40,.45)'; g.fillRect(-w / 2, -h / 2, w, h); } }
+      else if (b.type === 'lighthouse' || b.type === 'windmill' || b.type === 'mtower') { g.beginPath(); g.arc(0, 0, Math.max(1.5, b.w / 2 * k), 0, TAU); g.fillStyle = buildingFill(b); g.fill(); g.strokeStyle = '#3b2f2a'; g.lineWidth = Math.max(0.8, 0.6 * k); g.stroke(); if (b.type === 'windmill' && detail) { g.beginPath(); for (let i = 0; i < 4; i++) { g.moveTo(0, 0); g.lineTo(Math.cos(i * Math.PI / 2 + 0.4) * w * 1.1, Math.sin(i * Math.PI / 2 + 0.4) * w * 1.1); } g.stroke(); } }
+      else { g.fillStyle = buildingFill(b); g.fillRect(-w / 2, -h / 2, w, h); g.strokeStyle = b.cond === 'lair' ? '#4a120e' : '#3b2f2a'; g.lineWidth = Math.max(0.6, 0.55 * k); g.strokeRect(-w / 2, -h / 2, w, h);
+        if (detail && b.cond !== 'ruined' && b.cond !== 'burnt') { g.strokeStyle = 'rgba(0,0,0,.28)'; g.beginPath(); g.moveTo(-w / 2, 0); g.lineTo(w / 2, 0); g.stroke(); }
+        if (b.cond === 'ruined' && detail) { g.strokeStyle = '#4e483f'; g.beginPath(); g.moveTo(-w / 2, -h / 3); g.lineTo(0, 0); g.lineTo(w / 3, h / 2); g.moveTo(w / 2, -h / 4); g.lineTo(w / 8, h / 6); g.stroke(); }
+        if (b.cond === 'damaged' && detail) { g.strokeStyle = '#3b2f2a'; g.beginPath(); g.moveTo(-w / 3, -h / 2); g.lineTo(w / 6, h / 2); g.stroke(); }
+        if (b.type === 'cathedral' || b.type === 'temple') { g.strokeStyle = '#8a8570'; g.lineWidth = Math.max(1, 0.8 * k); g.beginPath(); g.moveTo(0, -h * 0.4); g.lineTo(0, h * 0.4); g.moveTo(-w * 0.3, -h * 0.1); g.lineTo(w * 0.3, -h * 0.1); g.stroke(); } }
+      g.restore();
+    }
+    for (const b of [opt.hover, opt.sel]) if (b && b.type) { g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); g.lineWidth = Math.max(2, 1.6 * k); g.strokeStyle = b === opt.sel ? '#ffd34a' : '#ffffff'; const w = b.w * k + 4, h = b.h * k + 4; g.strokeRect(-w / 2, -h / 2, w, h); g.restore(); }
+    // стіна, вежі, брами
+    if (c.wall.on) { for (const run of c.wall.runs) { poly(g, run, k); g.strokeStyle = '#4c4c58'; g.lineWidth = Math.max(2, 4 * k); g.stroke(); g.strokeStyle = '#a4a4b2'; g.lineWidth = Math.max(1, 2.2 * k); g.stroke(); }
+      for (const q of c.wall.towers) { g.beginPath(); g.arc(q[0] * k, q[1] * k, Math.max(2, 4.6 * k), 0, TAU); g.fillStyle = '#9090a2'; g.fill(); g.strokeStyle = '#3f3f4c'; g.lineWidth = Math.max(1, 0.9 * k); g.stroke(); }
+      for (const q of c.wall.gates) { g.save(); g.translate(q.x * k, q.y * k); g.rotate(q.a); g.fillStyle = '#8b6a45'; g.fillRect(-7 * k, -9 * k, 14 * k, 18 * k); g.strokeStyle = '#3d2c1c'; g.lineWidth = Math.max(1, k); g.strokeRect(-7 * k, -9 * k, 14 * k, 18 * k); g.restore(); } }
+    for (const p of c.props) { g.beginPath(); g.arc(p.x * k, p.y * k, Math.max(2, p.r * k), 0, TAU); g.fillStyle = p.t === 'monument' ? '#b8b8c0' : '#6ab0e0'; g.fill(); g.strokeStyle = '#3f4a58'; g.lineWidth = Math.max(1, 0.8 * k); g.stroke(); if (p.t === 'fountain') { g.beginPath(); g.arc(p.x * k, p.y * k, Math.max(1, p.r * 0.45 * k), 0, TAU); g.fillStyle = '#e8f6ff'; g.fill(); } }
+    for (const m of c.camps) { const x = m.x * k, y = m.y * k, u = Math.max(2, 2.2 * k); g.save(); g.translate(x, y); g.rotate(m.a);
+      if (m.t === 'tent') { g.beginPath(); g.moveTo(0, -u * 1.4); g.lineTo(u * 1.4, u); g.lineTo(-u * 1.4, u); g.closePath(); g.fillStyle = '#7a5a3a'; g.fill(); g.strokeStyle = '#2d1f12'; g.lineWidth = 1; g.stroke(); }
+      else if (m.t === 'fire') { g.beginPath(); g.arc(0, 0, u * 0.9, 0, TAU); g.fillStyle = '#f08a2c'; g.fill(); g.beginPath(); g.arc(0, 0, u * 0.45, 0, TAU); g.fillStyle = '#ffe27a'; g.fill(); }
+      else if (m.t === 'barricade') { g.strokeStyle = '#4a3220'; g.lineWidth = Math.max(2, u * 0.7); g.beginPath(); g.moveTo(-u * 2, 0); g.lineTo(u * 2, 0); g.stroke(); g.beginPath(); g.moveTo(-u, -u); g.lineTo(u, u); g.moveTo(u, -u); g.lineTo(-u, u); g.stroke(); }
+      else if (m.t === 'bones') { g.fillStyle = '#efe9d8'; for (let i = 0; i < 4; i++) g.fillRect(Math.cos(i * 1.7) * u, Math.sin(i * 2.3) * u, u * 0.9, u * 0.35); }
+      else if (m.t === 'nest') { g.beginPath(); g.arc(0, 0, u * 1.5, 0, TAU); g.fillStyle = '#3d2c26'; g.fill(); g.strokeStyle = '#1d1210'; g.lineWidth = 1; g.stroke(); }
+      else { g.strokeStyle = '#3d2c1c'; g.lineWidth = Math.max(1, u * 0.3); g.beginPath(); g.moveTo(0, u); g.lineTo(0, -u * 1.6); g.stroke(); g.fillStyle = '#c0302f'; g.fillRect(0, -u * 1.6, u * 1.5, u); }
+      g.restore(); }
+    // підписи
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    const halo = (txt, x, y, col) => { g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.85)'; g.strokeText(txt, x, y); g.fillStyle = col || '#2b2218'; g.fillText(txt, x, y); };
+    if (opt.names) for (const st of c.streets) {
+      if (st.kind === 'lane' && k < 1.2) continue; const p = st.pts, fs = Math.max(9, Math.min(15, 4.6 * k)); g.font = `600 ${fs}px sans-serif`; const wtxt = g.measureText(st.name).width / k; if (st.len < wtxt * 1.05 || k < 0.55) continue;
+      let acc = 0, mx = 0, my = 0, half = st.len / 2, mi = 2; for (; mi < p.length; mi += 2) { const l = Math.hypot(p[mi] - p[mi - 2], p[mi + 1] - p[mi - 1]); if (acc + l >= half) { const t = (half - acc) / l; mx = p[mi - 2] + (p[mi] - p[mi - 2]) * t; my = p[mi - 1] + (p[mi + 1] - p[mi - 1]) * t; break; } acc += l; }
+      if (!vis(mx, my, wtxt)) continue; const ptAt = d => { let q = 0; for (let i = 2; i < p.length; i += 2) { const l = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]); if (q + l >= d) { const t = (d - q) / l; return [p[i - 2] + (p[i] - p[i - 2]) * t, p[i - 1] + (p[i + 1] - p[i - 1]) * t]; } q += l; } return [p[p.length - 2], p[p.length - 1]]; };
+      const a0 = ptAt(Math.max(0, half - wtxt / 2)), a1 = ptAt(Math.min(st.len, half + wtxt / 2)); let a = Math.atan2(a1[1] - a0[1], a1[0] - a0[0]); if (a > Math.PI / 2 || a < -Math.PI / 2) a += Math.PI; g.save(); g.translate(mx * k, my * k); g.rotate(a); halo(st.name, 0, 0, '#4a3b22'); g.restore(); }
+    if (opt.labels && k > 1.5) for (const b of c.buildings) { if (!vis(b.x, b.y, 20) || (!b.uniq && (k < 4.5 && T[b.type].cat === 'Житлова')) || (b.cond === 'ruined' && !b.uniq)) continue; if (b.w * k < 30 && k < 3.2) continue; g.font = `${Math.max(9, Math.min(13, 2.8 * k))}px sans-serif`; halo(b.name, b.x * k, b.y * k, '#1d1a14'); }
+    if (opt.districts) for (const d of c.districts) { if (!vis(d.x, d.y, 50)) continue; const fs = Math.max(11, Math.min(20, 0.1 * c.R * k * 0.45)); g.font = `700 ${fs}px sans-serif`; halo(d.name.toUpperCase(), d.x * k, d.y * k, '#222'); }
+    for (const f of c.features) if (f.t !== 'plaza' || opt.names) { if (!vis(f.x, f.y, f.r) || k < 0.6) continue; g.font = `600 ${Math.max(9, Math.min(13, 3.4 * k))}px sans-serif`; halo(f.name, f.x * k, f.y * k + (f.t === 'plaza' ? f.r * 0.5 * k : 0), f.t === 'park' ? '#1f4a22' : '#3a2f1a'); }
+    for (const q of c.wall.gates) if (opt.names && k > 0.9) { g.font = `600 ${Math.max(9, Math.min(12, 3 * k))}px sans-serif`; halo(q.name, q.x * k, q.y * k - 14 * k, '#2b2b3a'); }
+    g.restore();
+    // масштабна лінійка
+    const nice = [5, 10, 20, 50, 100, 200, 500, 1000], target = 120 / k, m = nice.find(v => v >= target * 0.6) || 1000, px = m * k; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(12, H - 34, px + 70, 24); g.fillStyle = '#222'; g.fillRect(18, H - 20, px, 3); g.fillRect(18, H - 25, 2, 8); g.fillRect(18 + px - 2, H - 25, 2, 8); g.font = '12px sans-serif'; g.textAlign = 'left'; g.fillText(m + ' м', 26 + px, H - 20);
+  }
+  A.TownDraw = { draw };
+})();

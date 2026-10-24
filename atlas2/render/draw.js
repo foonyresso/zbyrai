@@ -80,6 +80,7 @@
   }
   // підсвітка регіону при наведенні на окремому шарі (без перемальовування карти)
   function drawHover(cv, W, view, id, level, mark) {
+    if (!W) return;
     const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     scaleBar(ctx, cv, W, view.k); // лінійка на шарі поверх карти: під час руху камери перераховується, а не їде разом із картинкою
     ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty);

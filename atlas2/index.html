@@ -7,6 +7,7 @@
 <meta name="description" content="Атлас 2.0: генератор світу з одного зерна: ландшафт, річки за правилами стоку, міста, провінції, регіони й дороги.">
 <link rel="stylesheet" href="../medieval-world/theme.css">
 <link rel="stylesheet" href="style.css?v=2026102314">
+<link rel="stylesheet" href="town.css?v=2026102401">
 </head>
 <body>
 <header class="top" id="top">
@@ -19,7 +20,7 @@
   <h2>Атлас 2.0</h2>
   <h3>Що це</h3><p>Генератор світу з одного зерна. Спочатку ландшафт і річки (завжди течуть до моря, озера лише в западинах), потім міста, провінції (як країни), регіони (як області) та дороги між поселеннями.</p>
   <h3>Для чого</h3><p>Основа для гри й кампаній. Кожне зерно дає унікальний світ, однакове зерно з тими самими параметрами завжди дає той самий світ.</p>
-  <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує блоками провінцію, регіон, координати, місцевість і деталі місця під курсором (поселення, лігво, табір, руїни тощо).</li><li>Нульові координати — центр карти. Рівень росте з відстанню від нього (приблизно 1 рівень на 2,5 км); рівень регіону — середній по його землях, провінції — середній по її регіонах. Чим далі від поселень, тим сильніші монстри (шар «Небезпека»).</li><li>Шари вмикаються в лівій панелі.</li></ol>
+  <h3>Як користуватися</h3><ol><li>Введи зерно або натисни «Випадкове».</li><li>Налаштуй тип світу, розмір, провінції й регіони.</li><li>Колесо миші змінює масштаб, перетягування рухає карту, наведення показує блоками провінцію, регіон, координати, місцевість і деталі місця під курсором (поселення, лігво, табір, руїни тощо).</li><li>Нульові координати — центр карти. Рівень росте з відстанню від нього (приблизно 1 рівень на 2,5 км); рівень регіону — середній по його землях, провінції — середній по її регіонах. Чим далі від поселень, тим сильніші монстри (шар «Небезпека»).</li><li>Шари вмикаються в лівій панелі.</li><li>Клік на місті, селі чи хуторі відкриває детальний план: райони, вулиці, площі, парки, споруди; наведення показує подробиці споруди чи району.</li></ol>
 </dialog>
 <main class="stage" id="stage"><canvas id="map"></canvas><canvas id="over"></canvas><div id="info" class="info" hidden></div><div id="load" class="load" hidden><div class="loadbox"><div id="loadTxt" class="loadtxt">Створення світу…</div><div class="loadtrack"><div id="loadBar" class="loadbar"></div></div></div></div></main>
 <nav class="rail" id="rail" aria-label="Меню">
@@ -89,6 +90,6 @@
     </details>
   </section>
 </aside>
-<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102314'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','render/contours','render/raster','render/draw','render/roadgeom','render/places','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
+<script>/* версія файлів: піднімати при кожній зміні JS, щоб браузер не брав старий кеш */(function () { var V = '2026102401'; ['core/rng','core/noise','core/heap','core/grid','core/params','core/terrain','core/hydrology','core/climate','core/names','core/settle','core/grow','core/politics','core/settlements','core/roads','core/searoutes','core/seas','core/bestiary','core/danger','core/generate','core/serialize','core/citydata','core/citytext','core/townenv','core/townstreets','core/town','core/townquery','render/contours','render/raster','render/draw','render/roadgeom','render/places','render/town','ui/town','ui/app'].forEach(function (f) { document.write('<script src="' + f + '.js?v=' + V + '"><\/script>'); }); })();</script>
 </body>
 </html>
