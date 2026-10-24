@@ -26,7 +26,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 .drawer[hidden] { display: none; }
 .drawer section { display: none; flex-direction: column; gap: 8px; } .drawer section.on { display: flex; }
 .drawer h2 { margin: 2px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
-.drawer .x { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 18px; z-index: 2; }
+.drawer > .x { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 18px; z-index: 2; }
 .drawer details.sub { border: 1px solid var(--line, rgba(255,255,255,.12)); border-radius: 8px; padding: 0 10px 10px; background: rgba(255,255,255,.03); display: flex; flex-direction: column; gap: 8px; }
 .drawer details.sub > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 9px 0 3px; font-weight: 600; user-select: none; }
 .drawer details.sub > summary::-webkit-details-marker { display: none; }
