@@ -4,6 +4,7 @@
 
 | Файл | Про що |
 |---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Головна ідея сайту: механіки окремо (`mechanics/`), інструменти їх комбінують; перелік механік |
 | [tools-map.md](tools-map.md) | Кожен інструмент: папка, код, тести, ключ localStorage |
 | [shared-files.md](shared-files.md) | Спільні файли: тема, хаб, sitemap, скрипти в `tools/` |
 | [new-tool-guide.md](new-tool-guide.md) | Як додати новий інструмент за правилами сайту |
