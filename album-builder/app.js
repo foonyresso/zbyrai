@@ -669,16 +669,13 @@
   $('fontResetText').onclick = function () { st.tf = {}; st.ts = {}; st.spreads.forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { var o = sp.text[j]; if (o) { delete o.f; delete o.case; delete o.c; delete o.k; } }); }); refresh(); };
   function fontSample() { $('fontSample').style.fontFamily = (st.font && AlbumFonts.stack(st.font)) || 'inherit'; $('fontSel').textContent = st.font || 'Як у дизайні (системний)'; $('fontSel').style.fontFamily = (st.font && AlbumFonts.stack(st.font)) || 'inherit'; if (st.font) AlbumFonts.ensure(st); }
   // ---------- Меню й кнопки ----------
-  function openPanel(name) {
-    panel = panel === name ? null : name;
-    $('drawer').hidden = !panel; $('work').classList.toggle('shift', !!panel);
-    document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.classList.toggle('on', b.dataset.panel === panel); });
-    document.querySelectorAll('.drawer section').forEach(function (s) { s.classList.toggle('on', s.dataset.panel === panel); });
+  function openPanel(name) { ZB.showPanel(ZB.panel === name ? '' : name); }
+  ZB.onPanel = function (name) {
+    panel = name || null;
+    if ($('work').hidden) return;
     if (panel === 'obj') buildObjPanel(); if (panel === 'bg') bgLoad(); if (panel === 'layout') buildGridUI($('gridBody'));
     setTimeout(redraw, 170);
-  }
-  document.querySelectorAll('.rail [data-panel]').forEach(function (b) { b.onclick = function () { openPanel(b.dataset.panel); }; });
-  $('drawerX').onclick = function () { openPanel(panel); };
+  };
   document.querySelector('.rail [data-go=list]').onclick = function () { showStep(4); };
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });

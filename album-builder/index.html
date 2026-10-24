@@ -9,34 +9,28 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M5 8h10v16H5zM17 8h10v16H17z%27 fill=%27none%27 stroke=%27%23b9a0e6%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
 <link rel="stylesheet" href="./fonts/fonts.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h8.5v14H3zM12.5 5H21v14h-8.5z"/></svg><div>Макетник <span>альбомів</span></div></div>
-  <div class="spacer"></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Макетник <span>альбомів</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
   <div class="top-actions">
     <button class="btn-copy" id="btnJpg" title="Завантажити поточний розворот як JPG (300 dpi)">Зберегти розворот .jpg</button>
     <button class="btn-copy" id="btnZip" title="Усі розвороти JPG в одному архіві .zip: cover_01, 01_01, 02, 03…">Зберегти все .zip</button>
   </div>
 </header>
 
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div><h3>Що це</h3><p>Макетник випускних альбомів: обираєш тип друку, формат і дизайн, вставляєш список дітей і вчителів, і розвороти (обкладинка, перший розворот, портрети, групові фото) збираються самі. Дані дітей і фото не покидають ваш браузер: нічого не надсилається й не зберігається на сервері.</p></div>
-    <div><h3>Для чого</h3><p>Швидко розставити фото й підписи за номерами з назв файлів і вивантажити розвороти в PNG/JPG (або PDF) для друкарні.</p></div>
-    <div><h3>Як користуватися</h3>
-      <ol>
-        <li>Пройди кроки: тип друку, формат, дизайн, список. У списку номер(и) фото й «Прізвище Ім'я» в будь-якому порядку; у вчителів: номер, потім прізвище, ім'я, по батькові, далі посада.</li>
-        <li>У редакторі додай фото (кнопка внизу або перетягни на полотно). Фото підтягуються за номером у назві файлу, підпис береться зі списку.</li>
-        <li>Правий клік по вікну чи розвороту відкриває меню: видалити фото, перемістити на інший розворот, вставити текст, об'єднати вікна. Перетягни фото на інше, щоб поміняти місцями; з Alt (або в режимі «Кадр») зсуваєш кадр, колесо мишки наближає. Подвійний клік скидає кадр. Порожнє вікно: клік додає фото.</li>
-        <li>Знизу стрічка розворотів: перетягуй для зміни порядку, «＋» додає розворот. Зберігай угорі.</li>
-      </ol>
-    </div>
-  </div>
-</details>
+<dialog id="help" class="help">
+      <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+      <h2>Макетник альбомів</h2>
+  <h3>Що це</h3><p>Макетник випускних альбомів: обираєш тип друку, формат і дизайн, вставляєш список дітей і вчителів, і розвороти (обкладинка, перший розворот, портрети, групові фото) збираються самі. Дані дітей і фото не покидають ваш браузер: нічого не надсилається й не зберігається на сервері.</p>
+  <h3>Для чого</h3><p>Швидко розставити фото й підписи за номерами з назв файлів і вивантажити розвороти в PNG/JPG (або PDF) для друкарні.</p>
+  <h3>Як користуватися</h3><ol> <li>Пройди кроки: тип друку, формат, дизайн, список. У списку номер(и) фото й «Прізвище Ім'я» в будь-якому порядку; у вчителів: номер, потім прізвище, ім'я, по батькові, далі посада.</li> <li>У редакторі додай фото (кнопка внизу або перетягни на полотно). Фото підтягуються за номером у назві файлу, підпис береться зі списку.</li> <li>Правий клік по вікну чи розвороту відкриває меню: видалити фото, перемістити на інший розворот, вставити текст, об'єднати вікна. Перетягни фото на інше, щоб поміняти місцями; з Alt (або в режимі «Кадр») зсуваєш кадр, колесо мишки наближає. Подвійний клік скидає кадр. Порожнє вікно: клік додає фото.</li> <li>Знизу стрічка розворотів: перетягуй для зміни порядку, «＋» додає розворот. Зберігай угорі.</li> </ol>
+    </dialog>
 
 <main class="wizard" id="wizard">
   <ol class="steps" id="steps"></ol>
@@ -61,7 +55,7 @@
   </section>
 </main>
 
-<div class="work" id="work" hidden>
+<main class="stage" id="work" hidden>
   <div class="stagebox" id="drop">
     <canvas id="cv" title="Клік вибирає фото. Перетягування: поміняти фото місцями (з Alt: зсунути кадр). Колесо: наблизити кадр. Подвійний клік: скинути кадр. Правий клік: меню (видалити, перемістити, текст, об'єднати)"></canvas>
     <div class="menu addmenu" id="addMenu" hidden><button data-add="portrait" title="Додати ще один розворот із портретами">Портрети</button><button data-add="group" title="Додати розворот із груповими фото">Групові фото</button></div>
@@ -88,7 +82,7 @@
     <button data-panel="view" title="Вигляд: лінії обрізу й згину, режим перетягування"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Вигляд</span></button>
       <div class="seg vseg" id="dragMode" title="Що робить перетягування фото"><button data-dm="swap" class="on" title="Перетягни фото на інше, і вони поміняються місцями (на «вклеєних» фото рухається разом з рамкою). Alt перемикає на «Кадр»">Обмін<br>місцями</button><button data-dm="crop" title="Перетягування зсуває кадр усередині вікна">Кадр</button></div>
 </nav>
-  <aside class="drawer" id="drawer" hidden>
+  <aside class="drawer" id="drawer" data-store="ab_panel" data-default="" hidden>
     <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="layout"><h2>Портрети на розворот</h2>
       <div id="gridBody"></div>
@@ -120,7 +114,7 @@
   <div class="layouts" id="layoutStrip" hidden></div>
   <div class="kids" id="kidStrip" hidden title="Діти зі списку: клік показує обкладинку й індивідуальні розвороти саме цієї дитини"></div>
   <div class="strip" id="strip" title="Розвороти: клік вибирає, перетягування змінює порядок"></div>
-</div>
+</main>
 
 <div class="menu" id="cellMenu" hidden></div>
 <div class="dlg" id="dlg" hidden><div class="dlgbox"><p id="dlgText"></p><div id="dlgBtns"></div></div></div>
@@ -150,7 +144,7 @@
 <script src="./data/patterns.js"></script>
 <script src="./render.js"></script>
 <script src="./export.js"></script>
+<script src="./zb-ui.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
