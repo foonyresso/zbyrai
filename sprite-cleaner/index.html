@@ -13,18 +13,16 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/sprite-cleaner/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M7 7h8v8H7zM17 7h8v8h-8zM7 17h8v8H7z%27 fill=%27none%27 stroke=%27%23e6c14a%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5h7v7h-7zM13.5 3.5h7v7h-7zM3.5 13.5h7v7h-7z"/><path d="M14 17h6.5M17.25 13.75v6.5"/></svg>
-    <div>Чистильник <span>спрайтів</span></div>
-  </div>
-  <div class="spacer"></div>
-  <div class="savebar" role="toolbar" aria-label="Файл, збереження й обмін">
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden>← Zbyr<b>AI</b></a>
+  <div class="brand">Чистильник <span>спрайтів</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  <div class="top-actions" role="toolbar" aria-label="Файл, збереження й обмін">
     <div class="grp" role="group" aria-label="Файл">
       <button id="btnPick" title="Відкрити зображення з комп'ютера (PNG, JPG, WebP, GIF). Можна й просто перетягнути файл у вікно.">Відкрити…</button>
       <button id="btnPaste" title="Вставити зображення з буфера обміну (те саме, що Ctrl+V)">Вставити</button>
@@ -43,16 +41,14 @@
       <button id="btnImportJson" title="Завантажити налаштування з файлу .json. Також можна вставити скопійований JSON через Ctrl+V">Імпорт JSON</button>
       <input type="file" id="jsonFile" accept="application/json,.json" hidden>
     </div>
-    <label class="namefld" title="Початок імені всіх збережених файлів: ім'я_sheet.png, ім'я_01.png, ім'я_atlas.json">Ім'я <input type="text" id="tName" maxlength="24" aria-label="Префікс імені файлів"></label>
   </div>
 </header>
-
-  <details class="about" id="about">
-    <summary title="Показати або сховати довідку"><b>Що це, для чого, як користуватися</b></summary>
-    <div class="about-body">
-      <p><b>Що це.</b> Редактор прибирає фон із зображення й робить його прозорим. Працює і зі спрайт-листами (в тому числі від ШІ), і зі звичайними фотографіями.</p>
-      <p><b>Для чого.</b> Підготувати спрайти для гри, вирізати предмет чи людину з фото, нарізати лист на окремі спрайти й зібрати атлас PNG + JSON.</p>
-      <p><b>Як користуватися.</b></p>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Чистильник спрайтів</h2>
+      <h3>Що це</h3><p>Редактор прибирає фон із зображення й робить його прозорим. Працює і зі спрайт-листами (в тому числі від ШІ), і зі звичайними фотографіями.</p>
+      <h3>Для чого</h3><p>Підготувати спрайти для гри, вирізати предмет чи людину з фото, нарізати лист на окремі спрайти й зібрати атлас PNG + JSON.</p>
+      <h3>Як користуватися</h3>
       <ol>
         <li>Відкрийте картинку: кнопка «Відкрити…» зверху, перетягування у вікно або Ctrl+V. Або натисніть «Демо».</li>
         <li>Інструментом «Піпетка» клікайте по кольорах фону (небо, пісок, море): кожен колір потрапляє у список праворуч зі своїм допуском. Усе схоже на ці кольори стає прозорим (шашка).</li>
@@ -60,17 +56,17 @@
         <li>Колесо миші змінює масштаб, пробіл + тягнення (або інструмент «Рух») пересуває картинку. Утримуйте O, щоб порівняти з оригіналом.</li>
         <li>Зверху збережіть результат: PNG, копія в буфер, ZIP зі спрайтами, атлас або JSON налаштувань.</li>
       </ol>
-    </div>
-  </details>
+    
+</dialog>
 
-<div class="work" id="work">
+<main class="stage" id="work">
 
     <div class="viewport" id="vp">
       <canvas id="cv" aria-label="Робоча область із зображенням"></canvas>
       <div class="empty" id="empty">Перетягніть зображення сюди, вставте через Ctrl+V або натисніть «Відкрити…» чи «Демо»</div>
       <div class="dropmask">Відпустіть, щоб завантажити</div>
     </div>
-  <nav class="rail" aria-label="Інструменти">
+  <nav class="toolrail" aria-label="Інструменти">
     <button class="tool" data-tool="hand" title="Рух (H): тягніть, щоб посунути картинку. Колесо миші: масштаб. Пробіл + тягнення працює з будь-яким інструментом.">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Рух</span></button>
     <button class="tool" data-tool="pipette" title="Піпетка (I): клік по картинці ДОДАЄ колір цього пікселя до списку «кольорів фону». Додайте кілька (небо, пісок, море), і всі вони стануть прозорими.">
@@ -106,15 +102,15 @@
       <span class="readout" id="info"></span>
     </div>
 
-  <nav class="rail right" aria-label="Налаштування">
-    <button class="pbtn" data-panel="colors" title="Кольори фону: піпетка, допуски, м'який край, де прибирати"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg><span>Фон</span></button>
-    <button class="pbtn" data-panel="edits" title="Ручні правки: розмір пензля, допуск палички"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Правки</span></button>
-    <button class="pbtn" data-panel="slice" title="Нарізка листа на окремі спрайти: автоматично чи сіткою"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5h17v17h-17zM12 3.5v17M3.5 12h17"/></svg><span>Нарізка</span></button>
-    <button class="pbtn" data-panel="palette" title="Палітра: зменшити кількість кольорів (піксель-арт)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><circle cx="12" cy="16" r="2.5"/></svg><span>Палітра</span></button>
-    <button class="pbtn" data-panel="atlas" title="Параметри атласу: відступ, степені двійки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg><span>Атлас</span></button>
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="colors" title="Кольори фону: піпетка, допуски, м'який край, де прибирати"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg><span>Фон</span></button>
+    <button data-panel="edits" title="Ручні правки: розмір пензля, допуск палички"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Правки</span></button>
+    <button data-panel="slice" title="Нарізка листа на окремі спрайти: автоматично чи сіткою"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5h17v17h-17zM12 3.5v17M3.5 12h17"/></svg><span>Нарізка</span></button>
+    <button data-panel="palette" title="Палітра: зменшити кількість кольорів (піксель-арт)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><circle cx="12" cy="16" r="2.5"/></svg><span>Палітра</span></button>
+    <button data-panel="atlas" title="Префікс імені файлів і параметри атласу: відступ, степені двійки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg><span>Атлас</span></button>
   </nav>
   <aside class="drawer" id="drawer" hidden aria-label="Налаштування">
-    <button class="dx" id="drawerX" title="Закрити меню">×</button>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="colors"><h2>Кольори фону</h2>
       <p class="hint">Усе, що схоже на ці кольори, стає прозорим. Кожен колір має власний допуск: чим більший, тим ширший діапазон відтінків.</p>
       <div class="row2">
@@ -156,21 +152,18 @@
       <div class="swatches" id="swatches"></div>
     </section>
 
-    <section data-panel="atlas"><h2>Параметри атласу</h2>
+    <section data-panel="atlas"><h2>Файли й атлас</h2>
+      <label class="namefld" title="Початок імені всіх збережених файлів: ім'я_sheet.png, ім'я_01.png, ім'я_atlas.json">Ім'я <input type="text" id="tName" maxlength="24" aria-label="Префікс імені файлів"></label>
       <p class="hint">Як пакувати спрайти кнопкою «Атлас» зверху. Формат JSON Hash (TexturePacker) читають Phaser, PixiJS та інші рушії.</p>
       <div class="row2"><label class="num" title="Порожній проміжок між спрайтами в атласі, у пікселях"><span>Відступ</span><input type="number" id="nPad" min="0" max="16"></label><label class="chk" title="Зробити ширину й висоту атласу степенями двійки (256, 512, 1024…), як вимагають деякі відеокарти"><input type="checkbox" id="cPow2"><span>Степені двійки</span></label></div>
     </section>
   </aside>
-</div>
+</main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
+<script src="./zb-ui.js"></script>
 <script src="./sprite-core.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>

@@ -196,17 +196,7 @@
     $('btnAddPip').classList.toggle('on', t === 'pipette'); draw();
   }
   document.querySelectorAll('.tool').forEach(b => b.onclick = () => setTool(b.dataset.tool));
-  /* меню-іконки справа: налаштування в висувній панелі */
-  const drawer = $('drawer'); let panel = store.get('panel', 'colors');
-  function showPanel(n) {
-    panel = n; store.set('panel', n || '');
-    drawer.hidden = !n;
-    document.querySelectorAll('.pbtn').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
-    drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
-  }
-  document.querySelectorAll('.pbtn').forEach(b => { b.onclick = () => showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); });
-  $('drawerX').onclick = () => showPanel('');
-  showPanel(panel);
+  // меню-іконки й довідка «i»: спільний кіт zb-ui.js
   $('btnAddPip').onclick = () => setTool('pipette');
 
   const pts = new Map(); // активні вказівники (для pinch)
@@ -332,7 +322,6 @@
   $('cCompare').onchange = e => { compare = e.target.checked; draw(); };
   $('zIn').onclick = () => { view.fitted = true; zoomAt(1.25); }; $('zOut').onclick = () => { view.fitted = true; zoomAt(1 / 1.25); };
   $('zFit').onclick = fit; $('z100').onclick = () => { if (!orig) return; view.fitted = true; zoomAt(1 / view.s); };
-  const about = $('about'); about.open = store.get('aboutOpen', false); about.addEventListener('toggle', () => { store.set('aboutOpen', about.open); requestAnimationFrame(() => { resize(); }); });
 
   addEventListener('keydown', e => {
     if (/^(input|textarea|select)$/i.test(e.target.tagName) && e.key !== 'Escape') return;

@@ -1,40 +1,10 @@
 /* Sprite Sheet Cleaner: розмітка поверх спільної теми (theme.css, «Обсидіан і золото»). Акцент інструмента: бурштиновий жовтий. */
 :root { --accent: #e6c14a; --accent-hi: #f3d97e; --accent-glow: rgba(230, 193, 74, .14); }
-body { height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column;
-  background: radial-gradient(1200px 460px at 50% -120px, rgba(230, 193, 74, .10), transparent 70%), var(--bg); }
-header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 18px;
-  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
-header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .55; }
-.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; font-size: 20px; white-space: nowrap; letter-spacing: .07em; text-shadow: 0 0 14px color-mix(in srgb, var(--accent, var(--gold)) 50%, transparent); }
-.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
-.brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
-.spacer { flex: 1; }
-.top-note { color: var(--faint); font-size: 12px; }
 
-.savebar { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: flex-end; }
-.savebar .grp, .statusbar .grp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.savebar .grp + .grp { padding-left: 14px; border-left: 1px solid var(--line); }
 .namefld { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
 .namefld input { width: 110px; }
-header.top button, .statusbar button { padding: 6px 11px; font-size: 13px; }
 
-.work { flex: 1; min-height: 0; position: relative; overflow: hidden; }
-.rail { position: absolute; left: 10px; top: 10px; bottom: 10px; z-index: 5; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); overflow-y: auto; width: 68px; }
-.rail.right { left: auto; right: 10px; bottom: auto; width: 68px; }
-.rail button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px; font-size: 10.5px; line-height: 1.1; border-radius: 9px; }
-.rail button svg { width: 22px; height: 22px; }
-.rail button:disabled { opacity: .35; cursor: default; }
-.rail .sep { height: 1px; background: var(--line); margin: 4px 6px; flex: none; }
-.drawer { position: absolute; right: 86px; top: 10px; bottom: 56px; width: min(340px, calc(100vw - 180px)); z-index: 4; overflow: auto; background: color-mix(in srgb, var(--panel) 97%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); padding: 12px 14px 16px; }
-.drawer[hidden] { display: none; }
-.drawer section { display: none; flex-direction: column; gap: 9px; } .drawer section.on { display: flex; }
-.drawer h2 { margin: 6px 0 2px; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
 .dx { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 18px; z-index: 2; }
-.about { margin: 8px 10px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); font-size: 13px; color: var(--muted); }
-.about summary { cursor: pointer; padding: 8px 12px; color: var(--accent-hi); user-select: none; }
-.about-body { padding: 2px 14px 10px; line-height: 1.5; max-height: 24vh; overflow: auto; column-width: 380px; column-gap: 28px; }
-.about-body p { margin: 4px 0; break-inside: avoid; } .about-body ol { margin: 2px 0 0; padding-left: 20px; } .about-body li { margin: 2px 0; }
-.about-body b { color: var(--text); }
 .viewport { position: absolute; inset: 0; overflow: hidden; background: #0c0c10; touch-action: none; }
 .viewport canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .viewport[data-tool=hand] { cursor: grab; } .viewport.panning { cursor: grabbing; }
@@ -45,6 +15,8 @@ header.top button, .statusbar button { padding: 6px 11px; font-size: 13px; }
 .dropmask { position: absolute; inset: 0; display: none; place-items: center; background: rgba(9, 9, 12, .8); color: var(--accent-hi); font-weight: 600; border: 2px dashed var(--accent); pointer-events: none; }
 .viewport.drag .dropmask { display: grid; }
 .statusbar { position: absolute; left: 90px; right: 90px; bottom: 10px; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 6px 12px; font-size: 12px; color: var(--muted); background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); }
+.statusbar .grp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.statusbar button { padding: 6px 11px; font-size: 13px; }
 .statusbar output { font-family: var(--ff-mono); min-width: 44px; text-align: center; color: var(--text); }
 .readout { font-family: var(--ff-mono); font-size: 11.5px; color: var(--faint); white-space: nowrap; }
 .ctl-inline { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
@@ -70,13 +42,24 @@ input[type=color] { width: 40px; height: 32px; padding: 2px; background: var(--b
 .swatches { display: flex; flex-wrap: wrap; gap: 3px; }
 .swatches i { width: 16px; height: 16px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, .12); }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
-  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
-.toast.show { opacity: 1; transform: translateX(-50%); }
 
 @media (max-width: 900px) {
-  header.top { padding: 10px 14px; }
-  .savebar { justify-content: flex-start; }
   .drawer { right: 10px; top: 80px; bottom: 120px; width: auto; left: 90px; }
   .statusbar { left: 10px; right: 10px; }
 }
+
+/* полотно на весь екран: зображення як тло, меню й панелі поверх (zb-ui.css) */
+.stage { --stage-bg: #0c0c10; }
+.top .grp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.top .grp + .grp { padding-left: 10px; border-left: 1px solid var(--line); }
+.namefld { display: flex; flex-direction: row !important; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.statusbar { position: absolute; left: 82px; right: 90px; bottom: 10px; }
+.toolrail { position: absolute; right: 10px; top: 66px; z-index: 5; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); }
+.toolrail button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 8px; font-size: 10.5px; line-height: 1.1; border-radius: 9px; }
+.toolrail button svg { width: 22px; height: 22px; }
+.toolrail button:disabled { opacity: .35; cursor: default; }
+.toolrail .sep { height: 1px; background: var(--line); margin: 4px 6px; flex: none; }
+.toolrail button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+/* верхня панель в два рядки: меню й інструменти нижче */
+.rail, .toolrail, .drawer { top: 100px; }
+.drawer { max-height: calc(100vh - 150px); }
