@@ -28,6 +28,7 @@
   }
   const poly = (g, p, k) => { g.beginPath(); g.moveTo(p[0] * k, p[1] * k); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i] * k, p[i + 1] * k); };
   const sm = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+  const YARD = new Set(['house', 'rich', 'estate', 'farmstead', 'farm', 'slum', 'hut']);
   const COL = { good: 1, worn: 0.88, damaged: 0.8 };
   function shade(hex, f) { const h = hex.replace('#', ''), v = [0, 2, 4].map(i => Math.max(0, Math.min(255, Math.round(parseInt(h.slice(i, i + 2), 16) * f)))); return `rgb(${v[0]},${v[1]},${v[2]})`; }
   // житлові й дрібні споруди беруть колір даху району (як на референсах: кожен квартал читається своєю барвою), особливі споруди лишають свій
@@ -87,6 +88,10 @@
     // дерева під спорудами, споруди зверху
     setA(lod(0.25, 0.6)); if (g.globalAlpha > 0.01) for (const t of c.trees) { if (!vis(t.x, t.y, 6)) continue; g.beginPath(); g.arc(t.x * k, t.y * k, Math.max(0.8, t.r * k), 0, TAU); g.fillStyle = t.c ? '#4d7a52' : '#76a35a'; g.fill(); if (k > 0.4) { g.strokeStyle = 'rgba(40,70,40,.5)'; g.lineWidth = 0.8; g.stroke(); } }
     const detail = k > 0.45;
+    // двори й огорожі садиб малих поселень: ділянка за будинком (сад) обведена парканом, під будинками
+    if (c.tier <= 2) { setA(lod(0.5, 0.9)); if (g.globalAlpha > 0.02) for (const b of c.buildings) { if (b.st < 0 || b.site || b.uniq || !YARD.has(b.type) || !vis(b.x, b.y, 30)) continue;
+      g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); const sd = b.side > 0 ? 1 : -1, x0 = -(b.w / 2 + 2) * k, wy = (b.w + 4) * k, y0 = sd > 0 ? -(b.h / 2 + 1.5) * k : -(b.h / 2 + 8) * k, hy = (b.h + 9.5) * k;
+      g.fillStyle = 'rgba(140,185,95,.35)'; g.fillRect(x0, y0, wy, hy); g.strokeStyle = 'rgba(110,80,45,.75)'; g.lineWidth = Math.max(0.7, 0.5 * k); g.strokeRect(x0, y0, wy, hy); g.restore(); } }
     for (const cls of [0, 1, 2]) { const ba = cls === 0 ? lod(0.08, 0.18) : cls === 1 ? lod(0.18, 0.34) : lod(0.3, 0.55); if (ba < 0.02) continue; setA(ba);
     for (const b of c.buildings) {
       const ar = b.w * b.h; if ((ar >= 600 || b.uniq) ? cls !== 0 : ar >= 220 ? cls !== 1 : cls !== 2) continue; if (b.w * k < 0.7 && b.h * k < 0.7) continue;

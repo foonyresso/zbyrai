@@ -32,7 +32,7 @@
     if (!streets.length && tier >= 1) for (let k = 0; k < 2; k++) { const st = mkSt('street', 4.2); grow(st, x0, y0, r() * TAU, R * 1.1, 0.2, false); }
     // 2. кільцеві вулиці (дуги між водою)
     const addPoly = (kind, hw, pts, min) => { if (pts.length < min) return null; const st = mkSt(kind, hw); for (const q of pts) push(st, q[0], q[1], q[2]); return st; };
-    const rings = tier >= 4 ? [0.28, 0.5, 0.72] : tier === 3 ? [0.36, 0.66] : tier === 2 ? [0.5] : [];
+    const rings = tier >= 4 ? [0.28, 0.5, 0.72] : tier === 3 ? [0.36, 0.66] : tier === 2 ? [0.34, 0.66] : tier === 1 ? [0.32] : [];
     for (const f of rings) {
       const ph = r() * TAU, k1 = (r() - 0.5) * 0.24, k2 = (r() - 0.5) * 0.16, k3 = (r() - 0.5) * 0.12; let cur = [];
       for (let t = 0; t <= 61; t++) { const th = t / 60 * TAU, rr = R * f * (1 + k1 * Math.sin(2 * th + ph) + k2 * Math.sin(3 * th + 2 * ph) + k3 * Math.sin(5 * th + ph)), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr, wk = WK(x, y);
