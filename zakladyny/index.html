@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Закладини: збудуй поселення з нуля</title>
+<meta name="description" content="Мінімалістична браузерна гра-стратегія: заклади поселення на малому материку, будуй дороги й будинки, приймай поселенців, торгуй караванами й тримай оборону від монстрів. Автозбереження, експорт у JSON.">
+<link rel="canonical" href="https://zbyrai.pages.dev/zakladyny/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Закладини: збудуй поселення з нуля">
+<meta property="og:description" content="Гра про ріст поселення: дороги, будинки, поселенці з характерами, каравани між містами.">
+<meta property="og:url" content="https://zbyrai.pages.dev/zakladyny/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M9 15 16 8l7 7v6H9z%27 fill=%27none%27 stroke=%27%23d9a25a%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M16 30c0-4-6-4-6-8%27 fill=%27none%27 stroke=%27%23d9a25a%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top">
+  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12 12 6l6 6v5H6z"/><path d="M12 22c0-3-5-3-5-5"/></svg>
+    <div>Закла<span>дини</span><small>Збудуй поселення з нуля</small></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережену гру з файлу .json">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати збереження гри як JSON у буфер обміну">Копіювати JSON</button>
+    <button class="btn-primary" id="btnJson" title="Завантажити збереження як файл zakladyny.json (його можна потім імпортувати)">Зберегти .json</button>
+  </div>
+</header>
+
+<details class="how" id="how">
+  <summary title="Коротка довідка: що це за гра й як у неї грати">Що це, для чого, як користуватися</summary>
+  <div class="how-grid">
+    <div>
+      <h3>Що це</h3>
+      <p>Гра про ріст поселення. Ви починаєте з порожньої площі, кількох доріг і дому старости на малому материку, де є інші поселення й лігва монстрів. Світ щоразу інший.</p>
+    </div>
+    <div>
+      <h3>Для чого</h3>
+      <p>Розвинути поселення: прогодувати людей, добути ресурси з околиць, торгувати з сусідами караванами й відбивати набіги. Прогрес зберігається в браузері сам.</p>
+    </div>
+    <div>
+      <h3>Як користуватися</h3>
+      <ol>
+        <li><b>Побудуйте житло</b> (вкладка «Будувати»): навколо будівель виростають дороги. Знос прибирає дороги, які стали зайвими.</li>
+        <li><b>Прибульці</b> з'являються біля площі: клікніть, огляньте риси й навички, поселіть у будинок. Працю вони обирають самі, або дайте наказ.</li>
+        <li>Добувні будівлі беруть ресурс з околиць: ферма потребує рівнини, лісоруб лісу, шахта гір.</li>
+        <li><b>Світова карта</b> (клавіша Tab): оберіть поселення, подивіться ціни й відправте караван. Каравани потребують Караванного двору.</li>
+        <li>Час: ⏸ пауза, ▶ ходи. Пробіл ставить на паузу. Збереження й обмін зверху.</li>
+      </ol>
+    </div>
+  </div>
+</details>
+
+<section class="bar">
+  <div class="grp">
+    <label class="ctl-inline" title="Зерно світу: те саме зерно дає той самий материк">Зерно <input type="text" id="seed" size="10" spellcheck="false"></label>
+    <button class="btn-primary" id="btnGen" title="Створити новий випадковий материк і почати нову гру (поточне збереження буде замінено)">Згенерувати світ</button>
+  </div>
+  <div class="grp tabs" role="tablist">
+    <button id="tabTown" class="on" role="tab" title="Режим «Поселення»: бачите лише своє поселення й околиці (клавіша Tab)">Поселення</button>
+    <button id="tabWorld" role="tab" title="Режим «Світова карта»: увесь материк, інші поселення, лігва й каравани (клавіша Tab)">Світова карта</button>
+  </div>
+  <div class="grp time">
+    <button id="spPause" title="Пауза (Пробіл)">⏸</button>
+    <button id="sp1" title="Звичайна швидкість">▶</button>
+    <button id="sp2" title="Удвічі швидше">▶▶</button>
+    <button id="sp4" title="Вчетверо швидше">▶▶▶</button>
+    <span class="day" id="day" title="Скільки діб минуло від закладин">Доба 1</span>
+  </div>
+</section>
+<section class="res" id="resBar" aria-label="Ресурси"></section>
+
+<main class="wrap">
+  <div class="stage">
+    <canvas id="cv" width="640" height="640" title="Поле гри"></canvas>
+    <div class="hover" id="hoverInfo"></div>
+  </div>
+  <aside class="side" id="side"></aside>
+</main>
+<section class="logbox"><h3>Журнал</h3><ul id="log"></ul></section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
+if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
+</script>
+<script src="../mechanics/rng/index.js"></script>
+<script src="../mechanics/world-lite/names.js"></script>
+<script src="../mechanics/world-lite/index.js"></script>
+<script src="../mechanics/trade/data.js"></script>
+<script src="../mechanics/trade/index.js"></script>
+<script src="../mechanics/building/data.js"></script>
+<script src="../mechanics/building/index.js"></script>
+<script src="../colonist-foundry/colony-data.js"></script>
+<script src="../colonist-foundry/colonist-core.js"></script>
+<script src="../mechanics/settlers/index.js"></script>
+<script src="../mechanics/threats/index.js"></script>
+<script src="./zk-game.js"></script>
+<script src="./zk-save.js"></script>
+<script src="./zk-render.js"></script>
+<script src="./zk-panels.js"></script>
+<script src="./app.js"></script>
+<script src="./tool-chrome.js"></script>
+</body>
+</html>

@@ -4,6 +4,8 @@
 
 | Файл | Про що |
 |---|---|
+| [../mechanics/README.md](../mechanics/README.md) | Механіки: інтерфейси й формати |
+| [zakladyny.md](zakladyny.md) | Закладини: правила гри, баланс |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Головна ідея сайту: механіки окремо (`mechanics/`), інструменти їх комбінують; перелік механік |
 | [tools-map.md](tools-map.md) | Кожен інструмент: папка, код, тести, ключ localStorage |
 | [shared-files.md](shared-files.md) | Спільні файли: тема, хаб, sitemap, скрипти в `tools/` |
@@ -26,6 +28,8 @@
 ## Карта верхнього рівня
 
 ```
+mechanics/               механіки окремо (rng, world-lite, trade, building, settlers, threats): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
+zakladyny/               гра «Закладини»: комбінує механіки; zk-game.js (доба), zk-save.js, zk-render.js, zk-panels.js, app.js
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
 tools/                   sync-theme.mjs, ui-rules.test.js, build-world-themes.mjs (теми вимірів із палітр lore), build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
