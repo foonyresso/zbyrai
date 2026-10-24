@@ -14,7 +14,7 @@
     for (const { id, len } of world.reachable(world.start, MAX_LEN).slice(0, MAX_MARKETS)) {
       const s = world.S[id], cnt = world.around(s.x + 0.5, s.y + 0.5, 5);
       const score = D.RAW.map(r => [r, cnt[world.CLASSES.findIndex(b => b.res === r)] + R()]).sort((a, b) => b[1] - a[1]);
-      const produces = score.slice(0, 2).map(x => x[0]);
+      const produces = score.slice(0, Math.min(2, D.RAW.length - 1)).map(x => x[0]);
       const others = D.IDS.filter(r => !produces.includes(r)).map(r => [r, R()]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
       const needs = others.slice(0, s.rank === 'town' || s.rank === 'regional' || s.rank === 'capital' ? 3 : 2);
       const stock = {}, target = {};

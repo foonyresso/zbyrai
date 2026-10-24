@@ -7,14 +7,14 @@
   const req = (g, p) => M[g] || require(p);
   const Rng = req('Rng', '../mechanics/rng/index.js'), Trade = req('Trade', '../mechanics/trade/index.js'),
     Build = req('Building', '../mechanics/building/index.js'), Set = req('Settlers', '../mechanics/settlers/index.js'), Thr = req('Threats', '../mechanics/threats/index.js'), TD = req('TradeData', '../mechanics/trade/data.js');
-  const START = { gold: 300, wood: 90, stone: 40, grain: 40, fish: 0, ore: 0, herbs: 0, tools: 0 };
+  const START = { gold: 300, wood: 90, grain: 40 };
   const CARGO_MAX = 30;
 
   // параметри світу Атласу для гри: малий материк із поміркованою кількістю поселень
   const worldParams = seed => ({ seed: String(seed || Math.random().toString(36).slice(2, 8)), size: 'small', worldType: 'continent', provinces: 3, regionsPerProvince: 4, density: 0.4 });
   // world — фасад світу (mechanics/atlas-map/world.js), уже згенерований за params
   function newGame(world, params) {
-    const s = { v: 2, params, seed: params.seed, day: 1, stock: Object.assign({}, START), town: Build.create(world.townEnv(world.start, Build.TILE, Build.N, Build.C), world.start), settlers: Set.create(params.seed), markets: Trade.initMarkets(world), caravans: [], nextCaravan: 1, nextRaid: 25, log: [] };
+    const s = { v: 3, params, seed: params.seed, day: 1, stock: Object.assign({}, START), town: Build.create(world.townEnv(world.start), world.start, world.startTown(world.start)), settlers: Set.create(params.seed), markets: Trade.initMarkets(world), caravans: [], nextCaravan: 1, nextRaid: 25, log: [] };
     const G = { world, s }; log(G, 'Ви заклали поселення «' + world.S[world.start].name + '». Зведіть житло, і незабаром прийдуть перші люди.', 'info');
     return G;
   }
@@ -44,7 +44,7 @@
     const w = Set.workersOf(s.settlers, s.town);
     Build.produceDay(s.town, s.stock, w, pop(G));
     for (const e of Set.dayTick(s.settlers, s.town, s.stock, s.day)) log(G, e.name + ': ' + e.why, 'bad');
-    for (const e of Set.maybeArrive(s.settlers, s.day, Build.housing(s.town) > 0 && (s.stock.grain + s.stock.fish) >= pop(G) * 3)) {
+    for (const e of Set.maybeArrive(s.settlers, s.day, Build.housing(s.town) > 0 && ((s.stock.grain || 0) + (s.stock.fish || 0)) >= pop(G) * 3)) {
       if (e.type === 'arrive') log(G, 'До воріт ' + e.came + ' ' + e.name + ' (' + e.prof + '). Огляньте й поселіть.', 'good'); else log(G, e.name + ': ' + e.why, 'info');
     }
     Trade.tick(s.markets, 1);

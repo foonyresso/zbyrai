@@ -50,12 +50,18 @@
       let best = null, bs = -1e9; for (const o of cands) { const n = reachable(o.s.id, 300).length, sc = o.v + Math.min(n, 8) * 3 - (n < 4 ? 60 : 0); if (sc > bs) { bs = sc; best = o.s; } }
       return (best || S.find(alive)).id;
     }
-    // середовище ділянки поселення для механіки будівництва: плитка (tile метрів) → клас місцевості й частка класів поруч
-    function townEnv(sid, tile, n, c) {
-      const s = S[sid], CS = W.params.kmPerCell * 1000, pos = (tx, ty) => [s.x + 0.5 + (tx - c) * tile / CS, s.y + 0.5 + (ty - c) * tile / CS];
-      return { pos, tileClass: (tx, ty) => { const [x, y] = pos(tx, ty); return classAt(x, y); }, share: (tx, ty, classes, r) => { const [x, y] = pos(tx, ty); return share(x, y, classes, r); } };
+    // середовище поселення для будівництва: координати в метрах від центру клітини поселення → клас місцевості й частка класів поруч
+    function townEnv(sid) {
+      const s = S[sid], CS = W.params.kmPerCell * 1000, pos = (mx, my) => [s.x + 0.5 + mx / CS, s.y + 0.5 + my / CS];
+      return { classAt: (mx, my) => { const [x, y] = pos(mx, my); return classAt(x, y); }, share: (mx, my, classes, r) => { const [x, y] = pos(mx, my); return share(x, y, classes, r); } };
     }
-    const world = { townEnv, seed: W.params.seed, w, h, W, S, kmPerCell: W.params.kmPerCell, alive, classAt, around, share, routePath, reachable, lairs, SPEED_CELLS, CLASSES };
+    // стартовий вигляд поселення з генератора міст Атласу: лише центр (вулиці, площа, колодязь, дім старости) і дерева; решту будинків додає гравець
+    function startTown(sid) {
+      const A_ = A(), s = S[sid], c = A_.Town.build(W, Object.assign({}, W.settlements[sid], { rank: 'village', pop: 150, ruined: false, fate: null }));
+      const pl = c.features.find(f => f.t === 'plaza') || { x: 0, y: 0, r: 16 }, el = c.buildings.find(b => b.type === 'elder') || c.buildings[0];
+      return { name: s.name, R: c.R, streets: c.streets.map(t => ({ kind: t.kind, hw: t.hw, name: t.name, pts: t.pts.slice() })), plaza: { x: pl.x, y: pl.y, r: pl.r, name: pl.name }, props: c.props.map(p => Object.assign({}, p)), elder: { x: el.x, y: el.y, w: el.w, h: el.h, a: el.a }, trees: c.trees.map(t => Object.assign({}, t)) };
+    }
+    const world = { townEnv, startTown, seed: W.params.seed, w, h, W, S, kmPerCell: W.params.kmPerCell, alive, classAt, around, share, routePath, reachable, lairs, SPEED_CELLS, CLASSES };
     world.start = pickStart();
     return world;
   }

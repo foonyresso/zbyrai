@@ -11,7 +11,9 @@
     herbs: { name: 'Трави', icon: '🌿', base: 14 },
     tools: { name: 'Знаряддя', icon: '🔧', base: 30 },
   };
-  const RAW = ['grain', 'fish', 'wood', 'stone', 'ore', 'herbs'];
-  Mech.TradeData = { RES, RAW, IDS: Object.keys(RES) };
+  // список «розблоковано»: у грі діють лише ці ресурси (решта даних лишається для наступних кроків)
+  const UNLOCKED = ['grain', 'wood'];
+  const RAW = ['grain', 'fish', 'wood', 'stone', 'ore', 'herbs'].filter(r => UNLOCKED.includes(r));
+  Mech.TradeData = { RES, RAW, UNLOCKED, ALL: Object.keys(RES), IDS: UNLOCKED.slice() };
   if (typeof module !== 'undefined' && module.exports) module.exports = Mech.TradeData;
 })(globalThis);
