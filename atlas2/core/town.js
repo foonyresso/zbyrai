@@ -210,7 +210,7 @@
     for (let tries = 0, nT = Math.min(1400, Math.round(Math.PI * Rmap * Rmap * dens * ruinBoost)); tries < nT * 3 && trees.length < nT; tries++) {
       const a = r() * TAU, d = Math.sqrt(r()) * Rmap, x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d; if (WK(x, y) !== 0 || near(x, y, 20, -1, -2) < 3) continue; let ok = true; const gx = Math.floor(x / BK), gy = Math.floor(y / BK);
       for (let ix = gx - 1; ix <= gx + 1 && ok; ix++) for (let iy = gy - 1; iy <= gy + 1 && ok; iy++) { const g = bgrid.get(ix * 100003 + iy); if (g) for (const id of g) if (rectHit(B[id], x, y, 3)) { ok = false; break; } }
-      for (const f of F) if (Math.hypot(f.x - x, f.y - y) < f.r + 2 && f.t !== 'park') ok = false; for (const f of fields) if (rectHit(f, x, y, 2)) ok = false; if (ok) trees.push({ x, y, r: 2.5 + r() * 3, c: gn === 'taiga' || gn === 'mountain' || r() < 0.2 ? 1 : 0 });
+      for (const f of F) if (Math.hypot(f.x - x, f.y - y) < f.r + 2 && f.t !== 'park') ok = false; for (const f of fields) if (A.TownFields.inField(f, x, y)) ok = false; if (ok) trees.push({ x, y, r: 2.5 + r() * 3, c: gn === 'taiga' || gn === 'mountain' || r() < 0.2 ? 1 : 0 });
     }
     for (const f of F) if (f.t === 'park') for (let k = 0, n = Math.round(f.r * f.r / 70); k < n; k++) { const a = r() * TAU, d = Math.sqrt(r()) * f.r * 0.92; trees.push({ x: f.x + Math.cos(a) * d, y: f.y + Math.sin(a) * d, r: 2.5 + r() * 2.5, c: 0 }); }
     const wall = { on: walled, mat: wmat, w: wt, R: Rw, ph: wph, runs: [], towers: [], gates: [] };

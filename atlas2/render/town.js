@@ -37,13 +37,14 @@
   // ділянка поля: колір і малюнок за культурою; живопліт по краю
   const CROP = ['#dccf84', '#cfd28a', '#d8c48e', '#c9d48c'], FILL = { garden: '#b4c97e', orchard: '#bcd08a', meadow: '#bdd48e', vineyard: '#c4cf86' };
   function fieldPlot(g, f, k, fate) {
-    g.save(); g.translate(f.x * k, f.y * k); g.rotate(f.a + (f.dir && f.k === 'arable' ? Math.PI / 2 : 0)); const w = f.dir && f.k === 'arable' ? f.h : f.w, h = f.dir && f.k === 'arable' ? f.w : f.h, hw = w / 2 * k, hh = h / 2 * k;
-    g.fillStyle = f.k === 'arable' ? (fate ? '#c5c88f' : CROP[f.crop || 0]) : FILL[f.k] || '#bdd48e'; g.fillRect(-hw, -hh, hw * 2, hh * 2);
-    if (k > 0.3) {
-      if (f.k === 'arable') { g.strokeStyle = 'rgba(120,100,50,.38)'; g.lineWidth = 1; g.beginPath(); const sp = 4 + (f.crop || 0); for (let y = -h / 2 + 2; y < h / 2; y += sp) { g.moveTo(-hw, y * k); g.lineTo(hw, y * k); } g.stroke(); }
-      else if (f.k === 'vineyard') { g.strokeStyle = 'rgba(60,100,40,.75)'; g.lineWidth = Math.max(1, 1.3 * k); g.beginPath(); for (let y = -h / 2 + 3; y < h / 2 - 1; y += 6) { g.moveTo(-hw + 2 * k, y * k); g.lineTo(hw - 2 * k, y * k); } g.stroke(); }
-      else if (f.k === 'garden' || f.k === 'orchard') { const st = f.k === 'garden' ? 9 : 12; g.fillStyle = f.k === 'garden' ? 'rgba(70,120,50,.7)' : 'rgba(60,110,45,.85)'; for (let y = -h / 2 + 5; y < h / 2 - 2; y += st) for (let x = -w / 2 + 5; x < w / 2 - 2; x += st) { g.beginPath(); g.arc(x * k, y * k, Math.max(1, (f.k === 'garden' ? 2 : 3) * k), 0, TAU); g.fill(); } } }
-    g.strokeStyle = 'rgba(70,100,45,.8)'; g.lineWidth = Math.max(1, 1.2 * k); g.strokeRect(-hw, -hh, hw * 2, hh * 2); g.restore();
+    g.save(); const p = f.pts, trace = () => { g.beginPath(); g.moveTo(p[0] * k, p[1] * k); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i] * k, p[i + 1] * k); g.closePath(); }; trace();
+    g.fillStyle = f.k === 'arable' ? (fate ? '#c5c88f' : CROP[f.crop || 0]) : FILL[f.k] || '#bdd48e'; g.fill();
+    if (k > 0.3) { g.save(); g.clip(); g.translate(f.x * k, f.y * k); g.rotate(f.a); const q = f.r;
+      if (f.k === 'arable') { g.strokeStyle = 'rgba(120,100,50,.38)'; g.lineWidth = 1; g.beginPath(); const sp = 4 + (f.crop || 0); for (let y = -q; y < q; y += sp) { g.moveTo(-q * k, y * k); g.lineTo(q * k, y * k); } g.stroke(); }
+      else if (f.k === 'vineyard') { g.strokeStyle = 'rgba(60,100,40,.75)'; g.lineWidth = Math.max(1, 1.3 * k); g.beginPath(); for (let y = -q; y < q; y += 6) { g.moveTo(-q * k, y * k); g.lineTo(q * k, y * k); } g.stroke(); }
+      else if (f.k === 'garden' || f.k === 'orchard') { const st = f.k === 'garden' ? 9 : 12; g.fillStyle = f.k === 'garden' ? 'rgba(70,120,50,.7)' : 'rgba(60,110,45,.85)'; for (let y = -q; y < q; y += st) for (let x = -q; x < q; x += st) { g.beginPath(); g.arc(x * k, y * k, Math.max(1, (f.k === 'garden' ? 2 : 3) * k), 0, TAU); g.fill(); } }
+      g.restore(); }
+    trace(); g.strokeStyle = 'rgba(70,100,45,.8)'; g.lineWidth = Math.max(1, 1.2 * k); g.lineJoin = 'round'; g.stroke(); g.restore();
   }
   // view: {k px/м, tx, ty — де в пікселях центр міста}; opt: {districts, names, hover, sel, hoverDistrict}
   function draw(cv, c, view, opt) {
@@ -53,7 +54,7 @@
     if (!opt.map) { const wl = waterLayer(c); g.imageSmoothingEnabled = true; g.drawImage(wl.cv, -wl.E * k, -wl.E * k, wl.E * 2 * k, wl.E * 2 * k); }
     const lod = (a, b) => opt.map ? sm((k - a) / (b - a)) : 1, A0 = opt.alpha == null ? 1 : opt.alpha, setA = v => { g.globalAlpha = A0 * v; };
     const vis = (x, y, r) => { const sx = x * k + view.tx, sy = y * k + view.ty, rr = r * k; return sx + rr > 0 && sy + rr > 0 && sx - rr < W && sy - rr < H; };
-    setA(lod(0.04, 0.15)); if (g.globalAlpha > 0.01) for (const f of c.fields) { if (!vis(f.x, f.y, Math.max(f.w, f.h))) continue; fieldPlot(g, f, k, c.fate); }
+    setA(lod(0.04, 0.15)); if (g.globalAlpha > 0.01) for (const f of c.fields) { if (!vis(f.x, f.y, f.r)) continue; fieldPlot(g, f, k, c.fate); }
     setA(1); { const ma = opt.map ? 1 - lod(0.12, 0.5) : 0; if (ma > 0.02) { const ml = massLayer(c); setA(ma * 0.92); g.drawImage(ml.cv, -ml.E * k, -ml.E * k, ml.E * 2 * k, ml.E * 2 * k); setA(1); } }
     if (opt.districts && c.districts.length) { const dl = districtLayer(c); const ga = g.globalAlpha; g.globalAlpha = (opt.map ? 0.3 + 0.25 * (1 - lod(0.1, 0.5)) : 0.34) * ga; g.drawImage(dl.cv, -dl.E * k, -dl.E * k, dl.E * 2 * k, dl.E * 2 * k); g.globalAlpha = ga; }
     setA(lod(0.03, 0.1)); if (g.globalAlpha > 0.01 && c.sites) for (const f of c.sites) { if (!vis(f.x, f.y, f.r * 1.4)) continue;
