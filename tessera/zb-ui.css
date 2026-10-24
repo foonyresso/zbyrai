@@ -51,7 +51,7 @@ dialog.help::backdrop { background: rgba(0,0,0,.55); } dialog.help h2 { margin: 
 dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px; line-height: 1; padding: 2px 9px; }
 
 .toast { position: fixed; left: 50%; bottom: 70px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3, #2a2a33); color: var(--accent-hi); border: 1px solid var(--accent); font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: 0 6px 24px rgba(0,0,0,.4); transition: .25s; pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
-.toast.show { opacity: 1; transform: translateX(-50%); }
+.toast.show, .toast.on { opacity: 1; transform: translateX(-50%); }
 
 @media (max-width: 760px) { .top .top-actions { border-left: 0; padding-left: 0; margin-left: 0; } }
 @media print { .top, .rail, .drawer, .bar, .zb-card { display: none; } }

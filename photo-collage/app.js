@@ -11,17 +11,7 @@
 
   function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('on'); setTimeout(function () { el.classList.remove('on'); }, 1400); }
 
-  // ---- меню ----
-  var drawer = $('drawer'), panel = '';
-  try { panel = localStorage.getItem(LS + 'panel') || ''; } catch (e) {}
-  function showPanel(n) {
-    panel = n; try { localStorage.setItem(LS + 'panel', n || ''); } catch (e) {}
-    drawer.hidden = !n; $('work').classList.toggle('shift', !!n);
-    document.querySelectorAll('#rail button').forEach(function (b) { b.classList.toggle('on', b.dataset.panel === n); });
-    drawer.querySelectorAll('section').forEach(function (x) { x.classList.toggle('on', x.dataset.panel === n); });
-  }
-  document.querySelectorAll('#rail button').forEach(function (b) { b.onclick = function () { showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); }; });
-  $('drawerX').onclick = function () { showPanel(''); };
+  // меню-іконки й довідка «i»: спільний кіт zb-ui.js (ZB.showPanel, ZB.panel)
 
   // ---- розкладка ----
   function aspects() { return st.tiles.map(function (t) { return t.img.naturalWidth / Math.max(1, t.img.naturalHeight); }); }
@@ -147,7 +137,7 @@
     var crop = (st.dragMode === 'crop') !== e.altKey;
     drag = { kind: crop && !st.blank ? 'crop' : 'swap', t: t, target: null, mx: p.x, my: p.y, px: p.x, py: p.y };
     cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); draw(); syncUI();
-    if (!panel) showPanel('photo');
+    if (!ZB.panel) ZB.showPanel('photo');
   });
   cv.addEventListener('pointermove', function (e) {
     var p = pt(e);
@@ -213,5 +203,5 @@
   };
   $('btnPng').onclick = function () { if (!st.tiles.length) return toast('Спершу додай фото'); draw(true); cv.toBlob(function (b) { dl(st.blank ? 'collage-layout.png' : 'collage.png', b); draw(); }, 'image/png'); };
 
-  syncUI(); showPanel(panel); draw();
+  syncUI(); draw();
 })();
