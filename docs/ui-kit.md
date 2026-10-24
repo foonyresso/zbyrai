@@ -36,4 +36,4 @@
 4. Додати інструмент у `KIT_TOOLS`, пройти `node tools/ui-rules.test.js` і тести логіки.
 5. Не ламати збережені дані й id елементів, на які спирається `app.js`.
 
-Інструменти на кіті: Атлас 2.0 (`atlas2/`), Мозаїка (`tessera/`, зразок). Черга решти: [ui-migration.md](ui-migration.md), Конструктор візерунків (`pattern-maker/`), Колаж фото (`photo-collage/`), Воксельна лабораторія (`voxel-lab/`), Кузня планет (`planet-forge/`), Симулятор підземель (`dungeon-sim/`), Конвертер зображень (`image-converter/`).
+Інструменти на кіті: Атлас 2.0 (`atlas2/`), Мозаїка (`tessera/`, зразок). Черга решти: [ui-migration.md](ui-migration.md), Конструктор візерунків (`pattern-maker/`), Колаж фото (`photo-collage/`), Воксельна лабораторія (`voxel-lab/`), Кузня планет (`planet-forge/`), Симулятор підземель (`dungeon-sim/`), Конвертер зображень (`image-converter/`), Дерева скілів (`skill-tree/`).
