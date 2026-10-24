@@ -2,28 +2,27 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8">
+<meta name="darkreader-lock">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Закладини: збудуй поселення з нуля</title>
-<meta name="description" content="Мінімалістична браузерна гра-стратегія: заклади поселення на малому материку, будуй дороги й будинки, приймай поселенців, торгуй караванами й тримай оборону від монстрів. Автозбереження, експорт у JSON.">
+<meta name="description" content="Мінімалістична гра-стратегія на карті світу Атласу 2.0: заклади поселення, будуй дороги й будинки, приймай поселенців, торгуй караванами й тримай оборону від монстрів. Автозбереження, експорт у JSON.">
 <link rel="canonical" href="https://zbyrai.pages.dev/zakladyny/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zbyrai">
 <meta property="og:title" content="Закладини: збудуй поселення з нуля">
-<meta property="og:description" content="Гра про ріст поселення: дороги, будинки, поселенці з характерами, каравани між містами.">
+<meta property="og:description" content="Гра про ріст поселення на живій карті: дороги, будинки, поселенці з характерами, каравани між містами.">
 <meta property="og:url" content="https://zbyrai.pages.dev/zakladyny/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M9 15 16 8l7 7v6H9z%27 fill=%27none%27 stroke=%27%23d9a25a%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M16 30c0-4-6-4-6-8%27 fill=%27none%27 stroke=%27%23d9a25a%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../atlas2/style.css">
+<link rel="stylesheet" href="../atlas2/town.css">
+<link rel="stylesheet" href="./game.css">
 </head>
 <body class="has-grain">
 
 <header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12 12 6l6 6v5H6z"/><path d="M12 22c0-3-5-3-5-5"/></svg>
-    <div>Закла<span>дини</span><small>Збудуй поселення з нуля</small></div>
-  </div>
-  <div class="spacer"></div>
+  <a class="hub-back" id="hubBack" href="../index.html" hidden title="Повернутись на головну сторінку Zbyrai"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Закла<span>дини</span></div>
   <div class="top-actions">
     <button id="btnImport" title="Завантажити збережену гру з файлу .json">Імпорт</button>
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
@@ -35,54 +34,54 @@
 <details class="how" id="how">
   <summary title="Коротка довідка: що це за гра й як у неї грати">Що це, для чого, як користуватися</summary>
   <div class="how-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Гра про ріст поселення. Ви починаєте з порожньої площі, кількох доріг і дому старости на малому материку, де є інші поселення й лігва монстрів. Світ щоразу інший.</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Розвинути поселення: прогодувати людей, добути ресурси з околиць, торгувати з сусідами караванами й відбивати набіги. Прогрес зберігається в браузері сам.</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Побудуйте житло</b> (вкладка «Будувати»): навколо будівель виростають дороги. Знос прибирає дороги, які стали зайвими.</li>
-        <li><b>Прибульці</b> з'являються біля площі: клікніть, огляньте риси й навички, поселіть у будинок. Працю вони обирають самі, або дайте наказ.</li>
-        <li>Добувні будівлі беруть ресурс з околиць: ферма потребує рівнини, лісоруб лісу, шахта гір.</li>
-        <li><b>Світова карта</b> (клавіша Tab): оберіть поселення, подивіться ціни й відправте караван. Каравани потребують Караванного двору.</li>
-        <li>Час: ⏸ пауза, ▶ ходи. Пробіл ставить на паузу. Збереження й обмін зверху.</li>
-      </ol>
-    </div>
+    <div><h3>Що це</h3><p>Гра про ріст поселення на карті світу Атласу 2.0. Ви починаєте з площі, кількох доріг і хати старости, а довкола справжні поселення, дороги, річки й лігва монстрів.</p></div>
+    <div><h3>Для чого</h3><p>Розвинути поселення: прогодувати людей, добути ресурси з околиць, торгувати з сусідами й відбивати набіги. Прогрес зберігається в браузері сам.</p></div>
+    <div><h3>Як користуватися</h3><ol>
+      <li>Колесо миші наближає й віддаляє карту, перетягування рухає її. Біля свого поселення карта показує вулиці й будинки.</li>
+      <li>Внизу оберіть будівлю й клікніть на карті біля доріг: нова вулиця виросте сама. «Знести» прибирає будівлі й зайві дороги.</li>
+      <li>«Люди»: прибульців оглядайте й поселяйте в будинки, давайте накази щодо роботи.</li>
+      <li>«Торгівля»: оберіть поселення, вкажіть що продати й купити, відправте караван (потрібен Караванний двір).</li>
+      <li>Пробіл ставить час на паузу. Збереження й обмін зверху.</li>
+    </ol></div>
   </div>
 </details>
 
-<section class="bar">
-  <div class="grp">
-    <label class="ctl-inline" title="Зерно світу: те саме зерно дає той самий материк">Зерно <input type="text" id="seed" size="10" spellcheck="false"></label>
-    <button class="btn-primary" id="btnGen" title="Створити новий випадковий материк і почати нову гру (поточне збереження буде замінено)">Згенерувати світ</button>
-  </div>
-  <div class="grp tabs" role="tablist">
-    <button id="tabTown" class="on" role="tab" title="Режим «Поселення»: бачите лише своє поселення й околиці (клавіша Tab)">Поселення</button>
-    <button id="tabWorld" role="tab" title="Режим «Світова карта»: увесь материк, інші поселення, лігва й каравани (клавіша Tab)">Світова карта</button>
-  </div>
-  <div class="grp time">
-    <button id="spPause" title="Пауза (Пробіл)">⏸</button>
-    <button id="sp1" title="Звичайна швидкість">▶</button>
-    <button id="sp2" title="Удвічі швидше">▶▶</button>
-    <button id="sp4" title="Вчетверо швидше">▶▶▶</button>
-    <span class="day" id="day" title="Скільки діб минуло від закладин">Доба 1</span>
-  </div>
-</section>
-<section class="res" id="resBar" aria-label="Ресурси"></section>
-
-<main class="wrap">
-  <div class="stage">
-    <canvas id="cv" width="640" height="640" title="Поле гри"></canvas>
-    <div class="hover" id="hoverInfo"></div>
-  </div>
-  <aside class="side" id="side"></aside>
+<main class="stage" id="stage"><canvas id="map" title="Карта світу"></canvas><canvas id="over"></canvas>
+  <div id="info" class="info" hidden></div>
+  <div id="load" class="load" hidden><div class="loadbox"><div id="loadTxt" class="loadtxt">Створюю світ…</div><div class="loadtrack"><div id="loadBar" class="loadbar"></div></div></div></div>
 </main>
-<section class="logbox"><h3>Журнал</h3><ul id="log"></ul></section>
+
+<section class="hud" id="hud" aria-label="Ресурси й час"></section>
+<div class="feed" id="feed" aria-live="polite"></div>
+
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="people" title="Прибульці біля воріт і мешканці: огляд, поселення, накази щодо роботи"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-4 3-6 6-6s5.500 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/></svg>Люди</button>
+  <button data-panel="trade" title="Ціни в сусідніх поселеннях і каравани"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h3l2 9h10l2-7H7M9 20h.01M17 20h.01"/></svg>Торгівля</button>
+  <button data-panel="log" title="Журнал подій"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM9 11h7M9 15h7"/></svg>Журнал</button>
+  <button data-panel="world" title="Зерно, новий світ, положення поселення на карті"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Світ</button>
+  <button data-panel="layers" title="Які шари показувати на карті"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5"/></svg>Шари</button>
+</nav>
+
+<aside class="drawer" id="drawer" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="people"><h2>Люди</h2><div id="pPeople"></div></section>
+  <section data-panel="trade"><h2>Торгівля</h2><div id="pTrade"></div></section>
+  <section data-panel="log"><h2>Журнал</h2><ul id="log" class="logl"></ul></section>
+  <section data-panel="world"><h2>Світ</h2><div id="pWorld"></div></section>
+  <section data-panel="layers"><h2>Шари</h2>
+    <label class="chk" title="Дороги між поселеннями"><input type="checkbox" data-layer="roads" checked>Дороги</label>
+    <label class="chk" title="Міста, села й хутори"><input type="checkbox" data-layer="places" checked>Поселення</label>
+    <label class="chk" title="Річки"><input type="checkbox" data-layer="rivers" checked>Річки</label>
+    <label class="chk" title="Лігва монстрів, табори бандитів, руїни й інші місця"><input type="checkbox" data-layer="sites" checked>Локації й лігва</label>
+    <label class="chk" title="Підсвітка небезпеки: що далі від поселень, то страшніші монстри"><input type="checkbox" data-layer="danger" checked>Зони небезпеки</label>
+    <label class="chk" title="Колір і назви районів при наближенні до міста"><input type="checkbox" data-layer="cdist">Райони міст</label>
+    <label class="chk" title="Підписи поселень і водойм"><input type="checkbox" data-layer="labels" checked>Підписи</label>
+    <label class="chk" title="Межі провінцій"><input type="checkbox" data-layer="borders">Межі провінцій</label>
+  </section>
+</aside>
+
+<section class="build" id="build" aria-label="Будівництво"></section>
+<aside class="selcard" id="selcard" hidden></aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -90,8 +89,10 @@
 if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 </script>
 <script src="../mechanics/rng/index.js"></script>
-<script src="../mechanics/world-lite/names.js"></script>
-<script src="../mechanics/world-lite/index.js"></script>
+<script src="../mechanics/atlas-map/files.js"></script>
+<script src="../mechanics/atlas-map/world.js"></script>
+<script src="../mechanics/atlas-map/view.js"></script>
+<script src="../mechanics/atlas-map/town-adapter.js"></script>
 <script src="../mechanics/trade/data.js"></script>
 <script src="../mechanics/trade/index.js"></script>
 <script src="../mechanics/building/data.js"></script>
@@ -102,8 +103,9 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="../mechanics/threats/index.js"></script>
 <script src="./zk-game.js"></script>
 <script src="./zk-save.js"></script>
-<script src="./zk-render.js"></script>
+<script src="./zk-icons.js"></script>
 <script src="./zk-panels.js"></script>
+<script src="./zk-overlay.js"></script>
 <script src="./app.js"></script>
 <script src="./tool-chrome.js"></script>
 </body>

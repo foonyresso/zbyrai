@@ -20,9 +20,10 @@
     for (const r of [p, q]) for (const ang of [r.a, r.a + Math.PI / 2]) { const ax = Math.cos(ang), ay = Math.sin(ang); let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9; for (const c of ca) { const d = c[0] * ax + c[1] * ay; if (d < a0) a0 = d; if (d > a1) a1 = d; } for (const c of cb) { const d = c[0] * ax + c[1] * ay; if (d < b0) b0 = d; if (d > b1) b1 = d; } if (a1 < b0 || b1 < a0) return false; }
     return true;
   }
-  const caches = new WeakMap();
-  const get = (W, s, extra) => { let m = caches.get(W); if (!m) caches.set(W, m = new Map()); let c = m.get(s.id); if (!c) m.set(s.id, c = build(W, s, extra)); return c; };
-  const has = (W, s) => !!(caches.get(W) && caches.get(W).has(s.id));
+  const caches = new WeakMap(), customs = new WeakMap(); // customs: свої міста (напр. гра «Закладини»): світ → Map(id поселення → місто), замість генерації
+  const customOf = (W, s) => { const m = customs.get(W); return m && m.get(s.id); };
+  const get = (W, s, extra) => { const cu = customOf(W, s); if (cu) return cu; let m = caches.get(W); if (!m) caches.set(W, m = new Map()); let c = m.get(s.id); if (!c) m.set(s.id, c = build(W, s, extra)); return c; };
+  const has = (W, s) => !!customOf(W, s) || !!(caches.get(W) && caches.get(W).has(s.id));
   // орієнтовні розміри міста до побудови: радіус, радіус області, кількість споруд
   const sizeOf = s => { const tier = TIER[s.rank], popEff = s.pop || s.popBefore || [60, 380, 2000, 8000, 26000][tier], target = clamp(Math.round(popEff / PPB[tier]), MINB[tier], MAXB[tier]), R = Math.sqrt(target * AREAB[tier] / Math.PI) * (tier >= 2 ? 1.12 : 1); return { tier, popEff, target, R, Rmap: R * 1.9 + 120 }; };
 
@@ -267,5 +268,6 @@
     return { sid: s.id, name: s.name, rank: s.rank, tier, fate, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, keep, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), sites, features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
   }
 
-  A.Town = { get, has, build, TIER, sizeOf };
+  const setCustom = (W, sid, town) => { let m = customs.get(W); if (!m) customs.set(W, m = new Map()); if (town) m.set(sid, town); else m.delete(sid); };
+  A.Town = { get, has, build, TIER, sizeOf, setCustom };
 })();

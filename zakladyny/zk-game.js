@@ -5,16 +5,17 @@
   const Z = root.Zak = root.Zak || {};
   const M = root.Mech || (root.Mech = {});
   const req = (g, p) => M[g] || require(p);
-  const Rng = req('Rng', '../mechanics/rng/index.js'), World = req('WorldLite', '../mechanics/world-lite/index.js'), Trade = req('Trade', '../mechanics/trade/index.js'),
+  const Rng = req('Rng', '../mechanics/rng/index.js'), Trade = req('Trade', '../mechanics/trade/index.js'),
     Build = req('Building', '../mechanics/building/index.js'), Set = req('Settlers', '../mechanics/settlers/index.js'), Thr = req('Threats', '../mechanics/threats/index.js'), TD = req('TradeData', '../mechanics/trade/data.js');
   const START = { gold: 300, wood: 90, stone: 40, grain: 40, fish: 0, ore: 0, herbs: 0, tools: 0 };
   const CARGO_MAX = 30;
 
-  function newGame(seed) {
-    seed = String(seed || Math.random().toString(36).slice(2, 8));
-    const world = World.generate(seed);
-    const s = { v: 1, seed, day: 1, stock: Object.assign({}, START), town: Build.create(world, world.start), settlers: Set.create(seed), markets: Trade.initMarkets(world), caravans: [], nextCaravan: 1, nextRaid: 25, log: [] };
-    const G = { world, s }; log(G, 'Ви заклали поселення. Зведіть житло, і незабаром прийдуть перші люди.', 'info');
+  // параметри світу Атласу для гри: малий материк із поміркованою кількістю поселень
+  const worldParams = seed => ({ seed: String(seed || Math.random().toString(36).slice(2, 8)), size: 'small', worldType: 'continent', provinces: 3, regionsPerProvince: 4, density: 0.4 });
+  // world — фасад світу (mechanics/atlas-map/world.js), уже згенерований за params
+  function newGame(world, params) {
+    const s = { v: 2, params, seed: params.seed, day: 1, stock: Object.assign({}, START), town: Build.create(world.townEnv(world.start, Build.TILE, Build.N, Build.C), world.start), settlers: Set.create(params.seed), markets: Trade.initMarkets(world), caravans: [], nextCaravan: 1, nextRaid: 25, log: [] };
+    const G = { world, s }; log(G, 'Ви заклали поселення «' + world.S[world.start].name + '». Зведіть житло, і незабаром прийдуть перші люди.', 'info');
     return G;
   }
   function log(G, text, kind = 'info') { G.s.log.unshift({ day: G.s.day, text, kind }); if (G.s.log.length > 80) G.s.log.length = 80; }
@@ -49,10 +50,11 @@
     Trade.tick(s.markets, 1);
     const R = Rng.stream(s.seed, 'day' + s.day);
     for (const c of s.caravans) {
-      if (!c.path) c.path = World.routePath(G.world, c.from, c.to);
+      if (!c.path) c.path = G.world.routePath(c.from, c.to);
       for (const e of Trade.advance(G.world, s.markets, c, 1, R)) {
         if (e.type === 'ambush') log(G, 'Засідка біля «' + e.lair + '»: втрачено ' + e.lost + '% вантажу.', 'bad');
-        if (e.type === 'sold') { s.stock.gold += e.gold; log(G, 'Караван продав товар у «' + G.world.S[e.to].name + '»: +' + e.gold + ' золота.', 'good'); }
+        if (e.type === 'sold') { s.stock.gold += e.gold; log(G, 'Караван у «' + G.world.S[e.to].name + '»: виручка ' + e.income + ' золота' + (Object.keys(e.bought).length ? ', закуплено ' + Object.entries(e.bought).map(([r, n]) => n + ' ' + TD.RES[r].name.toLowerCase()).join(', ') : '') + '.', 'good'); }
+        if (e.type === 'home' && e.goods) { const cap = Build.storageCap(s.town); for (const r in e.goods) s.stock[r] = Math.min(cap, (s.stock[r] || 0) + e.goods[r]); if (Object.keys(e.goods).length) log(G, 'Караван повернувся з товаром.', 'good'); }
       }
     }
     s.caravans = s.caravans.filter(c => c.status !== 'done');
@@ -67,18 +69,18 @@
   function build(G, type, x, y) { const r = Build.place(G.s.town, G.s.stock, type, x, y); if (r.ok) log(G, 'Збудовано: ' + Build.TYPES[type].name + (r.newRoad ? ' (+' + r.newRoad + ' дороги)' : ''), 'info'); return r; }
   function demolish(G, id) { const r = Build.demolish(G.s.town, G.s.stock, id); if (r.ok) log(G, 'Знесено: ' + Build.TYPES[r.building.type].name + (r.roadsRemoved ? ' (зникло доріг: ' + r.roadsRemoved + ')' : ''), 'info'); return r; }
   function settle(G, id, houseId) { const r = Set.settle(G.s.settlers, G.s.town, id, houseId); if (r.ok) { const c = Set.find(G.s.settlers, id); log(G, Set.fullName(c) + Set.g(c, ' оселився.', ' оселилась.'), 'good'); } return r; }
-  function sendCaravan(G, to, cargo, escort) {
+  function sendCaravan(G, to, cargo, escort, buy = {}) {
     const s = G.s; if (caravanSlots(G) <= 0) return { ok: false, reason: 'Потрібен вільний караванний двір' };
     const total = Object.values(cargo).reduce((a, v) => a + v, 0);
-    if (!(total > 0)) return { ok: false, reason: 'Нічого вантажити' };
+    if (!(total > 0) && !Object.values(buy).some(v => v > 0)) return { ok: false, reason: 'Вкажіть, що продати або купити' };
     if (total > CARGO_MAX) return { ok: false, reason: 'Караван бере не більше ' + CARGO_MAX + ' одиниць' };
     for (const r in cargo) if ((s.stock[r] || 0) < cargo[r]) return { ok: false, reason: 'На складі нема стільки: ' + TD.RES[r].name };
     const cost = Trade.CARAVAN_COST + (escort ? Trade.ESCORT_COST : 0); if (s.stock.gold < cost) return { ok: false, reason: 'Не вистачає золота на дорогу (' + cost + ')' };
-    const c = Trade.dispatch(G.world, G.world.start, to, cargo, escort, s.nextCaravan); if (!c) return { ok: false, reason: 'Дорога туди не веде' };
+    const c = Trade.dispatch(G.world, G.world.start, to, cargo, escort, s.nextCaravan, buy); if (!c) return { ok: false, reason: 'Дорога туди не веде' };
     s.nextCaravan++; s.stock.gold -= cost; for (const r in cargo) s.stock[r] -= cargo[r]; s.caravans.push(c);
     log(G, 'Караван вирушив до «' + G.world.S[to].name + '».', 'info');
     return { ok: true, caravan: c };
   }
-  Z.Game = { START, CARGO_MAX, newGame, stepDay, build, demolish, settle, sendCaravan, log, pop, need, defense, caravanSlots, activeCaravans };
+  Z.Game = { START, CARGO_MAX, worldParams, newGame, stepDay, build, demolish, settle, sendCaravan, log, pop, need, defense, caravanSlots, activeCaravans };
   if (typeof module !== 'undefined' && module.exports) module.exports = Z.Game;
 })(globalThis);

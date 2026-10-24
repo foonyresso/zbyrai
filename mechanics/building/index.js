@@ -1,24 +1,19 @@
 /* Механіка «building»: ділянка поселення 40×40, розміщення будівель, дороги, що виростають навколо них і зникають при зносі.
-   Зберігається лише town.buildings (serialize); ландшафт ділянки відновлюється з світу за зерном. Без DOM. */
+   Зберігається лише town.buildings (serialize); ландшафт ділянки відновлюється з середовища env (світ Атласу): { tileClass(x,y), share(x,y,classes,r) }. Без DOM. */
 (function (root) {
   'use strict';
   const Mech = root.Mech = root.Mech || {};
   const Rng = Mech.Rng || require('../rng/index.js');
   const BD = Mech.BuildingData || require('./data.js');
-  const N = 40, C = 20, SCALE = 7, MAXLINK = 3, ROAD_COST = 3;
+  const N = 40, C = 20, TILE = 20, MAXLINK = 3, ROAD_COST = 3; // TILE: метрів у плитці
   const D4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
   const inb = (x, y) => x >= 0 && y >= 0 && x < N && y < N;
   const at = (x, y) => y * N + x;
 
-  // ландшафт ділянки: біоми світу довкола поселення, нерівні межі за шумом; центр вирівняно
-  function terrainFor(world, sid) {
-    const s = world.S[sid], t = new Uint8Array(N * N);
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-      const jx = (Rng.fbm(world.seed + 'tx', x / 4, y / 4, 2) - 0.5) * 2.2, jy = (Rng.fbm(world.seed + 'ty', x / 4, y / 4, 2) - 0.5) * 2.2;
-      const wx = Math.round(s.x + (x - C) / SCALE + jx), wy = Math.round(s.y + (y - C) / SCALE + jy);
-      t[at(x, y)] = wx < 0 || wy < 0 || wx >= world.w || wy >= world.h ? 0 : world.biome[wy * world.w + wx];
-      if (Math.abs(x - C) <= 4 && Math.abs(y - C) <= 4) t[at(x, y)] = 2;
-    }
+  // ландшафт ділянки: клас місцевості під кожною плиткою; центр вирівняно
+  function terrainFor(env) {
+    const t = new Uint8Array(N * N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) t[at(x, y)] = Math.abs(x - C) <= 4 && Math.abs(y - C) <= 4 ? 2 : env.tileClass(x, y);
     return t;
   }
   const PLAZA = []; for (let y = C - 1; y <= C + 1; y++) for (let x = C - 1; x <= C + 1; x++) PLAZA.push([x, y]);
@@ -36,13 +31,13 @@
     }
     return town;
   }
-  function create(world, sid) {
-    const town = { v: 1, sid, n: N, terrain: terrainFor(world, sid), buildings: [{ id: 1, type: 'hall', x: HALL.x, y: HALL.y, path: [] }], nextId: 2 };
+  function create(env, sid) {
+    const town = { v: 1, sid, n: N, env, terrain: terrainFor(env), buildings: [{ id: 1, type: 'hall', x: HALL.x, y: HALL.y, path: [] }], nextId: 2 };
     return rebuild(town);
   }
   const serialize = town => ({ v: town.v, sid: town.sid, buildings: town.buildings, nextId: town.nextId });
-  function restore(world, saved) {
-    const town = { v: saved.v, sid: saved.sid, n: N, terrain: terrainFor(world, saved.sid), buildings: saved.buildings, nextId: saved.nextId };
+  function restore(env, saved) {
+    const town = { v: saved.v, sid: saved.sid, n: N, env, terrain: terrainFor(env), buildings: saved.buildings, nextId: saved.nextId };
     return rebuild(town);
   }
   const byId = (town, id) => town.buildings.find(b => b.id === id);
@@ -57,7 +52,7 @@
     if (town.roads[i]) return { ok: false, reason: 'Тут дорога' };
     const tr = town.terrain[i];
     if (T.on ? !T.on.includes(tr) : (tr === 0 || tr === 5)) return { ok: false, reason: T.on ? 'Не підходить місцевість для цієї будівлі' : 'Тут не збудувати (вода чи скелі)' };
-    if (T.yields) { const n = countTiles(town, { type, x, y }); if (n < Math.ceil(T.yields.need / 2)) return { ok: false, reason: 'Замало потрібної місцевості поруч (є ' + n + ', треба хоча б ' + Math.ceil(T.yields.need / 2) + ')' }; }
+    if (T.yields) { const sh = countTiles(town, { type, x, y }); if (sh < T.yields.need / 2) return { ok: false, reason: 'Замало потрібної місцевості поруч (' + Math.round(sh * 100) + '%, треба хоча б ' + Math.round(T.yields.need * 50) + '%)' }; }
     // пошук найкоротшого з'єднання з дорогами через вільні клітини
     const prev = new Map([[i, -1]]), depth = new Map([[i, 0]]), q = [[x, y]];
     while (q.length) {
@@ -97,12 +92,8 @@
     town.buildings = town.buildings.filter(x => x.id !== id); rebuild(town);
     return { ok: true, refund, roadsRemoved: before - town.roads.reduce((a, v) => a + v, 0), building: b };
   }
-  // скільки клітин потрібного біома навколо будівлі (для видобутку)
-  function countTiles(town, b) {
-    const Y = BD.TYPES[b.type].yields; if (!Y) return 0; let n = 0;
-    for (let y = b.y - Y.r; y <= b.y + Y.r; y++) for (let x = b.x - Y.r; x <= b.x + Y.r; x++) if (inb(x, y) && (x - b.x) ** 2 + (y - b.y) ** 2 <= Y.r * Y.r + 1 && Y.biome.includes(town.terrain[at(x, y)])) n++;
-    return n;
-  }
+  // частка потрібної місцевості навколо будівлі (0..1): від неї залежить видобуток
+  function countTiles(town, b) { const Y = BD.TYPES[b.type].yields; return Y ? town.env.share(b.x, b.y, Y.classes, Y.r) : 0; }
   const sum = (town, f) => town.buildings.reduce((a, b) => a + (f(BD.TYPES[b.type], b) || 0), 0);
   const housing = town => sum(town, T => T.house);
   const storageCap = town => sum(town, T => T.storage);
@@ -126,7 +117,7 @@
     gain(1.0 * pop); gain(-0.15 * (town.buildings.length - 1));
     return rep;
   }
-  const api = { N, C, ROAD_COST, create, serialize, restore, canPlace, place, demolish, costOf, canPay, countTiles, housing, storageCap, count, defense, byId, produceDay, footprint, TYPES: BD.TYPES, ORDER: BD.ORDER };
+  const api = { N, C, TILE, ROAD_COST, PLAZA, HALL, CORE_ROADS, isCoreRoad, create, serialize, restore, canPlace, place, demolish, costOf, canPay, countTiles, housing, storageCap, count, defense, byId, produceDay, footprint, TYPES: BD.TYPES, ORDER: BD.ORDER };
   Mech.Building = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(globalThis);

@@ -29,7 +29,7 @@
 ## Карта верхнього рівня
 
 ```
-mechanics/               механіки окремо (rng, world-lite, trade, building, settlers, threats): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
+mechanics/               механіки окремо (rng, atlas-map, trade, building, settlers, threats): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
 zakladyny/               гра «Закладини»: комбінує механіки; zk-game.js (доба), zk-save.js, zk-render.js, zk-panels.js, app.js
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
 shared/ui/               UI-кіт: zb-ui.css + zb-ui.js (верхня панель, іконки-меню, панелі, довідка «i»); копії в інструментах на кіті (atlas2, tessera)
