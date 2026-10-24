@@ -41,7 +41,7 @@
   }
   function ensureMapCard() { if (cardM) return; cardM = document.createElement('aside'); cardM.className = 'tdet dmapcard'; cardM.hidden = true; $('stage').appendChild(cardM); }
   function onMove(e) {
-    if (root && !root.hidden) return; ensureMapCard(); const m = hitAt(e), d = m && m.d; if (d === hov) return; hov = d;
+    if (root && !root.hidden) return; ensureMapCard(); const m = hitAt(e), d = m && m.d; if (d) { const t = $('tdet'); if (t) t.hidden = true; } if (d === hov) return; hov = d;
     show(cardM, m && markerCard(m), m && KCOL[d.kind]); if (A.redrawOver) A.redrawOver(); requestAnimationFrame(() => { if (hov) $('map').style.cursor = 'pointer'; });
   }
   let down = null;
@@ -108,6 +108,6 @@
     if (h.kind === 'stairs' && !(fi === 0 && h.o.up)) { fi += h.o.up ? -1 : 1; pinned = false; cardD.hidden = true; tabs(); paint(); return; }
     if (h.kind === 'link') { stack.push(cur.id); open2(h.o.to, true); }
   }
-  A.DungeonUI = { markers, openById: openDungeon, init, open: id => openDungeon(id) };
+  A.DungeonUI = { hovering: () => !!hov, markers, openById: openDungeon, init, open: id => openDungeon(id) };
   if (document.getElementById('stage')) init();
 })();
