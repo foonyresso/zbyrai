@@ -10,7 +10,7 @@
 .dsec { display: flex; flex-direction: column; gap: 6px; } .dsec label.chk { display: flex; gap: 6px; align-items: center; }
 .dfl { display: flex; flex-wrap: wrap; gap: 4px; } .dfl button.on { background: var(--accent-glow, rgba(111,177,240,.2)); border-color: var(--accent, #6fb1f0); }
 .stage .dview canvas { position: static; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; min-height: 0; }
-.dview .tdet { left: auto; right: 12px; bottom: 12px; } .dmapcard { left: 384px; }
+.dview .tdet.pin { pointer-events: auto; } .dview .tdet { z-index: 9; }
 @media (max-width: 760px) { .dview { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; } .dbar { grid-column: 1; } .dtools { max-height: 30vh; border-right: 0; } }
 @media print { body.dprint > *:not(.stage), body.dprint .stage > *:not(.dview) { display: none !important; } body.dprint .dview { position: static; display: block; background: #fff; } body.dprint .dbar, body.dprint .dtools, body.dprint .tdet { display: none !important; } body.dprint .dview canvas { width: 100%; height: auto; } }
 .dmapcard { width: 330px; }

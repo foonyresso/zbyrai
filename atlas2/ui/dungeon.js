@@ -23,7 +23,14 @@
     }
   }
   function cardHtml(c) { return `<div class="dh"><i></i><b>${esc(c.title)}</b></div><div class="ds">${esc(c.sub || '')}</div>${c.text ? `<p>${esc(c.text)}</p>` : ''}${c.rows && c.rows.length ? `<dl>${c.rows.map(r => `<dt>${esc(r[0])}</dt><dd>${r[1]}</dd>`).join('')}</dl>` : ''}${c.hint ? `<div class="sep"></div><div class="lb">${esc(c.hint)}</div>` : ''}`; }
-  function show(el, c, col) { if (!c) { el.hidden = true; return; } el.style.setProperty('--dc', col || '#8aa'); el.innerHTML = cardHtml(c); el.hidden = false; }
+  // картка біля курсора (як у ui/town.js): праворуч-нижче, біля краю перекидається; закріплена не рухається
+  let mx = 0, my = 0, pinned = false;
+  function place(el) {
+    if (el.hidden) return; const sr = el.parentNode.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight, gap = 18; let x = mx - sr.left + gap, y = my - sr.top + gap * 0.7;
+    if (x + w > sr.width - 6) x = mx - sr.left - gap - w; if (y + h > sr.height - 6) y = my - sr.top - gap * 0.7 - h; el.style.left = Math.max(4, x) + 'px'; el.style.top = Math.max(4, y) + 'px';
+  }
+  document.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; for (const el of [cardM, cardD]) if (el && !el.hidden && !(el === cardD && pinned)) place(el); }, true);
+  function show(el, c, col) { if (!c) { el.hidden = true; return; } el.style.setProperty('--dc', col || '#8aa'); el.innerHTML = cardHtml(c); el.hidden = false; place(el); }
   function markerCard(m) {
     const d = m.d, K = DD.KINDS[d.kind];
     return { title: d.name, sub: K.n + ' · ' + SZ[d.size], text: K.d, rows: [['Вхід', esc(d.entry.name)], ['Поверхів', d.floors], ['Глибина', d.depth.toFixed(0) + '–' + d.depthEnd.toFixed(0) + ' м'], ['Рівень загрози', d.level], ['Ходи в інші', d.links.length || '—']], hint: 'Клік — відкрити карту підземелля' };
@@ -62,7 +69,7 @@
     cvD.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty, moved: false }; cvD.setPointerCapture(e.pointerId); });
     cvD.addEventListener('pointermove', e => { if (drag) { if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; view.tx = drag.tx + (e.clientX - drag.x) * devicePixelRatio; view.ty = drag.ty + (e.clientY - drag.y) * devicePixelRatio; paint(); } hoverD(e); });
     cvD.addEventListener('pointerup', e => { const d = drag; drag = null; if (d && !d.moved) clickD(e); });
-    cvD.addEventListener('pointerleave', () => { hl = null; cardD.hidden = true; paint(); });
+    cvD.addEventListener('pointerleave', () => { hl = null; pinned = false; cardD.classList.remove('pin'); cardD.hidden = true; paint(); });
     addEventListener('keydown', e => { if (e.key === 'Escape' && root && !root.hidden) back(); }); addEventListener('resize', () => { if (root && !root.hidden) { size(); fit(); paint(); } });
   }
   const msg = t => { $('dMsg').textContent = t; setTimeout(() => { $('dMsg').textContent = ''; }, 3500); };
@@ -73,7 +80,7 @@
   function paint() { if (cur) A.DungeonDraw.draw(cvD, cur, fi, view, { reveal: rev, hlRoom: hl && hl.kind === 'room' ? hl.o.id : -1 }); }
   function tabs() { $('dFloors').innerHTML = cur.floors.map((f, i) => `<button data-f="${i}" class="${i === fi ? 'on' : ''}" title="Показати поверх ${i + 1}">Поверх ${i + 1}</button>`).join(''); $('dFloors').querySelectorAll('button').forEach(b => { b.onclick = () => { fi = +b.dataset.f; tabs(); fit(); paint(); }; }); }
   function open2(id, keepStack) {
-    const D = get(id); if (!D) return; if (!root) build(); if (cur && cur.id !== id && !keepStack) stack.push(cur.id); cur = D; fi = 0; root.hidden = false; document.querySelectorAll('.top,.rail,.drawer,.ctbar,.tdet:not(#dcard),.info').forEach(e => e.classList.add('dhide'));
+    const D = get(id); if (!D) return; if (!root) build(); if (cur && cur.id !== id && !keepStack) stack.push(cur.id); cur = D; fi = 0; pinned = false; if (cardD) { cardD.classList.remove('pin'); cardD.hidden = true; } root.hidden = false; document.querySelectorAll('.top,.rail,.drawer,.ctbar,.tdet:not(#dcard),.info').forEach(e => e.classList.add('dhide'));
     $('dTitle').textContent = `${D.name} · ${D.kindName} · ${D.town}, глибина ${D.depth.toFixed(0)} м`; $('dBack').textContent = stack.length ? '← Назад' : '← До міста'; $('dBack').title = stack.length ? 'Повернутися до попереднього підземелля' : 'Повернутися на карту міста'; $('dRev').checked = rev; size(); fit(); tabs(); paint(); cardD.hidden = true;
   }
   function openDungeon(id) { stack = []; open2(id, true); }
@@ -93,10 +100,12 @@
     if (h.kind === 'link') return { title: (o.secret ? DD.LINKS.secret : DD.LINKS.open) + ' ' + o.name, sub: 'З’єднання підземель', text: o.secret ? 'Потайний хід, який знають не всі.' : 'Відкритий хід між підземеллями.', rows: [], hint: 'Клік — відкрити те підземелля', col: '#4a78c0' };
     return { title: 'Коридор', sub: 'Поверх ' + (fi + 1), text: 'Вузький прохід між кімнатами.', rows: [], col: '#8aa' };
   }
-  function hoverD(e) { if (drag && drag.moved) { cardD.hidden = true; return; } const [x, y] = pt(e), h = A.DungeonDraw.at(cur, fi, x, y, rev); const same = (h && hl && h.o === hl.o && h.kind === hl.kind) || (!h && !hl); if (same) return; const prevRoom = hl && hl.kind === 'room', nowRoom = h && h.kind === 'room'; hl = h; cvD.style.cursor = h && (h.kind === 'stairs' || h.kind === 'link') ? 'pointer' : 'grab'; if (!h) cardD.hidden = true; else { const c = cardOf(h); show(cardD, c, c.col); } if (prevRoom || nowRoom) paint(); }
+  function hoverD(e) { mx = e.clientX; my = e.clientY; if (pinned) return; if (drag && drag.moved) { cardD.hidden = true; return; } const [x, y] = pt(e), h = A.DungeonDraw.at(cur, fi, x, y, rev); const same = (h && hl && h.o === hl.o && h.kind === hl.kind) || (!h && !hl); if (same) return; const prevRoom = hl && hl.kind === 'room', nowRoom = h && h.kind === 'room'; hl = h; cvD.style.cursor = h && (h.kind === 'stairs' || h.kind === 'link') ? 'pointer' : 'grab'; if (!h) cardD.hidden = true; else { const c = cardOf(h); show(cardD, c, c.col); } if (prevRoom || nowRoom) paint(); }
   function clickD(e) {
-    const [x, y] = pt(e), h = A.DungeonDraw.at(cur, fi, x, y, rev); if (!h) return;
-    if (h.kind === 'stairs' && !(fi === 0 && h.o.up)) { fi += h.o.up ? -1 : 1; tabs(); paint(); return; }
+    const [x, y] = pt(e), h = A.DungeonDraw.at(cur, fi, x, y, rev); if (pinned) { pinned = false; cardD.classList.remove('pin'); hl = null; hoverD(e); return; }
+    if (!h) return;
+    if (h.kind !== 'stairs' && h.kind !== 'link' && h.kind !== 'corridor') { pinned = true; cardD.classList.add('pin'); return; }
+    if (h.kind === 'stairs' && !(fi === 0 && h.o.up)) { fi += h.o.up ? -1 : 1; pinned = false; cardD.hidden = true; tabs(); paint(); return; }
     if (h.kind === 'link') { stack.push(cur.id); open2(h.o.to, true); }
   }
   A.DungeonUI = { markers, openById: openDungeon, init, open: id => openDungeon(id) };
