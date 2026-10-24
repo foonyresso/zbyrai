@@ -1,61 +1,58 @@
-// Атлас 2.0, місто: пояс полів за містом. Ділянки неправильних форм (багатокутники з нерівними межами, трапеції, смуги, що вигинаються) лягають рядами вздовж доріг і вулиць, огинають воду, споруди й сусідні поля; біля мурів сади й городи, далі лани, виноградники, луки. Напрям оранки в кожній ділянці свій і йде вздовж її довгої сторони; між ділянками живопліт.
+// Атлас 2.0, місто: поля за містом. Поля лежать тісними групами біля брам, доріг і хуторів, а не суцільним поясом: кожна група — ділянка, поділена на охайні багатокутники (4–6 сторін, різні розміри, не довші за ~3 ширини), кожне поле своєї культури (оранка, сад, виноградник, луг), штрихи вздовж довгої сторони, живопліт по краю. Проміжки лишаються лісу, лукам і дорогам.
 (function () {
   'use strict';
   const A = globalThis.Atlas2;
-  const CAP = [14, 60, 140, 220, 320], DEPTH = [1, 2, 3, 4, 4], SP = 8, GAP = 2.5;
+  const HUBS = [2, 3, 6, 9, 12], CAP = [10, 30, 80, 140, 200], SP = 10;
   const pip = (p, x, y) => { let c = false; for (let i = 0, j = p.length - 2; i < p.length; j = i, i += 2) if ((p[i + 1] > y) !== (p[j + 1] > y) && x < (p[j] - p[i]) * (y - p[i + 1]) / (p[j + 1] - p[i + 1]) + p[i]) c = !c; return c; };
   const inField = (f, x, y) => x > f.bb[0] && x < f.bb[2] && y > f.bb[1] && y < f.bb[3] && pip(f.pts, x, y);
-  // дорога → точки з кроком SP м: {x, y, tx, ty}
-  function resample(p) {
-    const out = []; let carry = 0;
-    for (let i = 2; i < p.length; i += 2) { const ax = p[i - 2], ay = p[i - 1], L = Math.hypot(p[i] - ax, p[i + 1] - ay); if (!L) continue; const tx = (p[i] - ax) / L, ty = (p[i + 1] - ay) / L; for (let s = carry; s < L; s += SP) { out.push({ x: ax + tx * s, y: ay + ty * s, tx, ty }); carry = s + SP - L; } }
-    return out;
+  const area = p => { let s = 0; for (let i = 0, j = p.length - 2; i < p.length; j = i, i += 2) s += p[j] * p[i + 1] - p[i] * p[j + 1]; return Math.abs(s) / 2; };
+  const centroid = p => { let x = 0, y = 0; for (let i = 0; i < p.length; i += 2) { x += p[i]; y += p[i + 1]; } return [x / (p.length / 2), y / (p.length / 2)]; };
+  // розсікання опуклого багатокутника прямою (точка, напрям): повертає дві половини
+  function split(p, px, py, dx, dy) {
+    const side = (x, y) => (x - px) * -dy + (y - py) * dx, A1 = [], B1 = [], n = p.length / 2;
+    for (let i = 0; i < n; i++) { const x = p[i * 2], y = p[i * 2 + 1], j = (i + 1) % n, x2 = p[j * 2], y2 = p[j * 2 + 1], s1 = side(x, y), s2 = side(x2, y2); (s1 >= 0 ? A1 : B1).push(x, y); if ((s1 >= 0) !== (s2 >= 0)) { const t = s1 / (s1 - s2), cx = x + (x2 - x) * t, cy = y + (y2 - y) * t; A1.push(cx, cy); B1.push(cx, cy); } }
+    return [A1, B1];
   }
-  // o: {r, tier, R, Rmap, x0, y0, streets, WK, near, B, F, d0, inside(x,y), warm}
+  // довга сторона й відношення сторін (грубо, за найдовшим ребром і площею)
+  function shape(p) { let best = 0, ang = 0; for (let i = 0, j = p.length - 2; i < p.length; j = i, i += 2) { const L = Math.hypot(p[i] - p[j], p[i + 1] - p[j + 1]); if (L > best) { best = L; ang = Math.atan2(p[i + 1] - p[j + 1], p[i] - p[j]); } } return { len: best, ang, asp: best * best / Math.max(1, area(p)) }; }
+  function sharp(p) { const n = p.length / 2; for (let i = 0; i < n; i++) { const a = (i + n - 1) % n, b = (i + 1) % n, ux = p[a * 2] - p[i * 2], uy = p[a * 2 + 1] - p[i * 2 + 1], vx = p[b * 2] - p[i * 2], vy = p[b * 2 + 1] - p[i * 2 + 1], c = (ux * vx + uy * vy) / (Math.hypot(ux, uy) * Math.hypot(vx, vy) || 1); if (c > 0.64) return true; } return false; }
+  function resample(p) { const out = []; let carry = 0; for (let i = 2; i < p.length; i += 2) { const ax = p[i - 2], ay = p[i - 1], L = Math.hypot(p[i] - ax, p[i + 1] - ay); if (!L) continue; const tx = (p[i] - ax) / L, ty = (p[i + 1] - ay) / L; for (let s = carry; s < L; s += SP) { out.push({ x: ax + tx * s, y: ay + ty * s, tx, ty }); carry = s + SP - L; } } return out; }
+  // o: {r, tier, R, Rmap, streets, WK, near, B, F, d0, inside(x,y), warm}
   function make(o) {
-    const { r, tier, R, Rmap, streets, WK, near, B, F, d0 } = o, fields = [], lim = Math.min(Rmap * 0.95, R * (tier >= 3 ? 2.6 : 2.3)), cap = CAP[tier], rows = DEPTH[tier];
-    const okPt = (x, y) => WK(x, y) === 0 && !o.inside(x, y) && near(x, y, 10, -1, -2) > 1.8 && d0(x, y) < lim;
+    const { r, tier, R, Rmap, streets, WK, near, B, F, d0 } = o, fields = [], clusters = [], lim = Math.min(Rmap * 0.95, R * (tier >= 3 ? 2.6 : 2.3)), cap = CAP[tier];
+    const okPt = (x, y) => WK(x, y) === 0 && !o.inside(x, y) && near(x, y, 10, -1, -2) > 2.5 && d0(x, y) < lim;
     const fits = f => {
-      for (let i = 0; i < f.pts.length; i += 2) if (!okPt(f.pts[i], f.pts[i + 1])) return false;
-      const n = f.pts.length / 4; for (let i = 0; i < n; i++) { const j = f.pts.length / 2 - 1 - i, mx = (f.pts[i * 2] + f.pts[j * 2]) / 2, my = (f.pts[i * 2 + 1] + f.pts[j * 2 + 1]) / 2; if (!okPt(mx, my)) return false; }
+      const n = f.pts.length / 2; for (let i = 0; i < n; i++) { const x = f.pts[i * 2], y = f.pts[i * 2 + 1], j = (i + 1) % n; if (!okPt(x, y) || !okPt((x + f.pts[j * 2]) / 2, (y + f.pts[j * 2 + 1]) / 2) || !okPt((x + f.x) / 2, (y + f.y) / 2)) return false; }
+      if (!okPt(f.x, f.y)) return false;
       for (const q of fields) if (f.bb[0] < q.bb[2] && f.bb[2] > q.bb[0] && f.bb[1] < q.bb[3] && f.bb[3] > q.bb[1]) { if (inField(q, f.x, f.y) || inField(f, q.x, q.y)) return false; for (let i = 0; i < f.pts.length; i += 2) if (inField(q, f.pts[i], f.pts[i + 1])) return false; for (let i = 0; i < q.pts.length; i += 2) if (inField(f, q.pts[i], q.pts[i + 1])) return false; }
-      for (const b of B) { const rr = Math.max(b.w, b.h) * 0.7; if (Math.hypot(b.x - f.x, b.y - f.y) < f.r + rr && inField(f, b.x, b.y)) return false; if (Math.hypot(b.x - f.x, b.y - f.y) < f.r + rr) { const c = Math.cos(b.a), s = Math.sin(b.a); for (const [u, v] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) if (inField(f, b.x + c * u * b.w / 2 - s * v * b.h / 2, b.y + s * u * b.w / 2 + c * v * b.h / 2)) return false; } }
+      for (const b of B) { const rr = Math.max(b.w, b.h) * 0.7; if (Math.hypot(b.x - f.x, b.y - f.y) < f.r + rr) { if (inField(f, b.x, b.y)) return false; const c = Math.cos(b.a), s = Math.sin(b.a); for (const [u, v] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) if (inField(f, b.x + c * u * b.w / 2 - s * v * b.h / 2, b.y + s * u * b.w / 2 + c * v * b.h / 2)) return false; } }
       for (const q of F) if (Math.hypot(q.x - f.x, q.y - f.y) < q.r + f.r * 0.7 && (inField(f, q.x, q.y) || Math.hypot(q.x - f.x, q.y - f.y) < q.r + 6)) return false;
       return true;
     };
-    const kindAt = (dd, run) => {
-      const u = dd / R, h = (run * 2654435761 >>> 0) / 4294967296;
-      if (u < 1.35) return h < 0.4 ? 'garden' : h < 0.55 ? 'orchard' : 'arable';
-      if (u < 1.9) return h < 0.68 ? 'arable' : h < 0.8 && o.warm ? 'vineyard' : h < 0.88 ? 'orchard' : 'meadow';
-      return h < 0.45 ? 'arable' : h < 0.7 ? 'meadow' : h < 0.8 && o.warm ? 'vineyard' : 'arable';
+    const kindAt = (dd, h) => {
+      const u = dd / R;
+      if (u < 1.4) return h < 0.2 ? 'garden' : h < 0.34 ? 'orchard' : h < 0.45 ? 'meadow' : 'arable';
+      return h < 0.5 ? 'arable' : h < 0.66 ? 'meadow' : h < 0.78 && o.warm ? 'vineyard' : h < 0.88 ? 'orchard' : 'arable';
     };
-    const roads = streets.filter(st => st.kind !== 'embankment' && st.kind !== 'ring' && st.pts.length >= 4).sort((p, q) => (p.kind === 'avenue' ? 0 : 1) - (q.kind === 'avenue' ? 0 : 1) || r() - 0.5);
-    // стовпці різної ширини вздовж дороги; спільні межі між сусідніми стовпцями мають спільну глибину й нахил
-    const cols = [];
-    roads.forEach(st => { const P = resample(st.pts); if (P.length < 4) return; for (const sd of [1, -1]) {
-      let i = Math.floor(r() * 5), run = Math.floor(st.id * 7 + (sd > 0 ? 3 : 0)), left = 0;
-      const bd = () => 0.8 + r() * 0.45, tl = () => (r() - 0.5) * 14, mk = () => Array.from({ length: rows }, () => ({ d: bd(), t: tl() }));
-      let bL = mk();
-      while (i < P.length - 4) { const wN = 4 + Math.floor(r() * 8), i1 = Math.min(P.length - 1, i + wN), bR = mk(), mid = P[(i + i1) >> 1], dd = d0(mid.x, mid.y); if (--left <= 0) { run++; left = 1 + Math.floor(r() * 3); }
-        if (dd > R * 0.9 && dd < lim) cols.push({ st, sd, pts: P.slice(i, i1 + 1), bL, bR, run, out: null, dead: false, base: 40 + r() * 45 }); bL = bR; i = i1 + 1 + (r() < 0.12 ? 2 : 0); } } });
-    for (let row = 0; row < rows && fields.length < cap; row++) for (const c of cols) {
-      if (fields.length >= cap) break; if (c.dead) continue; const n = c.pts.length; if (!c.out) c.out = c.pts.map(() => c.st.hw + 3.5); else c.out = c.out.map(v => v + GAP);
-      const inn = c.out.slice(); let done = false;
-      for (const sc of [1, 0.72, 0.5]) {
-        const dep = c.pts.map((_, i) => { const t = i / (n - 1), w = c.bL[row].d * (1 - t) + c.bR[row].d * t; return c.base * sc * w * (1 + 0.09 * Math.sin(i * 0.4 + c.run)); });
-        const outer = inn.map((v, i) => v + dep[i]), poly = [], rev = [], shn = [];
-        c.pts.forEach((p, i) => { const nx = -p.ty * c.sd, ny = p.tx * c.sd; const ps = c.shift ? c.shift[i] : 0; poly.push(p.x + nx * inn[i] + p.tx * ps, p.y + ny * inn[i] + p.ty * ps); const t = i / (n - 1), sh = c.bL[row].t * (1 - t) + c.bR[row].t * t; shn[i] = sh; rev.push(p.x + nx * outer[i] + p.tx * sh, p.y + ny * outer[i] + p.ty * sh); });
-        for (let i = n - 1; i >= 0; i--) poly.push(rev[i * 2], rev[i * 2 + 1]);
-        let sx = 0, sy = 0, m = poly.length / 2, x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < poly.length; i += 2) { sx += poly[i]; sy += poly[i + 1]; x0 = Math.min(x0, poly[i]); x1 = Math.max(x1, poly[i]); y0 = Math.min(y0, poly[i + 1]); y1 = Math.max(y1, poly[i + 1]); }
-        const f = { pts: poly, x: sx / m, y: sy / m, bb: [x0, y0, x1, y1] }; f.r = Math.hypot(x1 - x0, y1 - y0) / 2;
-        if (!fits(f)) continue;
-        const mp = c.pts[n >> 1], len = n * SP, avg = dep.reduce((a, b) => a + b, 0) / n; f.a = Math.atan2(mp.ty, mp.tx) + (len >= avg ? 0 : Math.PI / 2) + (r() - 0.5) * 0.35;
-        f.k = kindAt(d0(f.x, f.y), c.run + row * 3); f.crop = ((c.run * 2246822519) >>> 11) % 4;
-        fields.push(f); c.out = outer; c.shift = shn; done = true; break;
-      }
-      if (!done) c.dead = true;
+    // осередки: точки на дорогах за мурами; віддаємо перевагу тим, що ближче до міста й далеко від інших осередків
+    const pts = []; for (const st of streets) { if (st.kind === 'embankment' || st.kind === 'ring' || st.pts.length < 4) continue; for (const p of resample(st.pts)) { const dd = d0(p.x, p.y); if (dd > R * 1.0 && dd < lim * 0.9 && WK(p.x, p.y) === 0 && !o.inside(p.x, p.y)) pts.push(p); } }
+    const hubs = []; for (let h = 0; h < HUBS[tier] && pts.length; h++) { let best = null, bs = -1e9; for (let k = 0; k < 70; k++) { const p = pts[Math.floor(r() * pts.length)]; let m = 1e9; for (const q of hubs) m = Math.min(m, Math.hypot(q.x - p.x, q.y - p.y)); const sc = Math.min(m, 260) - 0.25 * d0(p.x, p.y) + r() * 30; if (m > 170 && sc > bs) { bs = sc; best = p; } } if (best) hubs.push(best); }
+    for (const hub of hubs) {
+      if (fields.length >= cap) break; const rot = Math.atan2(hub.ty, hub.tx) + (r() - 0.5) * 0.4, L = 170 + r() * 130, Wd = 120 + r() * 90, c = Math.cos(rot), s = Math.sin(rot), sd = r() < 0.5 ? 1 : -1, off = Wd / 2 + 9, ox = hub.x + (r() - 0.5) * 60 - hub.ty * sd * off, oy = hub.y + (r() - 0.5) * 60 + hub.tx * sd * off;
+      const base = [[-1, -1], [1, -1], [1, 1], [-1, 1]].flatMap(([u, v]) => [ox + c * u * L / 2 - s * v * Wd / 2, oy + s * u * L / 2 + c * v * Wd / 2]), cells = [];
+      const cut = (p, depth) => { const a = area(p), sh = shape(p); if (p.length < 6) return; if ((a < 2600 + r() * 4500 && depth > 0) || a < 1400 || depth > 6) { cells.push(p); return; }
+        const [cx, cy] = centroid(p), ang = sh.ang + Math.PI / 2 + (r() - 0.5) * 0.5, t = (r() - 0.5) * 0.3 * sh.len, nx = cx + Math.cos(sh.ang) * t, ny = cy + Math.sin(sh.ang) * t, [p1, p2] = split(p, nx, ny, Math.cos(ang), Math.sin(ang)); if (p1.length < 6 || p2.length < 6) { cells.push(p); return; } cut(p1, depth + 1); cut(p2, depth + 1); };
+      cut(base, 0); const cl = { x: ox, y: oy, r: Math.hypot(L, Wd) / 2, n: 0 }, hk = r();
+      for (const cell of cells) { if (fields.length >= cap) break;
+        for (const k of [0, 0.15]) { // за потреби поле трохи стискається, щоб не лізти на дорогу чи воду
+          const [cx, cy] = centroid(cell), poly = []; for (let i = 0; i < cell.length; i += 2) { const dx = cx - cell[i], dy = cy - cell[i + 1], d = Math.hypot(dx, dy) || 1, mv = Math.min(d * 0.4, 2.6 + k * d); poly.push(cell[i] + dx / d * mv + (r() - 0.5) * 2.4, cell[i + 1] + dy / d * mv + (r() - 0.5) * 2.4); }
+          if (sharp(poly)) continue; const sh = shape(poly), ar = area(poly); if (ar < 900 || sh.asp > 4.2) continue;
+          let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < poly.length; i += 2) { x0 = Math.min(x0, poly[i]); x1 = Math.max(x1, poly[i]); y0 = Math.min(y0, poly[i + 1]); y1 = Math.max(y1, poly[i + 1]); }
+          const [fx, fy] = centroid(poly), f = { pts: poly, x: fx, y: fy, bb: [x0, y0, x1, y1], r: Math.hypot(x1 - x0, y1 - y0) / 2, a: sh.ang + (r() - 0.5) * 0.12 };
+          if (!fits(f)) continue; const hh = (r() * 0.45 + hk * 0.55) % 1; f.k = kindAt(d0(fx, fy), hh); f.crop = Math.floor(r() * 4); fields.push(f); cl.n++; break; } }
+      if (cl.n) clusters.push(cl);
     }
-    return fields;
+    fields.clusters = clusters; return fields;
   }
   A.TownFields = { make, inField };
 })();
