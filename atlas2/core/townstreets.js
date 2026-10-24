@@ -49,17 +49,30 @@
       shore.push({ x: px, y: py, nx: ux, ny: uy, d: hitD }); cur.push([px, py, 0]);
     }
     if (tier >= 2 || o.port) addPoly('embankment', 5, cur, 6);
-    // стежка, що плавно (з вигинами) доходить до цілі: нахил поступово повертається до цілі, з легкими блуканнями
-    function reach(st, x, y, ang, tx, ty, maxLen, str) {
-      push(st, x, y, 0); let px = x, py = y, hd = ang;
-      for (let i = 0, n = Math.floor(maxLen / STEP); i < n; i++) {
-        const want = Math.atan2(ty - py, tx - px), dh = Math.atan2(Math.sin(want - hd), Math.cos(want - hd)); hd = str ? want : hd + dh * 0.22 + (r() - 0.5) * 0.45;
-        const nx = px + Math.cos(hd) * STEP, ny = py + Math.sin(hd) * STEP; if (WK(nx, ny) === 2) break;
-        if (Math.hypot(tx - nx, ty - ny) < STEP) { push(st, tx, ty, 0); st.joined = true; return st; } push(st, nx, ny, WK(nx, ny) === 1); px = nx; py = ny;
-      }
-      return st;
+    // стежка до цілі шукається по сітці (A*) в обхід води, споруд і місць, потім згладжується; кінець точно в цілі
+    const api = { blocked: null, WK };
+    function findPath(own, x, y, tx, ty, maxLen) {
+      const C = 7, mg = 60, x0 = Math.min(x, tx) - mg, y0 = Math.min(y, ty) - mg, nx = Math.ceil((Math.max(x, tx) + mg - x0) / C), ny = Math.ceil((Math.max(y, ty) + mg - y0) / C); if (nx * ny > 45000) return null;
+      const ci = v => Math.max(0, Math.min(nx - 1, Math.floor((v - x0) / C))), cj = v => Math.max(0, Math.min(ny - 1, Math.floor((v - y0) / C))), si = ci(x), sj = cj(y), ti = ci(tx), tj = cj(ty), G = new Float32Array(nx * ny).fill(1e9), P = new Int32Array(nx * ny).fill(-1), cost = new Float32Array(nx * ny).fill(-1), heap = new A.Heap();
+      const cc = (i, j) => { const k = j * nx + i; if (cost[k] >= 0) return cost[k]; const cx = x0 + (i + 0.5) * C, cy = y0 + (j + 0.5) * C, wk = WK(cx, cy); let c = 1e9; if (wk !== 2 && !(api.blocked && api.blocked(cx, cy))) { c = 1 + (wk === 1 ? 10 : 0); if (Math.hypot(cx - tx, cy - ty) > 14 && Math.hypot(cx - x, cy - y) > 14 && near(cx, cy, 8, own.id, own.parent) < 2.5) c += 6; c *= 1 + 0.5 * env.vnoise(cx / 45, cy / 45, env.seedInt); } return (cost[k] = c); };
+      G[sj * nx + si] = 0; heap.push(0, sj * nx + si); let found = false;
+      while (heap.size) { const k = heap.pop(), i = k % nx, j = (k / nx) | 0; if (i === ti && j === tj) { found = true; break; }
+        for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { if (!di && !dj) continue; const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= nx || b >= ny) continue; const c = cc(a, b); if (c >= 1e8) continue; const g = G[k] + c * (di && dj ? 1.414 : 1) * C, kk = b * nx + a; if (g < G[kk]) { G[kk] = g; P[kk] = k; heap.push(g + Math.hypot(a - ti, b - tj) * C, kk); } } }
+      if (!found) return null; const cells = []; for (let k = tj * nx + ti; k >= 0; k = P[k]) cells.push([x0 + ((k % nx) + 0.5) * C, y0 + (((k / nx) | 0) + 0.5) * C]); cells.reverse();
+      cells[0] = [x, y]; cells[cells.length - 1] = [tx, ty]; let len = 0; for (let i = 1; i < cells.length; i++) len += Math.hypot(cells[i][0] - cells[i - 1][0], cells[i][1] - cells[i - 1][1]); if (len > maxLen * 1.4 + 60) return null;
+      return cells;
     }
-    return { streets, near, grow, mkSt, shore, segs, addSeg, reach };
+    function reach(st, x, y, ang, tx, ty, maxLen, str) {
+      push(st, x, y, 0); const cells = findPath(st, x, y, tx, ty, maxLen); if (!cells) return st;
+      // згладжування: прорідження (Дуґлас-Пейкер 5 м) і дугова згладжувальна крива
+      const keep = new Array(cells.length).fill(false); keep[0] = keep[cells.length - 1] = true; const dp = (a, b) => { let m = 0, mi = -1; const [ax, ay] = cells[a], [bx, by] = cells[b]; for (let i = a + 1; i < b; i++) { const d = segDist(cells[i][0], cells[i][1], ax, ay, bx, by); if (d > m) { m = d; mi = i; } } if (m > 5 && mi >= 0) { keep[mi] = true; dp(a, mi); dp(mi, b); } }; dp(0, cells.length - 1);
+      const tmp = { pts: [], br: [] }; cells.forEach((q, i) => { if (keep[i]) { tmp.pts.push(q[0], q[1]); tmp.br.push(0); } }); chaikinPath(tmp, 3);
+      for (let i = 2; i < tmp.pts.length; i += 2) { const mx = (tmp.pts[i] + tmp.pts[i - 2]) / 2, my = (tmp.pts[i + 1] + tmp.pts[i - 1]) / 2; push(st, tmp.pts[i], tmp.pts[i + 1], WK(tmp.pts[i], tmp.pts[i + 1]) === 1 || WK(mx, my) === 1); }
+      st.joined = true; return st;
+    }
+    function chaikinPath(t, it) { for (let k = 0; k < it; k++) { const p = t.pts, n = p.length / 2; if (n < 3) return; const q = [p[0], p[1]]; for (let i = 0; i < n - 1; i++) { const ax = p[i * 2], ay = p[i * 2 + 1], bx = p[i * 2 + 2], by = p[i * 2 + 3]; if (i > 0) q.push(ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25); if (i < n - 2) q.push(ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75); } q.push(p[(n - 1) * 2], p[(n - 1) * 2 + 1]); t.pts = q; t.br = new Array(q.length / 2).fill(0); } }
+    const rebuild = () => { grid.clear(); segs.length = 0; for (const st of streets) { const p = st.pts; for (let i = 2; i < p.length; i += 2) addSeg(st, p[i - 2], p[i - 1], p[i], p[i + 1], st.br[i / 2]); } };
+    return Object.assign(api, { streets, near, grow, mkSt, shore, segs, addSeg, reach, rebuild });
   }
   A.TownNet = { build, STEP, TAU };
 })();

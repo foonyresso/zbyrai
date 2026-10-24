@@ -60,6 +60,7 @@
       if (outposts.length >= 1 + tier) continue; const L = Math.max(130, R * 1.12 + 190 - d0(ex, ey)) + r() * 90, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
       if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }
+    A.TownRoads.clean(streets, net); const nA = streets.length;
     // ---- стіна
     const wmat = tier >= 3 ? 'stone' : tier === 2 ? (r() < 0.75 ? 'stone' : 'palisade') : tier === 1 ? (r() < 0.4 + Math.min(0.3, popEff / 2500) ? 'palisade' : null) : (r() < 0.35 ? 'fence' : null), walled = !!wmat, wt = wmat === 'stone' ? [0, 0, 6, 10, 14][tier] : wmat === 'palisade' ? 3 : 1.4, Rw = R * 0.8, wph = r() * TAU, wallR0 = th => Rw * (1 + 0.09 * Math.sin(2 * th + wph) + 0.06 * Math.sin(3 * th + 2 * wph) + 0.035 * Math.sin(5 * th + 3 * wph)), wallR = th => { if (!wallBins) return wallR0(th); const n = wallBins.length, u = (((th / TAU) % 1) + 1) % 1 * n, i = Math.floor(u) % n, t = u - Math.floor(u); return wallBins[i] * (1 - t) + wallBins[(i + 1) % n] * t; }, inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
     let wallBins = null;
@@ -84,6 +85,7 @@
     // ---- нерухомі об'єкти: площі, парки, цвинтар
     const F = [], B = [], bgrid = new Map(), BK = 24, props = [], bkeys = b => { const o = []; const rad = Math.hypot(b.w, b.h) / 2; for (let gx = Math.floor((b.x - rad) / BK); gx <= Math.floor((b.x + rad) / BK); gx++) for (let gy = Math.floor((b.y - rad) / BK); gy <= Math.floor((b.y + rad) / BK); gy++) o.push(gx * 100003 + gy); return o; };
     const addB = b => { b.id = B.length; B.push(b); for (const k of bkeys(b)) (bgrid.get(k) || bgrid.set(k, []).get(k)).push(b.id); return b; };
+    net.blocked = (x, y) => { for (const f of F) if ((f.t === 'site' || f.t === 'park' || f.t === 'pond') && Math.hypot(f.x - x, f.y - y) < f.r * (f.t === 'site' ? 0.95 : 0.9) + 2) return true; for (const b of B) if (Math.abs(b.x - x) < 60 && rectHit(b, x, y, 3)) return true; return false; };
     const circleFree = (x, y, rad, gapm) => { for (const k of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) if (WK(x + k[0] * rad, y + k[1] * rad) !== 0) return false; for (const f of F) if (Math.hypot(f.x - x, f.y - y) < f.r + rad + (gapm == null ? 6 : gapm)) return false; return true; };
     const streetPtNear = (ax, ay) => { let best = null, bd = 1e9; for (const st of streets) for (let i = 0; i < st.pts.length; i += 2) { const d = Math.hypot(st.pts[i] - ax, st.pts[i + 1] - ay); if (d < bd && d0(st.pts[i], st.pts[i + 1]) < R) { bd = d; best = [st.pts[i], st.pts[i + 1]]; } } return best; };
     const stemFor = kind => pick(r, X.stems(kind || 'centre'));
@@ -97,7 +99,7 @@
       let u0 = 0; const ca = Math.cos(o.a), sa = Math.sin(o.a), S = pre ? pre.S : 1.9, Wd = (u, v) => { u = (u - u0) * S; v *= S; return [o.x + u * ca - v * sa, o.y + u * sa + v * ca]; };
       for (let tr = 0; tr < (pre ? 1 : 4); tr++) {
         const sp = pre ? pre.spec : A.TownSites.make(r, { tier, small, ban: usedKinds.slice(-2) }); u0 = pre ? 0 : Math.min(...sp.ground.map(g => Math.min(...g.pts.filter((_, i) => i % 2 === 0)))); const cm = Wd(sp.ext * 0.5, 0), en = Wd(sp.ext, 0);
-        if (WK(cm[0], cm[1]) !== 0 || WK(en[0], en[1]) !== 0 || (!pre && B.some(b => Math.hypot(b.x - cm[0], b.y - cm[1]) < sp.ext * S * 0.8 + Math.max(b.w, b.h) / 2)) || (!pre && (sp.ground.some(g => { for (let i = 0; i < g.pts.length; i += 2) { const w = Wd(g.pts[i], g.pts[i + 1]); if (WK(w[0], w[1]) !== 0) return true; } return false; }) || streets.some(st => st !== o.ch && st.id !== (o.ch ? o.ch.parent : -9) && st.kind !== 'avenue' && (() => { for (let i = 2; i < st.pts.length; i += 2) if (env.segDist(cm[0], cm[1], st.pts[i - 2], st.pts[i - 1], st.pts[i], st.pts[i + 1]) < sp.ext * S * 0.5) return true; return false; })()))) || (!pre && F.some(f => f.t === 'site' && Math.hypot(f.x - cm[0], f.y - cm[1]) < f.r + sp.ext * S * 0.6))) continue;
+        if (WK(cm[0], cm[1]) !== 0 || WK(en[0], en[1]) !== 0 || (!pre && B.some(b => Math.hypot(b.x - cm[0], b.y - cm[1]) < sp.ext * S * 0.8 + Math.max(b.w, b.h) / 2)) || (!pre && (sp.ground.some(g => { for (let i = 0; i < g.pts.length; i += 2) { const w = Wd(g.pts[i], g.pts[i + 1]); if (WK(w[0], w[1]) !== 0) return true; } return false; }) || streets.some(st => st !== o.ch && st.id !== (o.ch ? o.ch.parent : -9) && (() => { for (let i = 2; i < st.pts.length; i += 2) if (env.segDist(cm[0], cm[1], st.pts[i - 2], st.pts[i - 1], st.pts[i], st.pts[i + 1]) < sp.ext * S * 0.5) return true; return false; })()))) || (!pre && F.some(f => f.t === 'site' && Math.hypot(f.x - cm[0], f.y - cm[1]) < f.r + sp.ext * S * 0.6))) continue;
         usedKinds.push(sp.kind);
         const pts = p => { const q = []; for (let i = 0; i < p.length; i += 2) { const w = Wd(p[i], p[i + 1]); q.push(w[0], w[1]); } return q; };
         const f = { t: 'site', kind: sp.kind, history: sp.history, x: cm[0], y: cm[1], r: sp.ext * S * 0.55, name: sp.name, sub: sp.sub, text: sp.text, rows: sp.rows, state: sp.state, paths: (sp.paths || []).map(q => ({ pts: pts(q.pts), w: q.w })), ground: sp.ground.map(g => ({ pts: pts(g.pts), col: g.col, edge: g.edge })), walls: sp.walls.map(w => ({ pts: pts(w.pts), w: w.w * (pre ? 1 : 1.4), col: w.col })), decos: sp.decos.map(d => { const w = Wd(d.u, d.v); return { t: d.t, x: w[0], y: w[1], r: (d.r || 1) * (pre ? 1 : S * 0.8), a: o.a + (d.rot || 0) }; }) };
@@ -116,7 +118,7 @@
     if (tier >= 1 && (tier >= 2 || popEff >= 200)) for (let cn = 0, ncem = tier >= 4 ? 2 : 1; cn < ncem; cn++) {
       const nk = clamp((popEff < 60 ? 0 : popEff < 200 ? 1 : popEff < 700 ? 2 : popEff < 2500 ? 3 : 4) - cn, 0, 4), spec = A.TownSites.graveyard(r, nk, { nm: cname(), nm2: cname() }), rad = Math.hypot(spec.hl, spec.hw) + 4;
       for (let tries = 0; tries < 50; tries++) { const a = r() * TAU, d = walled ? wallR(a) + wt / 2 + rad + 12 + r() * 40 : R * (0.8 + 0.4 * r()), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d;
-        if (!circleFree(x, y, rad, 10) || near(x, y, rad, -1, -2) < rad * 0.5) continue;
+        if (!circleFree(x, y, rad, 10) || near(x, y, rad + 8, -1, -2) < rad + 4) continue;
         let q = null, qd = 1e9; for (const st of streets) { if (st.kind === 'path') continue; for (let i = 0; i < st.pts.length; i += 2) { const dd = Math.hypot(st.pts[i] - x, st.pts[i + 1] - y); if (dd < qd) { qd = dd; q = [st.pts[i], st.pts[i + 1]]; } } } if (!q || qd > 220) continue;
         const ang = Math.atan2(y - q[1], x - q[0]), ox = x - Math.cos(ang) * spec.hl, oy = y - Math.sin(ang) * spec.hl, nsite = sites.length;
         if (placeSite({ x: ox, y: oy, a: ang }, false, 1, { spec, S: 1 })) { const f = sites[nsite]; f.r = rad; f.x = x; f.y = y; f.paths.push({ pts: [q[0], q[1], ox, oy], w: 2.6 }); break; } }
@@ -162,6 +164,7 @@
     outposts.forEach(o => { const p = o.ch.pts; for (let i = 0; i < p.length; i += 2) { const f = sites.find(q => Math.hypot(p[i] - q.x, p[i + 1] - q.y) < q.r * 0.95); if (f) { o.ch.pts.length = Math.max(4, i + 2); o.ch.br.length = o.ch.pts.length / 2; o.ch.to = f.name; o.done = true; break; } } if (o.done) return;
       if (placeSite(o, false, 0)) return; if (sites.some(f => Math.hypot(f.x - o.x, f.y - o.y) < f.r * 1.3)) { o.ch.to = o.ch.to || sites[0].name; return; }
       const nm = pick(r, ['Польовий торг', 'Караванний майдан', 'Роздоріжжя з колодязем']); F.push({ t: 'plaza', x: o.x, y: o.y, r: 15, kind: 'outskirts', name: nm }); props.push({ t: 'well', x: o.x, y: o.y, r: 1.8, name: 'Колодязь: ' + nm.toLowerCase() }); o.ch.to = nm; });
+    A.TownRoads.late(streets, nA, F.filter(f => f.t === 'site'), net);
     // порт: причали, кораблі, маяк
     const piers = [], ships = [];
     if (shore.length && (s.port || tier <= 1) && tier >= 1 && !fate) {
