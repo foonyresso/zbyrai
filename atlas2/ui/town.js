@@ -41,7 +41,7 @@
   // ---- пошук під курсором (координати клітин)
   function at(W, view, fx, fy) {
     const CS = W.params.kmPerCell * 1000; let out = null, bd = 1e18;
-    for (const s of W.settlements) { if (!A.Town.has(W, s) || A.TownDraw.morph(s, view.k, CS) < 0.5) continue; const c = A.Town.get(W, s), lx = (fx - s.x - 0.5) * CS, ly = (fy - s.y - 0.5) * CS, d = Math.hypot(lx - c.c0[0], ly - c.c0[1]); if (d < c.R * 1.2 && d < bd) { bd = d; out = { s, c, h: A.Town.hit(c, lx, ly) }; } }
+    for (const s of W.settlements) { if (!A.Town.has(W, s) || A.TownDraw.morph(s, view.k, CS) < 0.5) continue; const c = A.Town.get(W, s), lx = (fx - s.x - 0.5) * CS, ly = (fy - s.y - 0.5) * CS, d = Math.hypot(lx - c.c0[0], ly - c.c0[1]); if ((d < c.R * 1.2 || c.sites.some(f => Math.hypot(lx - f.x, ly - f.y) < f.r * 1.1)) && d < bd) { bd = d; out = { s, c, h: A.Town.hit(c, lx, ly) }; } }
     return out;
   }
   function setHl(ct) { const h = ct && ct.h, c = ct && ct.c; hl.sid = c ? c.sid : -1; hl.hover = h && h.kind === 'building' ? h.o : null; hl.hoverDistrict = h && h.kind === 'district' ? h.o.id : h && h.kind === 'building' && h.o.district >= 0 ? h.o.district : null; }

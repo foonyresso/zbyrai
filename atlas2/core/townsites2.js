@@ -80,7 +80,7 @@ pottery|Гончарня|Гончарня|cluster|manufact|house,hut|#dcbfa0|#a0
 quarry|Каменоломня|Каменоломня|pit|warehouse|hut,smith|#c9c6bd|#7c7a70|craft|1|3|active|Виробка у скелі, візки з каменем і склад.
 claypit|Глиняний кар’єр|Глиняний кар’єр|pit|hut|hut,warehouse|#d6b896|#9a7a58|craft|1|2|active|Жовто-руда яма, звідки беруть глину для цегли.
 sawmill|Лісопильня|Лісопильня|cluster|mill|warehouse,hut,hut|#c9d6a0|#7f9a58|craft|1|3|active|Водяна пилорама й штабелі колод.
-watermill|Водяний млин|Водяний млин|cluster|mill|farmstead,warehouse|#bcd6c0|#6f9a80|craft|1|3|active|Млин на ставку з комірчиною й садибою мірошника.
+watermill|Водяний млин|Водяний млин|cluster|mill|farmstead,warehouse|#c9d6a8|#7f9a58|craft|1|3|active|Млин на ставку з комірчиною й садибою мірошника.
 guildyard|Склад гільдії|Гільдійський склад|court|warehouse|warehouse,gmerch,stable|#d9cfb0|#9a8e68|trade|2|2|active|Обгороджений склад, де зберігають каравани.
 tradepost|Торговий пост|Торговий пост|cluster|gmerch|shop,warehouse,stable|#e2d0a4|#a8935c|trade|2|2|active|Лавки й склад, де міняють вироби, хутра й прянощі.
 leprosarium|Притулок прокажених|Притулок|court|hospital|house,chapel|#cfd6c0|#8a947a|holy|2|1|active|Відокремлений притулок за огорожею, куди не вступає ніхто без потреби.
@@ -102,9 +102,9 @@ barrow|Курган|Курган|field|dungeon|obelisk|#bcc89a|#6f8a54|mystic|1|
 dolmen|Дольмен|Давній дольмен|field|shrine|obelisk|#cfd6b0|#7f9a5e|mystic|1|3|haunted|Кам’яні плити, складені велетнями, і вогонь свічок у щілинах.
 forestchapel|Лісова каплиця|Лісова каплиця|cluster|chapel|hut|#bed6a0|#6f9a58|holy|1|3|active|Скромна каплиця серед дерев і хатина доглядача.
 crossroads|Хрест на роздоріжжі|Придорожній хрест|field|shrine|hut|#d6dcb0|#8aa05c|holy|1|3|active|Кам’яний хрест, біля якого лишають дари подорожні.
-magicwell|Чарівний колодязь|Чарівний колодязь|field|well|shrine|#cfe0e8|#6a9ab8|mystic|1|2|active|Колодязь, вода з якого, кажуть, лікує або зводить з розуму.
+magicwell|Чарівний колодязь|Чарівний колодязь|field|well|shrine|#d6dcc0|#8a9a68|mystic|1|2|active|Колодязь, вода з якого, кажуть, лікує або зводить з розуму.
 borderpost|Прикордонна застава|Прикордонна застава|court|barracks|hut,stable|#d4ccaa|#8a8058|mil|1|3|active|Стіна, ворота й вартові, що перевіряють кожну підводу.
-capelight|Маяк на мисі|Маяк на мисі|cluster|lighthouse|fishhut,fishdry|#dce0e0|#8a9aa0|nature|2|1|active|Вежа маяка й хати доглядачів.
+capelight|Маяк на мисі|Маяк на мисі|cluster|lighthouse|fishhut,fishdry|#ded8c0|#a09a78|nature|2|1|active|Вежа маяка й хати доглядачів.
 smugglers|Пристань контрабандистів|Пристань|cluster|warehouse|hut,tavern,fishhut|#cdc6b0|#7a7258|dark|2|2|active|Тихий причал, де розвантажують те, чого не показують митникам.
 hermits|Оселя відлюдників|Оселя відлюдників|cluster|hut|hut,hut,chapel|#c3d6a6|#7a9a5a|holy|1|3|active|Хатки в лісі, де мовчанка цінується більше за слово.
 pilgrims|Табір паломників|Табір паломників|camp|chapel|hut|#d6d8b0|#9aa05c|holy|1|3|active|Намети й вогнища тих, хто йде на прощу.
@@ -116,7 +116,7 @@ mint|Монетний двір|Монетний двір|court|bank|barracks,war
 manorfarm|Садиба барона|Садиба|court|estate|rich,stable,farm,house|#d4e0a8|#8aa058|trade|2|3|active|Родова садиба з маєтком, стайнею й службами.
 huntinglodge|Мисливський будинок|Мисливський будинок|cluster|rich|stable,hut|#c8d6a0|#7a9a58|nature|2|2|active|Велика хата з рогами над дверима й псарнею.
 penmine|Рудня-в’язниця|Копальня-в’язниця|pit|prison|hut,warehouse|#b6b2a8|#6f6c64|dark|3|1|active|Каторжанська копальня з вартовими на вишках.
-holywell|Святий колодязь|Святий колодязь|field|well|chapel|#cfe0e0|#6a9a9a|holy|1|3|active|Джерело з каплицею, куди приходять по воду.
+holywell|Святий колодязь|Святий колодязь|field|well|chapel|#d8e4c0|#8aa05e|holy|1|3|active|Джерело з каплицею, куди приходять по воду.
 hillfort|Городище|Городище|ring|barracks|hut,stable,hut|#d0d0a8|#8a8a5a|mil|1|2|ruin|Давній вал із рову й частоколу.
 beacon|Сигнальна вежа|Сигнальна вежа|ring|mtower|hut|#d6d0b0|#8a8058|mil|1|3|active|Вежа з багаттям, яке палять при небезпеці.
 monkcell|Скит|Скит|ring|chapel|hut,hut|#d6e0c0|#7a9a60|holy|1|2|active|Невелика обитель, відрізана від світу частоколом.
