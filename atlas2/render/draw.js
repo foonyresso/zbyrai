@@ -27,7 +27,7 @@
   // view: {k px/клітина, tx, ty}; opts: {layers:{...}, hoverRegion, selRegion}
   function draw(cv, W, view, opts) {
     const c = prep(W), ctx = cv.getContext('2d'), L = opts.layers, { k, tx, ty } = view, px = 1 / k;
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
     ctx.drawImage(c.ocean, 0, 0, W.w, W.h);
     // берег: світле сяйво

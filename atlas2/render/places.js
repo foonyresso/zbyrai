@@ -75,7 +75,8 @@
     }
   };
   A.SITE_COLORS = SC;
-  A.drawPlaces = function (ctx, W, px, k, L, PAL) {
+  A.drawPlaces = function (ctx, W, px, k, L, PAL) { try { drawPlaces0(ctx, W, px, k, L, PAL); } finally { ctx.globalAlpha = 1; } }; // прозорість значків не має «протікати» в наступні кадри
+  function drawPlaces0(ctx, W, px, k, L, PAL) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     const halo = (t, x, y) => { ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };
     if (L.labels) drawNames(ctx, W, px, k);
@@ -101,5 +102,5 @@
         if (L.labels && k >= LBLK[rank]) { ctx.font = `${rank === 'capital' ? 700 : 600} ${(rank === 'capital' ? 13 : rank === 'regional' ? 11.5 : 10.5) * px}px sans-serif`; ctx.fillStyle = '#20180f'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name, x + r + 2 * px, y); ctx.fillText(s.name, x + r + 2 * px, y); ctx.textAlign = 'center'; }
       }
     }
-  };
+  }
 })();
