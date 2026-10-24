@@ -61,7 +61,7 @@
       if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }
     // ---- стіна
-    const walled = tier >= 2 && (tier >= 3 || r() < 0.7), wt = [0, 0, 6, 9, 13][tier], Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.05 * Math.sin(3 * th + wph) + 0.035 * Math.sin(5 * th + 2 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
+    const wmat = tier >= 3 ? 'stone' : tier === 2 ? (r() < 0.75 ? 'stone' : 'palisade') : tier === 1 ? (r() < 0.4 + Math.min(0.3, popEff / 2500) ? 'palisade' : null) : (r() < 0.35 ? 'fence' : null), walled = !!wmat, wt = wmat === 'stone' ? [0, 0, 6, 10, 14][tier] : wmat === 'palisade' ? 3 : 1.4, Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.05 * Math.sin(3 * th + wph) + 0.035 * Math.sin(5 * th + 2 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
     // ---- райони: опорні точки (вага менша → район більший)
     const plan = (tier === 1 ? (popEff >= 250 ? PLANS[1] : []) : PLANS[tier]).filter(k => k !== 'port' || (s.port && shore.length)), anchors = [], land = (x, y) => WK(x, y) === 0;
     const ring = (f, jit) => { const o = []; const ph = r() * TAU; for (let k = 0; k < 18; k++) { const a = ph + k / 18 * TAU, rr = R * f * (1 + (r() - 0.5) * jit), x = x0 + Math.cos(a) * rr, y = y0 + Math.sin(a) * rr; if (land(x, y)) o.push([x, y]); } return o; };
@@ -166,11 +166,12 @@
     const order = lots.slice().sort((p, q) => (p.d + r() * 22) - (q.d + r() * 22)), cap = Math.round(target * 1.08), pools = {};
     const poolOf = id => pools[id] || (pools[id] = pool(kindOf(id)));
     const pushTypeFor = (x, y, id) => { const kind = kindOf(id), p = poolOf(id); if (tier === 0 || !Object.keys(p).length) return pickW(pool(kind || (tier ? 'outskirts' : 'outskirts'))); return pickW(p); };
+    const lastId = {}, RES = new Set(['house', 'rich', 'estate', 'slum', 'farmstead', 'shop', 'bakery', 'weaver', 'smith', 'warehouse']);
     for (const lot of order) {
-      if (B.length >= cap) break; if (r() < 0.07 + 0.35 * Math.min(1, lot.d / R) ** 3) continue;
-      const did = districtOf(lot.x, lot.y); let id = pushTypeFor(lot.x, lot.y, did), b = mkB(id, lot, 1), ok = canPlace(b);
+      if (B.length >= cap) break; if (r() < 0.05 + 0.3 * Math.min(1, lot.d / R) ** 3) continue;
+      const did = districtOf(lot.x, lot.y), lkey = lot.st + '|' + (lot.nx * -Math.sin(lot.a) + lot.ny * Math.cos(lot.a) > 0 ? 1 : -1); let id = lastId[lkey] && RES.has(lastId[lkey]) && r() < 0.62 && tierOk(lastId[lkey]) ? lastId[lkey] : pushTypeFor(lot.x, lot.y, did), b = mkB(id, lot, 1), ok = canPlace(b);
       for (let t = 0; !ok && t < 2; t++) { id = pickW(pool(kindOf(did) === 'port' ? 'port' : 'outskirts')); b = mkB(id, lot, 1); ok = canPlace(b); }
-      if (ok) addB(b);
+      if (ok) { addB(b); lastId[lkey] = id; }
     }
     // двори між вулицями: менші споруди без прямого виходу на вулицю
     for (let tries = 0, lim = Math.max(0, cap - B.length) * 6; tries < lim && B.length < cap; tries++) {
@@ -216,9 +217,13 @@
       for (const f of F) if (Math.hypot(f.x - x, f.y - y) < f.r + 2 && f.t !== 'park') ok = false; for (const f of fields) if (rectHit(f, x, y, 2)) ok = false; if (ok) trees.push({ x, y, r: 2.5 + r() * 3, c: gn === 'taiga' || gn === 'mountain' || r() < 0.2 ? 1 : 0 });
     }
     for (const f of F) if (f.t === 'park') for (let k = 0, n = Math.round(f.r * f.r / 70); k < n; k++) { const a = r() * TAU, d = Math.sqrt(r()) * f.r * 0.92; trees.push({ x: f.x + Math.cos(a) * d, y: f.y + Math.sin(a) * d, r: 2.5 + r() * 2.5, c: 0 }); }
-    const wall = { on: walled, w: wt, R: Rw, ph: wph, runs: [], towers: [], gates: [] };
-    if (walled) { let run = []; const N = 160; for (let k = 0; k <= N; k++) { const th = k / N * TAU, rr = wallR(th), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr, ok = WK(x, y) === 0 && !(fate && fate !== 'occupied' && env.hash(k >> 2, si & 255, si) < 0.45) && !(fate === 'occupied' && env.hash(k >> 3, si & 255, si) < 0.15); if (ok) run.push(x, y); else { if (run.length >= 4) wall.runs.push(run); run = []; } if (ok && k % 8 === 0) wall.towers.push([x, y]); } if (run.length >= 4) wall.runs.push(run);
+    const wall = { on: walled, mat: wmat, w: wt, R: Rw, ph: wph, runs: [], towers: [], gates: [] };
+    if (walled) { let run = []; const N = 160; for (let k = 0; k <= N; k++) { const th = k / N * TAU, rr = wallR(th), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr, ok = WK(x, y) === 0 && !(fate && fate !== 'occupied' && env.hash(k >> 2, si & 255, si) < 0.45) && !(fate === 'occupied' && env.hash(k >> 3, si & 255, si) < 0.15); if (ok) run.push(x, y); else { if (run.length >= 4) wall.runs.push(run); run = []; } if (ok && wmat === 'stone' && k % (tier >= 3 ? 8 : 12) === 0) wall.towers.push([x, y]); } if (run.length >= 4) wall.runs.push(run);
       streets.filter(st => st.kind !== 'embankment' && st.kind !== 'ring' && st.pts.length >= 4).forEach(st => { const p = st.pts; let cnt = 0; for (let i = 2; i < p.length && cnt < 2; i += 2) { const da = d0(p[i - 2], p[i - 1]) - wallR(Math.atan2(p[i - 1] - y0, p[i - 2] - x0)), db = d0(p[i], p[i + 1]) - wallR(Math.atan2(p[i + 1] - y0, p[i] - x0)); if ((da < 0) !== (db < 0)) { const t = da / (da - db), x = p[i - 2] + (p[i] - p[i - 2]) * t, y = p[i - 1] + (p[i + 1] - p[i - 1]) * t; if (WK(x, y) !== 0 && !st.br[i / 2]) continue; wall.gates.push({ x, y, a: Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]), hw: st.hw, main: st.kind === 'avenue', name: (st.kind === 'avenue' ? 'Брама «' + st.name.replace(/^Шлях на /, 'на ') : 'Хвіртка «' + st.name.replace(/^(вулиця|Вулиця) /, '')) + '»' }); cnt++; } } }); }
+    // ---- сади й дерева в кварталах: за будинками, подалі від вулиць
+    if (tier >= 1) for (let i = 0, n = Math.round(B.length * 0.45), tries = 0; i < n && tries < n * 6; tries++) { const b = B[Math.floor(r() * B.length)]; if (!b || b.site || b.st < 0 || !['house', 'rich', 'estate', 'farmstead', 'slum'].includes(b.type)) continue;
+      const sd = b.side > 0 ? 1 : -1, st = streets[b.st], bx = b.x + Math.cos(b.a + Math.PI / 2 * sd) * (b.h / 2 + 3.5 + r() * 4), by = b.y + Math.sin(b.a + Math.PI / 2 * sd) * (b.h / 2 + 3.5 + r() * 4), sx = bx + (r() - 0.5) * b.w, sy = by + (r() - 0.5) * 4;
+      if (WK(sx, sy) !== 0 || near(sx, sy, 12, -1, -2) < 3 || B.some(o => Math.hypot(o.x - sx, o.y - sy) < Math.max(o.w, o.h) * 0.6 + 2) || F.some(f => f.t !== 'park' && Math.hypot(f.x - sx, f.y - sy) < f.r)) continue; trees.push({ x: sx, y: sy, r: 1.8 + r() * 1.6, c: 0 }); i++; }
     // ---- ставки: біля ферм і млинів на околицях, трохи осторонь вулиць і будинків
     if (tier >= 1) { const cand = B.filter(b => ['farm', 'farmstead', 'mill', 'windmill', 'estate', 'rich'].includes(b.type) && !b.site && d0(b.x, b.y) > R * 0.55).sort(() => r() - 0.5); let np = Math.min(cand.length, 1 + Math.round(tier * 0.8));
       for (const b of cand) { if (np <= 0) break; const a = r() * TAU, rad = 7 + r() * 8, d = Math.max(b.w, b.h) / 2 + rad + 6, x = b.x + Math.cos(a) * d, y = b.y + Math.sin(a) * d;
