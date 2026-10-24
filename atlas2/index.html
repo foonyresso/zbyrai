@@ -17,6 +17,11 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Атлас <span>2.0</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  <div class="top-actions">
+    <button id="btnLink" title="Скопіювати посилання, яке відкриє цей самий світ з усіма налаштуваннями">Копіювати посилання</button>
+    <button id="btnPng" title="Зберегти поточний вигляд карти як картинку PNG">Зберегти PNG</button>
+    <button id="btnPrint" title="Надрукувати поточний вигляд карти">Друк</button>
+  </div>
 </header>
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
@@ -32,6 +37,7 @@
   <button data-panel="layers" title="Які шари показувати на карті"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>Шари</span></button>
   <button data-panel="about" title="Підсумок світу й умовні позначки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg><span>Позначки</span></button>
 </nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <aside class="drawer" id="drawer" data-store="atlas2.panel" hidden>
   <button class="x" id="drawerX" title="Закрити меню">×</button>
   <section data-panel="world">

@@ -110,6 +110,11 @@
   cv.addEventListener('pointerleave', () => { if (!drag) { if (A.TownMap) A.TownMap.hover(null); curCt = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
 
   // меню (іконки, панель, довідка «i») веде спільний кіт zb-ui.js; ключ збереження панелі: data-store на #drawer
+  // збереження й обмін (верхня панель)
+  const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1800); };
+  $('btnLink').onclick = async () => { try { await navigator.clipboard.writeText(location.href); toast('Посилання скопійовано'); } catch (e) { toast('Не вдалося скопіювати посилання'); } };
+  $('btnPng').onclick = () => cv.toBlob(b => { if (!b) return; const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'atlas-' + ($('seed').value || 'world') + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Збережено картинку'); });
+  $('btnPrint').onclick = () => window.print();
   addEventListener('resize', () => { if (W) { fit(); resetView(); redraw(); } });
 
   const m = /#p=(.+)$/.exec(location.hash);
