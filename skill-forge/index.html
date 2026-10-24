@@ -13,14 +13,15 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/skill-forge/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M17 4 8 18h7l-2 10 11-15h-7z%27 fill=%27none%27 stroke=%27%23f08a5d%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M13 2.5 5 13.5h6l-1.5 8 9-12h-6.5z"/></svg><div>Конструктор <span>скілів</span></div></div>
-  <div class="spacer"></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden>← Zbyr<b>AI</b></a>
+  <div class="brand">Конструктор <span>скілів</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
   <div class="top-actions">
     <button id="btnImport" title="Вставити JSON або обрати файл і замінити поточний скіл">Імпорт</button>
     <button id="btnCopyJson" title="Скопіювати скіл як JSON (формат zbyrai.skill, версія 1) у буфер обміну">Копіювати JSON</button>
@@ -31,76 +32,53 @@
   </div>
 </header>
 
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Конструктор здібностей для ігор. Скіл збирається з цеглинок чотирьох видів: <b>доставка</b> (як досягає цілей: снаряд, конус, зона, виклик…), <b>модифікатор</b> (пробиття, ланцюг, розкол, затримка…), <b>ефект</b> (шкода, лікування, контроль, ривок, посилення…) і <b>тригер</b> (при вбивстві, коли закінчиться… із вкладеними цеглинками).</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Щоб швидко придумати скіл і побачити, як він виглядає, що робить і чи не надто він сильний для своєї ціни. Готовий скіл виходить у JSON із версією формату, який легко прочитати в грі (Godot C#).</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Почни з прикладу</b> у блоці «Приклади» або натисни «Випадковий скіл».</li>
-        <li><b>Додавай цеглинки</b> зліва: вони стають у вибрану цеглинку, якщо туди можна. Параметри змінюй у картках посередині.</li>
-        <li><b>Дивись прев’ю й оцінку</b> справа: кнопка «Запустити» показує дію на п’яти манекенах.</li>
-        <li><b>Збережи</b> у верхній панелі: JSON, опис, друк або вузол для дерева скілів.</li>
-      </ol>
-    </div>
-  </div>
-</details>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Конструктор скілів</h2>
+  <h3>Що це</h3><p>Конструктор здібностей для ігор. Скіл збирається з цеглинок чотирьох видів: <b>доставка</b> (як досягає цілей: снаряд, конус, зона, виклик…), <b>модифікатор</b> (пробиття, ланцюг, розкол, затримка…), <b>ефект</b> (шкода, лікування, контроль, ривок, посилення…) і <b>тригер</b> (при вбивстві, коли закінчиться… із вкладеними цеглинками).</p>
+  <h3>Для чого</h3><p>Щоб швидко придумати скіл і побачити, як він виглядає, що робить і чи не надто він сильний для своєї ціни. Готовий скіл виходить у JSON із версією формату, який легко прочитати в грі (Godot C#).</p>
+  <h3>Як користуватися</h3><ol> <li><b>Почни з прикладу</b> у меню «Приклади» або натисни «Випадковий скіл».</li> <li><b>Додавай цеглинки</b> зліва: вони стають у вибрану цеглинку, якщо туди можна. Параметри змінюй у картках посередині.</li> <li><b>Дивись прев’ю й оцінку</b> справа: кнопка «Запустити» показує дію на п’яти манекенах.</li> <li><b>Збережи</b> у верхній панелі: JSON, опис, друк або вузол для дерева скілів.</li> </ol>
+</dialog>
 
-<main class="forge">
-  <aside class="col palette" aria-label="Цеглинки">
-    <section class="card">
-      <h2 title="Усі доступні цеглинки; клік додає її у вибрану цеглинку або в корінь скіла">Цеглинки</h2>
+<main class="stage" id="stage"><canvas id="cv" aria-label="Прев’ю дії скіла" title="Схема дії скіла на п’яти манекенах: вид зверху, гравець ліворуч"></canvas></main>
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="bricks" title="Усі доступні цеглинки; клік додає її у вибрану цеглинку або в корінь скіла"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="10" rx="1.5"/><path d="M8 8V5h3v3M13 8V5h3v3"/></svg><span>Цеглинки</span></button>
+  <button data-panel="skill" title="Загальні властивості скіла (назва, ціль, час, ціна) і дерево його цеглинок"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2.5 5 13h6l-1 8.5L19 10h-6z"/></svg><span>Скіл</span></button>
+  <button data-panel="eval" title="Груба оцінка скіла на п’яти ворогах і його опис простими словами"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Оцінка</span></button>
+  <button data-panel="presets" title="Готові скіли-приклади й випадковий скіл"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span>Приклади</span></button>
+</nav>
+<aside class="drawer" id="drawer" data-store="sf_panel" data-default="skill" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="bricks"><h2>Цеглинки</h2>
       <div class="chips" id="catTabs" role="tablist"></div>
       <input type="search" id="brickSearch" placeholder="Пошук цеглинки…" title="Знайти цеглинку за назвою або описом" aria-label="Пошук цеглинки">
       <p class="hint" id="catHint"></p>
       <div id="brickList" class="blist"></div>
-    </section>
-  </aside>
-
-  <section class="col builder" aria-label="Скіл">
-    <section class="card">
-      <h2 title="Загальні властивості скіла: назва, ціль, час, ціна">Скіл</h2>
-      <div id="meta" class="form"></div>
-    </section>
-    <section class="card">
-      <div class="h2row"><h2 title="Дерево цеглинок скіла: доставка → модифікатори, ефекти, тригери">Цеглинки скіла</h2><span class="spacer"></span>
+  </section>
+  <section data-panel="skill"><h2>Скіл</h2>
+    <div id="meta" class="form"></div>
+    <div class="h2row"><h2 title="Дерево цеглинок скіла: доставка → модифікатори, ефекти, тригери">Цеглинки скіла</h2><span class="spacer"></span>
         <button id="btnUndo" title="Скасувати останню дію (Ctrl+Z)" aria-label="Скасувати">↶</button>
         <button id="btnRedo" title="Повторити скасовану дію (Ctrl+Shift+Z)" aria-label="Повторити">↷</button>
         <button id="btnClear" class="danger" title="Прибрати всі цеглинки (можна скасувати)">Очистити</button></div>
       <div id="tree"></div>
-    </section>
   </section>
-
-  <aside class="col side" aria-label="Результат">
-    <section class="card">
-      <div class="h2row"><h2 title="Схема дії скіла на п’яти манекенах: вид зверху, гравець ліворуч">Прев’ю</h2><span class="spacer"></span>
-        <button id="btnPlay" class="btn-primary" title="Показати анімацію дії скіла (Пробіл)">▶ Запустити</button>
-        <button id="btnLoop" title="Повторювати анімацію безперервно">Повтор</button></div>
-      <canvas id="cv" aria-label="Прев’ю дії скіла"></canvas>
-    </section>
-    <section class="card">
-      <h2 title="Груба оцінка на п’яти ворогах і силі атаки 100%; це орієнтир, а не точний бій">Оцінка</h2>
+  <section data-panel="eval">
+    <h2 title="Груба оцінка на п’яти ворогах і силі атаки 100%; це орієнтир, а не точний бій">Оцінка</h2>
       <div id="stats"></div>
-    </section>
-    <section class="card">
-      <h2 title="Опис скіла простими словами, одержаний з цеглинок">Опис</h2>
+    <h2 title="Опис скіла простими словами, одержаний з цеглинок">Опис</h2>
       <pre id="descText" class="desc-text"></pre>
-    </section>
-    <section class="card">
-      <div class="h2row"><h2 title="Готові скіли-приклади: клік замінює поточний скіл">Приклади</h2><span class="spacer"></span>
+  </section>
+  <section data-panel="presets">
+    <div class="h2row"><h2 title="Готові скіли-приклади: клік замінює поточний скіл">Приклади</h2><span class="spacer"></span>
         <button id="btnRandom" title="Згенерувати випадковий, але придатний скіл (замінює поточний)">🎲 Випадковий скіл</button></div>
       <div id="presets" class="chips"></div>
-    </section>
-  </aside>
-</main>
+  </section>
+</aside>
+<div class="bar">
+  <button id="btnPlay" class="btn-primary" title="Показати анімацію дії скіла (Пробіл)">▶ Запустити</button>
+  <button id="btnLoop" title="Повторювати анімацію безперервно">Повтор</button>
+</div>
 
 <dialog id="dlgImport" class="modal">
   <form method="dialog">
@@ -120,10 +98,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
+<script src="./zb-ui.js"></script>
 <script src="./forge-core.js"></script>
 <script src="./bricks/delivery.js"></script>
 <script src="./bricks/modifiers.js"></script>
@@ -133,6 +108,5 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./presets.js"></script>
 <script src="./forge-preview.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
