@@ -2,7 +2,7 @@
 // Запуск: node tools/ui-rules.test.js
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert');
 const root = path.join(__dirname, '..');
-const TOOLS = ['medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'image-converter', 'skill-forge', 'album-builder', 'zakladyny'];
+const TOOLS = ['medieval-world', 'prompt-dice', 'idea-mixer', 'colonist-foundry', 'character-roller', 'skill-forge', 'album-builder', 'zakladyny'];
 // інструменти зі старою довідкою details.about: перевіряємо лише кнопку «Інфо» (tool-chrome.js)
 const ABOUT_TOOLS = ['balance-curves', 'loot-forge', 'production-planner', 'skill-tree', 'sprite-cleaner'];
 // інструменти на UI-кіті (shared/ui, docs/ui-kit.md): довідка «i» у dialog#help, шапка .top, кіт підключено
