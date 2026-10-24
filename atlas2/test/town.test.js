@@ -15,6 +15,9 @@ for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'zbyr
     // дороги карти проходять через місто тими самими точками: кожна вершина проспекту лежить на лінії дороги карти
     const CS = W.params.kmPerCell * 1000, segs = []; for (const rd of W.roads) for (let i = 1; i < rd.cells.length; i++) { const a = rd.cells[i - 1], b = rd.cells[i]; segs.push([((a % W.w) + 0.5 - s.x - 0.5) * CS, (((a / W.w) | 0) + 0.5 - s.y - 0.5) * CS, ((b % W.w) + 0.5 - s.x - 0.5) * CS, (((b / W.w) | 0) + 0.5 - s.y - 0.5) * CS]); }
     for (const st of c.streets) if (st.kind === 'avenue') for (let i = 0; i < st.pts.length; i += 2) { let m = 1e9; for (const g of segs) { const d = c.env.segDist(st.pts[i], st.pts[i + 1], g[0], g[1], g[2], g[3]); if (d < m) m = d; } assert.ok(m < 0.5, t + ': проспект відхилився від дороги карти на ' + m); }
+    // поля лежать на суходолі й не під спорудами; замковий мур тримається всередині міста
+    for (const f of c.fields) { assert.ok(c.env.waterKind(f.x, f.y) === 0, t + ': поле у воді'); for (const b of c.buildings) assert.ok(Math.hypot(b.x - f.x, b.y - f.y) > 3, t + ': поле під спорудою'); }
+    if (c.keep) assert.ok(Math.hypot(c.keep.x - c.c0[0], c.keep.y - c.c0[1]) + c.keep.r < c.R * 1.1, t + ': замок за межами міста');
     for (const d of c.districts) assert.ok(A.Town.describe(c, { kind: 'district', o: d }).title);
   }
 }

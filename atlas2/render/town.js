@@ -31,6 +31,17 @@
   const COL = { good: 1, worn: 0.88, damaged: 0.8 };
   function shade(hex, f) { const h = hex.replace('#', ''), v = [0, 2, 4].map(i => Math.max(0, Math.min(255, Math.round(parseInt(h.slice(i, i + 2), 16) * f)))); return `rgb(${v[0]},${v[1]},${v[2]})`; }
   function buildingFill(b) { const t = T[b.type]; if (b.cond === 'ruined') return '#8d867a'; if (b.cond === 'burnt') return '#4a403a'; if (b.cond === 'lair') return '#9a3228'; return shade(t.col, COL[b.cond] || 1); }
+  // ділянка поля: колір і малюнок за культурою; живопліт по краю
+  const CROP = ['#dccf84', '#cfd28a', '#d8c48e', '#c9d48c'], FILL = { garden: '#b4c97e', orchard: '#bcd08a', meadow: '#bdd48e', vineyard: '#c4cf86' };
+  function fieldPlot(g, f, k, fate) {
+    g.save(); g.translate(f.x * k, f.y * k); g.rotate(f.a + (f.dir && f.k === 'arable' ? Math.PI / 2 : 0)); const w = f.dir && f.k === 'arable' ? f.h : f.w, h = f.dir && f.k === 'arable' ? f.w : f.h, hw = w / 2 * k, hh = h / 2 * k;
+    g.fillStyle = f.k === 'arable' ? (fate ? '#c5c88f' : CROP[f.crop || 0]) : FILL[f.k] || '#bdd48e'; g.fillRect(-hw, -hh, hw * 2, hh * 2);
+    if (k > 0.3) {
+      if (f.k === 'arable') { g.strokeStyle = 'rgba(120,100,50,.38)'; g.lineWidth = 1; g.beginPath(); const sp = 4 + (f.crop || 0); for (let y = -h / 2 + 2; y < h / 2; y += sp) { g.moveTo(-hw, y * k); g.lineTo(hw, y * k); } g.stroke(); }
+      else if (f.k === 'vineyard') { g.strokeStyle = 'rgba(60,100,40,.75)'; g.lineWidth = Math.max(1, 1.3 * k); g.beginPath(); for (let y = -h / 2 + 3; y < h / 2 - 1; y += 6) { g.moveTo(-hw + 2 * k, y * k); g.lineTo(hw - 2 * k, y * k); } g.stroke(); }
+      else if (f.k === 'garden' || f.k === 'orchard') { const st = f.k === 'garden' ? 9 : 12; g.fillStyle = f.k === 'garden' ? 'rgba(70,120,50,.7)' : 'rgba(60,110,45,.85)'; for (let y = -h / 2 + 5; y < h / 2 - 2; y += st) for (let x = -w / 2 + 5; x < w / 2 - 2; x += st) { g.beginPath(); g.arc(x * k, y * k, Math.max(1, (f.k === 'garden' ? 2 : 3) * k), 0, TAU); g.fill(); } } }
+    g.strokeStyle = 'rgba(70,100,45,.8)'; g.lineWidth = Math.max(1, 1.2 * k); g.strokeRect(-hw, -hh, hw * 2, hh * 2); g.restore();
+  }
   // view: {k px/м, tx, ty — де в пікселях центр міста}; opt: {districts, names, hover, sel, hoverDistrict}
   function draw(cv, c, view, opt) {
     const g = cv.getContext('2d'), k = view.k, W = cv.width, H = cv.height; opt = opt || {};
@@ -39,11 +50,7 @@
     if (!opt.map) { const wl = waterLayer(c); g.imageSmoothingEnabled = true; g.drawImage(wl.cv, -wl.E * k, -wl.E * k, wl.E * 2 * k, wl.E * 2 * k); }
     const lod = (a, b) => opt.map ? sm((k - a) / (b - a)) : 1, A0 = opt.alpha == null ? 1 : opt.alpha, setA = v => { g.globalAlpha = A0 * v; };
     const vis = (x, y, r) => { const sx = x * k + view.tx, sy = y * k + view.ty, rr = r * k; return sx + rr > 0 && sy + rr > 0 && sx - rr < W && sy - rr < H; };
-    setA(lod(0.04, 0.15)); if (g.globalAlpha > 0.01) for (const f of c.fields) { if (!vis(f.x, f.y, Math.max(f.w, f.h))) continue; g.save(); g.translate(f.x * k, f.y * k); g.rotate(f.a); const hw = f.w / 2 * k, hh = f.h / 2 * k;
-      g.fillStyle = f.k === 'garden' ? '#b4c97e' : f.k === 'meadow' ? '#bdd48e' : (c.fate ? '#c5c88f' : '#dccf84'); g.fillRect(-hw, -hh, hw * 2, hh * 2);
-      if (k > 0.3) { if (f.k === 'arable') { g.strokeStyle = 'rgba(120,100,50,.38)'; g.lineWidth = 1; g.beginPath(); const sp = 4 + (f.w * 7 % 3); for (let y = -f.h / 2 + 2; y < f.h / 2; y += sp) { g.moveTo(-hw, y * k); g.lineTo(hw, y * k); } g.stroke(); }
-        else if (f.k === 'garden') { g.fillStyle = 'rgba(70,120,50,.7)'; for (let y = -f.h / 2 + 5; y < f.h / 2 - 2; y += 9) for (let x = -f.w / 2 + 5; x < f.w / 2 - 2; x += 9) { g.beginPath(); g.arc(x * k, y * k, Math.max(1, 2 * k), 0, TAU); g.fill(); } } }
-      g.strokeStyle = 'rgba(86,110,56,.75)'; g.lineWidth = Math.max(1, 1.1 * k); g.strokeRect(-hw, -hh, hw * 2, hh * 2); g.restore(); }
+    setA(lod(0.04, 0.15)); if (g.globalAlpha > 0.01) for (const f of c.fields) { if (!vis(f.x, f.y, Math.max(f.w, f.h))) continue; fieldPlot(g, f, k, c.fate); }
     setA(1); { const ma = opt.map ? 1 - lod(0.12, 0.5) : 0; if (ma > 0.02) { const ml = massLayer(c); setA(ma * 0.92); g.drawImage(ml.cv, -ml.E * k, -ml.E * k, ml.E * 2 * k, ml.E * 2 * k); setA(1); } }
     if (opt.districts && c.districts.length) { const dl = districtLayer(c); const ga = g.globalAlpha; g.globalAlpha = (opt.map ? 0.3 + 0.25 * (1 - lod(0.1, 0.5)) : 0.34) * ga; g.drawImage(dl.cv, -dl.E * k, -dl.E * k, dl.E * 2 * k, dl.E * 2 * k); g.globalAlpha = ga; }
     setA(lod(0.03, 0.1)); if (g.globalAlpha > 0.01 && c.sites) for (const f of c.sites) { if (!vis(f.x, f.y, f.r * 1.4)) continue;
@@ -89,11 +96,11 @@
         if (b.type === 'cathedral' || b.type === 'temple') { g.strokeStyle = '#8a8570'; g.lineWidth = Math.max(1, 0.8 * k); g.beginPath(); g.moveTo(0, -h * 0.4); g.lineTo(0, h * 0.4); g.moveTo(-w * 0.3, -h * 0.1); g.lineTo(w * 0.3, -h * 0.1); g.stroke(); } }
       g.restore();
     } }
-    setA(lod(0.03, 0.08)); if (c.wall.on) { for (const run of c.wall.runs) { poly(g, run, k); g.lineJoin = 'round'; const wm = c.wall.mat; if (wm === 'stone') { g.strokeStyle = '#4c4c58'; g.lineWidth = Math.max(2, (c.wall.w + 2) * k); g.stroke(); g.strokeStyle = '#a4a4b2'; g.lineWidth = Math.max(1, c.wall.w * k); g.stroke(); g.strokeStyle = '#8a8a98'; g.lineWidth = Math.max(0.6, c.wall.w * 0.3 * k); g.stroke(); }
-        else if (wm === 'palisade') { g.strokeStyle = '#4a3220'; g.lineWidth = Math.max(1.5, (c.wall.w + 1) * k); g.stroke(); g.strokeStyle = '#9a7242'; g.lineWidth = Math.max(1, c.wall.w * k); g.stroke(); if (k > 0.5) { g.setLineDash([1.2 * k, 1.2 * k]); g.strokeStyle = '#6b4a2a'; g.lineWidth = Math.max(0.8, c.wall.w * 0.8 * k); g.stroke(); g.setLineDash([]); } }
+    setA(lod(0.03, 0.08)); for (const wl of [c.wall.on ? c.wall : null, c.keep ? Object.assign({ mat: 'stone' }, c.keep) : null]) if (wl) { setA(lod(0.03, 0.08)); for (const run of wl.runs) { poly(g, run, k); g.lineJoin = 'round'; const wm = wl.mat; if (wm === 'stone') { g.strokeStyle = '#4c4c58'; g.lineWidth = Math.max(2, (wl.w + 2) * k); g.stroke(); g.strokeStyle = '#a4a4b2'; g.lineWidth = Math.max(1, wl.w * k); g.stroke(); g.strokeStyle = '#8a8a98'; g.lineWidth = Math.max(0.6, wl.w * 0.3 * k); g.stroke(); }
+        else if (wm === 'palisade') { g.strokeStyle = '#4a3220'; g.lineWidth = Math.max(1.5, (wl.w + 1) * k); g.stroke(); g.strokeStyle = '#9a7242'; g.lineWidth = Math.max(1, wl.w * k); g.stroke(); if (k > 0.5) { g.setLineDash([1.2 * k, 1.2 * k]); g.strokeStyle = '#6b4a2a'; g.lineWidth = Math.max(0.8, wl.w * 0.8 * k); g.stroke(); g.setLineDash([]); } }
         else { g.strokeStyle = '#6b4a2a'; g.lineWidth = Math.max(1, 1.6 * k); g.stroke(); g.strokeStyle = '#b08a5a'; g.lineWidth = Math.max(0.6, 0.9 * k); g.stroke(); } }
-      setA(lod(0.2, 0.4)); for (const q of c.wall.towers) { g.beginPath(); g.arc(q[0] * k, q[1] * k, Math.max(2, (c.wall.w * 0.75 + 1.5) * k), 0, TAU); g.fillStyle = '#9090a2'; g.fill(); g.strokeStyle = '#3f3f4c'; g.lineWidth = Math.max(1, 0.9 * k); g.stroke(); }
-      setA(lod(0.15, 0.3)); for (const q of c.wall.gates) { g.save(); g.translate(q.x * k, q.y * k); g.rotate(q.a); const gl = (c.wall.w + 6) * k, gw = Math.max(12, (q.hw || 4) * 2 + 6) * k; g.fillStyle = q.main ? '#8b6a45' : '#a08560'; g.fillRect(-gl / 2, -gw / 2, gl, gw); g.strokeStyle = '#3d2c1c'; g.lineWidth = Math.max(1, k); g.strokeRect(-gl / 2, -gw / 2, gl, gw); g.restore(); } }
+      setA(lod(0.2, 0.4)); for (const q of wl.towers) { g.beginPath(); g.arc(q[0] * k, q[1] * k, Math.max(2, (wl.w * 0.75 + 1.5) * k), 0, TAU); g.fillStyle = '#9090a2'; g.fill(); g.strokeStyle = '#3f3f4c'; g.lineWidth = Math.max(1, 0.9 * k); g.stroke(); }
+      setA(lod(0.15, 0.3)); for (const q of wl.gates) { g.save(); g.translate(q.x * k, q.y * k); g.rotate(q.a); const gl = (wl.w + 6) * k, gw = Math.max(12, (q.hw || 4) * 2 + 6) * k; g.fillStyle = q.main ? '#8b6a45' : '#a08560'; g.fillRect(-gl / 2, -gw / 2, gl, gw); g.strokeStyle = '#3d2c1c'; g.lineWidth = Math.max(1, k); g.strokeRect(-gl / 2, -gw / 2, gl, gw); g.restore(); } }
     setA(lod(0.5, 0.8)); if (g.globalAlpha > 0.01) for (const p of c.props) { g.beginPath(); g.arc(p.x * k, p.y * k, Math.max(2, p.r * k), 0, TAU); g.fillStyle = p.t === 'monument' ? '#b8b8c0' : '#6ab0e0'; g.fill(); g.strokeStyle = '#3f4a58'; g.lineWidth = Math.max(1, 0.8 * k); g.stroke(); if (p.t === 'fountain') { g.beginPath(); g.arc(p.x * k, p.y * k, Math.max(1, p.r * 0.45 * k), 0, TAU); g.fillStyle = '#e8f6ff'; g.fill(); } }
     setA(lod(0.3, 0.6)); if (g.globalAlpha > 0.01) for (const m of c.camps) { const x = m.x * k, y = m.y * k, u = Math.max(2, 2.2 * k); g.save(); g.translate(x, y); g.rotate(m.a);
       if (m.t === 'tent') { g.beginPath(); g.moveTo(0, -u * 1.4); g.lineTo(u * 1.4, u); g.lineTo(-u * 1.4, u); g.closePath(); g.fillStyle = '#7a5a3a'; g.fill(); g.strokeStyle = '#2d1f12'; g.lineWidth = 1; g.stroke(); }

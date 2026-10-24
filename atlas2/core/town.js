@@ -61,7 +61,7 @@
       if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }
     // ---- стіна
-    const wmat = tier >= 3 ? 'stone' : tier === 2 ? (r() < 0.75 ? 'stone' : 'palisade') : tier === 1 ? (r() < 0.4 + Math.min(0.3, popEff / 2500) ? 'palisade' : null) : (r() < 0.35 ? 'fence' : null), walled = !!wmat, wt = wmat === 'stone' ? [0, 0, 6, 10, 14][tier] : wmat === 'palisade' ? 3 : 1.4, Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.05 * Math.sin(3 * th + wph) + 0.035 * Math.sin(5 * th + 2 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
+    const wmat = tier >= 3 ? 'stone' : tier === 2 ? (r() < 0.75 ? 'stone' : 'palisade') : tier === 1 ? (r() < 0.4 + Math.min(0.3, popEff / 2500) ? 'palisade' : null) : (r() < 0.35 ? 'fence' : null), walled = !!wmat, wt = wmat === 'stone' ? [0, 0, 6, 10, 14][tier] : wmat === 'palisade' ? 3 : 1.4, Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.09 * Math.sin(2 * th + wph) + 0.06 * Math.sin(3 * th + 2 * wph) + 0.035 * Math.sin(5 * th + 3 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
     // ---- райони: опорні точки (вага менша → район більший)
     const plan = (tier === 1 ? (popEff >= 250 ? PLANS[1] : []) : PLANS[tier]).filter(k => k !== 'port' || (s.port && shore.length)), anchors = [], land = (x, y) => WK(x, y) === 0;
     const ring = (f, jit) => { const o = []; const ph = r() * TAU; for (let k = 0; k < 18; k++) { const a = ph + k / 18 * TAU, rr = R * f * (1 + (r() - 0.5) * jit), x = x0 + Math.cos(a) * rr, y = y0 + Math.sin(a) * rr; if (land(x, y)) o.push([x, y]); } return o; };
@@ -123,14 +123,16 @@
     // ---- місця під забудову вздовж вулиць (фронтаж)
     const lots = []; streets.forEach(st => { if (st.kind === 'path') return; const p = st.pts; for (let i = 2; i < p.length; i += 2) { if (st.br[i / 2]) continue; const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), a = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]); for (let t = 0; t < L; t += 9) for (const sd of [1, -1]) { const x = p[i - 2] + Math.cos(a) * t, y = p[i - 1] + Math.sin(a) * t; if (st.kind === 'embankment' && ((x0 - x) * -Math.sin(a) + (y0 - y) * Math.cos(a)) * sd < 0) continue; lots.push({ x, y, a, nx: -Math.sin(a) * sd, ny: Math.cos(a) * sd, hw: st.hw, st: st.id, d: d0(x, y) }); } } });
     // ---- розміщення споруд
+    let keep = null;
     const tierOk = id => (GATE[id] || 0) <= tier;
-    const canPlace = (b, big) => {
+    const canPlace = (b, big, noSt) => {
       if (d0(b.x, b.y) > R * 1.12 + (b.far || 0)) return false;
+      if (keep && !b.keep && Math.hypot(b.x - keep.x, b.y - keep.y) < keep.r * 1.18 + Math.max(b.w, b.h) / 2) return false;
       if (walled && !b.far) { const bw = (x, y) => Math.abs(d0(x, y) - wallR(Math.atan2(y - y0, x - x0))) < wt / 2 + 3.5; if (bw(b.x, b.y)) return false; for (const c of rectCorners(b, 0)) if (bw(c[0], c[1])) return false; }
       const cs = rectCorners(b, 0); if (WK(b.x, b.y) !== 0) return false; for (const c of cs) if (WK(c[0], c[1]) !== 0) return false;
       for (const f of F) { if (Math.hypot(f.x - b.x, f.y - b.y) < f.r + Math.hypot(b.w, b.h) / 2 + 1 && (f.t !== 'plaza' || true)) { if (rectHit(b, f.x, f.y, f.r)) return false; } }
       const nx = Math.max(2, Math.ceil(b.w / 9)), ny = Math.max(2, Math.ceil(b.h / 9)), c = Math.cos(b.a), sn = Math.sin(b.a);
-      for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) { const u = (i / nx - 0.5) * b.w, v = (j / ny - 0.5) * b.h; if (near(b.x + c * u - sn * v, b.y + sn * u + c * v, 8 + (big ? 6 : 0), -1, -2) < 1) return false; }
+      for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) { const u = (i / nx - 0.5) * b.w, v = (j / ny - 0.5) * b.h; if (!noSt && near(b.x + c * u - sn * v, b.y + sn * u + c * v, 8 + (big ? 6 : 0), -1, -2) < 1) return false; }
       const pad = { x: b.x, y: b.y, w: b.w + 1.6, h: b.h + 1.6, a: b.a }, rad = Math.hypot(b.w, b.h) / 2 + 4;
       for (let gx = Math.floor((b.x - rad) / BK); gx <= Math.floor((b.x + rad) / BK); gx++) for (let gy = Math.floor((b.y - rad) / BK); gy <= Math.floor((b.y + rad) / BK); gy++) { const g = bgrid.get(gx * 100003 + gy); if (g) for (const id of g) { const o = B[id]; if (Math.abs(o.x - b.x) < rad + o.w && Math.abs(o.y - b.y) < rad + o.w && overlap(pad, o)) return false; } }
       return true;
@@ -138,18 +140,22 @@
     const mkB = (id, lot, sc) => { const t = T[id], j = () => 0.88 + r() * 0.27, w = t.w * j() * (sc || 1), h = t.h * j() * (sc || 1), off = lot.hw + (lot.d > R * 0.7 ? 4.5 : 2.6) + h / 2; return { type: id, x: lot.x + lot.nx * off, y: lot.y + lot.ny * off, w, h, a: lot.a, st: lot.st, side: lot.nx * -Math.sin(lot.a) + lot.ny * Math.cos(lot.a) > 0 ? 1 : -1 }; };
     const pool = kind => { const base = (K[kind || 'outskirts'] || K.outskirts).pool, o = {}; for (const k in base) if (tierOk(k)) o[k] = base[k]; return o; };
     const wsum = p => Object.values(p).reduce((a, b) => a + b, 0), pickW = p => { let q = r() * wsum(p); for (const k in p) { q -= p[k]; if (q <= 0) return k; } return Object.keys(p)[0]; };
-    const placeNear = (id, ax, ay, maxD) => {
+    const placeNear = (id, ax, ay, maxD, inKeep) => {
       const cand = lots.filter(l => Math.hypot(l.x - ax, l.y - ay) < maxD).sort((p, q) => Math.hypot(p.x - ax, p.y - ay) - Math.hypot(q.x - ax, q.y - ay));
-      for (let i = 0; i < cand.length && i < 400; i++) { const b = mkB(id, cand[i], 1); if (canPlace(b, true)) { b.uniq = true; return addB(b); } } return null;
+      for (let i = 0; i < cand.length && i < 400; i++) { const b = mkB(id, cand[i], 1); if (inKeep) b.keep = true; if (canPlace(b, true)) { b.uniq = true; return addB(b); } } return null;
     };
     const gatePts = streets.filter(st => st.kind === 'avenue').map(st => { const a = st.gate; const rr = walled ? wallR(a) * 0.9 : R * 0.85; return [x0 + Math.cos(a) * rr, y0 + Math.sin(a) * rr]; });
     // замок
-    if (tier >= 3) { const an = anchors.find(a => a.kind === 'castle'); if (an) for (const sz of [78, 62]) { const cand = []; for (let k = 0; k < 40; k++) { const a = r() * TAU, d = Math.sqrt(r()) * 90; cand.push([an.x + Math.cos(a) * d, an.y + Math.sin(a) * d]); } cand.sort((p, q) => Math.hypot(p[0] - an.x, p[1] - an.y) - Math.hypot(q[0] - an.x, q[1] - an.y)); let done = false; for (const p of cand) { const b = { type: 'castle', x: p[0], y: p[1], w: sz, h: sz * (0.85 + 0.2 * r()), a: r() * 0.5 - 0.25, st: -1, side: 1, uniq: true }; if (canPlace(b, true)) { addB(b); done = true; break; } } if (done) break; } }
+    if (tier >= 3) { const an = anchors.find(a => a.kind === 'castle'); if (an) for (const sz of [clamp(R * 0.16, 34, 78), clamp(R * 0.12, 28, 62)]) { let best = null, bh = 1e9; const rk = sz * 0.65 + 14 + tier * 3;
+      for (let k = 0; k < 80; k++) { const a = r() * TAU, d = Math.sqrt(r()) * 110, b = { type: 'castle', x: an.x + Math.cos(a) * d, y: an.y + Math.sin(a) * d, w: sz, h: sz * (0.85 + 0.2 * r()), a: r() * 0.5 - 0.25, st: -1, side: 1, uniq: true };
+        if (!canPlace(b, true, true)) continue; { const dd = d0(b.x, b.y), lim = walled ? wallR(Math.atan2(b.y - y0, b.x - x0)) - wt / 2 - 4 : R * 0.95; if (dd + rk > lim) continue; } let hits = 0; for (let i = 0; i <= 6; i++) for (let j = 0; j <= 6; j++) { const u = (i / 6 - 0.5) * b.w * 1.5, v = (j / 6 - 0.5) * b.h * 1.5; if (near(b.x + u, b.y + v, 10, -1, -2) < 1) hits++; } const sc = hits * 10 + Math.hypot(b.x - an.x, b.y - an.y) * 0.1; if (sc < bh) { bh = sc; best = b; } }
+      if (best) { addB(best); break; } } }
+    const castleB = B.find(q => q.type === 'castle'); keep = tier >= 3 && castleB ? A.TownKeep.make({ b: castleB, WK, r, tier }) : null; if (keep) A.TownKeep.gates(keep, streets);
     for (const [id, where, mt] of UNIQ) {
       if (mt > tier || (id === 'temple' && where === 'centre' && tier >= 3) || (id === 'tavern' && where === 'port' && !anchors.some(a => a.kind === 'port')) || (id === 'tavern' && where === 'centre' && tier >= 2)) continue;
       let ax = x0, ay = y0, maxD = tier >= 3 ? 120 : 160; if (where === 'gate') { if (!gatePts.length) continue; const g = gatePts[Math.floor(r() * gatePts.length)]; ax = g[0]; ay = g[1]; maxD = 90; } else if (where !== 'centre') { const a = anchors.find(q => q.kind === where); if (!a) continue; ax = a.x; ay = a.y; maxD = 140; }
       if (id === 'hall' && tier >= 2) { const f = F[0]; if (f) { ax = f.x; ay = f.y; } }
-      placeNear(id, ax, ay, maxD);
+      placeNear(id, ax, ay, maxD, where === 'castle');
     }
     // ---- кінець вулиці за містом: майданчик (торг, хутір, роздоріжжя) із кількома спорудами
     outposts.forEach(o => { const p = o.ch.pts; for (let i = 0; i < p.length; i += 2) { const f = sites.find(q => Math.hypot(p[i] - q.x, p[i + 1] - q.y) < q.r * 0.95); if (f) { o.ch.pts.length = Math.max(4, i + 2); o.ch.br.length = o.ch.pts.length / 2; o.ch.to = f.name; o.done = true; break; } } if (o.done) return;
@@ -198,18 +204,8 @@
     });
     F.forEach(f => { f.district = distId(f.x, f.y); });
     // ---- поля, дерева, табори, мури
-    const fields = [], gn = (A.Danger && A.Danger.groupName(W, s.i)) || 'grass', farmy = !['mountain', 'peaks', 'snow', 'desert', 'tundra', 'swamp'].includes(gn);
-    if (farmy && !fate) {
-      // поля лягають смугами вздовж доріг за містом: ближче сади й городи, далі лани, подекуди луки; між ними лишається стежка
-      const nF = [8, 30, 40, 50, 60][tier], lim = Math.min(Rmap * 0.92, R * 2.6), roads = streets.filter(st => st.kind !== 'embankment' && st.kind !== 'ring' && st.pts.length >= 4).sort(() => r() - 0.5);
-      const fits = f => { if (d0(f.x, f.y) > lim) return false; for (const c of rectCorners(f, 0)) { if (WK(c[0], c[1]) !== 0 || near(c[0], c[1], 10, -1, -2) < 2.5) return false; } if (near(f.x, f.y, 14, -1, -2) < 2.5) return false; const rd = Math.hypot(f.w, f.h) / 2;
-        for (const o of fields) if (Math.hypot(o.x - f.x, o.y - f.y) < (Math.hypot(o.w, o.h) + Math.hypot(f.w, f.h)) / 2 + 1 && overlap(f, o)) return false; for (const b of B) if (Math.hypot(b.x - f.x, b.y - f.y) < rd + Math.max(b.w, b.h) && overlap(f, b)) return false; for (const q of F) if (Math.hypot(q.x - f.x, q.y - f.y) < q.r + rd * 0.8) return false; return true; };
-      for (const st of roads) { if (fields.length >= nF) break; const p = st.pts, step = 46 + r() * 40; let acc = r() * step;
-        for (let i = 2; i < p.length && fields.length < nF; i += 2) { const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), an = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]);
-          for (; acc < L && fields.length < nF; acc += step) { const px = p[i - 2] + Math.cos(an) * acc, py = p[i - 1] + Math.sin(an) * acc, dd = d0(px, py); if (dd < R * 1.0 || dd > lim) continue;
-            for (const sd of [1, -1]) { let off = st.hw + 4.5; for (let row = 0; row < (tier >= 2 ? 3 : 2); row++) { const h = 46 + r() * 50, w = step - 3, cx = px - Math.sin(an) * sd * (off + h / 2), cy = py + Math.cos(an) * sd * (off + h / 2), dc = d0(cx, cy), kd = dc < R * 1.28 ? 'garden' : r() < 0.2 ? 'meadow' : 'arable', f = { x: cx, y: cy, w, h, a: an, k: kd, sd: row ? fields.length : 0 };
-              if (!fits(f)) break; fields.push(f); off += h + (row === 0 ? 3 : 2.5); } } } acc -= L; } }
-    }
+    const gn = (A.Danger && A.Danger.groupName(W, s.i)) || 'grass', farmy = !['mountain', 'peaks', 'snow', 'desert', 'tundra', 'swamp'].includes(gn);
+    const fields = farmy && !fate ? A.TownFields.make({ r, tier, R, Rmap, x0, y0, streets, WK, near, B, F, d0, rectCorners, overlap, warm: ['grass', 'steppe', 'savanna', 'hills', 'jungle'].includes(gn), inside: (x, y) => walled ? d0(x, y) < wallR(Math.atan2(y - y0, x - x0)) + wt / 2 + 6 : d0(x, y) < R * 0.98 }) : [];
     const trees = [], dens = { forest: 0.0016, taiga: 0.0016, jungle: 0.0018, hills: 0.0004, grass: 0.00012, steppe: 0.00004, savanna: 0.00008, mountain: 0.0002, swamp: 0.0006, peaks: 0.00004 }[gn] || 0.0001, ruinBoost = fate === 'ruined' ? 2.2 : 1;
     for (let tries = 0, nT = Math.min(1400, Math.round(Math.PI * Rmap * Rmap * dens * ruinBoost)); tries < nT * 3 && trees.length < nT; tries++) {
       const a = r() * TAU, d = Math.sqrt(r()) * Rmap, x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d; if (WK(x, y) !== 0 || near(x, y, 20, -1, -2) < 3) continue; let ok = true; const gx = Math.floor(x / BK), gy = Math.floor(y / BK);
@@ -253,7 +249,7 @@
     dst.forEach(d => { d.notable = d.notable.sort((p, q) => B[q].w * B[q].h - B[p].w * B[p].h).slice(0, 7); });
     const stats = { buildings: B.length, streets: streets.length, lanes: streets.filter(q => q.kind === 'lane').length, squares: F.filter(f => f.t === 'plaza').length, parks: F.filter(f => f.t === 'park').length, fountains: props.filter(p => p.t === 'fountain').length, monuments: props.filter(p => p.t === 'monument').length, bridges: streets.reduce((a, st) => a + (st.br.some(Boolean) ? 1 : 0), 0), piers: piers.length, ships: ships.length, towers: wall.towers.length, gates: wall.gates.length };
     void base;
-    return { sid: s.id, name: s.name, rank: s.rank, tier, fate, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), sites, features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
+    return { sid: s.id, name: s.name, rank: s.rank, tier, fate, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, keep, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), sites, features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
   }
 
   A.Town = { get, has, build, TIER, sizeOf };
