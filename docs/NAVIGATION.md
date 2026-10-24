@@ -9,6 +9,7 @@
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Головна ідея сайту: механіки окремо (`mechanics/`), інструменти їх комбінують; перелік механік |
 | [tools-map.md](tools-map.md) | Кожен інструмент: папка, код, тести, ключ localStorage |
 | [shared-files.md](shared-files.md) | Спільні файли: тема, хаб, sitemap, скрипти в `tools/` |
+| [settlement-sim.md](settlement-sim.md) | Симуляція поселення: карта файлів, порядок скриптів, як влаштовані жителі, бій і місто |
 | [new-tool-guide.md](new-tool-guide.md) | Як додати новий інструмент за правилами сайту |
 | [prompt-dice-map.md](prompt-dice-map.md) | Кубик промптів: карта файлів, порядок скриптів, де що змінювати |
 | [file-rules.md](file-rules.md) | Правила розбиття файлів і документації, роботи з великими текстами |
@@ -29,7 +30,8 @@
 ## Карта верхнього рівня
 
 ```
-mechanics/               механіки окремо (rng, atlas-map, trade, building, settlers, threats): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
+mechanics/               механіки окремо (rng, atlas-map, trade, building, settlers, threats, needs, schedule, combat, spawner, pathgrid): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
+settlement-sim/          Симуляція поселення (20 жителів, день і ніч, бої): див. settlement-sim.md; спрайти кодом (px, biped, buildings…), layout.js, routine/social/defend.js
 zakladyny/               гра «Закладини»: комбінує механіки; zk-game.js (доба), zk-save.js, zk-render.js, zk-panels.js, app.js
 index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
 shared/ui/               UI-кіт: zb-ui.css + zb-ui.js (верхня панель, іконки-меню, панелі, довідка «i»); копії в інструментах на кіті (atlas2, tessera)

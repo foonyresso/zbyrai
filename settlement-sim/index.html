@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Симуляція поселення</title>
+<meta name="description" content="Піксельне містечко на 20 жителів: у кожного свій дім, робота, потреби й розпорядок дня. Вони сплять удома (над дахом «zZZ»), розмовляють, обідають у таверні, а коли до воріт приходять монстри, беруться за зброю. Зум колесом, безкоштовно, працює офлайн.">
+<link rel="canonical" href="https://zbyrai.pages.dev/settlement-sim/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Симуляція поселення">
+<meta property="og:description" content="Живе піксельне містечко: жителі сплять, працюють, розмовляють і відбивають монстрів біля воріт.">
+<meta property="og:url" content="https://zbyrai.pages.dev/settlement-sim/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M6 25V15l6-5 6 5v10zM18 25v-7l5-4 4 4v7z%27 fill=%27none%27 stroke=%27%23e0a85a%27 stroke-width=%271.8%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Симуляція <span>поселення</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+</header>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Симуляція поселення</h2>
+  <h3>Що це</h3><p>Живе піксельне містечко на 20 жителів. У кожного є свій дім, робота (староста, корчмар, коваль, фермери, вартові, цілителі й інші), потреби (сили, ситість, спілкування, дозвілля) та розпорядок дня. Вночі й коли втомились, вони йдуть додому спати: заходять у двері, а над дахом з’являється «zZZ». Удень працюють, обідають у таверні, розмовляють на площі, біля колодязя й у парку, відпочивають біля ставка.</p>
+  <h3>Для чого</h3><p>Для спостереження й натхнення: як із простих механік (потреби, розклад, бій, хвилі монстрів) виростає життя міста. Ті самі механіки лежать у папці <code>mechanics/</code> окремими модулями й придатні для інших інструментів сайту.</p>
+  <h3>Як користуватися</h3><ol><li><b>Колесо миші</b> наближає й віддаляє, <b>перетягування</b> рухає карту, подвійний клік вертає загальний вигляд.</li><li><b>Клікни на жителя</b>, щоб побачити його потреби, заняття й друзів; кнопка «Стежити» тримає його в центрі.</li><li>Меню зліва: список жителів, керування часом і монстрами.</li><li>Раз на кілька хвилин до воріт приходять монстри: усі, хто може, хапаються за зброю (воїни, лучники, маги, цілителі), після бою повертаються до справ. Полеглі за хвилину оговтуються вдома.</li></ol>
+</dialog>
+
+<main class="stage" id="work">
+  <canvas id="cv" aria-label="Містечко" title="Колесо — зум, перетягування — рух, клік по жителю — інформація"></canvas>
+
+  <div class="zb-card hud" id="hud" aria-live="off"></div>
+  <div class="zb-card who" id="who" hidden></div>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="people" title="Список жителів: ім’я, професія, чим зайняті зараз"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c3 0 5 2 5 5.2"/></svg><span>Жителі</span></button>
+    <button data-panel="time" title="Швидкість часу, година доби"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg><span>Час</span></button>
+    <button data-panel="threat" title="Монстри: хвилі, виклик за кнопкою"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20 18 7M15 5h4v4M19 20 6 7M9 5H5v4"/></svg><span>Монстри</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" data-store="settlement-sim.panel" data-default="" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="people"><h2>Жителі</h2><div id="peopleList" class="plist"></div></section>
+    <section data-panel="time"><h2>Час</h2>
+      <p class="hint">Доба триває близько п’яти хвилин на звичайній швидкості.</p>
+      <label title="Година доби: перетягни, щоб перемкнути день і ніч">Година: <output id="hourOut"></output><input type="range" id="hour" min="0" max="23.9" step="0.1"></label>
+      <div class="row2 spd"><button data-sp="0" title="Пауза">⏸</button><button data-sp="1" title="Звичайна швидкість" class="on">×1</button><button data-sp="2" title="Удвічі швидше">×2</button><button data-sp="4" title="Вчетверо швидше">×4</button></div>
+    </section>
+    <section data-panel="threat"><h2>Монстри</h2>
+      <p class="hint">Самі приходять до воріт раз на 1–2 хвилини, а на третій день частіше й більшими групами. Раз на кілька хвилин приходить бос.</p>
+      <div class="row2"><button id="btnWave" class="btn-primary" title="Негайно привести групу монстрів до воріт">Прикликати хвилю</button><button id="btnBoss" title="Привести великого боса до воріт">Бос</button></div>
+      <label class="chk" title="Вимкни, щоб монстри самі не приходили"><input type="checkbox" id="auto" checked><span>Хвилі самі по собі</span></label>
+    </section>
+  </aside>
+
+  <div class="bar">
+    <button data-sp="0" title="Пауза / продовжити">⏸</button>
+    <button data-sp="1" title="Звичайна швидкість">×1</button>
+    <button data-sp="2" title="Удвічі швидше">×2</button>
+    <button data-sp="4" title="Вчетверо швидше">×4</button>
+    <button id="btnWave2" class="btn-primary" title="Негайно привести групу монстрів до воріт">Прикликати монстрів</button>
+    <button id="btnCenter" title="Повернути загальний вигляд міста (подвійний клік по карті теж)">Усе місто</button>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="./zb-ui.js"></script>
+<script src="../mechanics/rng/index.js"></script>
+<script src="../mechanics/needs/index.js"></script>
+<script src="../mechanics/schedule/index.js"></script>
+<script src="../mechanics/combat/index.js"></script>
+<script src="../mechanics/spawner/index.js"></script>
+<script src="../mechanics/pathgrid/index.js"></script>
+<script src="./px.js"></script>
+<script src="./frames.js"></script>
+<script src="./pose.js"></script>
+<script src="./gear.js"></script>
+<script src="./biped.js"></script>
+<script src="./beasts.js"></script>
+<script src="./nature.js"></script>
+<script src="./props.js"></script>
+<script src="./buildings.js"></script>
+<script src="./people.js"></script>
+<script src="./jobs.js"></script>
+<script src="./monsters.js"></script>
+<script src="./layout.js"></script>
+<script src="./ground.js"></script>
+<script src="./sim-core.js"></script>
+<script src="./fx.js"></script>
+<script src="./routine.js"></script>
+<script src="./social.js"></script>
+<script src="./defend.js"></script>
+<script src="./animals.js"></script>
+<script src="./render.js"></script>
+<script src="./sim-step.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

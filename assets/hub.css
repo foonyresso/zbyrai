@@ -68,6 +68,7 @@ a.card:hover::before { opacity: 1; }
 .c-colony { --c: #c98fdc; }
 .c-voxel { --c: #81c784; }
 .c-zak { --c: #d9a25a; }
+.c-settle { --c: #e0a85a; }
 .c-planet { --c: #5cb8e6; }
 .c-tessera { --c: #bcd64a; }
 .c-dungeon { --c: #d6a15b; }
@@ -92,6 +93,7 @@ a.card:hover::before { opacity: 1; }
 .c-chain .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), repeating-linear-gradient(90deg, transparent 0 31px, var(--line-soft) 31px 32px), repeating-linear-gradient(0deg, transparent 0 15px, var(--line-soft) 15px 16px); }
 .c-colony .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), radial-gradient(circle, color-mix(in srgb, var(--c) 22%, transparent) 1.2px, transparent 1.7px) 0 0 / 20px 20px; }
 .c-zak .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), radial-gradient(circle, color-mix(in srgb, var(--c) 20%, transparent) 1.2px, transparent 1.7px) 0 0 / 22px 22px; }
+.c-settle .art { background: radial-gradient(240px 130px at 50% 46%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), radial-gradient(circle, color-mix(in srgb, var(--c) 20%, transparent) 1.2px, transparent 1.7px) 0 0 / 22px 22px; }
 .c-voxel .art { background: radial-gradient(240px 130px at 50% 50%, color-mix(in srgb, var(--c) 15%, transparent), transparent 70%), repeating-linear-gradient(30deg, transparent 0 16px, var(--line-soft) 16px 17px), repeating-linear-gradient(-30deg, transparent 0 16px, var(--line-soft) 16px 17px); }
 .c-dungeon .art { background: radial-gradient(240px 130px at 50% 50%, color-mix(in srgb, var(--c) 15%, transparent), transparent 70%), repeating-linear-gradient(0deg, transparent 0 17px, var(--line-soft) 17px 18px), repeating-linear-gradient(90deg, transparent 0 17px, var(--line-soft) 17px 18px); }
 .c-planet .art { background: radial-gradient(220px 130px at 50% 50%, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), radial-gradient(circle, color-mix(in srgb, var(--c) 30%, transparent) 1px, transparent 1.4px) 0 0 / 26px 26px, radial-gradient(circle, color-mix(in srgb, var(--c) 20%, transparent) 1px, transparent 1.4px) 13px 13px / 26px 26px; }

@@ -6,7 +6,7 @@ const TOOLS = ['medieval-world'];
 // інструменти зі старою довідкою details.about: перевіряємо лише кнопку «Інфо» (tool-chrome.js)
 const ABOUT_TOOLS = [];
 // інструменти на UI-кіті (shared/ui, docs/ui-kit.md): довідка «i» у dialog#help, шапка .top, кіт підключено
-const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab', 'planet-forge', 'dungeon-sim', 'image-converter', 'skill-tree', 'skill-forge', 'sprite-cleaner', 'balance-curves', 'loot-forge', 'production-planner', 'idea-mixer', 'character-roller', 'prompt-dice', 'colonist-foundry', 'album-builder', 'zakladyny'];
+const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab', 'planet-forge', 'dungeon-sim', 'image-converter', 'skill-tree', 'skill-forge', 'sprite-cleaner', 'balance-curves', 'loot-forge', 'production-planner', 'idea-mixer', 'character-roller', 'prompt-dice', 'colonist-foundry', 'album-builder', 'zakladyny', 'settlement-sim'];
 let failed = 0;
 const test = (name, fn) => { try { fn(); console.log('  ok  ', name); } catch (e) { failed++; console.log('  FAIL', name, '\n      ', e.message); } };
 for (const t of TOOLS) {
