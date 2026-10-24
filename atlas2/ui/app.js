@@ -88,14 +88,15 @@
       let nd = 1e18, ns = null; for (const q of W.settlements) { if (q.ruined) continue; const d = (q.x - px) ** 2 + (q.y - py) ** 2; if (d < nd) { nd = d; ns = q; } }
       if (ns) terr.push(row('Найближче', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
     } else { const wb = W.waterBodies && W.waterBody[i] >= 0 ? W.waterBodies[W.waterBody[i]] : null; terr.push(row('Водойма', wb ? esc(wb.name) : W.lake[i] ? 'Озеро' : 'Вода'));
+      const gw = D.groupName(W, i); if (gw) terr.push(row('Води', D.GROUP_UA[gw] || gw)); const tw = W.tier[i]; terr.push(row('Рівень · небезпека', `${W.level[i]} · <span class="tier" style="background:${TIER_COL[tw]}"></span>${D.TIERS[tw]}`));
       if (wb && wb.kind === 'lake') terr.push(row('Площа озера', fmt(Math.round(wb.cells * kmc * 10) / 10) + ' км²')); else if (wb) terr.push(row('Вид', wb.kind === 'ocean' ? 'Океан' : 'Море')); }
-    let enc = ''; if (land && W.tier[i] > 0) { const E = D.encounter(W, i); enc = `<p class="muted">Водяться: ${E.species.map(q => `${esc(q.name)} (${q.level} р.)`).join(', ')}</p>`; }
+    let enc = ''; if (W.tier[i] > 0 && W.group[i] !== 255) { const E = D.encounter(W, i); enc = `${E.dominant ? `<p class="muted">Переважають: <b>${esc(E.dominant)}</b></p>` : ''}<p class="muted">Водяться: ${E.species.map(q => `${esc(q.name)} (${q.level} р.)`).join(', ')}</p>`; }
     out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${enc}`));
     // 5. деталі місця під курсором
     if (s) {
       const nobody = s.fate === 'occupied' ? s.monsters.slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('') : '';
       const body = s.fate ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.fate === 'occupied' ? ' — <b style="color:#b3261e">окуповане ' + (s.occupier === 'bandits' ? 'бандитами' : 'монстрами') + '</b>' : ' — <b>зруйноване</b>'))}${row('Було мешканців', fmt(s.popBefore))}${s.fate === 'occupied' ? row('Рівень загрози', s.level) : ''}</dl>${nobody}`
-        : s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}</dl>`
+        : s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}${s.monsters && s.monsters.length ? row('Рівень загрози', s.level + ' · охороняє бос') : ''}</dl>${(s.monsters || []).slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('')}`
         : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>`;
       out.push(blk('Деталі місця', body));
     } else if (site) {

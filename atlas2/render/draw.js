@@ -34,7 +34,6 @@
     ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
     ctx.save(); path(ctx, c.land); ctx.clip(); ctx.drawImage(c.landImg, 0, 0, W.w, W.h);
     if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });
-    if (L.danger && c.danger) ctx.drawImage(c.danger, 0, 0, W.w, W.h);
     if (L.borders) {
       ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(70,50,30,.45)'; ctx.lineWidth = 1 * px; ctx.setLineDash([4 * px, 3 * px]);
       const strokeChains = (chains, ok) => { ctx.beginPath(); for (const ch of chains) { if (!ok(ch)) continue; const p = ch.pts; ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); if (ch.closed) ctx.closePath(); } ctx.stroke(); };
@@ -45,6 +44,7 @@
     ctx.restore();
     if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші; озера малюються поверх, тож річка входить у озеро й виходить з нього
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
+    if (L.danger && c.danger) ctx.drawImage(c.danger, 0, 0, W.w, W.h); // небезпека покриває і воду: моря, океани, озера
     if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k, c.geom);
     if (A.TownMap) A.TownMap.draw(cv, W, view, L, c.geom); // міста з'являються на карті з наближенням, дороги збігаються з дорогами карти
     if (A.drawSites && L.sites) A.drawSites(ctx, W, px, k, L);
