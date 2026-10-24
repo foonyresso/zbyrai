@@ -1,36 +1,19 @@
 /* Colonist Foundry: розмітка поверх спільної теми (theme.css). Акцент інструмента: бузковий. Макет: сітка «час → колоністи → подання + панель колоніста». */
 :root { --accent: #c98fdc; --accent-hi: #e2bcf0; --accent-glow: rgba(201, 143, 220, .14); }
-body { min-height: 100vh; display: flex; flex-direction: column;
-  background: radial-gradient(1200px 460px at 50% -120px, rgba(201, 143, 220, .10), transparent 70%), var(--bg); }
-header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 18px;
-  background: linear-gradient(180deg, var(--panel), var(--bg-elev)); border-bottom: 1px solid var(--line); position: relative; }
-header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .55; }
-.brand { display: flex; align-items: center; gap: 9px; font-family: var(--ff-ui); font-weight: 850; text-transform: uppercase; font-size: 20px; white-space: nowrap; letter-spacing: .07em; text-shadow: 0 0 14px color-mix(in srgb, var(--accent, var(--gold)) 50%, transparent); }
-.brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
-.brand span { color: var(--accent); text-shadow: 0 0 14px currentColor; }
-.spacer { flex: 1; }
 .ctl-inline { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }
 .ctl-inline input[type=text], .ctl-inline input[type=number] { width: 110px; font-family: var(--ff-mono); }
 .ctl-inline input[type=range] { width: 130px; }
 .ctl-inline output { font-family: var(--ff-mono); color: var(--text); min-width: 20px; }
 .hint { font-size: 12px; color: var(--faint); line-height: 1.5; }
 section[hidden] { display: none; }
-main.wrap, .setup, .timebar, .cbar { width: 100%; max-width: 1360px; margin-left: auto; margin-right: auto; padding-left: 18px; padding-right: 18px; }
 
 /* налаштування: згортна панель */
-.setup { margin-top: 12px; }
-.setup > summary { list-style: none; cursor: pointer; display: flex; gap: 12px; align-items: baseline; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); font-weight: 600; }
-.setup > summary::-webkit-details-marker { display: none; }
-.setup > summary em { font-style: normal; color: var(--muted); font-weight: 400; font-size: 13px; }
-.setup > summary::after { content: "▾"; margin-left: auto; color: var(--accent); } .setup[open] > summary::after { content: "▴"; }
-.setup-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; margin-top: 10px; }
 .sg { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .sg h3 { margin: 0; font-family: var(--ff-ui); font-size: 11px; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); font-weight: 600; }
 #placeInfo { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 ul.plist { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); line-height: 1.6; }
 
 /* керування часом */
-.timebar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 12px; padding-top: 10px; padding-bottom: 10px; background: linear-gradient(180deg, var(--bg) 70%, transparent); }
 .timebar .grp { display: inline-flex; gap: 0; } .timebar .grp button { border-radius: 0; margin-left: -1px; } .timebar .grp button:first-child { border-radius: 8px 0 0 8px; margin-left: 0; } .timebar .grp button:last-child { border-radius: 0 8px 8px 0; }
 .timebar .grp button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); position: relative; }
 .play { font-size: 17px; font-weight: 700; padding: 10px 26px; border-radius: 99px; background: var(--accent); color: #1a1220; border-color: var(--accent-hi); box-shadow: 0 0 22px rgba(201, 143, 220, .35); }
@@ -40,7 +23,6 @@ ul.plist { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); 
 .clock b { font-family: var(--ff-display); font-size: 22px; font-weight: 600; } .clock span { font-size: 12.5px; color: var(--muted); }
 
 /* смуга колоністів */
-.cbar { display: flex; gap: 8px; overflow-x: auto; padding-top: 4px; padding-bottom: 10px; scrollbar-width: thin; }
 .cb { flex: none; width: 82px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px 5px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); font-size: 12px; color: var(--muted); }
 .cb b { color: var(--text); font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cb .ph { position: relative; display: block; width: 50px; height: 50px; border-radius: 50%; padding: 2px; background: var(--mc); }
@@ -50,9 +32,6 @@ ul.plist { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); 
 .cb.sel { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 0 1px var(--accent); } .cb.sel b { color: var(--accent-hi); }
 
 /* сцена: подання + панель колоніста */
-main.wrap.stage { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 14px; align-items: start; padding-top: 4px; padding-bottom: 36px; }
-.viewhost, .detail { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); min-width: 0; }
-.detail { position: sticky; top: 64px; max-height: calc(100vh - 80px); overflow: auto; }
 .vtabs { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .vtabs button { border-radius: 99px; padding: 6px 16px; }
 .vtabs button[aria-selected=true] { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
@@ -129,13 +108,23 @@ em.good { color: #a6e3b4; font-style: normal; } em.bad { color: #f2a0a0; font-st
 .hist li em { flex-basis: 100%; padding-left: 58px; font-style: normal; font-size: 12.5px; } .hist li em.good { color: #a6e3b4; } .hist li em.bad { color: #f2a0a0; }
 .nav { display: inline-flex; gap: 8px; align-items: center; font-family: var(--ff-mono); font-size: 12.5px; color: var(--muted); } .nav button { padding: 2px 10px; }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--panel-3); color: var(--accent-hi); border: 1px solid var(--accent);
-  font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: var(--shadow-2); transition: .25s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
-.toast.show { opacity: 1; transform: translateX(-50%); }
 
-@media (max-width: 1060px) { main.wrap.stage { grid-template-columns: minmax(0, 1fr); } .detail { position: static; max-height: none; } .setup-grid, .pane.two { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 700px) { main.wrap, .setup, .timebar, .cbar { padding-left: 12px; padding-right: 12px; } .tl { grid-template-columns: 70px repeat(24, 1fr) 30px; } .clock { margin-left: 0; align-items: flex-start; } }
 
 /* карта поселення */
 .mapwrap { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
 .mapfeed { max-height: 190px; overflow: auto; }
+
+/* «полотно»: подання колонії на весь екран, колоністи й налаштування в панелях, час унизу (zb-ui.css) */
+.stage { --stage-bg: var(--bg); overflow: auto; }
+.outwrap { padding: 70px 16px 100px 88px; max-width: 1400px; margin: 0 auto; }
+.zb-panel .outwrap { padding-left: 480px; }
+.viewhost, .detail { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); min-width: 0; }
+.drawer { width: min(430px, calc(100vw - 100px)); }
+.drawer .detail { margin-top: 8px; background: none; border: 0; box-shadow: none; }
+.cbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+.timebar { left: 90px; right: 20px; transform: none; max-width: none; justify-content: flex-start; gap: 10px 14px; }
+.zb-panel .timebar { left: 520px; max-width: none; }
+.setup-grid { display: flex; flex-direction: column; gap: 12px; }
+.sg { align-self: stretch; }
+@media (max-width: 1100px) { .zb-panel .timebar { left: 90px; } }
+@media (max-width: 760px) { .outwrap, .zb-panel .outwrap { padding: 110px 10px 120px; } }

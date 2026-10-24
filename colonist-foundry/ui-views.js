@@ -20,7 +20,7 @@ const CFViews = (() => {
     return el('div', { class: 'pane' },
       el('div', { class: 'chips' }, FILTERS.map(([k, l, t]) => el('button', { class: f === k ? 'on' : '', title: t, onclick: () => { X.st.logFilter = k; logMax = 200; X.save(); X.refresh(); } }, l)), el('span', { class: 'hint' }, `${all.length} записів. Наведіть на запис для подробиць, клікніть, щоб відкрити колоніста.`)),
       shown.length ? el('ul', { class: 'log' }, shown.map(e => el('li', { class: e.kind, title: [e.text, e.detail, U.clock(e.t), e.who.length ? 'Учасники: ' + e.who.map(i => cs[i].name).join(', ') : ''].filter(Boolean).join('\n'), onclick: () => { if (e.who.length) X.select(e.who[0]); } }, el('time', {}, `${e.day}д ${U.pad(e.h)}:00`), el('span', {}, e.text))))
-        : el('div', { class: 'empty' }, sim.hour === 0 ? el('p', {}, 'Тут буде літопис поселення. Натисніть велику кнопку ▶ угорі, щоб пустити час.') : el('p', {}, 'За цим фільтром поки нічого немає.')),
+        : el('div', { class: 'empty' }, sim.hour === 0 ? el('p', {}, 'Тут буде літопис поселення. Натисніть велику кнопку ▶ внизу, щоб пустити час.') : el('p', {}, 'За цим фільтром поки нічого немає.')),
       all.length > logMax ? el('button', { title: 'Показати старіші записи', onclick: () => { logMax += 300; X.refresh(); } }, 'Показати старіші') : null);
   }
 

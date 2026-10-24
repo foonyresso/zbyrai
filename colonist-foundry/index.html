@@ -13,17 +13,15 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/colonist-foundry/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%245%27 fill=%27none%27 stroke=%27%23c98fdc%27 stroke-width=%272%27/%3E%3Cpath d=%27M6 27c1-7 5-9 10-9s9 2 10 9%27 fill=%27none%27 stroke=%27%23c98fdc%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c.8-5 3.6-7 7.5-7s6.7 2 7.5 7"/></svg>
-    <div>Симуляція <span>колонії</span></div>
-  </div>
-  <div class="spacer"></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Симуляція <span>колонії</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
   <div class="top-actions">
     <button id="btnImport" title="Завантажити збережену колонію з файлу .json (зерно, склад, замкнені колоністи)">Імпорт</button>
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
@@ -32,33 +30,29 @@
     <button class="btn-primary" id="btnCsv" title="Завантажити таблицю колоністів у CSV (для Excel і Google Таблиць)">Зберегти .csv</button>
   </div>
 </header>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Симуляція колонії</h2>
+  <h3>Що це</h3><p>Кузня колоністів: створює групу людей для поселення, кожен зі своїми рисами, навичками, пристрастями, передісторією, а також стосунками між собою. Потім обери місце поселення й запусти час: побачиш, як вони працюють, хворіють, сваряться, мирляться й кохаються.</p>
+  <h3>Для чого</h3><p>Для ігор про колонії та виживання, настільних сценаріїв, історій. Швидко отримати живих персонажів, а не набір цифр.</p>
+  <h3>Як користуватися</h3><ol> <li><b>Колонія й місце</b> угорі: скільки людей, де стоїть поселення. «Нова колонія» (клавіша N) створює іншу; замкніть 🔒 тих, хто сподобався.</li> <li><b>▶ Грати</b> (Пробіл): час іде годину за годиною. Клікніть колоніста в смузі портретів, щоб побачити його анкету, стан і історію.</li> <li>Великі вкладки посередині: <b>Журнал</b> подій, <b>Стосунки</b>, <b>Розклад</b> доби, <b>Робота</b>.</li> <li><b>Збережи або поділись</b> кнопками вгорі: JSON, CSV, імпорт.</li> </ol>
+</dialog>
 
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Кузня колоністів: створює групу людей для поселення, кожен зі своїми рисами, навичками, пристрастями, передісторією, а також стосунками між собою. Потім обери місце поселення й запусти час: побачиш, як вони працюють, хворіють, сваряться, мирляться й кохаються.</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Для ігор про колонії та виживання, настільних сценаріїв, історій. Швидко отримати живих персонажів, а не набір цифр.</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Колонія й місце</b> угорі: скільки людей, де стоїть поселення. «Нова колонія» (клавіша N) створює іншу; замкніть 🔒 тих, хто сподобався.</li>
-        <li><b>▶ Грати</b> (Пробіл): час іде годину за годиною. Клікніть колоніста в смузі портретів, щоб побачити його анкету, стан і історію.</li>
-        <li>Великі вкладки посередині: <b>Журнал</b> подій, <b>Стосунки</b>, <b>Розклад</b> доби, <b>Робота</b>.</li>
-        <li><b>Збережи або поділись</b> кнопками вгорі: JSON, CSV, імпорт.</li>
-      </ol>
-    </div>
-  </div>
-</details>
 
-<details class="setup" id="setup" open>
-  <summary title="Скільки людей, яке зерно, де стоїть поселення. Згортається, щоб не заважати"><span>⚙ Колонія й місце</span><em id="setupSummary"></em></summary>
-  <div class="setup-grid">
+
+
+
+
+
+<main class="stage" id="stage"><div class="outwrap"><section id="viewHost" class="viewhost"></section></div></main>
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="people" title="Колоністи: список і докладна картка вибраного"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c.8-4.5 4-6.5 7.500-6.500S18.700 16.500 19.500 21"/></svg><span>Колоністи</span></button>
+  <button data-panel="setup" title="Скільки людей, яке зерно, де стоїть поселення"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Колонія</span></button>
+</nav>
+<aside class="drawer" id="drawer" data-store="cf_panel" data-default="people" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="people"><h2>Колоністи</h2><div class="cbar" id="cbar" role="list" aria-label="Колоністи: натисніть, щоб відкрити"></div><aside id="detailHost" class="detail" aria-live="polite"></aside></section>
+  <section data-panel="setup"><h2>Колонія й місце</h2><p class="hint" id="setupSummary"></p><div id="setup"><div class="setup-grid">
     <div class="sg">
       <h3>Колонія</h3>
       <label class="ctl-inline" title="Скільки людей у колонії">Людей <input type="range" id="rCount" min="2" max="24" step="1"><output id="oCount"></output></label>
@@ -76,10 +70,9 @@
       <div id="placeInfo"></div>
       <span class="hint">Зміна місця починає час з початку: ті самі люди, інше середовище.</span>
     </div>
-  </div>
-</details>
-
-<section class="timebar" id="timebar" aria-label="Керування часом">
+  </div></div></section>
+</aside>
+<section class="bar timebar" id="timebar" aria-label="Керування часом">
   <button id="btnPlay" class="play" title="Пустити час або поставити на паузу (клавіша Пробіл)">▶ Грати</button>
   <div class="grp"><button id="btnH1" title="Прокрутити час на одну годину">+1 год</button><button id="btnH6" title="Прокрутити час на шість годин">+6 год</button><button id="btnD1" title="Прокрутити час на добу">+1 доба</button></div>
   <div class="grp" id="speeds" title="Скільки годин минає за секунду, коли час іде сам"></div>
@@ -87,19 +80,8 @@
   <div class="clock"><b id="clkTime"></b><span id="clkWx"></span><span id="clkStat"></span></div>
 </section>
 
-<div class="cbar" id="cbar" role="list" aria-label="Колоністи: натисніть, щоб відкрити"></div>
-
-<main class="wrap stage">
-  <section id="viewHost" class="viewhost"></section>
-  <aside id="detailHost" class="detail" aria-live="polite"></aside>
-</main>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
 <script src="./colony-data.js"></script>
 <script src="./colonist-core.js"></script>
 <script src="./colony-grammar.js"></script>
@@ -112,7 +94,7 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./ui-detail.js"></script>
 <script src="./ui-map.js"></script>
 <script src="./ui-views.js"></script>
+<script src="./zb-ui.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>

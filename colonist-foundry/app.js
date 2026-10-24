@@ -28,7 +28,7 @@
   }
   function resetTime() { st.hours = 0; pause(); rebuildSim(); }
   function advance(h) {
-    if (firstRun) { firstRun = false; $('setup').open = false; }
+    firstRun = false;
     S.run(sim, h); st.hours = sim.hour; save(); CFDetail.resetDay(); refresh();
   }
   function play() { const fast = st.speed >= 4, per = fast ? Math.round(st.speed / 4) : 1; timer = setInterval(() => advance(per), fast ? 250 : Math.round(1000 / st.speed)); renderTimebar(); }
@@ -56,7 +56,7 @@
     renderTimebar(); renderBar(); CFViews.render($('viewHost')); CFDetail.render($('detailHost'));
     if (full) CFSetup.render();
   }
-  function select(i) { st.sel = i; CFDetail.resetDay(); save(); refresh(); }
+  function select(i) { st.sel = i; CFDetail.resetDay(); save(); refresh(); if (window.ZB && ZB.panel !== 'people') ZB.showPanel('people'); }
 
   /* ---------- дії для панелей ---------- */
   const X = {
@@ -98,6 +98,6 @@
     } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
   };
   $('btnCsv').onclick = () => { download(C.toCsv(colony), 'colonists.csv', 'text/csv'); toast('Файл збережено'); };
-  build(true); if (st.hours > 0) { firstRun = false; $('setup').open = false; }
+  build(true); if (st.hours > 0) firstRun = false;
   refresh(true);
 })();
