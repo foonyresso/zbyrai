@@ -198,9 +198,16 @@
     F.forEach(f => { f.district = distId(f.x, f.y); });
     // ---- поля, дерева, табори, мури
     const fields = [], gn = (A.Danger && A.Danger.groupName(W, s.i)) || 'grass', farmy = !['mountain', 'peaks', 'snow', 'desert', 'tundra', 'swamp'].includes(gn);
-    if (farmy && !fate) for (let tries = 0, nF = [6, 22, 26, 30, 34][tier]; tries < 300 && fields.length < nF; tries++) {
-      const a = r() * TAU, d = R * (0.9 + r() * 0.95), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d, w = 40 + r() * 40, h = 30 + r() * 30; if (WK(x, y) !== 0 || d > Rmap * 0.92) continue; const nd = near(x, y, 80, -1, -2), q = near.q; const f = { x, y, w, h, a: q && nd < 80 ? Math.atan2(q.by - q.ay, q.bx - q.ax) : r() * Math.PI }; let ok = nd > Math.max(w, h) / 2 * 0.9 || true;
-      for (const c of rectCorners(f, 0)) { if (WK(c[0], c[1]) !== 0 || near(c[0], c[1], 10, -1, -2) < 2) ok = false; } if (nd < 8) ok = false; for (const o of fields) if (overlap(f, o)) ok = false; for (const b of B) if (Math.hypot(b.x - x, b.y - y) < 60 && overlap(f, b)) ok = false; if (ok) fields.push(f);
+    if (farmy && !fate) {
+      // поля лягають смугами вздовж доріг за містом: ближче сади й городи, далі лани, подекуди луки; між ними лишається стежка
+      const nF = [8, 30, 40, 50, 60][tier], lim = Math.min(Rmap * 0.92, R * 2.6), roads = streets.filter(st => st.kind !== 'embankment' && st.kind !== 'ring' && st.pts.length >= 4).sort(() => r() - 0.5);
+      const fits = f => { if (d0(f.x, f.y) > lim) return false; for (const c of rectCorners(f, 0)) { if (WK(c[0], c[1]) !== 0 || near(c[0], c[1], 10, -1, -2) < 2.5) return false; } if (near(f.x, f.y, 14, -1, -2) < 2.5) return false; const rd = Math.hypot(f.w, f.h) / 2;
+        for (const o of fields) if (Math.hypot(o.x - f.x, o.y - f.y) < (Math.hypot(o.w, o.h) + Math.hypot(f.w, f.h)) / 2 + 1 && overlap(f, o)) return false; for (const b of B) if (Math.hypot(b.x - f.x, b.y - f.y) < rd + Math.max(b.w, b.h) && overlap(f, b)) return false; for (const q of F) if (Math.hypot(q.x - f.x, q.y - f.y) < q.r + rd * 0.8) return false; return true; };
+      for (const st of roads) { if (fields.length >= nF) break; const p = st.pts, step = 46 + r() * 40; let acc = r() * step;
+        for (let i = 2; i < p.length && fields.length < nF; i += 2) { const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), an = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]);
+          for (; acc < L && fields.length < nF; acc += step) { const px = p[i - 2] + Math.cos(an) * acc, py = p[i - 1] + Math.sin(an) * acc, dd = d0(px, py); if (dd < R * 1.0 || dd > lim) continue;
+            for (const sd of [1, -1]) { let off = st.hw + 4.5; for (let row = 0; row < (tier >= 2 ? 3 : 2); row++) { const h = 46 + r() * 50, w = step - 3, cx = px - Math.sin(an) * sd * (off + h / 2), cy = py + Math.cos(an) * sd * (off + h / 2), dc = d0(cx, cy), kd = dc < R * 1.28 ? 'garden' : r() < 0.2 ? 'meadow' : 'arable', f = { x: cx, y: cy, w, h, a: an, k: kd, sd: row ? fields.length : 0 };
+              if (!fits(f)) break; fields.push(f); off += h + (row === 0 ? 3 : 2.5); } } } acc -= L; } }
     }
     const trees = [], dens = { forest: 0.0016, taiga: 0.0016, jungle: 0.0018, hills: 0.0004, grass: 0.00012, steppe: 0.00004, savanna: 0.00008, mountain: 0.0002, swamp: 0.0006, peaks: 0.00004 }[gn] || 0.0001, ruinBoost = fate === 'ruined' ? 2.2 : 1;
     for (let tries = 0, nT = Math.min(1400, Math.round(Math.PI * Rmap * Rmap * dens * ruinBoost)); tries < nT * 3 && trees.length < nT; tries++) {
