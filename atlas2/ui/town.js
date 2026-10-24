@@ -4,6 +4,14 @@
   const A = globalThis.Atlas2, $ = id => document.getElementById(id), T = A.CityData.T;
   let card, bar, pinned = null, active = null, hl = { sid: -1, hover: null, sel: null, hoverDistrict: null }, queue = [], timer = 0, lastShown = null, W0 = null;
   const esc = t => String(t == null ? '' : t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  // картка біля курсора: праворуч-нижче, а біля краю екрана перекидається на інший бік
+  let mx = 0, my = 0;
+  function place() {
+    if (!card || card.hidden) return; card.classList.toggle('pin', !!pinned); const st = $('stage'), sr = st.getBoundingClientRect(), w = card.offsetWidth, h = card.offsetHeight, gap = 18;
+    let x = mx - sr.left + gap, y = my - sr.top + gap * 0.7; if (x + w > sr.width - 6) x = mx - sr.left - gap - w; if (y + h > sr.height - 6) y = my - sr.top - gap * 0.7 - h;
+    card.style.left = Math.max(4, x) + 'px'; card.style.top = Math.max(4, y) + 'px'; card.style.bottom = 'auto';
+  }
+  document.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; if (card && !card.hidden && !pinned) place(); }, true);
   function ensure() {
     if (card) return; const st = $('stage');
     card = document.createElement('aside'); card.id = 'tdet'; card.className = 'tdet'; card.hidden = true; st.appendChild(card);
@@ -42,14 +50,14 @@
     const kv = r => `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`;
     card.style.setProperty('--dc', d.color || '#8aa');
     card.innerHTML = `<div class="dh"><i></i><b>${esc(d.title)}</b></div><div class="ds">${esc(d.sub || '')}</div>${d.text ? `<p>${esc(d.text)}</p>` : ''}${d.rows.length ? `<dl>${d.rows.map(kv).join('')}</dl>` : ''}${(d.groups || []).map(g => `<div class="sep"></div><div class="lb">${esc(g.h)}</div><dl>${g.rows.map(kv).join('')}</dl>`).join('')}${d.top ? `<div class="sep"></div><div class="lb">${esc(d.top[0])}</div><div>${esc(d.top[1])}</div>` : ''}${d.streets ? `<div class="sep"></div><div class="lb">Вулиці</div><div>${esc(d.streets)}</div>` : ''}${d.hook ? `<div class="sep"></div><div class="lb">Чутка</div><div>${esc(d.hook)}</div>` : ''}${d.list && d.list.length ? `<div class="sep"></div><div class="lb">Визначні місця</div><div class="chips">${d.list.map(q => `<button data-b="${q.id}" title="Закріпити споруду">${esc(q.name)}</button>`).join('')}</div>` : ''}${d.districtId != null && ct.h.kind === 'building' ? `<div class="chips"><button data-d="${d.districtId}" title="Показати подробиці району">${esc(d.go)}</button></div>` : ''}${pinnedNow ? '<div class="lb pinl">Закріплено · клік по порожньому знімає</div>' : ''}`;
-    card.hidden = false;
+    card.hidden = false; place();
     card.querySelectorAll('[data-d]').forEach(b => { b.onclick = () => { const dd = ct.c.districts[+b.dataset.d]; pinned = { s: ct.s, c: ct.c, h: { kind: 'district', o: dd } }; hl.hoverDistrict = dd.id; hl.sel = null; render(pinned, true); if (A.redrawOver) A.redrawOver(); }; });
     card.querySelectorAll('[data-b]').forEach(b => { b.onclick = () => { const bb = ct.c.buildings[+b.dataset.b]; pinned = { s: ct.s, c: ct.c, h: { kind: 'building', o: bb } }; hl.sel = bb; render(pinned, true); if (A.redrawOver) A.redrawOver(); }; });
   }
   function landmarkCard(lm) {
     const W = A.world, s = W.settlements[lm.from], K = A.LANDMARK_KINDS[lm.kind], gn = A.Danger && A.Danger.groupName(W, lm.i);
     card.style.setProperty('--dc', A.LANDMARK_COL[lm.kind]);
-    card.innerHTML = `<div class="dh"><i></i><b>${esc(lm.name)}</b></div><div class="ds">${esc(K.n)}</div><p>${esc(K.d)}</p><dl><dt>Біля міста</dt><dd>${esc(s.name)}</dd><dt>Відстань</dt><dd>${String(lm.km).replace('.', ',')} км</dd>${gn ? `<dt>Ландшафт</dt><dd>${esc(A.Danger.GROUP_UA[gn] || gn)}</dd>` : ''}</dl>`; card.hidden = false;
+    card.innerHTML = `<div class="dh"><i></i><b>${esc(lm.name)}</b></div><div class="ds">${esc(K.n)}</div><p>${esc(K.d)}</p><dl><dt>Біля міста</dt><dd>${esc(s.name)}</dd><dt>Відстань</dt><dd>${String(lm.km).replace('.', ',')} км</dd>${gn ? `<dt>Ландшафт</dt><dd>${esc(A.Danger.GROUP_UA[gn] || gn)}</dd>` : ''}</dl>`; card.hidden = false; place();
   }
   function hover(ct, lm) { ensure(); if (pinned) return; setHl(ct); if (!ct && lm) { landmarkCard(lm); return; } render(ct, false); if (!ct || !ct.h) card.hidden = true; }
   function click(ct) { ensure(); if (!ct || !ct.h || (pinned && pinned.h.o === ct.h.o)) { pinned = null; hl.sel = null; setHl(ct); render(ct, false); if (!ct || !ct.h) card.hidden = true; return; } pinned = ct; hl.sel = ct.h.kind === 'building' ? ct.h.o : null; setHl(ct); render(ct, true); }
