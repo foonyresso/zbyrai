@@ -28,16 +28,7 @@
   function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove('on'); }, 1800); }
 
   // ---- меню ----
-  var drawer = $('drawer'), panel = '';
-  try { panel = localStorage.getItem(LS + 'panel') || ''; } catch (e) {}
-  function showPanel(n) {
-    panel = n; try { localStorage.setItem(LS + 'panel', n || ''); } catch (e) {}
-    drawer.hidden = !n; $('work').classList.toggle('shift', !!n);
-    document.querySelectorAll('#rail button').forEach(function (b) { b.classList.toggle('on', b.dataset.panel === n); });
-    drawer.querySelectorAll('section').forEach(function (x) { x.classList.toggle('on', x.dataset.panel === n); });
-  }
-  document.querySelectorAll('#rail button').forEach(function (b) { b.onclick = function () { showPanel(panel === b.dataset.panel ? '' : b.dataset.panel); }; });
-  $('drawerX').onclick = function () { showPanel(''); };
+  // меню-іконки й довідка «i»: спільний кіт zb-ui.js
 
   // ---- завдання для фото ----
   function aspect(t) { return t.iw / t.ih; }
@@ -311,5 +302,5 @@
     syncUI(); refreshAll();
   });
 
-  syncUI(); showPanel(panel || 'format'); summary();
+  syncUI(); summary();
 })();
