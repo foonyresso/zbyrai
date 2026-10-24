@@ -9,7 +9,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 .top .top-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-left: 4px; padding-left: 12px; border-left: 1px solid var(--line, rgba(255,255,255,.12)); }
 .top .top-actions button { padding: 4px 10px; font-size: 12.5px; }
 .info-btn { width: 26px; height: 26px; padding: 0; border-radius: 50%; font: italic 700 15px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; flex: none; }
-.hub-back { text-decoration: none; color: inherit; opacity: .85; white-space: nowrap; }
+.hub-back { text-decoration: none; color: inherit; opacity: .85; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
 
 /* полотно */
 .stage { position: fixed; inset: 0; background: var(--stage-bg, #14141a); overflow: hidden; }

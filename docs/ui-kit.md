@@ -8,7 +8,7 @@
 ```html
 <link rel="stylesheet" href="./theme.css"><link rel="stylesheet" href="./zb-ui.css"><link rel="stylesheet" href="./style.css">
 <header class="top" id="top">                       <!-- плаваюча мінімальна верхня панель -->
-  <a class="hub-back" href="../index.html" title="…" hidden>← Zbyr<b>AI</b></a>
+  <a class="hub-back" href="../index.html" title="…" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Назва <span>2.0</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися">i</button>
   <div class="top-actions"><button id="btnImport" title="…">Імпорт</button> … </div>   <!-- збереження, імпорт, експорт, обмін, друк -->
@@ -36,4 +36,4 @@
 4. Додати інструмент у `KIT_TOOLS`, пройти `node tools/ui-rules.test.js` і тести логіки.
 5. Не ламати збережені дані й id елементів, на які спирається `app.js`.
 
-Інструменти на кіті: Атлас 2.0 (`atlas2/`), Мозаїка (`tessera/`, зразок). Черга решти: [ui-migration.md](ui-migration.md), Конструктор візерунків (`pattern-maker/`), Колаж фото (`photo-collage/`), Воксельна лабораторія (`voxel-lab/`), Кузня планет (`planet-forge/`), Симулятор підземель (`dungeon-sim/`), Конвертер зображень (`image-converter/`), Дерева скілів (`skill-tree/`), Конструктор скілів (`skill-forge/`), Чистильник спрайтів (`sprite-cleaner/`), Криві балансу (`balance-curves/`), Криві балансу (`balance-curves/`), Кузня луту (`loot-forge/`), Планувальник ланцюжків (`production-planner/`), Змішувач ідей (`idea-mixer/`), Генератор персонажів (`character-roller/`).
+Інструменти на кіті: Атлас 2.0 (`atlas2/`), Мозаїка (`tessera/`, зразок). Черга решти: [ui-migration.md](ui-migration.md), Конструктор візерунків (`pattern-maker/`), Колаж фото (`photo-collage/`), Воксельна лабораторія (`voxel-lab/`), Кузня планет (`planet-forge/`), Симулятор підземель (`dungeon-sim/`), Конвертер зображень (`image-converter/`), Дерева скілів (`skill-tree/`), Конструктор скілів (`skill-forge/`), Чистильник спрайтів (`sprite-cleaner/`), Криві балансу (`balance-curves/`), Криві балансу (`balance-curves/`), Кузня луту (`loot-forge/`), Планувальник ланцюжків (`production-planner/`), Змішувач ідей (`idea-mixer/`), Генератор персонажів (`character-roller/`), Генератор персонажів (`character-roller/`).
