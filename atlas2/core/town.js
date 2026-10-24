@@ -51,10 +51,14 @@
       }
     }
     // ---- кінці вулиць і провулків на околиці не обриваються: стежки з вигинами доходять до найближчої дороги
+    const outposts = [];
     if (tier >= 1) for (const st of streets.slice()) {
       if ((st.kind !== 'street' && st.kind !== 'lane') || st.joined || st.pts.length < 4) continue; const n = st.pts.length, ex = st.pts[n - 2], ey = st.pts[n - 1]; if (d0(ex, ey) < R * 0.7 || r() < 0.3) continue;
       let bt = null, bd = 380; for (const av of streets) { if (av.kind !== 'avenue') continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd && d > 18) { bd = d; bt = [qx, qy]; } } }
-      if (!bt) continue; const ch = mkSt('path', 1.8, st.id); net.reach(ch, ex, ey, Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]), bt[0], bt[1], bd * 1.8 + 40); if (ch.pts.length < 4) streets.pop();
+      const hd = Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]);
+      if (bt) { const ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, bt[0], bt[1], bd * 1.5 + 40, true); if (ch.pts.length < 4) streets.pop(); continue; }
+      if (outposts.length >= 1 + tier) continue; const L = 130 + r() * 110, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
+      if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd }); else streets.pop();
     }
     // ---- стіна
     const walled = tier >= 2 && (tier >= 3 || r() < 0.7), Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.05 * Math.sin(3 * th + wph) + 0.035 * Math.sin(5 * th + 2 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
@@ -118,6 +122,10 @@
       if (id === 'hall' && tier >= 2) { const f = F[0]; if (f) { ax = f.x; ay = f.y; } }
       placeNear(id, ax, ay, maxD);
     }
+    // ---- кінець вулиці за містом: майданчик (торг, хутір, роздоріжжя) із кількома спорудами
+    outposts.forEach(o => { const nm = pick(r, ['Польовий торг', 'Караванний майдан', 'Роздоріжжя з колодязем', 'Хутірський майдан', 'Заїзд на роздоріжжі']); F.push({ t: 'plaza', x: o.x, y: o.y, r: 15, kind: 'outskirts', name: nm }); props.push({ t: 'well', x: o.x, y: o.y, r: 1.8, name: 'Колодязь: ' + nm.toLowerCase() });
+      const ids = tier >= 2 ? [pick(r, ['inn', 'barracks', 'mtower', 'farmstead']), 'farmstead', pick(r, ['farm', 'mill', 'inn'])] : ['farmstead', pick(r, ['farm', 'inn'])];
+      ids.forEach((id, i) => { for (let tr = 0; tr < 8; tr++) { const a = o.a + Math.PI + 0.9 + i * 1.9 + (r() - 0.5) * 0.5, tt = T[id], b = { type: id, x: o.x + Math.cos(a) * (15 + tt.h / 2 + 8), y: o.y + Math.sin(a) * (15 + tt.h / 2 + 8), w: tt.w, h: tt.h, a: a + Math.PI / 2, st: -1, side: 1, far: 400 }; if (canPlace(b, false)) { addB(b); break; } } }); });
     // порт: причали, кораблі, маяк
     const piers = [], ships = [];
     if (shore.length && (s.port || tier <= 1) && tier >= 1 && !fate) {
