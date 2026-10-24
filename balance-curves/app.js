@@ -201,30 +201,24 @@
   };
   $('selCodeLang').onchange = async e => { const lang = e.target.value; e.target.value = ''; const c = curveById($('selCodeCurve').value) || st.curves[0]; if (!lang || !c) return; const t = B.toCode(c, lang); try { await navigator.clipboard.writeText(t); toast('Скопійовано: ' + c.name + ' (' + lang.toUpperCase() + ')'); } catch { toast(t, 5000); } };
 
-  /* ---------- меню-іконки (окремо для кожної вкладки) ---------- */
-  const panels = {};
-  for (const [id, key] of [['viewCurves', 'c'], ['viewWaves', 'w']]) {
-    const root = $(id), drawer = root.querySelector('.drawer'); let cur = store.get('panel_' + key, key === 'c' ? 'curves' : 'budget');
-    const show = n => {
-      cur = n; store.set('panel_' + key, n || ''); drawer.hidden = !n; root.classList.toggle('shift', !!n);
-      root.querySelectorAll('.rail button').forEach(b => b.classList.toggle('on', b.dataset.panel === n));
-      drawer.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.dataset.panel === n));
-      requestAnimationFrame(() => (key === 'c' ? renderChart() : renderWaves()));
-    };
-    root.querySelectorAll('.rail button').forEach(b => { b.onclick = () => show(cur === b.dataset.panel ? '' : b.dataset.panel); });
-    drawer.querySelector('[data-close]').onclick = () => show('');
-    panels[key] = () => show(cur);
+  /* меню-іконки й довідка «i»: спільний кіт zb-ui.js; панелі видно за вкладкою (data-view) */
+  const firstPanel = c => (c ? 'curves' : 'budget');
+  function fixPanel(c) {
+    const ok = document.querySelector('#rail [data-panel="' + ZB.panel + '"]'), v = ok && ok.dataset.view;
+    if (ZB.panel && v !== (c ? 'curves' : 'waves')) ZB.showPanel(firstPanel(c));
   }
+  ZB.onPanel = () => requestAnimationFrame(() => (store.get('tab', 'curves') === 'curves' ? renderChart() : renderWaves()));
 
   /* ---------- вкладки й запуск ---------- */
   function tab(which) {
     const c = which === 'curves'; $('viewCurves').hidden = !c; $('viewWaves').hidden = c;
     $('tabCurves').setAttribute('aria-selected', c); $('tabWaves').setAttribute('aria-selected', !c);
+    document.body.dataset.tab = which; if (ZB.showPanel) fixPanel(c);
     store.set('tab', which); if (c) renderChart(); else renderWaves();
   }
   $('tabCurves').onclick = () => tab('curves'); $('tabWaves').onclick = () => tab('waves');
   $('btnReset').onclick = () => { const d = DEFAULTS(); for (const k of Object.keys(st)) delete st[k]; Object.assign(st, d); save(); renderCurves(); renderWaveUi(); tab(store.get('tab', 'curves')); toast('Повернуто приклад'); };
   if (window.ResizeObserver) { let t; const ro = new ResizeObserver(() => { clearTimeout(t); t = setTimeout(() => (store.get('tab', 'curves') === 'curves' ? renderChart() : renderWaves()), 80); }); ro.observe(document.body); ro.observe($('plot')); ro.observe($('wplot')); }
   renderCurves(); renderWaveUi(); tab(store.get('tab', 'curves'));
-  panels.c(); panels.w();
+  document.addEventListener('DOMContentLoaded', () => fixPanel(store.get('tab', 'curves') === 'curves'));
 })();

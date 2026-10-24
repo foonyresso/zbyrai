@@ -31,7 +31,7 @@
         panel = n || '';
         ZB.panel = panel;
         try { localStorage.setItem(key, panel); } catch (e) { /* не критично */ }
-        drawer.hidden = !panel;
+        drawer.hidden = !panel; document.body.classList.toggle('zb-panel', !!panel);
         btns.forEach(function (b) { b.classList.toggle('on', b.dataset.panel === panel); });
         drawer.querySelectorAll('section').forEach(function (s) { s.classList.toggle('on', s.dataset.panel === panel); });
         if (ZB.onPanel) ZB.onPanel(panel);

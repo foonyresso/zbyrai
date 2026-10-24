@@ -13,34 +13,31 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/balance-curves/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M5 25C12 25 14 8 27 7%27 fill=%27none%27 stroke=%27%2373d6a0%27 stroke-width=%272.4%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg>
-    <div>Криві балансу <span>і хвилі</span></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden>← Zbyr<b>AI</b></a>
+  <div class="brand">Криві балансу <span>і хвилі</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  <div class="top-actions">
+    <label class="hdr-field" title="Скопіювати формулу вибраної кривої як код для гри"><span>Код</span><select id="selCodeCurve" aria-label="Крива для коду" title="Яку криву перетворити на код"></select><select id="selCodeLang" aria-label="Мова коду" title="Мова, у якій скопіювати формулу кривої. Вибір одразу копіює код"><option value="">Копіювати як…</option><option value="js">JavaScript</option><option value="py">Python</option><option value="cs">C#</option></select></label>
+    <button id="btnCopyJson" title="Скопіювати всі криві, хвилі й налаштування як JSON, щоб надіслати або вставити пізніше">Копіювати JSON</button>
+    <button id="btnImport" title="Завантажити збережений файл .json з кривими й хвилями">Імпорт JSON</button>
+    <button id="btnExport" title="Зберегти всі криві, хвилі й налаштування у файл balance-curves.json">Експорт JSON</button>
+    <button id="btnCsv" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як CSV для Excel">Таблиця CSV</button>
+    <button id="btnJson" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як JSON для гри">Таблиця JSON</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
   </div>
-  <nav class="tabs" role="tablist"><button role="tab" id="tabCurves" aria-selected="true" title="Графіки зростання чисел за рівнем: HP, шкода, досвід, ціни">Криві</button><button role="tab" id="tabWaves" aria-selected="false" title="Генератор хвиль ворогів за бюджетом складності">Хвилі</button></nav>
-  <div class="spacer"></div>
-  <label class="hdr-field" title="Скопіювати формулу вибраної кривої як код для гри"><span>Код</span><select id="selCodeCurve" aria-label="Крива для коду" title="Яку криву перетворити на код"></select><select id="selCodeLang" aria-label="Мова коду" title="Мова, у якій скопіювати формулу кривої. Вибір одразу копіює код"><option value="">Копіювати як…</option><option value="js">JavaScript</option><option value="py">Python</option><option value="cs">C#</option></select></label>
-  <button id="btnCopyJson" title="Скопіювати всі криві, хвилі й налаштування як JSON, щоб надіслати або вставити пізніше">Копіювати JSON</button>
-  <button id="btnImport" title="Завантажити збережений файл .json з кривими й хвилями">Імпорт JSON</button>
-  <button id="btnExport" title="Зберегти всі криві, хвилі й налаштування у файл balance-curves.json">Експорт JSON</button>
-  <button id="btnCsv" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як CSV для Excel">Таблиця CSV</button>
-  <button id="btnJson" title="Завантажити таблицю поточної вкладки (значення кривих або склад хвиль) як JSON для гри">Таблиця JSON</button>
-  <input type="file" id="file" accept="application/json,.json" hidden>
 </header>
-
-
-<details class="about">
-  <summary title="Згорнути або розгорнути довідку">Що це, для чого, як користуватися</summary>
-  <div class="about-body">
-    <p><b>Що це.</b> Інструмент для балансу гри. Він малює, як ростуть числа з рівнем або номером хвилі (здоров'я ворогів, шкода гравця, досвід, ціни), і вміє складати хвилі ворогів так, щоб кожна наступна була трохи важчою.</p>
-    <p><b>Для чого.</b> Щоб не підбирати цифри навмання. Наприклад: бачите, що на 20-му рівні ворог має 2000 HP, а гравець б'є на 150, тож потрібно ~14 ударів. Це занадто? Змініть криву й подивіться знову. Також для таблиць досвіду, цін, складності хвиль у tower defense та виживаннях.</p>
-    <p><b>Як користуватися.</b></p>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Криві балансу і хвилі</h2>
+    <h3>Що це</h3><p>Інструмент для балансу гри. Він малює, як ростуть числа з рівнем або номером хвилі (здоров'я ворогів, шкода гравця, досвід, ціни), і вміє складати хвилі ворогів так, щоб кожна наступна була трохи важчою.</p>
+    <h3>Для чого</h3><p>Щоб не підбирати цифри навмання. Наприклад: бачите, що на 20-му рівні ворог має 2000 HP, а гравець б'є на 150, тож потрібно ~14 ударів. Це занадто? Змініть криву й подивіться знову. Також для таблиць досвіду, цін, складності хвиль у tower defense та виживаннях.</p>
+    <h3>Як користуватися</h3>
     <ol>
       <li><b>Вкладка «Криві».</b> Кожна крива — це формула з кількома числами. Змініть числа й графік оновиться. Не знаєте, які числа? Натисніть «Підібрати під точки» і задайте: «на 1-му рівні хочу 100, на 30-му хочу 9000». Параметри порахуються самі.</li>
       <li><b>Вигляд графіка.</b> «Значення» — як є; «Накопичено» — сума від початку (скільки всього досвіду треба до рівня); «Приріст за крок, %» — наскільки кожен рівень складніший за попередній. Лог. шкала допомагає, коли числа зростають у сотні разів.</li>
@@ -48,22 +45,53 @@
       <li><b>Вкладка «Хвилі».</b> Кожна хвиля має бюджет складності, а типи ворогів мають вартість. Інструмент набирає ворогів, поки бюджет не закінчиться; кожні N хвиль додає боса. «Зерно» — число, від якого залежить випадковість: те саме зерно дає ті самі хвилі, а «Інше зерно» дає нову розкладку.</li>
       <li><b>Збереження.</b> Усе, що відповідає за копіювання, імпорт, експорт і код, зібрано в панелі угорі.</li>
     </ol>
-    <p><b>Порада.</b> Починайте з прикладу, який уже завантажено: змінюйте по одному числу й дивіться, як рухається графік.</p>
-  </div>
-</details>
+    <h3>Порада</h3><p>Починайте з прикладу, який уже завантажено: змінюйте по одному числу й дивіться, як рухається графік.</p>
+  
+</dialog>
 
-<div class="work" id="viewCurves">
+<main class="stage" id="work">
+<div class="view" id="viewCurves">
   <div class="plot" id="plot"></div>
   <div class="legend" id="legend"></div>
 
-  <nav class="rail" aria-label="Меню кривих">
-    <button data-panel="curves" title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри й формули, бібліотека формул"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg><span>Криві</span></button>
-    <button data-panel="ratio" title="Співвідношення двох кривих: у скільки разів одна більша за іншу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg><span>Відношення</span></button>
-    <button data-panel="table" title="Таблиця значень усіх видимих кривих на кожному рівні"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M3.5 14h17M10 4v16"/></svg><span>Таблиця</span></button>
-  </nav>
-  <aside class="drawer" id="drawerC" hidden>
-    <button class="dx" data-close title="Закрити меню">×</button>
-    <section data-panel="curves">
+  
+  
+  <div class="bar">
+    <label class="ctl-inline" title="З якого рівня (кроку) починати графік">Від <input type="number" id="nFrom" min="0" max="999" step="1" title="З якого рівня (кроку) починати графік"></label>
+    <label class="ctl-inline" title="На якому рівні (кроці) закінчити графік, максимум 1000">До <input type="number" id="nTo" min="2" max="1000" step="1" title="На якому рівні (кроці) закінчити графік, максимум 1000"></label>
+    <label class="ctl-inline" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок">Вигляд <select id="selView" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок"><option value="val">Значення</option><option value="cum">Накопичено</option><option value="gr">Приріст за крок, %</option></select></label>
+    <label class="chk" title="Логарифмічна шкала: зручна, коли числа зростають у сотні разів"><input type="checkbox" id="cLog"><span>Лог. шкала</span></label>
+  </div>
+</div>
+
+<div class="view" id="viewWaves" hidden>
+  <div class="plot" id="wplot"></div>
+  <div class="legend" id="wlegend"></div>
+
+  
+  
+  <div class="bar">
+    <label class="ctl-inline" title="Скільки хвиль згенерувати (до 200)">Хвиль <input type="number" id="wTo" min="1" max="200" step="1" title="Скільки хвиль згенерувати (до 200)"></label>
+    <label class="ctl-inline" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі">Зерно <input type="number" id="wSeed" min="1" max="99999" step="1" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі"></label>
+    <button id="btnWReroll" title="Випадково змінити зерно й отримати іншу розкладку ворогів">Інше зерно</button>
+  </div>
+</div>
+
+<nav class="rail" id="rail" aria-label="Меню">
+  <button role="tab" class="tabbtn" id="tabCurves" aria-selected="true" title="Графіки зростання чисел за рівнем: HP, шкода, досвід, ціни"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 11 6 20 5"/></svg><span>Криві</span></button>
+  <button role="tab" class="tabbtn" id="tabWaves" aria-selected="false" title="Генератор хвиль ворогів за бюджетом складності"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/></svg><span>Хвилі</span></button>
+  <i class="sep"></i>
+  <button data-view="curves" data-panel="curves" title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри й формули, бібліотека формул"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg><span>Список</span></button>
+  <button data-view="curves" data-panel="ratio" title="Співвідношення двох кривих: у скільки разів одна більша за іншу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg><span>Відношення</span></button>
+  <button data-view="curves" data-panel="table" title="Таблиця значень усіх видимих кривих на кожному рівні"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M3.5 14h17M10 4v16"/></svg><span>Таблиця</span></button>
+  <button data-view="waves" data-panel="budget" title="Бюджет складності хвилі, бос кожні N хвиль і його частка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg><span>Бюджет</span></button>
+  <button data-view="waves" data-panel="hp" title="Множник здоров'я ворогів за номером хвилі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.600-7 10-7 10z"/></svg><span>HP</span></button>
+  <button data-view="waves" data-panel="types" title="Типи ворогів: вартість, здоров'я, з якої хвилі, вага"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg><span>Вороги</span></button>
+  <button data-view="waves" data-panel="wtable" title="Склад кожної хвилі: скільки яких ворогів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M3.5 14h17M10 4v16"/></svg><span>Склад</span></button>
+</nav>
+<aside class="drawer" id="drawer" data-store="bc_panel" data-default="curves" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+<section data-panel="curves">
       <div class="side-h"><h2 title="Список кривих: вмикайте, перейменовуйте, змінюйте параметри">Криві</h2><span class="spacer"></span><button id="btnReset" title="Повернути приклад за замовчуванням і прибрати свої зміни">Скинути</button><button id="btnAdd" class="btn-primary" title="Додати нову криву">+ Крива</button></div>
       <div class="presetrow" id="presetSlot"></div>
       <div id="curves"></div>
@@ -80,28 +108,8 @@
       <h2 title="Значення всіх видимих кривих на кожному рівні. Завантажити: кнопки «Таблиця CSV/JSON» угорі">Таблиця</h2>
       <div class="tablewrap"><table id="tbl"></table></div>
     </section>
-  </aside>
-  <div class="bar">
-    <label class="ctl-inline" title="З якого рівня (кроку) починати графік">Від <input type="number" id="nFrom" min="0" max="999" step="1" title="З якого рівня (кроку) починати графік"></label>
-    <label class="ctl-inline" title="На якому рівні (кроці) закінчити графік, максимум 1000">До <input type="number" id="nTo" min="2" max="1000" step="1" title="На якому рівні (кроці) закінчити графік, максимум 1000"></label>
-    <label class="ctl-inline" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок">Вигляд <select id="selView" title="Що показувати: самі значення, суму від початку чи відсоток зростання за крок"><option value="val">Значення</option><option value="cum">Накопичено</option><option value="gr">Приріст за крок, %</option></select></label>
-    <label class="chk" title="Логарифмічна шкала: зручна, коли числа зростають у сотні разів"><input type="checkbox" id="cLog"><span>Лог. шкала</span></label>
-  </div>
-</div>
-
-<div class="work" id="viewWaves" hidden>
-  <div class="plot" id="wplot"></div>
-  <div class="legend" id="wlegend"></div>
-
-  <nav class="rail" aria-label="Меню хвиль">
-    <button data-panel="budget" title="Бюджет складності хвилі, бос кожні N хвиль і його частка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M3 20V4"/><path d="M4 18C9 18 10 6 20 5"/></svg><span>Бюджет</span></button>
-    <button data-panel="hp" title="Множник здоров'я ворогів за номером хвилі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.600-7 10-7 10z"/></svg><span>HP</span></button>
-    <button data-panel="types" title="Типи ворогів: вартість, здоров'я, з якої хвилі, вага"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg><span>Вороги</span></button>
-    <button data-panel="wtable" title="Склад кожної хвилі: скільки яких ворогів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M3.5 14h17M10 4v16"/></svg><span>Склад</span></button>
-  </nav>
-  <aside class="drawer" id="drawerW" hidden>
-    <button class="dx" data-close title="Закрити меню">×</button>
-    <section data-panel="budget">
+  
+<section data-panel="budget">
       <h2 title="Скільки «очок складності» має кожна хвиля. Чим вищий бюджет, тим більше й сильніші вороги">Бюджет складності хвилі</h2>
       <div id="wBudget"></div>
       <div class="row2"><label class="num" title="Кожна N-та хвиля отримує боса. 0 означає без босів">Бос кожні (0 = без) <input type="number" id="wBoss" min="0" max="100" title="Кожна N-та хвиля отримує боса. 0 означає без босів"></label><label class="num" title="Яку частину бюджету хвилі забирає бос">Частка бюджету боса, % <input type="number" id="wShare" min="5" max="90" title="Яку частину бюджету хвилі забирає бос"></label></div>
@@ -118,25 +126,17 @@
     <section data-panel="wtable">
       <h2 title="Скільки яких ворогів у кожній хвилі; рядки з ▲ — хвилі з босом">Склад хвиль</h2><div class="tablewrap"><table id="wtbl"></table></div>
     </section>
-  </aside>
-  <div class="bar">
-    <label class="ctl-inline" title="Скільки хвиль згенерувати (до 200)">Хвиль <input type="number" id="wTo" min="1" max="200" step="1" title="Скільки хвиль згенерувати (до 200)"></label>
-    <label class="ctl-inline" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі">Зерно <input type="number" id="wSeed" min="1" max="99999" step="1" title="Число, від якого залежить випадковість: те саме зерно дає ті самі хвилі"></label>
-    <button id="btnWReroll" title="Випадково змінити зерно й отримати іншу розкладку ворогів">Інше зерно</button>
-  </div>
-</div>
+  
+</aside>
+</main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
 <script src="./formula.js"></script>
 <script src="./formula-presets.js"></script>
 <script src="./curves-core.js"></script>
 <script src="./formula-ui.js"></script>
+<script src="./zb-ui.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
