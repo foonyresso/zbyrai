@@ -3,6 +3,14 @@
 // Ключ збереження відкритої панелі: data-store на #drawer (інакше zb.<папка>.panel); початкова: data-default.
 // Копії в папках інструментів робить node tools/sync-theme.mjs; не правити копії вручну.
 (function () {
+  // гарячі клавіші, незалежні від розкладки (літера з фізичної клавіші e.code)
+  window.zbKey = function (e) {
+    var c = e.code || '';
+    if (/^Key[A-Z]$/.test(c)) return c.charAt(3).toLowerCase();
+    if (c === 'BracketLeft') return '[';
+    if (c === 'BracketRight') return ']';
+    return (e.key || '').toLowerCase();
+  };
   var folder = (location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '').split('/').pop()) || 'tool';
   function $(id) { return document.getElementById(id); }
   var ZB = window.ZB = { panel: '', showPanel: function () {}, onPanel: null };

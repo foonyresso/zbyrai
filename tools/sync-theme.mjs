@@ -18,9 +18,10 @@ for (const e of readdirSync(root, { withFileTypes: true })) {
   const dest = join(root, e.name, 'theme.css');
   const same = existsSync(dest) && readFileSync(dest).equals(src);
   copyFileSync(source, dest);
-  if (e.name !== 'taste') copyFileSync(chromeSrc, join(root, e.name, 'tool-chrome.js'));
-  // UI-кіт (shared/ui): лише в інструменти, що підключають zb-ui.css
-  if (readFileSync(join(root, e.name, 'index.html'), 'utf8').includes('zb-ui.css')) for (const f of ['zb-ui.css', 'zb-ui.js']) copyFileSync(join(root, 'shared', 'ui', f), join(root, e.name, f));
+  // UI-кіт (shared/ui): лише в інструменти, що підключають zb-ui.css; їм tool-chrome.js не потрібен (кіт має zbKey, довідку «i»)
+  const kit = readFileSync(join(root, e.name, 'index.html'), 'utf8').includes('zb-ui.css');
+  if (e.name !== 'taste' && !kit) copyFileSync(chromeSrc, join(root, e.name, 'tool-chrome.js'));
+  if (kit) for (const f of ['zb-ui.css', 'zb-ui.js']) copyFileSync(join(root, 'shared', 'ui', f), join(root, e.name, f));
   console.log(`${same ? '=' : '✓'} ${e.name}/theme.css${same ? ' (без змін)' : ' оновлено'}`);
   n++;
 }

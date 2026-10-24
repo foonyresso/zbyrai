@@ -13,17 +13,15 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/pattern-maker/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M12 2.5v9M3.5 7 12 11.5 20.5 7M12 11.5l-8.5 5.5M12 11.5l8.5 5.5"/></svg>
-    <div>Конструктор <span>візерунків</span></div>
-  </div>
-  <div class="spacer"></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden>← Zbyr<b>AI</b></a>
+  <div class="brand">Конструктор <span>візерунків</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
   <div class="top-actions">
     <button id="btnImport" title="Завантажити збережені налаштування візерунка з файлу .json (зображення в файл не входить)">Імпорт</button>
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
@@ -35,30 +33,15 @@
   </div>
 </header>
 
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Конструктор візерунків: бере шматок будь-якого зображення й розкладає його в безшовний візерунок з дзеркалами, сотами, калейдоскопом або розеткою.</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Для фонів, текстур, тайлів для ігор, обгортки, тканини, шпалер. Готовий візерунок можна покласти поряд скільки завгодно разів, шви не видно.</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Завантаж зображення</b>: «Обрати файл», перетягни файл у вікно, Ctrl+V або «Демо».</li>
-        <li><b>Обери режим</b> (іконка «Режим») і перетягни рамку виділення по зображенню в «Джерелі»: це «зерно» візерунка.</li>
-        <li><b>Крути повзунки</b> і ефекти в меню-іконках зліва, результат видно на весь екран.</li>
-        <li><b>Збережи</b> кнопками угорі: тайл PNG, полотно PNG, копіювання або посилання.</li>
-      </ol>
-    </div>
-  </div>
-</details>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Конструктор візерунків</h2>
+  <h3>Що це</h3><p>Конструктор візерунків: бере шматок будь-якого зображення й розкладає його в безшовний візерунок з дзеркалами, сотами, калейдоскопом або розеткою.</p>
+  <h3>Для чого</h3><p>Для фонів, текстур, тайлів для ігор, обгортки, тканини, шпалер. Готовий візерунок можна покласти поряд скільки завгодно разів, шви не видно.</p>
+  <h3>Як користуватися</h3><ol> <li><b>Завантаж зображення</b>: «Обрати файл», перетягни файл у вікно, Ctrl+V або «Демо».</li> <li><b>Обери режим</b> (іконка «Режим») і перетягни рамку виділення по зображенню в «Джерелі»: це «зерно» візерунка.</li> <li><b>Крути повзунки</b> і ефекти в меню-іконках зліва, результат видно на весь екран.</li> <li><b>Збережи</b> кнопками угорі: тайл PNG, полотно PNG, копіювання або посилання.</li> </ol>
+</dialog>
 
-<div class="work" id="work">
+<main class="stage" id="work">
   <div class="prevwrap" id="prevWrap"><canvas id="prev" aria-label="Превʼю візерунка"></canvas></div>
   <div class="dropmask">Відпустіть, щоб завантажити</div>
 
@@ -69,7 +52,7 @@
     <button data-panel="fx" title="Ефекти кінцевого результату й збережені рецепти ефектів"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span>Ефекти</span></button>
     <button data-panel="export" title="Розмір тайла й полотна для збереження"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></svg><span>Експорт</span></button>
   </nav>
-  <aside class="drawer" id="drawer" hidden>
+  <aside class="drawer" id="drawer" data-store="pm_panel" data-default="src" hidden>
     <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="src"><h2>Джерело</h2>
       <div class="row2">
@@ -130,17 +113,13 @@
     <button id="btnResetAll" title="Повернути всі повзунки й ефекти до початкових значень (режим і зображення лишаються)">Скинути все</button>
     <button id="btnReset" title="Повернути масштаб і зсув превʼю">Скинути вигляд</button>
   </div>
-</div>
+</main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
+<script src="./zb-ui.js"></script>
 <script src="./pattern-core.js"></script>
 <script src="./pattern-fx.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
