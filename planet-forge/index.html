@@ -13,17 +13,15 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/planet-forge/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%268%27 fill=%27none%27 stroke=%27%235cb8e6%27 stroke-width=%272%27/%3E%3Cellipse cx=%2716%27 cy=%2716%27 rx=%2713%27 ry=%274%27 transform=%27rotate%28-20 16 16%29%27 fill=%27none%27 stroke=%27%235cb8e6%27 stroke-width=%271.6%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-20 12 12)"/></svg>
-    <div>Кузня <span>планет</span></div>
-  </div>
-  <div class="spacer"></div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden>← Zbyr<b>AI</b></a>
+  <div class="brand">Кузня <span>планет</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
   <div class="top-actions">
     <button id="btnImport" title="Завантажити збережену планету з файлу .json (параметри й паспорт)">Імпорт</button>
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
@@ -36,30 +34,15 @@
   </div>
 </header>
 
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Кузня космосу: створює зоряну систему з зорею й планетами, а кожну планету можна відкрити окремо: 3D-кулю з поверхнею, небом і паспортом, або літаючий континент, велетенську плиту суші просто в космосі.</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Для фантастичних світів, настільних ігор і сценаріїв; карту планети можна накласти на кулю в ігровому рушії. Є 36 типів: від Землі до літаючих материків, що вміщують трильйони людей.</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Починай із системи</b>: обери зорю в меню «Система», клікни планету на полотні, щоб відкрити її.</li>
-        <li><b>Меню «Планета»</b>: тип, поверхня, небо й життя обраної планети. Кнопка «Система» повертає назад.</li>
-        <li><b>Рандом</b> є в кожному меню: у «Системі» для всієї системи, зорі чи планет, у «Планеті» для самої планети. Замочок біля параметра лишає його як є.</li>
-        <li><b>Збережи чи поділись</b> кнопками угорі: картинка, карта, висоти, JSON, імпорт.</li>
-      </ol>
-    </div>
-  </div>
-</details>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Кузня планет</h2>
+  <h3>Що це</h3><p>Кузня космосу: створює зоряну систему з зорею й планетами, а кожну планету можна відкрити окремо: 3D-кулю з поверхнею, небом і паспортом, або літаючий континент, велетенську плиту суші просто в космосі.</p>
+  <h3>Для чого</h3><p>Для фантастичних світів, настільних ігор і сценаріїв; карту планети можна накласти на кулю в ігровому рушії. Є 36 типів: від Землі до літаючих материків, що вміщують трильйони людей.</p>
+  <h3>Як користуватися</h3><ol> <li><b>Починай із системи</b>: обери зорю в меню «Система», клікни планету на полотні, щоб відкрити її.</li> <li><b>Меню «Планета»</b>: тип, поверхня, небо й життя обраної планети. Кнопка «Система» повертає назад.</li> <li><b>Рандом</b> є в кожному меню: у «Системі» для всієї системи, зорі чи планет, у «Планеті» для самої планети. Замочок біля параметра лишає його як є.</li> <li><b>Збережи чи поділись</b> кнопками угорі: картинка, карта, висоти, JSON, імпорт.</li> </ol>
+</dialog>
 
-<main class="wrap">
+<main class="stage wrap">
   <div class="viewport" id="view"><canvas id="cv" aria-label="Космічний об’єкт" title="Планета: тягни, щоб крутити. Система: клікни планету, щоб відкрити. Літаючий континент: тягни й крути колесо"></canvas>
     <div class="crumb" id="crumb"></div>
   </div>
@@ -109,15 +92,12 @@
     </div>
   </aside>
 
-  <div class="info" id="info"><div class="info-body" id="infoBody" hidden></div><button type="button" class="info-toggle" id="infoToggle" title="Коротка інформація про вибраний об’єкт">ⓘ Інформація</button></div>
+  <div class="info" id="info"><div class="info-body" id="infoBody" hidden></div><button type="button" class="info-toggle" id="infoToggle" title="Коротка інформація про вибраний об’єкт">ⓘ Інформація</button></main>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
+<script src="./zb-ui.js"></script>
 <script src="./planet-sky.js"></script>
 <script src="./planet-kinds-worlds.js"></script>
 <script src="./planet-kinds-sky.js"></script>
@@ -130,6 +110,5 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./app.js"></script>
 <script src="./system-ui.js"></script>
 <script src="./slab-ui.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
