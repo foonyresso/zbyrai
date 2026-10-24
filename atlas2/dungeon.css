@@ -1,0 +1,15 @@
+/* Атлас 2.0: екран підземелля */
+.dhide { display: none !important; }
+.dview { position: absolute; inset: 0; z-index: 8; background: #15171c; color: #e8edf3; display: grid; grid-template-columns: 250px 1fr; grid-template-rows: auto 1fr; }
+.dview[hidden] { display: none; }
+.dbar { grid-column: 1 / 3; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 12px; background: #1d2530; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 13px; }
+.dbar b { font-size: 15px; } .dbar .dsp { flex: 1; } .dbar button { padding: 4px 10px; font-size: 12.5px; } .dmsg { font-size: 12px; opacity: .8; }
+.dtools { overflow: auto; padding: 10px; background: #1a1f27; border-right: 1px solid rgba(255,255,255,.1); font-size: 12.5px; display: flex; flex-direction: column; gap: 10px; }
+.dtools details summary { cursor: pointer; font-weight: 600; } .dtools p { margin: 6px 0 0; line-height: 1.35; opacity: .9; } .dtools .hint { font-size: 11.5px; opacity: .7; }
+.dtools .lb, .dview .lb { font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; opacity: .55; margin-bottom: 4px; }
+.dsec { display: flex; flex-direction: column; gap: 6px; } .dsec label.chk { display: flex; gap: 6px; align-items: center; }
+.dfl { display: flex; flex-wrap: wrap; gap: 4px; } .dfl button.on { background: var(--accent-glow, rgba(111,177,240,.2)); border-color: var(--accent, #6fb1f0); }
+.stage .dview canvas { position: static; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; min-height: 0; }
+.dview .tdet { left: auto; right: 12px; bottom: 12px; } .dmapcard { left: 384px; }
+@media (max-width: 760px) { .dview { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; } .dbar { grid-column: 1; } .dtools { max-height: 30vh; border-right: 0; } }
+@media print { body.dprint > *:not(.stage), body.dprint .stage > *:not(.dview) { display: none !important; } body.dprint .dview { position: static; display: block; background: #fff; } body.dprint .dbar, body.dprint .dtools, body.dprint .tdet { display: none !important; } body.dprint .dview canvas { width: 100%; height: auto; } }
