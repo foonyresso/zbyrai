@@ -50,6 +50,12 @@
         acc += L;
       }
     }
+    // ---- кінці вулиць і провулків на околиці не обриваються: стежки з вигинами доходять до найближчої дороги
+    if (tier >= 1) for (const st of streets.slice()) {
+      if ((st.kind !== 'street' && st.kind !== 'lane') || st.joined || st.pts.length < 4) continue; const n = st.pts.length, ex = st.pts[n - 2], ey = st.pts[n - 1]; if (d0(ex, ey) < R * 0.7 || r() < 0.3) continue;
+      let bt = null, bd = 380; for (const av of streets) { if (av.kind !== 'avenue') continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd && d > 18) { bd = d; bt = [qx, qy]; } } }
+      if (!bt) continue; const ch = mkSt('path', 1.8, st.id); net.reach(ch, ex, ey, Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]), bt[0], bt[1], bd * 1.8 + 40); if (ch.pts.length < 4) streets.pop();
+    }
     // ---- стіна
     const walled = tier >= 2 && (tier >= 3 || r() < 0.7), Rw = R * 0.8, wph = r() * TAU, wallR = th => Rw * (1 + 0.05 * Math.sin(3 * th + wph) + 0.035 * Math.sin(5 * th + 2 * wph)), inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
     // ---- райони: опорні точки (вага менша → район більший)
@@ -83,7 +89,7 @@
     if (tier >= 2) for (let n = [0, 0, 1 + (r() < 0.5), 3 + (r() < 0.5), 5 + (r() < 0.5)][tier] | 0, tries = 0; n > 0 && tries < 80; tries++) { const a = r() * TAU, d = R * (0.15 + 0.7 * r()), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d, rad = 22 + r() * 24, k = kindOf(districtOf(x, y)); if (k === 'poor' || k === 'craft' || k === 'port' || !circleFree(x, y, rad, 14)) continue; F.push({ t: 'park', x, y, r: rad, kind: k, name: pick(r, ['Парк', 'Сад', 'Гай', 'Скверик']) + ' «' + cname() + '»' }); n--; }
     if (tier >= 1 && (tier >= 2 || popEff >= 200)) for (let tries = 0; tries < 40; tries++) { const a = r() * TAU, d = R * (0.8 + 0.4 * r()), x = x0 + Math.cos(a) * d, y = y0 + Math.sin(a) * d, rad = 22 + r() * 14; if (circleFree(x, y, rad, 12) && near(x, y, rad, -1, -2) > rad * 0.6) { F.push({ t: 'cemetery', x, y, r: rad, name: 'Цвинтар «' + cname() + '»' }); break; } }
     // ---- місця під забудову вздовж вулиць (фронтаж)
-    const lots = []; streets.forEach(st => { const p = st.pts; for (let i = 2; i < p.length; i += 2) { if (st.br[i / 2]) continue; const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), a = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]); for (let t = 0; t < L; t += 9) for (const sd of [1, -1]) { const x = p[i - 2] + Math.cos(a) * t, y = p[i - 1] + Math.sin(a) * t; if (st.kind === 'embankment' && ((x0 - x) * -Math.sin(a) + (y0 - y) * Math.cos(a)) * sd < 0) continue; lots.push({ x, y, a, nx: -Math.sin(a) * sd, ny: Math.cos(a) * sd, hw: st.hw, st: st.id, d: d0(x, y) }); } } });
+    const lots = []; streets.forEach(st => { if (st.kind === 'path') return; const p = st.pts; for (let i = 2; i < p.length; i += 2) { if (st.br[i / 2]) continue; const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), a = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]); for (let t = 0; t < L; t += 9) for (const sd of [1, -1]) { const x = p[i - 2] + Math.cos(a) * t, y = p[i - 1] + Math.sin(a) * t; if (st.kind === 'embankment' && ((x0 - x) * -Math.sin(a) + (y0 - y) * Math.cos(a)) * sd < 0) continue; lots.push({ x, y, a, nx: -Math.sin(a) * sd, ny: Math.cos(a) * sd, hw: st.hw, st: st.id, d: d0(x, y) }); } } });
     // ---- розміщення споруд
     const tierOk = id => (GATE[id] || 0) <= tier;
     const canPlace = (b, big) => {
@@ -142,8 +148,8 @@
     // ---- назви вулиць
     const used2 = new Set(), nb = {}; W.settlements.forEach(q => { if (q.id !== s.id && !q.ruined && q.landmass === s.landmass && Math.hypot(q.x - s.x, q.y - s.y) < 60) { (nb.list = nb.list || []).push(q); } });
     const nameSt = (st, kind) => {
-      const ST = X.stems(kind || 'centre'), end = { avenue: 'вулиця', street: 'вулиця', ring: 'вулиця', embankment: 'набережна', lane: 'провулок' }[st.kind];
-      for (let t = 0; t < 12; t++) { const stem = pick(r, ST), nm = end === 'провулок' ? stem + 'ий провулок' : end === 'набережна' ? stem + 'а набережна' : stem + 'а вулиця'; if (!used2.has(nm)) { used2.add(nm); return nm; } }
+      const ST = X.stems(kind || 'centre'), end = { avenue: 'вулиця', street: 'вулиця', ring: 'вулиця', embankment: 'набережна', lane: 'провулок', path: 'стежка' }[st.kind];
+      for (let t = 0; t < 12; t++) { const stem = pick(r, ST), nm = end === 'стежка' ? stem + 'а стежка' : end === 'провулок' ? stem + 'ий провулок' : end === 'набережна' ? stem + 'а набережна' : stem + 'а вулиця'; if (!used2.has(nm)) { used2.add(nm); return nm; } }
       const nm = (end === 'провулок' ? 'Другий провулок ' : 'Нова вулиця ') + (used2.size + 1); used2.add(nm); return nm;
     };
     streets.forEach(st => {

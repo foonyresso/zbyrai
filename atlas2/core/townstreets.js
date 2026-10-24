@@ -49,7 +49,17 @@
       shore.push({ x: px, y: py, nx: ux, ny: uy, d: hitD }); cur.push([px, py, 0]);
     }
     if (tier >= 2 || o.port) addPoly('embankment', 5, cur, 6);
-    return { streets, near, grow, mkSt, shore, segs, addSeg };
+    // стежка, що плавно (з вигинами) доходить до цілі: нахил поступово повертається до цілі, з легкими блуканнями
+    function reach(st, x, y, ang, tx, ty, maxLen) {
+      push(st, x, y, 0); let px = x, py = y, hd = ang;
+      for (let i = 0, n = Math.floor(maxLen / STEP); i < n; i++) {
+        const want = Math.atan2(ty - py, tx - px), dh = Math.atan2(Math.sin(want - hd), Math.cos(want - hd)); hd += dh * 0.22 + (r() - 0.5) * 0.45;
+        const nx = px + Math.cos(hd) * STEP, ny = py + Math.sin(hd) * STEP; if (WK(nx, ny) === 2) break;
+        if (Math.hypot(tx - nx, ty - ny) < STEP) { push(st, tx, ty, 0); st.joined = true; return st; } push(st, nx, ny, WK(nx, ny) === 1); px = nx; py = ny;
+      }
+      return st;
+    }
+    return { streets, near, grow, mkSt, shore, segs, addSeg, reach };
   }
   A.TownNet = { build, STEP, TAU };
 })();

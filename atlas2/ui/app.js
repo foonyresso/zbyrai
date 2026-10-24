@@ -56,7 +56,8 @@
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
     const ct = A.TownMap ? A.TownMap.at(W, view, fx, fy) : null; curCt = ct; if (ct) { near = ct.s; site = null; } // у межах видимого міста велике вікно лишається про це місто, а подробиці йдуть у вікно міста
-    curNear = ct ? null : near; cv.style.cursor = ct ? '' : near ? 'pointer' : ''; if (A.TownMap) A.TownMap.hover(ct);
+    let lm = null; if (!ct && !near && !site && W.landmarks && layers.sites !== false && view.k >= 2.2) { bd = rad; for (const q of W.landmarks) { const d = (q.x + 0.5 - fx) ** 2 + (q.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; lm = q; } } }
+    curNear = ct ? null : near; cv.style.cursor = ct ? '' : near || lm ? 'pointer' : ''; if (A.TownMap) A.TownMap.hover(ct, lm);
     const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = ct ? null : near || site;
     const k1 = level + '|' + id + '|' + (ct && ct.h ? ct.h.kind + (ct.h.o.id == null ? '' : ct.h.o.id) : '') + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
     if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, view, hover, level, mark); }

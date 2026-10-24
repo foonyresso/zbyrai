@@ -17,7 +17,7 @@
       c.world = { version: 1, params: p, w: p.w, h: p.h, sea: T.sea, height: T.height, elev: T.elev, land: T.land, ocean: T.ocean, lake: H.lake, river: H.river, acc: H.acc, down: H.down, rivers: H.rivers, lakes: H.lakes, temp: C.temp, moist: C.moist, bio: C.bio, waterDist: C.waterDist, riverThr: H.riverThr };
     } }
   ];
-  const STAGE_LABEL = { politics: 'Провінції й регіони', settlements: 'Міста й села', roads: 'Дороги', searoutes: 'Морські шляхи', seas: 'Назви морів і океанів', danger: 'Рівні й небезпека', sites: 'Локації й монстри' };
+  const STAGE_LABEL = { politics: 'Провінції й регіони', settlements: 'Міста й села', roads: 'Дороги', landmarks: 'Місця за містами', searoutes: 'Морські шляхи', seas: 'Назви морів і океанів', danger: 'Рівні й небезпека', sites: 'Локації й монстри' };
   const steps = () => STEPS.concat((A.stages || []).map(f => ({ id: f.name, label: STAGE_LABEL[f.name] || f.name, run: c => f(c.world) })));
   // приблизна частка часу кроків (за заміром на середній карті), для відсотків
   const WEIGHT = { terrain: 6, hydrology: 8, climate: 3, politics: 42, settlements: 8, roads: 14, searoutes: 3, seas: 3, danger: 8, sites: 8 };

@@ -10,7 +10,7 @@
   function exportWorld(W) {
     return {
       format: 'atlas2-world', version: 1, params: paramsToJSON(W.params), w: W.w, h: W.h, kmPerCell: W.params.kmPerCell,
-      provinces: W.provinces, regions: W.regions, settlements: W.settlements || [], roads: (W.roads || []).map(r => ({ level: r.level, from: r.from, to: r.to, cells: r.cells })), seaRoutes: W.seaRoutes || [], sites: W.sites || [], origin: W.origin,
+      provinces: W.provinces, regions: W.regions, settlements: W.settlements || [], roads: (W.roads || []).map(r => ({ level: r.level, from: r.from, to: r.to, cells: r.cells })), seaRoutes: W.seaRoutes || [], sites: W.sites || [], landmarks: W.landmarks || [], origin: W.origin,
       rivers: W.rivers, layers: { land: rle(W.land), ocean: rle(W.ocean), lake: rle(W.lake), biome: rle(W.bio), province: rle(W.province), region: rle(W.region), river: rle(W.river), level: rle(W.level), tier: rle(W.tier) },
     };
   }

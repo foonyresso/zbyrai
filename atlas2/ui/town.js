@@ -46,7 +46,12 @@
     card.querySelectorAll('[data-d]').forEach(b => { b.onclick = () => { const dd = ct.c.districts[+b.dataset.d]; pinned = { s: ct.s, c: ct.c, h: { kind: 'district', o: dd } }; hl.hoverDistrict = dd.id; hl.sel = null; render(pinned, true); if (A.redrawOver) A.redrawOver(); }; });
     card.querySelectorAll('[data-b]').forEach(b => { b.onclick = () => { const bb = ct.c.buildings[+b.dataset.b]; pinned = { s: ct.s, c: ct.c, h: { kind: 'building', o: bb } }; hl.sel = bb; render(pinned, true); if (A.redrawOver) A.redrawOver(); }; });
   }
-  function hover(ct) { ensure(); if (pinned) return; setHl(ct); render(ct, false); if (!ct || !ct.h) card.hidden = true; }
+  function landmarkCard(lm) {
+    const W = A.world, s = W.settlements[lm.from], K = A.LANDMARK_KINDS[lm.kind], gn = A.Danger && A.Danger.groupName(W, lm.i);
+    card.style.setProperty('--dc', A.LANDMARK_COL[lm.kind]);
+    card.innerHTML = `<div class="dh"><i></i><b>${esc(lm.name)}</b></div><div class="ds">${esc(K.n)}</div><p>${esc(K.d)}</p><dl><dt>Біля міста</dt><dd>${esc(s.name)}</dd><dt>Відстань</dt><dd>${String(lm.km).replace('.', ',')} км</dd>${gn ? `<dt>Ландшафт</dt><dd>${esc(A.Danger.GROUP_UA[gn] || gn)}</dd>` : ''}</dl>`; card.hidden = false;
+  }
+  function hover(ct, lm) { ensure(); if (pinned) return; setHl(ct); if (!ct && lm) { landmarkCard(lm); return; } render(ct, false); if (!ct || !ct.h) card.hidden = true; }
   function click(ct) { ensure(); if (!ct || !ct.h || (pinned && pinned.h.o === ct.h.o)) { pinned = null; hl.sel = null; setHl(ct); render(ct, false); if (!ct || !ct.h) card.hidden = true; return; } pinned = ct; hl.sel = ct.h.kind === 'building' ? ct.h.o : null; setHl(ct); render(ct, true); }
   function drawOver(cv, W, view) {
     if (hl.sid < 0 || !A.Town.has(W, W.settlements[hl.sid])) return; const s = W.settlements[hl.sid], CS = W.params.kmPerCell * 1000, t = A.TownDraw.morph(s, view.k, CS); if (t < 0.3) return;
