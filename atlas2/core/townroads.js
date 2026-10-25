@@ -28,7 +28,7 @@
     return { grid, segs };
   }
   function insertNode(st, i, x, y) { // після вершини i/2-1: нова вершина між кінцями відрізка i
-    const p = st.pts, b = st.br; if (i < 2 || i > p.length - 0) return; p.splice(i, 0, x, y); b.splice(i / 2, 0, b[i / 2 - 1] && b[i / 2] ? 1 : 0);
+    const p = st.pts, b = st.br; if (i < 2 || i > p.length - 0) return; p.splice(i, 0, x, y); b.splice(i / 2, 0, b[i / 2 - 1] || b[i / 2] ? 1 : 0);
   }
   // перетини: перехрестя (обидві з вузлом) або T-стик (менша вулиця обривається на більшій)
   function crossings(streets, from) {

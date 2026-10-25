@@ -35,8 +35,10 @@
     const rings = tier >= 4 ? [0.28, 0.5, 0.72] : tier === 3 ? [0.36, 0.66] : tier === 2 ? [0.34, 0.66] : tier === 1 ? [0.32] : [];
     for (const f of rings) {
       const ph = r() * TAU, k1 = (r() - 0.5) * 0.24, k2 = (r() - 0.5) * 0.16, k3 = (r() - 0.5) * 0.12; let cur = [];
-      for (let t = 0; t <= 61; t++) { const th = t / 60 * TAU, rr = R * f * (1 + k1 * Math.sin(2 * th + ph) + k2 * Math.sin(3 * th + 2 * ph) + k3 * Math.sin(5 * th + ph)), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr, wk = WK(x, y);
-        if (wk === 2) { addPoly('ring', 4.5, cur, 4); cur = []; continue; } cur.push([x, y, wk === 1]); }
+      const all = []; for (let t = 0; t <= 61; t++) { const th = t / 60 * TAU, rr = R * f * (1 + k1 * Math.sin(2 * th + ph) + k2 * Math.sin(3 * th + 2 * ph) + k3 * Math.sin(5 * th + ph)), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr; all.push([x, y, WK(x, y)]); }
+      // короткі ділянки глибокої води (до ~140 м) кільцева дорога перетинає неперервно, довші — розривається
+      for (let t = 0; t < all.length; t++) { if (all[t][2] !== 2) continue; let e = t; while (e + 1 < all.length && all[e + 1][2] === 2) e++; if (t > 0 && e < all.length - 1) { let len = 0; for (let q = t; q <= e + 1; q++) len += Math.hypot(all[q][0] - all[q - 1][0], all[q][1] - all[q - 1][1]); if (len <= 140) for (let q = t; q <= e; q++) all[q][2] = 1; } t = e; }
+      for (const [x, y, wk] of all) { if (wk === 2) { addPoly('ring', 4.5, cur, 4); cur = []; continue; } cur.push([x, y, wk === 1]); }
       addPoly('ring', 4.5, cur, 4);
     }
     // 3. набережна уздовж берега
