@@ -68,6 +68,20 @@
     // ---- стіна
     const wmat = tier >= 3 ? 'stone' : tier === 2 ? (r() < 0.75 ? 'stone' : 'palisade') : tier === 1 ? (r() < 0.4 + Math.min(0.3, popEff / 2500) ? 'palisade' : null) : (r() < 0.35 ? 'fence' : null), walled = !!wmat, wt = wmat === 'stone' ? [0, 0, 6, 10, 14][tier] : wmat === 'palisade' ? 3 : 1.4, Rw = R * 0.8, wph = r() * TAU, wallR0 = th => Rw * (1 + 0.09 * Math.sin(2 * th + wph) + 0.06 * Math.sin(3 * th + 2 * wph) + 0.035 * Math.sin(5 * th + 3 * wph)), wallR = th => { if (!wallBins) return wallR0(th); const n = wallBins.length, u = (((th / TAU) % 1) + 1) % 1 * n, i = Math.floor(u) % n, t = u - Math.floor(u); return wallBins[i] * (1 - t) + wallBins[(i + 1) % n] * t; }, inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
     let wallBins = null;
+    // стіна йде впритул за найдальшим від центру кільцем вулиць (кільце лежить усередині міста під стіною); де кільце розірване, радіус інтерполюється, а воду стіна обходить сама
+    let ringWall = false;
+    if (walled) {
+      const rings = streets.filter(q => q.kind === 'ring' && q.pts.length >= 4), mean = q => { let t = 0, n = 0; for (let i = 0; i < q.pts.length; i += 2) { t += d0(q.pts[i], q.pts[i + 1]); n++; } return t / n; };
+      if (rings.length) {
+        const ms = rings.map(mean), top = Math.max(...ms), outer = rings.filter((q, i) => ms[i] > top * 0.85), NB = 120, bins = new Array(NB).fill(0);
+        for (const q of outer) { const p = q.pts; for (let i = 2; i < p.length; i += 2) { const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), m = Math.max(1, Math.ceil(L / 6)); for (let j = 0; j <= m; j++) { const x = p[i - 2] + (p[i] - p[i - 2]) * j / m, y = p[i - 1] + (p[i + 1] - p[i - 1]) * j / m, b = Math.floor((((Math.atan2(y - y0, x - x0) / TAU) % 1) + 1) % 1 * NB), v = d0(x, y) + q.hw + wt / 2 + 1; if (v > bins[b]) bins[b] = v; } } }
+        const have = bins.map((v, i) => v > 0 ? i : -1).filter(i => i >= 0);
+        if (have.length >= 3) { // порожні сектори (розрив кільця) заповнюються лінійно між найближчими заповненими
+          for (let i = 0; i < NB; i++) if (!bins[i]) { let a = i, b = i, da = 0, db = 0; while (!bins[((a % NB) + NB) % NB]) { a--; da++; } while (!bins[b % NB]) { b++; db++; } const va = bins[((a % NB) + NB) % NB], vb = bins[b % NB]; bins[i] = (va * db + vb * da) / (da + db); }
+          wallBins = bins; ringWall = true;
+        }
+      }
+    }
     // ---- райони: опорні точки (вага менша → район більший)
     const plan = (tier === 1 ? (popEff >= 250 ? PLANS[1] : []) : PLANS[tier]).filter(k => k !== 'port' || (s.port && shore.length)), anchors = [], land = (x, y) => WK(x, y) === 0;
     const ring = (f, jit) => { const o = []; const ph = r() * TAU; for (let k = 0; k < 18; k++) { const a = ph + k / 18 * TAU, rr = R * f * (1 + (r() - 0.5) * jit), x = x0 + Math.cos(a) * rr, y = y0 + Math.sin(a) * rr; if (land(x, y)) o.push([x, y]); } return o; };
@@ -228,7 +242,7 @@
       if (WK(x, y) !== 0 || near(x, y, 20, -1, -2) < 4 || fields.some(f => A.TownFields.inField(f, x, y)) || F.some(q => Math.hypot(q.x - x, q.y - y) < q.r + 2) || B.some(b => Math.hypot(b.x - x, b.y - y) < Math.max(b.w, b.h))) continue; trees.push({ x, y, r: 2.5 + r() * 3, c: r() < 0.2 ? 1 : 0 }); k++; }
     for (const f of F) if (f.t === 'park') for (let k = 0, n = Math.round(f.r * f.r / 70); k < n; k++) { const a = r() * TAU, d = Math.sqrt(r()) * f.r * 0.92; trees.push({ x: f.x + Math.cos(a) * d, y: f.y + Math.sin(a) * d, r: 2.5 + r() * 2.5, c: 0 }); }
     // стіна малих поселень щільно охоплює забудову (радіус по секторах із запасом від споруд), а не величезне коло
-    if (walled && tier <= 2 && B.length) {
+    if (walled && tier <= 2 && B.length && !ringWall) {
       const NB = 36, info = B.filter(b => !b.far && !b.site).map(b => ({ a: Math.atan2(b.y - y0, b.x - x0), d: d0(b.x, b.y), s: Math.max(b.w, b.h) / 2 })), band = wt / 2 + 5, rr = [];
       for (let i = 0; i < NB; i++) { const ca = (i + 0.5) / NB * TAU, near2 = info.filter(q => Math.abs(Math.atan2(Math.sin(q.a - ca), Math.cos(q.a - ca))) < TAU / NB * 0.5 + q.s / Math.max(q.d, 8));
         let v = R * 0.3; for (const q of near2) if (q.d < R * 1.0) v = Math.max(v, q.d + q.s + band);
