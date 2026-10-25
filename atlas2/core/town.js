@@ -57,9 +57,9 @@
     const outposts = [];
     if (tier >= 1) for (const st of streets.slice()) {
       if ((st.kind !== 'street' && st.kind !== 'lane') || st.joined || st.pts.length < 4) continue; const n = st.pts.length, ex = st.pts[n - 2], ey = st.pts[n - 1]; if (d0(ex, ey) < R * 0.7 || r() < 0.3) continue;
-      let bt = null, bd = 380; for (const av of streets) { if (av.kind !== 'avenue') continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd && d > 18) { bd = d; bt = [qx, qy]; } } }
+      let bt = null, bd = 5000; // стежка від міста може тягнутись до 5 км for (const av of streets) { if (av.kind !== 'avenue') continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd && d > 18) { bd = d; bt = [qx, qy]; } } }
       const hd = Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]);
-      if (bt) { const ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, bt[0], bt[1], bd * 1.5 + 40, true); if (ch.pts.length < 4) streets.pop(); continue; }
+      if (bt) { const ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, bt[0], bt[1], Math.min(5000, bd * 1.5 + 40), true); if (ch.pts.length < 4) streets.pop(); continue; }
       if (outposts.length >= 1 + tier) continue; const L = Math.max(130, R * 1.12 + 190 - d0(ex, ey)) + r() * 90, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', 3.6, st.id); net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
       if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }

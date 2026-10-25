@@ -54,7 +54,7 @@
     // стежка до цілі шукається по сітці (A*) в обхід води, споруд і місць, потім згладжується; кінець точно в цілі
     const api = { blocked: null, WK };
     function findPath(own, x, y, tx, ty, maxLen) {
-      const C = 7, mg = 60, x0 = Math.min(x, tx) - mg, y0 = Math.min(y, ty) - mg, nx = Math.ceil((Math.max(x, tx) + mg - x0) / C), ny = Math.ceil((Math.max(y, ty) + mg - y0) / C); if (nx * ny > 45000) return null;
+      const C = Math.max(7, Math.ceil(Math.max(Math.abs(tx - x), Math.abs(ty - y)) / 190)), mg = 60, x0 = Math.min(x, tx) - mg, y0 = Math.min(y, ty) - mg, nx = Math.ceil((Math.max(x, tx) + mg - x0) / C), ny = Math.ceil((Math.max(y, ty) + mg - y0) / C); if (nx * ny > 45000) return null;
       const ci = v => Math.max(0, Math.min(nx - 1, Math.floor((v - x0) / C))), cj = v => Math.max(0, Math.min(ny - 1, Math.floor((v - y0) / C))), si = ci(x), sj = cj(y), ti = ci(tx), tj = cj(ty), G = new Float32Array(nx * ny).fill(1e9), P = new Int32Array(nx * ny).fill(-1), cost = new Float32Array(nx * ny).fill(-1), heap = new A.Heap();
       const cc = (i, j) => { const k = j * nx + i; if (cost[k] >= 0) return cost[k]; const cx = x0 + (i + 0.5) * C, cy = y0 + (j + 0.5) * C, wk = WK(cx, cy); let c = 1e9; if (wk !== 2 && !(api.blocked && api.blocked(cx, cy))) { c = 1 + (wk === 1 ? 10 : 0); if (Math.hypot(cx - tx, cy - ty) > 14 && Math.hypot(cx - x, cy - y) > 14 && near(cx, cy, 8, own.id, own.parent) < 2.5) c += 6; c *= 1 + 0.5 * env.vnoise(cx / 45, cy / 45, env.seedInt); } return (cost[k] = c); };
       G[sj * nx + si] = 0; heap.push(0, sj * nx + si); let found = false;
@@ -64,11 +64,19 @@
       cells[0] = [x, y]; cells[cells.length - 1] = [tx, ty]; let len = 0; for (let i = 1; i < cells.length; i++) len += Math.hypot(cells[i][0] - cells[i - 1][0], cells[i][1] - cells[i - 1][1]); if (len > maxLen * 1.4 + 60) return null;
       return cells;
     }
+    // найбільший кут згину дороги в одній точці (відхилення від прямого напряму), радіани; стартовий напрям ang (якщо задано) теж враховується
+    const MAXBEND = 100 * Math.PI / 180;
+    function bendOk(p, ang) {
+      let prev = ang == null ? null : ang;
+      for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1]; if (!dx && !dy) continue; const a = Math.atan2(dy, dx); if (prev != null) { let d = Math.abs(a - prev) % TAU; if (d > Math.PI) d = TAU - d; if (d > MAXBEND) return false; } prev = a; }
+      return true;
+    }
     function reach(st, x, y, ang, tx, ty, maxLen, str) {
       push(st, x, y, 0); const cells = findPath(st, x, y, tx, ty, maxLen); if (!cells) return st;
       // згладжування: прорідження (Дуґлас-Пейкер 5 м) і дугова згладжувальна крива
       const keep = new Array(cells.length).fill(false); keep[0] = keep[cells.length - 1] = true; const dp = (a, b) => { let m = 0, mi = -1; const [ax, ay] = cells[a], [bx, by] = cells[b]; for (let i = a + 1; i < b; i++) { const d = segDist(cells[i][0], cells[i][1], ax, ay, bx, by); if (d > m) { m = d; mi = i; } } if (m > 5 && mi >= 0) { keep[mi] = true; dp(a, mi); dp(mi, b); } }; dp(0, cells.length - 1);
       const tmp = { pts: [], br: [] }; cells.forEach((q, i) => { if (keep[i]) { tmp.pts.push(q[0], q[1]); tmp.br.push(0); } }); chaikinPath(tmp, 3);
+      if (!bendOk(tmp.pts, ang)) return st; // вигин у будь-якій точці не більший за MAXBEND, інакше стежку відкидаємо
       for (let i = 2; i < tmp.pts.length; i += 2) { const mx = (tmp.pts[i] + tmp.pts[i - 2]) / 2, my = (tmp.pts[i + 1] + tmp.pts[i - 1]) / 2; push(st, tmp.pts[i], tmp.pts[i + 1], WK(tmp.pts[i], tmp.pts[i + 1]) === 1 || WK(mx, my) === 1); }
       st.joined = true; return st;
     }
