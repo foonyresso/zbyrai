@@ -30,6 +30,13 @@
     if (onProgress) onProgress(1, 'Готово');
     return c.world;
   }
+  // те саме, але після кожного кроку викликає onStep(крок, ctx): демонстрація «Як генерується карта» (ui/steps.js) знімає кадр, поки стан ще не змінили наступні кроки
+  async function generateTrace(input, onStep) {
+    const c = { p: A.Params.normalize(input) }, list = steps();
+    for (const st of list) { st.run(c); await onStep(st, c, list.length); }
+    return c.world;
+  }
+  A.generateTrace = generateTrace;
   A.generateAsync = generateAsync;
   A.generate = generate;
 })();

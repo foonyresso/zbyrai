@@ -34,6 +34,7 @@
     // центр міста лежить на дорозі карти (або в клітині поселення)
     let [x0, y0] = env.c0 || [0, 0]; if (WK(x0, y0) !== 0) { let f = false; for (let d = 12; d < 260 && !f; d += 12) for (let k = 0; k < 16 && !f; k++) { const x = Math.cos(k / 16 * TAU) * d, y = Math.sin(k / 16 * TAU) * d; if (WK(x, y) === 0) { x0 = x; y0 = y; f = true; } } }
     const net = A.TownNet.build(env, r, { x0, y0, R, Rmax, tier, runs: env.runs, port: s.port }), { streets, near, grow, mkSt, shore } = net, d0 = (x, y) => Math.hypot(x - x0, y - y0);
+    const tr = extra.trace; if (tr) tr('roads', { streets, env, c0: [x0, y0], R, Rmap }); // знімок для покрокової демонстрації (core/citytrace.js); у звичайній генерації tr порожній
     // ---- бічні вулиці й провулки, що ростуть від основних
     const gap = [55, 46, 60, 88, 95][tier], lenR = [[40, 80], [55, 130], [90, 210], [120, 260], [140, 310]][tier], pb = [0.5, 0.92, 0.9, 0.9, 0.92][tier], queue = streets.map(st => [st, 0]);
     for (let qi = 0; qi < queue.length; qi++) {
@@ -51,6 +52,7 @@
         acc += L;
       }
     }
+    if (tr) tr('side', { streets });
     // ---- кінці вулиць і провулків на околиці не обриваються: стежки з вигинами доходять до найближчої дороги
     const outposts = [];
     if (tier >= 1) for (const st of streets.slice()) {
@@ -62,6 +64,7 @@
       if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }
     A.TownRoads.clean(streets, net); const nA = streets.length;
+    if (tr) tr('paths', { streets });
     // ---- стіна
     const wmat = tier >= 3 ? 'stone' : tier === 2 ? (r() < 0.75 ? 'stone' : 'palisade') : tier === 1 ? (r() < 0.4 + Math.min(0.3, popEff / 2500) ? 'palisade' : null) : (r() < 0.35 ? 'fence' : null), walled = !!wmat, wt = wmat === 'stone' ? [0, 0, 6, 10, 14][tier] : wmat === 'palisade' ? 3 : 1.4, Rw = R * 0.8, wph = r() * TAU, wallR0 = th => Rw * (1 + 0.09 * Math.sin(2 * th + wph) + 0.06 * Math.sin(3 * th + 2 * wph) + 0.035 * Math.sin(5 * th + 3 * wph)), wallR = th => { if (!wallBins) return wallR0(th); const n = wallBins.length, u = (((th / TAU) % 1) + 1) % 1 * n, i = Math.floor(u) % n, t = u - Math.floor(u); return wallBins[i] * (1 - t) + wallBins[(i + 1) % n] * t; }, inWall = (x, y) => d0(x, y) < wallR(Math.atan2(y - y0, x - x0));
     let wallBins = null;
@@ -83,6 +86,7 @@
       let b = 0, bd = 1e9; anchors.forEach((a, k) => { const q = Math.hypot(a.x - x, a.y - y) * a.wt; if (q < bd) { bd = q; b = k; } }); return b;
     };
     const kindOf = id => id < 0 ? null : id >= anchors.length ? outerKind : anchors[id].kind;
+    if (tr) tr('districts', { anchors, outerKind, walled, wallR });
     // ---- нерухомі об'єкти: площі, парки, цвинтар
     const F = [], B = [], bgrid = new Map(), BK = 24, props = [], bkeys = b => { const o = []; const rad = Math.hypot(b.w, b.h) / 2; for (let gx = Math.floor((b.x - rad) / BK); gx <= Math.floor((b.x + rad) / BK); gx++) for (let gy = Math.floor((b.y - rad) / BK); gy <= Math.floor((b.y + rad) / BK); gy++) o.push(gx * 100003 + gy); return o; };
     const addB = b => { b.id = B.length; B.push(b); for (const k of bkeys(b)) (bgrid.get(k) || bgrid.set(k, []).get(k)).push(b.id); return b; };
@@ -124,6 +128,7 @@
         const ang = Math.atan2(y - q[1], x - q[0]), ox = x - Math.cos(ang) * spec.hl, oy = y - Math.sin(ang) * spec.hl, nsite = sites.length;
         if (placeSite({ x: ox, y: oy, a: ang }, false, 1, { spec, S: 1 })) { const f = sites[nsite]; f.r = rad; f.x = x; f.y = y; f.paths.push({ pts: [q[0], q[1], ox, oy], w: 2.6 }); break; } }
     }
+    if (tr) tr('features', { F });
     // ---- місця під забудову вздовж вулиць (фронтаж)
     const lots = []; streets.forEach(st => { if (st.kind === 'path') return; const p = st.pts; for (let i = 2; i < p.length; i += 2) { if (st.br[i / 2]) continue; const L = Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]), a = Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]); for (let t = 0; t < L; t += 9) for (const sd of [1, -1]) { const x = p[i - 2] + Math.cos(a) * t, y = p[i - 1] + Math.sin(a) * t; if (st.kind === 'embankment' && ((x0 - x) * -Math.sin(a) + (y0 - y) * Math.cos(a)) * sd < 0) continue; lots.push({ x, y, a, nx: -Math.sin(a) * sd, ny: Math.cos(a) * sd, hw: st.hw, st: st.id, d: d0(x, y) }); } } });
     // ---- розміщення споруд
@@ -190,6 +195,7 @@
       const p = Object.assign({}, poolOf(districtOf(x, y))); for (const k of Object.keys(p)) if (T[k].w > 16 || T[k].h > 18) delete p[k]; if (!Object.keys(p).length) continue;
       const id = pickW(p), t = T[id], b = { type: id, x, y, w: t.w * (0.85 + 0.2 * r()), h: t.h * (0.85 + 0.2 * r()), a: ang, st: q.st, side: 1 }; if (canPlace(b)) addB(b);
     }
+    if (tr) tr('buildings', { B, F, piers, ships });
     // ---- райони: порожні відкидаємо, перенумеровуємо
     const used = new Set(B.map(b => districtOf(b.x, b.y))); const idMap = new Map(); const dst = []; for (let k = 0; k <= anchors.length; k++) { if (!used.has(k) || k < 0) continue; const kind = kindOf(k); if (!kind) continue; idMap.set(k, dst.length); const st = X.DSTAT[kind] || X.DSTAT.outskirts; dst.push({ id: dst.length, kind, name: '', col: K[kind].col, text: K[kind].d, x: k < anchors.length ? anchors[k].x : x0, y: k < anchors.length ? anchors[k].y : y0, pop: 0, nb: 0, cats: {}, types: {}, notable: [], streets: [], wealth: st[0], safety: st[1], vibe: st[2], raw: k }); }
     const distId = (x, y) => { const k = districtOf(x, y); return idMap.has(k) ? idMap.get(k) : -1; };
@@ -229,9 +235,11 @@
         for (let it = 0; it < 8; it++) { let ch = false; for (const q of near2) if (q.d + q.s + band > v && q.d - q.s - band < v) { v = q.d + q.s + band; ch = true; } if (!ch) break; } rr.push(v); }
       const sm = rr.map((v, i) => Math.max(v, (rr[(i + NB - 1) % NB] + v + rr[(i + 1) % NB]) / 3)); wallBins = sm.map((v, i) => Math.max(v, (sm[(i + NB - 1) % NB] + v + sm[(i + 1) % NB]) / 3));
     }
+    if (tr) tr('nature', { fields, trees });
     const wall = { on: walled, mat: wmat, w: wt, R: Rw, ph: wph, runs: [], towers: [], gates: [] };
     if (walled) { let run = []; const N = 160; for (let k = 0; k <= N; k++) { const th = k / N * TAU, rr = wallR(th), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr, ok = WK(x, y) === 0 && !(fate && fate !== 'occupied' && env.hash(k >> 2, si & 255, si) < 0.45) && !(fate === 'occupied' && env.hash(k >> 3, si & 255, si) < 0.15); if (ok) run.push(x, y); else { if (run.length >= 4) wall.runs.push(run); run = []; } if (ok && wmat === 'stone' && k % (tier >= 3 ? 8 : 12) === 0) wall.towers.push([x, y]); } if (run.length >= 4) wall.runs.push(run);
       streets.filter(st => st.kind !== 'embankment' && st.kind !== 'ring' && st.pts.length >= 4).forEach(st => { const p = st.pts; let cnt = 0; for (let i = 2; i < p.length && cnt < 2; i += 2) { const da = d0(p[i - 2], p[i - 1]) - wallR(Math.atan2(p[i - 1] - y0, p[i - 2] - x0)), db = d0(p[i], p[i + 1]) - wallR(Math.atan2(p[i + 1] - y0, p[i] - x0)); if ((da < 0) !== (db < 0)) { const t = da / (da - db), x = p[i - 2] + (p[i] - p[i - 2]) * t, y = p[i - 1] + (p[i + 1] - p[i - 1]) * t; if (WK(x, y) !== 0 && !st.br[i / 2]) continue; if (!wall.gates.some(q => Math.hypot(q.x - x, q.y - y) < 18)) wall.gates.push({ x, y, a: Math.atan2(p[i + 1] - p[i - 1], p[i] - p[i - 2]), hw: st.hw, main: st.kind === 'avenue', name: (st.kind === 'avenue' ? 'Брама «' + st.name.replace(/^Шлях на /, 'на ') : 'Хвіртка «' + st.name.replace(/^(вулиця|Вулиця) /, '')) + '»' }); cnt++; } } }); }
+    if (tr) tr('wall', { wall });
     // ---- сади й дерева в кварталах: за будинками, подалі від вулиць
     if (tier >= 1) for (let i = 0, n = Math.round(B.length * 0.45), tries = 0; i < n && tries < n * 6; tries++) { const b = B[Math.floor(r() * B.length)]; if (!b || b.site || b.st < 0 || !['house', 'rich', 'estate', 'farmstead', 'slum'].includes(b.type)) continue;
       const sd = b.side > 0 ? 1 : -1, st = streets[b.st], bx = b.x + Math.cos(b.a + Math.PI / 2 * sd) * (b.h / 2 + 3.5 + r() * 4), by = b.y + Math.sin(b.a + Math.PI / 2 * sd) * (b.h / 2 + 3.5 + r() * 4), sx = bx + (r() - 0.5) * b.w, sy = by + (r() - 0.5) * 4;
