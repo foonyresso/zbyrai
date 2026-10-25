@@ -15,7 +15,7 @@
       }
     }
     ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.1 * px; ctx.setLineDash([6 * px, 4 * px]); ctx.beginPath(); for (const r of geom.sea) poly(ctx, r.pts); ctx.stroke(); ctx.setLineDash([]);
-    if (k >= 5) { ctx.fillStyle = '#3b2a18'; for (const c of W.bridges || []) { const [x, y] = [(c % W.w) + 0.5, ((c / W.w) | 0) + 0.5]; ctx.fillRect(x - 1.4 * px, y - 1.4 * px, 2.8 * px, 2.8 * px); } }
+    
   };
   // значок порту: якір на білому колі
   function anchor(ctx, x, y, px0) {
