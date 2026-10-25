@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2;
-  const cpSt = st => ({ kind: st.kind, hw: st.hw, pts: st.pts.slice(), br: st.br.slice() });
+  const cpSt = st => ({ kind: st.kind, look: st.look, hw: st.hw, pts: st.pts.slice(), br: st.br.slice() });
   const cpCirc = f => ({ t: f.t, x: f.x, y: f.y, r: f.r, kind: f.kind, name: f.name });
   // що копіювати на кожному етапі (далі генерація змінює масиви на місці, тому знімок — копія)
   const SNAP = {

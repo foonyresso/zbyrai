@@ -44,7 +44,7 @@
     if (st) {
       const prev = idx === 1 ? 0 : idx === 2 ? T.snaps.roads.streets.length : idx === 3 ? T.snaps.side.streets.length : -1; g.lineCap = 'round'; g.lineJoin = 'round';
       for (const pass of [0, 1, 2]) st.streets.forEach((s, n) => {
-        if (s.pts.length < 4) return; const fresh = prev >= 0 && n >= prev, hw = s.hw, col = ROAD[s.kind] || ROAD.street;
+        if (s.pts.length < 4) return; const fresh = prev >= 0 && n >= prev, hw = s.hw, col = ROAD[s.look || s.kind] || ROAD.street;
         if (pass === 2) { for (let i = 2; i < s.pts.length; i += 2) if (s.br[i / 2]) { g.beginPath(); g.moveTo(s.pts[i - 2] * k, s.pts[i - 1] * k); g.lineTo(s.pts[i] * k, s.pts[i + 1] * k); g.strokeStyle = '#a8321f'; g.lineWidth = Math.max(3, (hw * 2 + 3) * k); g.stroke(); g.strokeStyle = '#f2d6b0'; g.lineWidth = Math.max(1.6, hw * 2 * k); g.stroke(); } return; }
         poly(g, s.pts, k); g.strokeStyle = pass === 0 ? (fresh ? '#8a3a10' : col[0]) : (fresh ? '#ff9a4a' : col[1]); g.lineWidth = Math.max(pass === 0 ? 2 : 1, (hw * 2 + (pass === 0 ? 1.6 : 0)) * k); g.stroke();
       });
