@@ -67,7 +67,9 @@
     { n: 'Rubik Bubbles', k: 'cursive', g: 'Дитячі й ігрові' },
     { n: 'Playpen Sans', k: 'cursive', g: 'Дитячі й ігрові' },
     { n: 'Neucha', k: 'cursive', g: 'Дитячі й ігрові' },
-    { n: 'Marmelad', k: 'cursive', g: 'Дитячі й ігрові' }
+    { n: 'Marmelad', k: 'cursive', g: 'Дитячі й ігрові' },
+    { n: 'Pudelinka', k: 'cursive', g: 'Дитячі й ігрові' },
+    { n: 'Bahnschrift', k: 'sans-serif', g: 'Гротески без засічок' }
   ];
   function stack(n) { var f = LIST.filter(function (x) { return x.n === n; })[0]; return f ? '"' + f.n + '", ' + f.k : null; }
   // Завантажує шрифти, що використовує макет, перед малюванням на canvas. Повертає Promise<true>, якщо щось довелося чекати.

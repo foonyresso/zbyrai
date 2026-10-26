@@ -98,7 +98,7 @@ input[type=color]::-webkit-color-swatch-wrapper { padding: 0; } input[type=color
 .wizard[hidden] { display: none; }
 .stage { --stage-bg: var(--bg); display: flex; flex-direction: column; }
 .stage[hidden] { display: none; }
-.stagebox { position: relative; flex: 1; min-height: 0; padding: 66px 14px 70px 84px; background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
+.stagebox { position: relative; flex: 1; min-height: 0; padding: 66px 14px 168px 84px; background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
 .bar { flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; bottom: 108px; }
 .top { z-index: 8; }
 @media (max-width: 760px) { .stagebox { padding: 110px 8px 60px; } }

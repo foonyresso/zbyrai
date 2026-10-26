@@ -1,11 +1,11 @@
 // Обкладинка «Садочок: малюнки олівцями» (за макетом автора cover_6): фон-малюнок assets/kinder-cover.jpg (текст прибрано), написи редаговані.
 // Малюнок на весь розворот (cover-fit, ліва половина — задня, права — передня); заголовок із чотирьох слів: кожне слово має свій колір.
-// Шрифт заголовка — Podkova (SIL OFL), найближчий вільний аналог оригінального плакатного шрифту; точний шрифт можна підставити в FONT нижче.
+// Шрифт заголовка — Pudelinka (файл автора, fonts/pudelinka.ttf); його можна замінити в FONT нижче.
 (function (root) {
   var CV = root.AlbumCoverVariants || (typeof require !== 'undefined' ? require('./cover-variants.js') : null);
-  var FONT = 'Podkova', IMG_SRC = './assets/kinder-cover.jpg', IW = 3600, IH = 2526, BG = '#f6f6f6';
+  var FONT = 'Pudelinka', IMG_SRC = './assets/kinder-cover.jpg', IW = 3600, IH = 2526, BG = '#f6f6f6';
   // Позиції написів у частках зображення (виміряно за макетом): центр блоку, базова лінія, розмір (частка висоти), колір
-  var LINES = [{ x: 0.628, y: 0.190, s: 0.05, c: '#e8341f' }, { x: 0.628, y: 0.249, s: 0.05, c: '#f08a2a' }, { x: 0.628, y: 0.298, s: 0.037, c: '#6f9bdc' }, { x: 0.628, y: 0.358, s: 0.04, c: '#a054bd' }];
+  var LINES = [{ x: 0.628, y: 0.190, s: 0.085, c: '#e8341f' }, { x: 0.628, y: 0.249, s: 0.085, c: '#f08a2a' }, { x: 0.628, y: 0.298, s: 0.062, c: '#6f9bdc' }, { x: 0.628, y: 0.358, s: 0.066, c: '#a054bd' }];
   var img = null;
   function load() {
     if (img || typeof Image === 'undefined') return img;
@@ -22,7 +22,7 @@
       if (words.length > 4) words = words.slice(0, 3).concat(words.slice(3).join(' '));
       words.forEach(function (w, i) {
         var L = LINES[i], x = f.rx + (L.x - 0.5) * IW * f.s, y = f.oy + L.y * IH * f.s, sz = L.s * IH * f.s;
-        g.tx('ctitle' + (i + 1), w, x, y, sz, IW * f.s * 0.2, FONT, L.c, '700', 'center', 0, 'as');
+        g.tx('ctitle' + (i + 1), w, x, y, sz, IW * f.s * 0.2, FONT, L.c, '400', 'center', 0, 'as');
       });
       g.tx('csub', g.get('csub', ''), f.rx + 0.128 * IW * f.s, f.oy + 0.43 * IH * f.s, 0.03 * IH * f.s, IW * f.s * 0.2, FONT, '#a054bd', '400', 'center', 0.02, 'as');
     }
