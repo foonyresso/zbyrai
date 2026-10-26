@@ -6,8 +6,8 @@
 .btn-copy:hover { background: var(--gold-glow); border-color: var(--gold); }
 
 .stagebox.over { outline: 2px dashed var(--accent); outline-offset: -8px; }
-#cv { width: 100%; height: 100%; object-fit: contain; display: block; touch-action: none; cursor: default; filter: drop-shadow(0 8px 30px rgba(0, 0, 0, .5)); }
-#cv.drag { cursor: grabbing; } #cv.hot { cursor: grab; } #cv.size { cursor: nwse-resize; }
+#cv { position: absolute; left: 0; top: 0; display: block; touch-action: none; cursor: default; filter: drop-shadow(0 8px 30px rgba(0, 0, 0, .5)); }
+#cv.drag, #cv.pan { cursor: grabbing; } #cv.hot { cursor: grab; } #cv.size { cursor: nwse-resize; }
 .empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--faint); pointer-events: none; }
 .empty[hidden] { display: none; }
 
@@ -22,4 +22,7 @@
 /* полотно на весь екран: колаж по центру, меню й панелі поверх */
 .stage { --stage-bg: repeating-conic-gradient(#1a1a22 0 25%, #14141a 0 50%) 0 0 / 20px 20px; background: var(--stage-bg); }
 .rail button.on, #btnBlank.on, .seg button.on, .modes button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
-@media (max-width: 760px) { .stagebox { padding: 110px 8px 120px; } }
+.stagebox { position: absolute; inset: 0; overflow: hidden; cursor: grab; }
+.zoombar { position: absolute; right: 10px; top: 66px; z-index: 5; display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel, #1c1c22) 92%, transparent); }
+.zoombar button { padding: 6px 10px; } #zLabel { min-width: 48px; text-align: center; font-size: 13px; color: var(--muted); }
+@media (max-width: 760px) { .zoombar { top: auto; bottom: 64px; right: 8px; } }

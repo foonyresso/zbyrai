@@ -22,8 +22,31 @@
     draw();
   }
 
+  // ---- вигляд полотна: масштаб і зсув (не змінює дані колажу) ----
+  var work = $('work'), view = { z: 1, x: 0, y: 0, fit: true }, panning = null, spaceDown = false, zl = $('zLabel');
+  function applyView() {
+    cv.style.width = st.w * view.z + 'px'; cv.style.height = st.h * view.z + 'px';
+    cv.style.left = view.x + 'px'; cv.style.top = view.y + 'px';
+    if (zl) zl.textContent = Math.round(view.z * 100) + '%';
+  }
+  function fitCalc() {
+    var r = work.getBoundingClientRect(), padX = r.width < 760 ? 16 : 100, padT = 70, padB = r.width < 760 ? 120 : 80;
+    view.z = Math.max(0.02, Math.min((r.width - padX * 2) / st.w, (r.height - padT - padB) / st.h, 1));
+    view.x = (r.width - st.w * view.z) / 2; view.y = padT + (r.height - padT - padB - st.h * view.z) / 2; view.fit = true;
+  }
+  function fitView() { fitCalc(); draw(); }
+  function zoomAt(z, cx, cy) {
+    var r = work.getBoundingClientRect(); z = Math.min(8, Math.max(0.02, z));
+    if (cx == null) { cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
+    var px = cx - r.left, py = cy - r.top, k = z / view.z;
+    view.x = px - (px - view.x) * k; view.y = py - (py - view.y) * k; view.z = z; view.fit = false; draw();
+  }
+  function startPan(e) { panning = { cx: e.clientX, cy: e.clientY, vx: view.x, vy: view.y }; cv.classList.add('pan'); cv.setPointerCapture(e.pointerId); }
+  function isInside(p) { return p.x >= 0 && p.y >= 0 && p.x <= st.w && p.y <= st.h; }
+
   function draw(noSel) {
-    if (cv.width !== st.w) cv.width = st.w; if (cv.height !== st.h) cv.height = st.h;
+    if (cv.width !== st.w || cv.height !== st.h) { cv.width = st.w; cv.height = st.h; if (view.fit) fitCalc(); }
+    applyView();
     ctx.fillStyle = st.bg; ctx.fillRect(0, 0, st.w, st.h);
     var inv = C.invertColor(st.bg);
     st.tiles.forEach(function (t) {
@@ -34,7 +57,7 @@
       ctx.restore();
     });
     if (!noSel && drag && drag.kind === 'swap') {
-      var k2 = Math.max(1, st.w / Math.max(1, cv.getBoundingClientRect().width)), d = drag.t;
+      var k2 = Math.max(1, 1 / view.z), d = drag.t;
       ctx.save();
       if (drag.target) { ctx.lineWidth = 4 * k2; ctx.strokeStyle = '#c9a766'; ctx.strokeRect(drag.target.x + 2 * k2, drag.target.y + 2 * k2, drag.target.w - 4 * k2, drag.target.h - 4 * k2); }
       var gw = d.w * 0.5, gh = d.h * 0.5; ctx.globalAlpha = 0.75; ctx.fillStyle = st.blank ? inv : '#000';
@@ -43,7 +66,7 @@
       ctx.restore();
     }
     if (!noSel && st.sel) {
-      var t = st.sel, k = Math.max(1, st.w / Math.max(1, cv.getBoundingClientRect().width)), hs = 12 * k;
+      var t = st.sel, k = Math.max(1, 1 / view.z), hs = 12 * k;
       ctx.save(); ctx.lineWidth = 2 * k; ctx.strokeStyle = '#7fc8a9'; ctx.strokeRect(t.x + k, t.y + k, t.w - 2 * k, t.h - 2 * k);
       ctx.fillStyle = '#7fc8a9'; ctx.fillRect(t.x + t.w - hs, t.y + t.h - hs, hs, hs); ctx.restore();
     }
@@ -121,15 +144,16 @@
 
   // ---- пересування рамки, зсув кадру, зміна розміру ----
   var drag = null;
-  // canvas має object-fit: contain, тому рахуємо видиму ділянку
   function pt(e) {
-    var r = cv.getBoundingClientRect(), k = Math.min(r.width / st.w, r.height / st.h), ox = (r.width - st.w * k) / 2, oy = (r.height - st.h * k) / 2;
-    return { x: (e.clientX - r.left - ox) / k, y: (e.clientY - r.top - oy) / k, k: k };
+    var r = cv.getBoundingClientRect(), k = r.width / st.w;
+    return { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, k: k };
   }
   function hit(p, skip) { for (var i = st.tiles.length - 1; i >= 0; i--) { var t = st.tiles[i]; if (t !== skip && p.x >= t.x && p.x <= t.x + t.w && p.y >= t.y && p.y <= t.y + t.h) return i; } return -1; }
   function onHandle(p) { var t = st.sel; if (!t) return false; var hs = 18 / p.k; return p.x >= t.x + t.w - hs && p.x <= t.x + t.w && p.y >= t.y + t.h - hs && p.y <= t.y + t.h; }
   cv.addEventListener('pointerdown', function (e) {
     var p = pt(e);
+    if (e.button === 1 || spaceDown || (e.button === 0 && hit(p) < 0 && !onHandle(p) && !isInside(p))) { startPan(e); return; }
+    if (e.button !== 0) return;
     if (onHandle(p)) { drag = { kind: 'size', t: st.sel, ox: p.x - st.sel.w, oy: p.y - st.sel.h }; cv.setPointerCapture(e.pointerId); return; }
     var i = hit(p);
     if (i < 0) { st.sel = null; draw(); syncUI(); return; }
@@ -140,6 +164,7 @@
     if (!ZB.panel) ZB.showPanel('photo');
   });
   cv.addEventListener('pointermove', function (e) {
+    if (panning) { view.x = panning.vx + e.clientX - panning.cx; view.y = panning.vy + e.clientY - panning.cy; applyView(); return; }
     var p = pt(e);
     if (!drag) { cv.classList.toggle('size', onHandle(p)); cv.classList.toggle('hot', !onHandle(p) && hit(p) >= 0); return; }
     var t = drag.t;
@@ -155,15 +180,28 @@
     draw(); syncUI();
   });
   function end() {
+    if (panning) { panning = null; cv.classList.remove('pan'); return; }
     if (drag && drag.kind === 'swap' && drag.target) { C.swapRects(drag.t, drag.target); }
     drag = null; cv.classList.remove('drag'); draw(); syncUI(); }
   cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   cv.addEventListener('dblclick', function (e) { var i = hit(pt(e)); if (i < 0) return; homeTile(st.tiles[i]); draw(); syncUI(); });
-  cv.addEventListener('wheel', function (e) {
-    var i = hit(pt(e)); if (i < 0) return;
-    e.preventDefault(); var t = st.tiles[i]; st.sel = t;
-    t.z = Math.min(5, Math.max(1, t.z * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); draw(); syncUI();
+  drop.addEventListener('pointerdown', function (e) { if (e.target !== cv && (e.button === 0 || e.button === 1)) { panning = { cx: e.clientX, cy: e.clientY, vx: view.x, vy: view.y }; drop.setPointerCapture(e.pointerId); } });
+  drop.addEventListener('pointermove', function (e) { if (panning && e.target !== cv) { view.x = panning.vx + e.clientX - panning.cx; view.y = panning.vy + e.clientY - panning.cy; applyView(); } });
+  drop.addEventListener('pointerup', function (e) { if (e.target !== cv) panning = null; });
+  // колесо: масштаб вигляду (як у Photoshop); Shift + колесо над фото: наближення кадру всередині рамки
+  work.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var i = e.shiftKey ? hit(pt(e)) : -1;
+    if (i >= 0) { var t = st.tiles[i]; st.sel = t; t.z = Math.min(5, Math.max(1, t.z * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); draw(); syncUI(); return; }
+    zoomAt(view.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
   }, { passive: false });
+  window.addEventListener('resize', function () { if (view.fit) fitView(); else draw(); });
+  window.addEventListener('keydown', function (e) { if (e.code === 'Space' && !/INPUT|TEXTAREA|SELECT|BUTTON/.test((e.target || {}).tagName)) { spaceDown = true; cv.classList.add('hot'); e.preventDefault(); } });
+  window.addEventListener('keyup', function (e) { if (e.code === 'Space') { spaceDown = false; cv.classList.remove('hot'); } });
+  $('zIn').onclick = function () { zoomAt(view.z * 1.25); };
+  $('zOut').onclick = function () { zoomAt(view.z / 1.25); };
+  $('zFit').onclick = fitView;
+  $('z100').onclick = function () { zoomAt(1); };
   window.addEventListener('resize', function () { draw(); });
 
   // ---- збереження й обмін ----
