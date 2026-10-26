@@ -113,8 +113,6 @@ const nlText = (sl, v) => (sl.fmt ? sl.fmt(v) : v.map(x => (sl.nl ? sl.nl(x) : h
 
 function buildSD(t) {
   const lines = [];
-  const pref = [st.settings.sdPrefix, currentStyle().sd].filter(Boolean).join(', ');
-  if (pref) lines.push(pref);
   t.sdGroups.forEach(g => {
     const tags = g.pre ? g.pre() : [];
     t.sections[g.sec].s.forEach(id => { const sl = SLOTS[id]; if (!sl.models || sl.models.includes('sdxl')) tags.push(...sdTags(sl)); });
@@ -140,13 +138,14 @@ function briefSections(t) {
   return out;
 }
 function buildFlux(t) {
-  const sty = currentStyle().nl;
-  const parts = [t.fluxPre + (sty ? ' Style: ' + sty + '.' : '')];
+  const parts = [];
   // жива мова: по реченню на групу параметрів (flux-grammar.js); немає тегів, то шматок пропускається
   const get = id => { const sl = SLOTS[id]; if (!sl || !visible(sl)) return []; const s = ss(id); return s.mode === 'off' ? [] : s.value; };
   parts.push(...FluxLang.paragraphs(st.type, get, THEMES[curTheme()].nl));
   const extra = mkFluxParagraph(typeSlotIds(), get);
   if (extra) parts.push(extra);
+  const adult = nsfwFluxParagraph(get);
+  if (adult) parts.push(adult);
   return parts.join('\n\n');
 }
 function buildGemini(t) {
@@ -374,28 +373,6 @@ $('unlockAll').onclick = () => {
   render();
 };
 /* ---- збереження й обмін (верхня панель) ---- */
-function exportData() { return { tool: 'prompt-dice', version: 2, snapshot: snapshot(), presets: st.presets, prompt: $('out').value }; }
-function downloadFile(blob, name) {
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-}
-$('btnCopyJson').onclick = async () => {
-  const text = JSON.stringify(exportData(), null, 2);
-  try { await navigator.clipboard.writeText(text); toast('JSON скопійовано'); } catch { toast('Браузер не дає копіювати: збережіть файл'); }
-};
-$('btnJson').onclick = () => { downloadFile(new Blob([JSON.stringify(exportData(), null, 2)], { type: 'application/json' }), 'prompt-dice.json'); toast('Файл збережено'); };
-$('btnTxt').onclick = () => { downloadFile(new Blob([$('out').value], { type: 'text/plain;charset=utf-8' }), 'prompt.txt'); toast('Промпт збережено'); };
-$('btnImport').onclick = () => $('fileImport').click();
-$('fileImport').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    const d = JSON.parse(await f.text());
-    if (d.tool !== 'prompt-dice') throw new Error('bad');
-    if (Array.isArray(d.presets)) { st.presets = d.presets.filter(p => p && p.name && p.snap); store.set('presets', st.presets); if (st.rtab === 'pre') renderPresets(); }
-    if (d.snapshot) restore(d.snapshot);
-    toast('Завантажено');
-  } catch { toast('Не вдалося прочитати: потрібен файл, збережений цим інструментом'); }
-};
 document.addEventListener('keydown', e => {
   if ($('overlay').classList.contains('show')) return;
   const tag = document.activeElement.tagName;

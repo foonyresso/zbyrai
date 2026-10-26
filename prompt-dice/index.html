@@ -13,61 +13,64 @@
 <meta property="og:url" content="https://zbyrai.pages.dev/prompt-dice/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
 
-<header class="top">
-  <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/></svg><div>Кубик <span>промптів</span></div></div>
-  <div class="spacer"></div>
-  <div class="top-actions">
-    <button id="btnImport" title="Завантажити збережені пресети й параметри з файлу .json">Імпорт</button>
-    <input type="file" id="fileImport" accept="application/json,.json" hidden>
-    <button id="btnCopyJson" title="Скопіювати поточні параметри й пресети як JSON">Копіювати JSON</button>
-    <button id="btnJson" title="Завантажити параметри й пресети як файл prompt-dice.json">Зберегти .json</button>
-    <button id="btnTxt" title="Завантажити поточний промпт як текстовий файл">Зберегти .txt</button>
-    <button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button>
-  </div>
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Кубик <span>промптів</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
 </header>
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Кубик промптів</h2>
+  <h3>Що це</h3><p>Кубик для ШІ-промптів із манекеном людини: збирає випадкові, але продумані описи для генераторів зображень (Stable Diffusion, Flux, Gemini): персонажі, спрайт-листи, локації, піксель-арт.</p>
+  <h3>Для чого</h3><p>Щоб не вигадувати кожен промпт з нуля й при цьому керувати кожною деталлю: від стопи до волосся, від пози до фону. Кидай кубик, поки не сподобається, замикай вдале, правь решту руками.</p>
+  <h3>Як користуватися</h3><ol> <li><b>Обери тип, модель, стиль і тематику</b> у смузі над робочою зоною.</li> <li><b>Клікни по манекену</b>: нога, рука, голова, очі, волосся… Праворуч від нього зʼявляться варіанти цієї ділянки та поле для власного опису. «Цілі частини» вибирає одразу всю руку, ногу чи торс.</li> <li><b>Кинь кубик</b> (Пробіл) для випадкового результату; <b>🔒</b> замикає вдале, <b>🎲</b> на картці перекидає лише його, <b>∅</b> прибирає з промпта.</li> <li><b>Забери промпт</b> праворуч: копіювання, збереження, історія й пресети; обмін файлами в панелі вгорі.</li> </ol>
+</dialog>
 
-<details class="how" id="how">
-  <summary title="Коротка довідка: що це за інструмент і як ним користуватися">Що це, для чого, як користуватися</summary>
-  <div class="how-grid">
-    <div>
-      <h3>Що це</h3>
-      <p>Кубик для ШІ-промптів із манекеном людини: збирає випадкові, але продумані описи для генераторів зображень (Stable Diffusion, Flux, Gemini): персонажі, спрайт-листи, локації, піксель-арт.</p>
-    </div>
-    <div>
-      <h3>Для чого</h3>
-      <p>Щоб не вигадувати кожен промпт з нуля й при цьому керувати кожною деталлю: від стопи до волосся, від пози до фону. Кидай кубик, поки не сподобається, замикай вдале, правь решту руками.</p>
-    </div>
-    <div>
-      <h3>Як користуватися</h3>
-      <ol>
-        <li><b>Обери тип, модель, стиль і тематику</b> у смузі над робочою зоною.</li>
-        <li><b>Клікни по манекену</b>: нога, рука, голова, очі, волосся… Праворуч від нього зʼявляться варіанти цієї ділянки та поле для власного опису. «Цілі частини» вибирає одразу всю руку, ногу чи торс.</li>
-        <li><b>Кинь кубик</b> (Пробіл) для випадкового результату; <b>🔒</b> замикає вдале, <b>🎲</b> на картці перекидає лише його, <b>∅</b> прибирає з промпта.</li>
-        <li><b>Забери промпт</b> праворуч: копіювання, збереження, історія й пресети; обмін файлами в панелі вгорі.</li>
-      </ol>
-    </div>
-  </div>
-</details>
 
-<section class="bar">
-  <div class="gtabs">
-    <button class="gtab" id="tabType" title="Що саме генерувати: персонаж, спрайт-лист, піксель-арт тощо"><span class="ic"></span><span><small>Тип промпта</small><b></b></span><span class="car">▾</span></button>
-    <button class="gtab" id="tabModel" title="Для якого ШІ збирати промпт"><span class="ic"></span><span><small>Модель</small><b></b></span><span class="car">▾</span></button>
-    <button class="gtab" id="tabStyle" title="Візуальний стиль зображення"><span class="ic"></span><span><small>Стиль</small><b></b></span><span class="car">▾</span></button>
-    <button class="gtab" id="tabTheme" title="Тематика й світ персонажа"><span class="ic"></span><span><small>Тематика</small><b></b></span><span class="car">▾</span></button>
-  </div>
-  <div class="spacer"></div>
-  <button id="unlockAll" title="Зняти всі замки й ручний вибір, повернути все під кубик">🔓 Скинути вибір</button>
-  <button class="btn-main" id="roll" title="Перекинути все, що не замкнено (Пробіл)"><span class="dice">🎲</span> Кинути кубик</button>
-</section>
 
-<main class="studio">
-  <section class="pane mk-pane" id="mkPane">
+<main class="stage" id="stage"><div class="outwrap"><section class="pane out-pane">
+    <div class="pane-h">
+      <div class="rtabs">
+        <button class="rtab on" data-r="out" title="Готовий промпт, який можна правити">Промпт</button>
+        <button class="rtab" data-r="hist" title="Усі попередні кидки: клік відновлює">Історія</button>
+        <button class="rtab" data-r="pre" title="Збережені набори параметрів">Пресети</button>
+        <button class="rtab" data-r="set" title="Базовий текст і префікси промпта">Налаштування</button>
+      </div>
+    </div>
+    <div class="pane-b">
+      <div id="r-out">
+        <textarea class="out" id="out" spellcheck="false" title="Готовий промпт: можна правити вручну"></textarea>
+        <div class="out-actions"><button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button></div>
+        <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
+        <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
+        <div class="negbox" id="negbox" hidden>
+          <h3>Негативний промпт <button id="copyNeg" title="Скопіювати негативний промпт" style="padding:3px 10px;font-size:12px">📋 Копіювати</button></h3>
+          <textarea class="neg" id="neg" spellcheck="false" title="Що ШІ має уникати на зображенні"></textarea>
+        </div>
+        <div class="stat" id="stat" title="Скільки різних промптів можна отримати за цих налаштувань"></div>
+      </div>
+      <div id="r-hist" hidden></div>
+      <div id="r-pre" hidden></div>
+      <div id="r-set" class="set" hidden></div>
+    </div>
+  </section></div></main>
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="work" title="Параметри промпта за групами: вибір значень, замки, пошук"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Параметри</span></button>
+  <button data-panel="mk" title="Манекен людини: клік по частині тіла відкриває її параметри"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M7 10l5-2 5 2M9 21l3-6 3 6"/></svg><span>Манекен</span></button>
+</nav>
+<aside class="drawer" id="drawer" data-store="pd2_panel" data-default="work" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="work" class="work-pane">
+    <div class="pane-h wt"><div class="wtabs" id="wTabs"></div>
+      <label class="wsearch" id="wSearchBox"><input id="wSearch" placeholder="Знайти параметр…" autocomplete="off" title="Відфільтрувати параметри у вкладці за назвою"></label></div>
+    <div class="pane-b" id="wBody"></div>
+  </section>
+  <section data-panel="mk" class="mk-pane" id="mkPane">
     <div class="pane-h"><h2>Манекен</h2><span class="spacer"></span>
       <div class="seg" id="mkView" title="Що показувати: тіло цілком чи обличчя великим планом">
         <button data-v="body" title="Фігура цілком: руки, торс, ноги">Тіло</button><button data-v="head" title="Обличчя великим планом: очі, ніс, рот, волосся">Обличчя</button></div>
@@ -81,47 +84,22 @@
       <button id="mkClear" class="small" title="Зняти вибір ділянки на манекені">Зняти вибір ділянки</button>
     </div>
   </section>
-
-  <section class="pane work-pane">
-    <div class="pane-h wt"><div class="wtabs" id="wTabs"></div>
-      <label class="wsearch" id="wSearchBox"><input id="wSearch" placeholder="Знайти параметр…" autocomplete="off" title="Відфільтрувати параметри у вкладці за назвою"></label></div>
-    <div class="pane-b" id="wBody"></div>
-  </section>
-
-  <section class="pane out-pane">
-    <div class="pane-h">
-      <div class="rtabs">
-        <button class="rtab on" data-r="out" title="Готовий промпт, який можна правити">Промпт</button>
-        <button class="rtab" data-r="hist" title="Усі попередні кидки: клік відновлює">Історія</button>
-        <button class="rtab" data-r="pre" title="Збережені набори параметрів">Пресети</button>
-        <button class="rtab" data-r="set" title="Базовий текст і префікси промпта">Налаштування</button>
-      </div>
-    </div>
-    <div class="pane-b">
-      <div id="r-out">
-        <textarea class="out" id="out" spellcheck="false" title="Готовий промпт: можна правити вручну"></textarea>
-        <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
-        <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
-        <div class="negbox" id="negbox" hidden>
-          <h3>Негативний промпт <button id="copyNeg" title="Скопіювати негативний промпт" style="padding:3px 10px;font-size:12px">📋 Копіювати</button></h3>
-          <textarea class="neg" id="neg" spellcheck="false" title="Що ШІ має уникати на зображенні"></textarea>
-        </div>
-        <div class="stat" id="stat" title="Скільки різних промптів можна отримати за цих налаштувань"></div>
-      </div>
-      <div id="r-hist" hidden></div>
-      <div id="r-pre" hidden></div>
-      <div id="r-set" class="set" hidden></div>
-    </div>
-  </section>
-</main>
+</aside>
+<div class="bar">
+  <div class="gtabs">
+    <button class="gtab" id="tabType" title="Що саме генерувати: персонаж, спрайт-лист, піксель-арт тощо"><span class="ic"></span><span><small>Тип промпта</small><b></b></span><span class="car">▾</span></button>
+    <button class="gtab" id="tabModel" title="Для якого ШІ збирати промпт"><span class="ic"></span><span><small>Модель</small><b></b></span><span class="car">▾</span></button>
+    <button class="gtab" id="tabStyle" title="Візуальний стиль зображення"><span class="ic"></span><span><small>Стиль</small><b></b></span><span class="car">▾</span></button>
+    <button class="gtab" id="tabTheme" title="Тематика й світ персонажа"><span class="ic"></span><span><small>Тематика</small><b></b></span><span class="car">▾</span></button>
+  </div>
+  <div class="spacer"></div>
+  <button id="unlockAll" title="Зняти всі замки й ручний вибір, повернути все під кубик">🔓 Скинути вибір</button>
+  <button class="btn-main" id="roll" title="Перекинути все, що не замкнено (Пробіл)"><span class="dice">🎲</span> Кинути кубик</button>
+</div>
 
 <div class="overlay" id="overlay"><div class="dlg" id="dlg"></div></div>
 <div class="toast" id="toast">Скопійовано!</div>
 
-<script>
-(function(){var a=document.getElementById('hubBack');if(!a)return;var s=false;try{s=!!sessionStorage.getItem('hub')}catch(e){}
-if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
-</script>
 <script src="./pools.js"></script>
 <script src="./ua-tags.js"></script>
 <script src="./ua-body.js"></script>
@@ -141,11 +119,12 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./mk-slots.js"></script>
 <script src="./mk-spec.js"></script>
 <script src="./mk-merge.js"></script>
+<script src="./nsfw-data.js"></script>
 <script src="./flux-words.js"></script>
 <script src="./flux-grammar.js"></script>
 <script src="./ui-mannequin.js"></script>
 <script src="./ui-workspace.js"></script>
+<script src="./zb-ui.js"></script>
 <script src="./app.js"></script>
-<script src="./tool-chrome.js"></script>
 </body>
 </html>
