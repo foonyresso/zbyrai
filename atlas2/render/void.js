@@ -91,7 +91,7 @@
     if (k >= 2.5) { path(); ctx.setLineDash([2.4 * px, 2.4 * px]); ctx.strokeStyle = '#5b564d'; ctx.lineWidth = Math.max(1.1, 3.2 * px); ctx.stroke(); ctx.setLineDash([]); }
     const s = Math.max(2.4, 10 * px);
     for (const f of W.fortresses || []) {
-      const x = f.x + 0.5, y = f.y + 0.5; ctx.beginPath(); ctx.arc(x, y, s * 0.95, 0, 6.2832); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill();
+      const x = f.x + 0.5, y = f.y + 0.5, sg = f.sid != null && A.TownMap ? A.TownMap.fade(W.settlements[f.sid], k) : 1; if (sg < 0.02) continue; ctx.globalAlpha = sg; ctx.beginPath(); ctx.arc(x, y, s * 0.95, 0, 6.2832); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill();
       ctx.fillStyle = '#9c9588'; ctx.strokeStyle = '#1d1a17'; ctx.lineWidth = Math.max(0.3, 1.3 * px); ctx.fillRect(x - s / 2, y - s / 2, s, s); ctx.strokeRect(x - s / 2, y - s / 2, s, s);
       for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { ctx.beginPath(); ctx.arc(x + dx * s / 2, y + dy * s / 2, s * 0.26, 0, 6.2832); ctx.fillStyle = '#7d776b'; ctx.fill(); ctx.stroke(); }
       ctx.fillStyle = '#3a3630'; ctx.fillRect(x - s * 0.2, y - s * 0.2, s * 0.4, s * 0.4); ctx.fillStyle = '#c0302f'; ctx.fillRect(x - s * 0.07, y - s * 0.07, s * 0.14, s * 0.14);

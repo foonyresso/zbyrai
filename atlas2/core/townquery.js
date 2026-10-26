@@ -20,10 +20,11 @@
       const t = T[o.type], d = o.district >= 0 ? c.districts[o.district] : null;
       rows.push(['Адреса', o.addr], ['Стан', X.COND[o.cond]], ['Достаток', X.WEALTH[o.wealth]], ['Поверхів · площа', o.floors + ' · ' + o.area + ' м²']);
       if (o.owner) rows.push([['house', 'rich', 'estate', 'slum', 'hut'].includes(o.type) ? 'Господар' : 'Власник', o.owner]);
-      if (t.pop[1] > 0) rows.push([['Житлова', 'Добування'].includes(t.cat) ? 'Мешканців' : 'Працює · мешкає', String(o.pop)]);
+      if (t.pop[1] > 0) rows.push([t.cat === 'Монстри' ? 'Мешкає (монстрів)' : ['Житлова', 'Добування'].includes(t.cat) ? 'Мешканців' : t.cat === 'Оборона' ? 'Гарнізон' : 'Працює · мешкає', String(o.pop)]);
+      if (o.rampart) rows.push(['Ділянка стіни', (o.u < 0 ? '−' : '+') + Math.abs(o.u) + ' м від осі міста']); if (o.was) rows.push(['Раніше', o.was]);
       const sf = o.site && c.sites.find(f => f.name === o.site); if (sf) rows.unshift(['Місце', sf.sub]);
       if (o.dungeon) rows.push(['Вхід у підземелля', o.dungeon.id]);
-      return { title: o.cond === 'ruined' ? 'Руїни: ' + o.name.toLowerCase() : o.name, sub: t.n + ' · ' + t.cat + (d ? ' · ' + d.name : ''), color: o.cond === 'lair' ? '#c0452f' : t.col, rows, text: o.cond === 'ruined' ? 'Стіни ще стоять, дах давно провалився. ' + t.d : o.cond === 'lair' ? 'Тут облаштували кубло загарбників. ' + t.d : t.d, hook: o.hook || (sf && sf.history) || null, districtId: o.district >= 0 ? o.district : null, go: 'Про район ›' };
+      return { title: o.cond === 'ruined' ? 'Руїни: ' + o.name.toLowerCase() : o.name, sub: t.n + ' · ' + t.cat + (d ? ' · ' + d.name : ''), color: o.cond === 'lair' && t.cat !== 'Монстри' ? '#c0452f' : t.col, rows, text: o.cond === 'ruined' ? 'Стіни ще стоять, дах давно провалився. ' + t.d : o.cond === 'lair' && t.cat !== 'Монстри' ? 'Тут облаштували кубло загарбників. ' + t.d : (o.was ? 'Раніше тут була споруда «' + o.was.toLowerCase() + '», тепер її переробили на свій лад. ' : '') + t.d, hook: o.hook || (sf && sf.history) || null, districtId: o.district >= 0 ? o.district : null, go: 'Про район ›' };
     }
     if (h.kind === 'district') {
       const cats = Object.entries(o.cats).sort((p, q) => q[1] - p[1]), top = Object.entries(o.types).sort((p, q) => q[1] - p[1]).slice(0, 4).map(e => T[e[0]].n + ' ×' + e[1]).join(', ');

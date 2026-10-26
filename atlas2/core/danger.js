@@ -163,7 +163,7 @@
     const fr = A.Rng.stream(W.params.seed, 'fates'), dmax = Math.hypot(w, h) / 2, PF = { town: 0.1, village: 0.16, hamlet: 0.2 };
     for (const s of W.settlements) {
       const outer = cosmos && s.rank !== 'capital' && W.fr[s.i] > A.WALL_FR; // Астракор: за Великою стіною всі поселення захоплені монстрами або зруїновані
-      if (s.ruined || (!PF[s.rank] && !outer)) continue;
+      if (s.ruined || s.fortress || (!PF[s.rank] && !outer)) continue; // фортеця Великої стіни живе завжди
       if (outer) { s.fate = fr() < 0.15 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = 'monsters'; }
       else {
         if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;
@@ -275,6 +275,7 @@
       if (q.fate !== 'occupied') continue; const tier = Math.max(3, W.tier[q.i]), g = W.group[q.i];
       q.monsters = crew({ mon: 1, bandits: q.occupier === 'bandits', big: q.rank === 'town', pack: [5, 10] }, tier, g, q.i); const lead = q.monsters[0];
       q.level = lead ? Math.max(1, W.level[q.i] + KIND_BONUS[lead.kindIdx]) : W.level[q.i];
+      if (q.occupier === 'monsters') q.order = A.MonOrder.make(A.Rng.stream(W.params.seed, 'order|' + q.id), q); // лад орди: вождь і закони
     }
     // руїни поселень на нічиїх островах охороняє бос (небезпека навколо не нижча за 4)
     for (const q of W.settlements) {

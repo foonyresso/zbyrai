@@ -17,17 +17,20 @@
       const a = pts[k], b = pts[(k + 1) % NA], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) * 2) + 1;
       for (let q = 0; q <= n; q++) { const x = Math.round(a[0] + (b[0] - a[0]) * q / n), y = Math.round(a[1] + (b[1] - a[1]) * q / n); for (const [dx, dy] of [[0, 0], [1, 0], [0, 1]]) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h) wallMask[Y * w + X] = 1; } }
     }
-    // фортеці: рівномірно по колу, не на коренях, озерах і річках (зсув уздовж стіни)
+    // фортеці: рівномірно по колу, не на коренях, озерах і річках, не впритул до інших поселень; з вікна біля ідеального місця береться точка стіни, найближча до центру клітини
     let per = 0; for (let k = 0; k < NA; k++) per += Math.hypot(pts[(k + 1) % NA][0] - pts[k][0], pts[(k + 1) % NA][1] - pts[k][1]);
-    const nF = Math.min(36, Math.max(10, Math.round(per / 55))), bad = (x, y) => { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const X = Math.round(x) + dx, Y = Math.round(y) + dy; if (X < 0 || Y < 0 || X >= w || Y >= h) return true; const i = Y * w + X; if (W.root[i] || W.lake[i] || !W.land[i]) return true; } return false; };
-    const F = [], used = new Set(), off = Math.floor(r() * NA / nF);
+    const nF = Math.min(36, Math.max(10, Math.round(per / 55))), bad = (x, y) => { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const X = Math.floor(x) + dx, Y = Math.floor(y) + dy; if (X < 0 || Y < 0 || X >= w || Y >= h) return true; const i = Y * w + X; if (W.root[i] || W.lake[i] || !W.land[i]) return true; } return W.settlements.some(q => Math.hypot(q.x + 0.5 - x, q.y + 0.5 - y) < 2.5); };
+    const F = [], used = new Set(), off = Math.floor(r() * NA / nF), win = Math.max(2, Math.floor(NA / nF / 2));
     for (let f = 0; f < nF; f++) {
-      const base = Math.floor((f + 0.5 + (r() - 0.5) * 0.4) * NA / nF + off); let pick = -1;
-      for (let s = 0; s <= NA / nF / 2 && pick < 0; s++) for (const sg of s ? [1, -1] : [1]) { const k = (base + sg * s + NA * 4) % NA; if (!bad(pts[k][0], pts[k][1]) && !used.has(k)) { pick = k; break; } }
+      const base = Math.floor((f + 0.5 + (r() - 0.5) * 0.4) * NA / nF + off); let pick = -1, bo = 9;
+      for (let s = -win; s <= win; s++) { const k = (base + s + NA * 4) % NA, p = pts[k]; if (used.has(k) || bad(p[0], p[1])) continue; const o = Math.hypot(p[0] - Math.floor(p[0]) - 0.5, p[1] - Math.floor(p[1]) - 0.5) + Math.abs(s) * 0.004; if (o < bo) { bo = o; pick = k; } }
       if (pick < 0) continue; used.add(pick);
-      const x = Math.round(pts[pick][0]), y = Math.round(pts[pick][1]), i = y * w + x;
-      F.push({ id: F.length, name: names.town(names.lang()), x, y, i, prov: W.province[i], region: W.region[i], fr: +W.fr[i].toFixed(3) });
+      const p = pts[pick], q = pts[(pick + 3) % NA], u = pts[(pick - 3 + NA) % NA], x = Math.floor(p[0]), y = Math.floor(p[1]), i = y * w + x, nm = names.town(names.lang());
+      F.push({ id: F.length, name: nm, x, y, i, prov: W.province[i], region: W.region[i], fr: +W.fr[i].toFixed(3), wf: [+p[0].toFixed(3), +p[1].toFixed(3)], wa: +Math.atan2(q[1] - u[1], q[0] - u[0]).toFixed(3) });
     }
+    // кожна фортеця є поселенням-містом (гігантським, зверненим до оборони): має дороги, деталь міста й підземелля; ранг «місто» лише для доріг, розміри міста задає s.fortress
+    const pr = A.Rng.stream(W.params.seed, 'wall|pop');
+    for (const f of F) { const s = { id: W.settlements.length, name: 'Фортеця ' + f.name, rank: 'town', i: f.i, x: f.x, y: f.y, prov: f.prov, region: f.region, landmass: W.landmass[f.i], port: false, body: null, river: false, pop: Math.round(7000 + 9000 * pr()), fortress: true, fid: f.id, wf: f.wf, wa: f.wa }; W.settlements.push(s); f.sid = s.id; }
     for (const f of F) for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const X = f.x + dx, Y = f.y + dy; if (dx * dx + dy * dy <= 10 && X >= 0 && Y >= 0 && X < w && Y < h) gateMask[Y * w + X] = 1; }
     for (const q of W.settlements) if (wallMask[q.i]) for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const X = q.x + dx, Y = q.y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h) gateMask[Y * w + X] = 1; } // поселення на лінії стіни: стіна має в нього прохід
     W.wall = { pts: pts.flatMap(p => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]), radius: WALL }; W.fortresses = F; W.wallMask = wallMask; W.gateMask = gateMask;
