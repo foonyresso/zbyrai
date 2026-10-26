@@ -20,7 +20,7 @@
   let st = T.defaults('hex'), saved = null;
   try { const m = /[#&]s=([^&]+)/.exec(location.hash); if (m) saved = T.fromJSON(unb64(decodeURIComponent(m[1]))); } catch {}
   if (!saved) { const s = store.get('state', null); if (s) { try { saved = T.fromJSON(s); } catch {} } }
-  if (saved) st = saved;
+  if (saved) st = saved; else { st.H = Math.round(st.W * Math.min(2, Math.max(.5, innerHeight / innerWidth))); }
   let lastPal = { bg: st.bg, colors: st.colors.slice(), ncol: st.ncol, lineColor: st.lineColor, mode: st.mode, cmode: st.cmode, stroke: st.stroke, gap: st.gap };
   const PAT = T.PAT, def = () => PAT[st.pattern];
   const lk = store.get('locks', {}); $('lkPattern').checked = !!lk.pattern; $('lkColors').checked = !!lk.colors;
@@ -128,7 +128,7 @@
   const cv = $('cv'), view = $('view'), meta = $('meta'); let raf = 0;
   function render() {
     raf = 0; const sc = T.buildScene(st), dpr = Math.min(2, window.devicePixelRatio || 1);
-    const aw = Math.max(80, view.clientWidth - 24), ah = Math.max(80, view.clientHeight - 24), fit = Math.min(aw / sc.W, ah / sc.H);
+    const aw = Math.max(80, view.clientWidth), ah = Math.max(80, view.clientHeight), fit = Math.min(aw / sc.W, ah / sc.H);
     cv.style.width = Math.round(sc.W * fit) + 'px'; cv.style.height = Math.round(sc.H * fit) + 'px';
     cv.width = Math.max(1, Math.round(sc.W * fit * dpr)); cv.height = Math.max(1, Math.round(sc.H * fit * dpr));
     T.draw(cv.getContext('2d'), sc, fit * dpr);
