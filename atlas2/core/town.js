@@ -53,15 +53,24 @@
       }
     }
     if (tr) tr('side', { streets });
-    // ---- кінці вулиць і провулків на околиці не обриваються: стежки з вигинами доходять до найближчої дороги
-    const outposts = [];
+    // ---- кінці вулиць і провулків не обриваються: близькі (до 40 м) дотягуються до найближчої дороги, на околиці стежки доходять до найближчого проспекту; продовження йде плавно, зʼєднання без гострих кутів
+    const outposts = [], ancestors = st => { const s = new Set([st.id]); for (let q = st; q.parent >= 0 && !s.has(q.parent); q = streets[q.parent]) s.add(q.parent); return s; };
+    function nearestRoad(st, ex, ey, kinds, maxD) {
+      const skip = ancestors(st); let bd = maxD, bt = null;
+      for (const av of streets) { if (skip.has(av.id) || av.parent === st.id || !kinds.includes(av.kind)) continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd) { bd = d; bt = { x: qx, y: qy, ang: Math.atan2(dy, dx), d, hw: av.hw }; } } }
+      return bt;
+    }
     if (tier >= 1) for (const st of streets.slice()) {
-      if ((st.kind !== 'street' && st.kind !== 'lane') || st.joined || st.pts.length < 4) continue; const n = st.pts.length, ex = st.pts[n - 2], ey = st.pts[n - 1]; if (d0(ex, ey) < R * 0.7 || r() < 0.3) continue;
-      let bt = null, bd = 5000; // стежка від міста може тягнутись до 5 км for (const av of streets) { if (av.kind !== 'avenue') continue; const p = av.pts; for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1], t = clamp(((ex - p[i - 2]) * dx + (ey - p[i - 1]) * dy) / (dx * dx + dy * dy || 1e-9), 0, 1), qx = p[i - 2] + dx * t, qy = p[i - 1] + dy * t, d = Math.hypot(qx - ex, qy - ey); if (d < bd && d > 18) { bd = d; bt = [qx, qy]; } } }
-      const hd = Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]);
-      if (bt) { const ch = mkSt('path', st.hw, st.id); ch.look = st.kind; // продовження бере ширину й вигляд дороги, яку продовжує
-        net.reach(ch, ex, ey, hd, bt[0], bt[1], Math.min(5000, bd * 1.5 + 40), true); if (ch.pts.length < 4) streets.pop(); continue; }
-      if (outposts.length >= 1 + tier) continue; const L = Math.max(130, R * 1.12 + 190 - d0(ex, ey)) + r() * 90, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', st.hw, st.id); ch.look = st.kind; net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
+      if ((st.kind !== 'street' && st.kind !== 'lane') || st.joined || st.pts.length < 4) continue; const n = st.pts.length, ex = st.pts[n - 2], ey = st.pts[n - 1], inner = d0(ex, ey) < R * 0.7;
+      const bt = nearestRoad(st, ex, ey, inner ? ['avenue', 'ring', 'street', 'lane', 'embankment'] : ['avenue', 'ring', 'street', 'embankment'], inner ? 40 : 5000);
+      if (bt && bt.d - bt.hw <= 2) continue; // кінець уже торкається дороги
+      const hd = Math.atan2(ey - st.pts[n - 3], ex - st.pts[n - 4]), link = () => { const ch = mkSt('path', st.hw, st.id); ch.look = st.kind; // продовження бере ширину й вигляд дороги, яку продовжує
+        net.reach(ch, ex, ey, hd, bt.x, bt.y, Math.min(5000, bt.d * 1.5 + 40), true, bt.ang); if (ch.pts.length < 4) streets.pop(); };
+      if (inner) { if (bt) link(); continue; }
+      if (bt && bt.d <= 380) { link(); continue; }
+      if (r() < 0.3) continue;
+      if (outposts.length >= 1 + tier) { if (bt) link(); continue; }
+      const L = Math.max(130, R * 1.12 + 190 - d0(ex, ey)) + r() * 90, tx = ex + Math.cos(hd) * L, ty = ey + Math.sin(hd) * L, ch = mkSt('path', st.hw, st.id); ch.look = st.kind; net.reach(ch, ex, ey, hd, tx, ty, L + 30, true);
       if (ch.joined && ch.pts.length >= 4) outposts.push({ x: tx, y: ty, a: hd, ch }); else streets.pop();
     }
     A.TownRoads.clean(streets, net); const nA = streets.length;

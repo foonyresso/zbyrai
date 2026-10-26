@@ -17,11 +17,12 @@
     const mkSt = (kind, hw, parent) => { const st = { id: streets.length, kind, hw, parent: parent == null ? -1 : parent, pts: [], br: [] }; streets.push(st); return st; };
     const push = (st, x, y, br) => { const n = st.pts.length; if (n >= 2) addSeg(st, st.pts[n - 2], st.pts[n - 1], x, y, br); st.pts.push(x, y); st.br.push(br ? 1 : 0); };
     function grow(st, x, y, ang, len, curve, join) {
-      push(st, x, y, 0); let px = x, py = y, pw = 0;
+      push(st, x, y, 0); let px = x, py = y, pw = 0, hug = 0;
       for (let i = 0, n = Math.floor(len / STEP); i < n; i++) {
         ang += (r() - 0.5) * curve; const nx = px + Math.cos(ang) * STEP, ny = py + Math.sin(ang) * STEP;
         if (Math.hypot(nx - x0, ny - y0) > o.Rmax) break; const wk = WK(nx, ny); if (wk === 2) break;
         if (wk === 1) { let ok = false; for (let k = 1; k <= 7; k++) { const w2 = WK(nx + Math.cos(ang) * STEP * k, ny + Math.sin(ang) * STEP * k); if (w2 === 2) break; if (w2 === 0) { ok = true; break; } } if (!ok) break; }
+        if (st.kind === 'street' && i >= 2 && hugsRoad(st, nx, ny, ang, 16) && ++hug >= 2) break; // дорога впритул і паралельно до більшої дороги не будується
         if (join && i >= 1 && near(nx, ny, STEP * 1.3, st.id, i < 3 ? st.parent : -2) < 5) { push(st, nx, ny, wk === 1 || pw === 1); st.joined = true; return st; }
         push(st, nx, ny, wk === 1 || pw === 1); px = nx; py = ny; pw = wk;
       }
@@ -71,14 +72,52 @@
       for (let i = 2; i < p.length; i += 2) { const dx = p[i] - p[i - 2], dy = p[i + 1] - p[i - 1]; if (!dx && !dy) continue; const a = Math.atan2(dy, dx); if (prev != null) { let d = Math.abs(a - prev) % TAU; if (d > Math.PI) d = TAU - d; if (d > MAXBEND) return false; } prev = a; }
       return true;
     }
-    function reach(st, x, y, ang, tx, ty, maxLen, str) {
-      push(st, x, y, 0); const cells = findPath(st, x, y, tx, ty, maxLen); if (!cells) return st;
-      // згладжування: прорідження (Дуґлас-Пейкер 5 м) і дугова згладжувальна крива
-      const keep = new Array(cells.length).fill(false); keep[0] = keep[cells.length - 1] = true; const dp = (a, b) => { let m = 0, mi = -1; const [ax, ay] = cells[a], [bx, by] = cells[b]; for (let i = a + 1; i < b; i++) { const d = segDist(cells[i][0], cells[i][1], ax, ay, bx, by); if (d > m) { m = d; mi = i; } } if (m > 5 && mi >= 0) { keep[mi] = true; dp(a, mi); dp(mi, b); } }; dp(0, cells.length - 1);
-      const tmp = { pts: [], br: [] }; cells.forEach((q, i) => { if (keep[i]) { tmp.pts.push(q[0], q[1]); tmp.br.push(0); } }); chaikinPath(tmp, 3);
-      if (!bendOk(tmp.pts, ang)) return st; // вигин у будь-якій точці не більший за MAXBEND, інакше стежку відкидаємо
-      for (let i = 2; i < tmp.pts.length; i += 2) { const mx = (tmp.pts[i] + tmp.pts[i - 2]) / 2, my = (tmp.pts[i + 1] + tmp.pts[i - 1]) / 2; push(st, tmp.pts[i], tmp.pts[i + 1], WK(tmp.pts[i], tmp.pts[i + 1]) === 1 || WK(mx, my) === 1); }
-      st.joined = true; return st;
+    // плавна крива (кубічний Безьє) від (x,y) у напрямі ang до (tx,ty): виходить уздовж стартового напряму, до дороги підходить під кутом не гострішим за 60° (tang — напрям дороги-цілі); null, якщо не вийшло
+    const SIN60 = Math.sin(Math.PI / 3);
+    function bridge(x, y, ang, tx, ty, tang) {
+      const dx = tx - x, dy = ty - y, D = Math.hypot(dx, dy); if (D < 1) return [[x, y], [tx, ty]];
+      const b = Math.atan2(dy, dx); let dev = 0; if (ang != null) { dev = Math.abs(b - ang) % TAU; if (dev > Math.PI) dev = TAU - dev; }
+      if (D < 10) return [[x, y], [tx, ty]]; // кілька метрів: пряме зʼєднання
+      if (dev > 80 * Math.PI / 180) return null;
+      let ax = Math.cos(b), ay = Math.sin(b);
+      if (tang != null) { const ux = Math.cos(tang), uy = Math.sin(tang), px = -uy, py = ux, bs = ax * px + ay * py;
+        if (Math.abs(bs) < SIN60) { const sg = (x - tx) * px + (y - ty) * py >= 0 ? -1 : 1, us = ax * ux + ay * uy >= 0 ? 1 : -1; ax = px * sg * SIN60 + ux * us * 0.5; ay = py * sg * SIN60 + uy * us * 0.5; } }
+      const k = 0.38 * D, sa = ang == null ? b : ang, p1x = x + Math.cos(sa) * k, p1y = y + Math.sin(sa) * k, p2x = tx - ax * k, p2y = ty - ay * k, N = Math.max(6, Math.min(40, Math.ceil(D / 6))), out = [[x, y]];
+      for (let i = 1; i <= N; i++) { const t = i / N, u = 1 - t, c0 = u * u * u, c1 = 3 * u * u * t, c2 = 3 * u * t * t, c3 = t * t * t, qx = c0 * x + c1 * p1x + c2 * p2x + c3 * tx, qy = c0 * y + c1 * p1y + c2 * p2y + c3 * ty;
+        if (i < N && (WK(qx, qy) !== 0 || (api.blocked && api.blocked(qx, qy)))) return null; out.push([qx, qy]); }
+      return out;
+    }
+    // вулиця, велика й близька до дороги та ще й паралельна їй, не має сенсу (немає місця для забудови); провулки можуть іти паралельно
+    function hugsRoad(st, x, y, a, rad) {
+      if ((st.look || st.kind) === 'lane') return false; const d = near(x, y, rad + 6, st.id, st.parent); if (d >= rad || !near.q) return false;
+      const q = near.q, o = streets[q.st]; if (!o || o.kind === 'lane' || o.hw < st.hw * 0.95) return false; const sx = q.bx - q.ax, sy = q.by - q.ay, sl = Math.hypot(sx, sy) || 1;
+      return Math.abs(Math.cos(a) * sy / sl - Math.sin(a) * sx / sl) < 0.45;
+    }
+    function reach(st, x, y, ang, tx, ty, maxLen, str, tang) {
+      push(st, x, y, 0); const D = Math.hypot(tx - x, ty - y); let P = D <= 160 ? bridge(x, y, ang, tx, ty, tang) : null;
+      if (!P) {
+        // стартовий відрізок іде прямо в напрямі вулиці, і лише потім шлях завертає до цілі
+        let sx = x, sy = y; const lead = Math.min(50, D * 0.3); if (ang != null && D > 60) { const lx = x + Math.cos(ang) * lead, ly = y + Math.sin(ang) * lead; if (WK(lx, ly) === 0 && !(api.blocked && api.blocked(lx, ly)) && Math.hypot(tx - lx, ty - ly) < D) { sx = lx; sy = ly; } }
+        const cells = findPath(st, sx, sy, tx, ty, maxLen); if (!cells) return st; if (sx !== x || sy !== y) cells.unshift([x, y]);
+        // згладжування: прорідження (Дуґлас-Пейкер 5 м) і дугова згладжувальна крива
+        const keep = new Array(cells.length).fill(false); keep[0] = keep[cells.length - 1] = true; const dp = (a, b) => { let m = 0, mi = -1; const [ax, ay] = cells[a], [bx, by] = cells[b]; for (let i = a + 1; i < b; i++) { const d = segDist(cells[i][0], cells[i][1], ax, ay, bx, by); if (d > m) { m = d; mi = i; } } if (m > 5 && mi >= 0) { keep[mi] = true; dp(a, mi); dp(mi, b); } }; dp(0, cells.length - 1);
+        const tmp = { pts: [], br: [] }; cells.forEach((q, i) => { if (keep[i]) { tmp.pts.push(q[0], q[1]); tmp.br.push(0); } }); chaikinPath(tmp, 3);
+        if (!bendOk(tmp.pts, ang)) return st; // вигин у будь-якій точці не більший за MAXBEND, інакше стежку відкидаємо
+        P = []; for (let i = 0; i < tmp.pts.length; i += 2) P.push([tmp.pts[i], tmp.pts[i + 1]]);
+        // кінець: якщо підхід до дороги гострий, останній відрізок замінюється плавною кривою з кутом не гострішим за 60°
+        if (tang != null && P.length > 4) { const n = P.length, ux = Math.cos(tang), uy = Math.sin(tang), ex = tx - P[n - 2][0], ey = ty - P[n - 2][1], el = Math.hypot(ex, ey) || 1;
+          if (Math.abs((ex * -uy + ey * ux) / el) < SIN60) { let tot = 0; for (let i = 1; i < n; i++) tot += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); let acc = 0, k = n - 1; while (k > 1 && acc < Math.min(50, tot * 0.4)) { k--; acc += Math.hypot(P[k + 1][0] - P[k][0], P[k + 1][1] - P[k][1]); }
+            const cut = bridge(P[k][0], P[k][1], Math.atan2(P[k][1] - P[k - 1][1], P[k][0] - P[k - 1][0]), tx, ty, tang); if (cut) P = P.slice(0, k).concat(cut); } }
+      }
+      // паралельний близький хід уздовж більшої дороги обривається: далі вулиця підходить до тієї дороги під нормальним кутом
+      let cutAt = -1, run = 0, runStart = -1, len0 = 0;
+      for (let i = 1; i < P.length - 1; i++) { len0 += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); if (len0 < 24) continue; const a = Math.atan2(P[i + 1][1] - P[i - 1][1], P[i + 1][0] - P[i - 1][0]);
+        if (hugsRoad(st, P[i][0], P[i][1], a, 14)) { if (!run++) runStart = i; if (run >= 3 && len0 - 0 > 0) { let rl = 0; for (let j = runStart + 1; j <= i; j++) rl += Math.hypot(P[j][0] - P[j - 1][0], P[j][1] - P[j - 1][1]); if (rl >= 30) { cutAt = runStart; break; } } } else run = 0; }
+      let joined = true;
+      if (cutAt > 0) { const qx = P[cutAt][0], qy = P[cutAt][1]; near(qx, qy, 24, st.id, st.parent); const q = near.q; let end = null; if (q) { const sx = q.bx - q.ax, sy = q.by - q.ay, t = Math.max(0, Math.min(1, ((qx - q.ax) * sx + (qy - q.ay) * sy) / (sx * sx + sy * sy || 1e-9))); end = bridge(qx, qy, Math.atan2(P[cutAt][1] - P[cutAt - 1][1], P[cutAt][0] - P[cutAt - 1][0]), q.ax + sx * t, q.ay + sy * t, Math.atan2(sy, sx)); }
+        if (end) P = P.slice(0, cutAt).concat(end); else { P = P.slice(0, cutAt + 1); joined = false; } }
+      for (let i = 1; i < P.length; i++) { const mx = (P[i][0] + P[i - 1][0]) / 2, my = (P[i][1] + P[i - 1][1]) / 2; push(st, P[i][0], P[i][1], WK(P[i][0], P[i][1]) === 1 || WK(mx, my) === 1); }
+      st.joined = joined; return st;
     }
     function chaikinPath(t, it) { for (let k = 0; k < it; k++) { const p = t.pts, n = p.length / 2; if (n < 3) return; const q = [p[0], p[1]]; for (let i = 0; i < n - 1; i++) { const ax = p[i * 2], ay = p[i * 2 + 1], bx = p[i * 2 + 2], by = p[i * 2 + 3]; if (i > 0) q.push(ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25); if (i < n - 2) q.push(ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75); } q.push(p[(n - 1) * 2], p[(n - 1) * 2 + 1]); t.pts = q; t.br = new Array(q.length / 2).fill(0); } }
     const rebuild = () => { grid.clear(); segs.length = 0; for (const st of streets) { const p = st.pts; for (let i = 2; i < p.length; i += 2) addSeg(st, p[i - 2], p[i - 1], p[i], p[i + 1], st.br[i / 2]); } };
