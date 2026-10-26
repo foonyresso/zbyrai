@@ -184,3 +184,11 @@ body.no-mk #rail [data-panel=mk] { display: none; }
 .bar .gtab { min-width: 0; padding: 5px 9px; } .bar .gtab .ic { font-size: 18px; }
 .bar .spacer { flex: 1; }
 @media (max-width: 1100px) { .zb-panel .bar { left: 90px; } }
+
+/* смуга вибору (тип/модель/стиль/тематика/кубик): окремий рядок під блоком «назва + i», на всю ширину */
+.bar, .zb-panel .bar { top: 58px; bottom: auto; left: 10px; right: 10px; width: auto; max-width: none; transform: none; justify-content: flex-start; z-index: 5; }
+.bar .gtabs { flex: 1 1 auto; } .bar .gtab { flex: 1 1 150px; }
+.rail { top: 150px; } .drawer { top: 150px; max-height: calc(100vh - 160px); }
+.outwrap { padding-top: 150px; margin: 0 0 0 auto; } .outwrap { padding-bottom: 40px; }
+@media (max-width: 1100px) { .zb-panel .bar { left: 10px; } }
+@media (max-width: 760px) { .outwrap, .zb-panel .outwrap { padding: 190px 10px 40px; } .rail { top: 210px; } .drawer { top: 210px; } }
