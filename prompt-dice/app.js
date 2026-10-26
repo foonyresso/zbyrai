@@ -24,15 +24,17 @@ const st = {
   closed: saved.closed || {},
   history: store.get('history', []),
   presets: store.get('presets', []),
-  rtab: 'out',
   zone: typeof saved.zone === 'string' ? saved.zone : '',
   view: saved.view === 'head' ? 'head' : 'body',
   whole: !!saved.whole,
-  wtab: saved.wtab || 'zone',
+  wtab: typeof saved.wtab === 'string' ? saved.wtab : '',   // id вибраної підгрупи меню; старі значення ('zone', 's0'…) ігноруються
+  // налаштування меню: nav — що ліворуч ('menu' | 'mk'), open — відкриті категорії, last — остання підгрупа, adult — розділ 18+, hide — приховані категорії
+  ui: Object.assign({ nav: saved.wtab === 'zone' ? 'mk' : 'menu', open: {}, last: '', adult: false, hide: {}, dense: false, one: false, init: false }, saved.ui),
 };
+st.ui.open = st.ui.open || {}; st.ui.hide = st.ui.hide || {};
 function save() {
-  const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab } = st;
-  store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab });
+  const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab, ui } = st;
+  store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab, ui });
 }
 const splitTags = s => (s || '').split(',').map(x => x.trim()).filter(Boolean);
 const T = () => TYPES[st.type];
@@ -181,13 +183,13 @@ async function copyText(text, el) {
 }
 
 /* ---- модальне вікно ---- */
-function openModal(html) { $('dlg').innerHTML = html; $('overlay').classList.add('show'); }
+function openModal(html, cls) { $('dlg').className = 'dlg' + (cls ? ' ' + cls : ''); $('dlg').innerHTML = html; $('overlay').classList.add('show'); }
 function closeModal() { $('overlay').classList.remove('show'); $('dlg').innerHTML = ''; render(); }
 $('overlay').addEventListener('mousedown', e => { if (e.target === $('overlay')) closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('overlay').classList.contains('show')) closeModal(); });
 
-function gallery(title, groups, curKey, onPick) {
-  openModal(`<div class="dlg-h"><h3>${esc(title)}</h3><button id="gx" title="Закрити вікно (Esc)">✕ Закрити</button></div><div id="gbody"></div>`);
+function gallery(title, groups, curKey, onPick, eyebrow, intro) {
+  openModal(`<div class="dlg-h"><div class="dlg-t">${eyebrow ? `<div class="eyebrow">${esc(eyebrow)}</div>` : ''}<h3>${esc(title)}</h3>${intro ? `<p class="dlg-i">${esc(intro)}</p>` : ''}</div><button id="gx" title="Закрити вікно (Esc)">✕ Закрити</button></div><div id="gbody"></div>`);
   const body = $('gbody');
   groups.forEach(g => {
     if (g.h) { const h = document.createElement('h4'); h.textContent = g.h; body.appendChild(h); }
@@ -196,6 +198,7 @@ function gallery(title, groups, curKey, onPick) {
       const b = document.createElement('button');
       b.className = 'tile' + (it.rand ? ' rand' : '') + (it.key === curKey ? ' on' : '');
       b.style.setProperty('--h', hue(String(it.key)));
+      b.title = it.name + (it.desc ? ': ' + it.desc : '');
       b.innerHTML = `<span class="big">${esc(it.icon)}</span><span class="nm">${esc(it.name)}</span><span class="ds">${esc(it.desc || '')}</span>`;
       b.onclick = () => { onPick(it.key); closeModal(); };
       grid.appendChild(b);
@@ -210,22 +213,22 @@ $('tabType').onclick = () => {
   gallery('Що створюємо?', [
     { h: 'Персонажі й локації', items: mk(['char', 'sprite', 'scene']) },
     { h: 'Піксель-арт для 2D-гри', items: mk(Object.keys(TYPES).filter(k => TYPES[k].kind === 'pixel')) },
-  ], st.type, k => { st.type = k; ensureRolled(); save(); });
+  ], st.type, k => { st.type = k; ensureRolled(); save(); }, 'Тип промпта', 'Що саме генерувати: персонаж, спрайт-лист, локацію чи піксель-арт для 2D-гри. Від типу залежать параметри й меню.');
 };
 $('tabModel').onclick = () => {
-  gallery('Для якої моделі промпт?', [{ items: Object.entries(MODELS).map(([k, m]) => ({ key: k, icon: m.icon, name: m.name, desc: m.desc })) }], st.model, k => { st.model = k; save(); });
+  gallery('Для якої моделі промпт?', [{ items: Object.entries(MODELS).map(([k, m]) => ({ key: k, icon: m.icon, name: m.name, desc: m.desc })) }], st.model, k => { st.model = k; save(); }, 'Модель', 'Від моделі залежить вигляд промпта: теги для SDXL, жива мова для Flux, інструкція для Gemini.');
 };
 $('tabStyle').onclick = () => {
   const list = styleList(), f = familyKey();
   gallery('Стиль', [{ items: list.map((s, i) => ({ key: i, icon: s.icon, name: s.name, desc: i === 0 ? 'новий стиль при кожному кидку' : '', rand: i === 0 })) }],
-    st.styleSel[f], i => { st.styleSel[f] = i; st.styleRolled[f] = null; save(); });
+    st.styleSel[f], i => { st.styleSel[f] = i; st.styleRolled[f] = null; save(); }, 'Стиль', 'Візуальний стиль зображення. «Випадковий» змінюється при кожному кидку. Для SDXL і Flux стиль у промпт не додається.');
 };
 $('tabTheme').onclick = () => {
   const items = [{ key: 'random', icon: '🎲', name: 'Випадкова', desc: 'нова тематика при кожному кидку', rand: true },
     ...Object.entries(THEMES).map(([k, v]) => ({ key: k, icon: v.icon, name: v.name, desc: v.nl }))];
   gallery('Тематика (впливає на одяг, зброю, фон, ефекти)', [{ items }], st.theme, k => {
     st.theme = k; st.themeRolled = null; curTheme(); regenDependent(); save();
-  });
+  }, 'Тематика', 'Жанр світу: від нього залежать одяг, зброя, фон і ефекти. «Випадкова» обирається наново при кожному кидку.');
 };
 
 function afterChange(id) { if (id === 'gender') { regenDependent(); renderWork(); } save(); }
@@ -255,95 +258,7 @@ function addHistory() {
   st.history.unshift(snap);
   st.history = st.history.slice(0, 80);
   store.set('history', st.history);
-  if (st.rtab === 'hist') renderHistory();
 }
-function snapshot() {
-  return JSON.parse(JSON.stringify({ type: st.type, model: st.model, styleSel: st.styleSel, styleRolled: st.styleRolled, theme: st.theme, themeRolled: st.themeRolled, slots: st.slots }));
-}
-function restore(snap) {
-  st.type = TYPES[snap.type] ? snap.type : st.type;
-  st.model = snap.model || st.model;
-  st.styleSel = snap.styleSel; st.styleRolled = snap.styleRolled || {};
-  st.theme = snap.theme; st.themeRolled = snap.themeRolled;
-  st.slots = JSON.parse(JSON.stringify(snap.slots));
-  save(); render();
-}
-function typeLabel(h) { const t = TYPES[h.type]; return t ? `${t.icon} ${t.short || t.name}${t.kind === 'multi' ? ' · ' + (MODELS[h.model]?.name || '') : ''}` : h.type; }
-function renderHistory() {
-  const box = $('r-hist'); box.innerHTML = '';
-  if (!st.history.length) { box.innerHTML = '<div class="hint">Поки порожньо. Кинь кубик!</div>'; return; }
-  st.history.forEach(h => {
-    const el = document.createElement('div'); el.className = 'h-item';
-    el.innerHTML = `<div class="meta"><div></div><span>${new Date(h.t).toLocaleTimeString('uk', { hour: '2-digit', minute: '2-digit' })}</span></div><div class="t"></div>`;
-    el.querySelector('.meta div').textContent = typeLabel(h);
-    el.querySelector('.t').textContent = h.text || '';
-    const cp = document.createElement('button'); cp.className = 'cp'; cp.textContent = '📋'; cp.title = 'Копіювати цей промпт';
-    cp.onclick = e => { e.stopPropagation(); copyText(h.text, null); };
-    el.querySelector('.meta').insertBefore(cp, el.querySelector('.meta span'));
-    el.title = 'Клік — відновити цей кидок';
-    el.onclick = () => { restore(h); toast('Відновлено'); };
-    box.appendChild(el);
-  });
-}
-function renderPresets() {
-  const box = $('r-pre');
-  box.innerHTML = `<div class="hint">Збережи поточні параметри (тип, модель, стиль, тему та всі вибрані/заблоковані значення) під своєю назвою і повертайся до них в один клік.</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px"><input id="pname" title="Назва нового пресета" placeholder="Назва пресета, напр. «Мій SDXL аніме»" style="flex:1"><button id="psave" class="btn-copy" title="Зберегти поточні параметри як пресет у цьому браузері">💾 Зберегти</button></div><div id="plist"></div>`;
-  const list = $('plist');
-  if (!st.presets.length) list.innerHTML = '<div class="hint">Пресетів ще немає.</div>';
-  st.presets.forEach((p, i) => {
-    const el = document.createElement('div'); el.className = 'h-item';
-    el.innerHTML = '<div class="meta"><div></div><span></span></div><div class="t"></div>';
-    el.querySelector('.meta div').textContent = p.name;
-    const x = document.createElement('button'); x.className = 'cp'; x.textContent = '🗑'; x.title = 'Видалити';
-    x.onclick = e => { e.stopPropagation(); st.presets.splice(i, 1); store.set('presets', st.presets); renderPresets(); };
-    el.querySelector('.meta').insertBefore(x, el.querySelector('.meta span'));
-    el.querySelector('.t').textContent = typeLabel(p.snap);
-    el.onclick = () => { restore(p.snap); toast('Пресет завантажено'); };
-    list.appendChild(el);
-  });
-  $('psave').onclick = () => {
-    const name = $('pname').value.trim() || 'Пресет ' + (st.presets.length + 1);
-    st.presets.unshift({ name, snap: snapshot() });
-    store.set('presets', st.presets); renderPresets(); toast('Збережено');
-  };
-}
-function renderSettings() {
-  const t = T(), box = $('r-set'); box.innerHTML = '';
-  const addField = (label, value, onInput, tall) => {
-    const l = document.createElement('label'); l.textContent = label;
-    const ta = document.createElement('textarea'); ta.value = value; if (tall) ta.className = 'tall'; ta.spellcheck = false;
-    ta.oninput = () => { onInput(ta.value); save(); renderOut(); };
-    box.append(l, ta); return ta;
-  };
-  const addReset = fn => { const b = document.createElement('button'); b.textContent = '↺ Скинути до стандартного'; b.title = 'Повернути стандартний текст'; b.style.marginTop = '8px'; b.onclick = () => { fn(); save(); renderSettings(); renderOut(); }; box.appendChild(b); };
-  if (t.kind === 'pixel') {
-    const key = 'px_' + t.tpl;
-    addField('Базовий текст промпта (використовуй {STYLE} і {SEED})', st.custom[key] ?? TEMPLATES[t.tpl].text, v => (st.custom[key] = v), true);
-    addReset(() => delete st.custom[key]);
-  } else if (st.model === 'sdxl') {
-    addField('Префікс якості (на початку кожного промпта SDXL)', st.settings.sdPrefix, v => (st.settings.sdPrefix = v));
-    addField('Завжди додавати теги (для цього типу)', st.settings.always[st.type], v => (st.settings.always[st.type] = v));
-    addReset(() => { st.settings.sdPrefix = DEFAULTS.sdPrefix; st.settings.always[st.type] = DEFAULTS.always[st.type]; });
-    const h = document.createElement('div'); h.className = 'hint'; h.textContent = 'Негативний промпт редагується на вкладці «Промпт».'; box.appendChild(h);
-  } else if (st.model === 'gemini') {
-    const key = 'gem_' + st.type;
-    addField('Інструкція для Gemini (плейсхолдери: {TASK} {OUT} {STYLE} {BRIEF})', st.custom[key] ?? GEM_TPL[st.type], v => (st.custom[key] = v), true);
-    addReset(() => delete st.custom[key]);
-  } else {
-    box.innerHTML = '<div class="hint">Для Flux налаштувань немає: промпт збирається живою мовою, по реченню на групу параметрів (волосся, очі, шкіра, одяг, поза, фон). Порожню групу пропущено.</div>';
-  }
-}
-function setRtab(name) {
-  st.rtab = name;
-  document.querySelectorAll('.rtab').forEach(b => b.classList.toggle('on', b.dataset.r === name));
-  ['out', 'hist', 'pre', 'set'].forEach(n => ($('r-' + n).hidden = n !== name));
-  if (name === 'hist') renderHistory();
-  if (name === 'pre') renderPresets();
-  if (name === 'set') renderSettings();
-}
-document.querySelectorAll('.rtab').forEach(b => (b.onclick = () => setRtab(b.dataset.r)));
-
 function updateHeader() {
   const t = T(), sty = currentStyle(), pix = isPixel();
   const set = (id, icon, name) => { const b = $(id); b.querySelector('.ic').textContent = icon; b.querySelector('b').textContent = name; };
@@ -360,7 +275,6 @@ function render() {
   updateHeader();
   renderWorkspace();
   renderOut();
-  if (st.rtab === 'set') renderSettings();
   save();
 }
 
@@ -372,7 +286,7 @@ $('unlockAll').onclick = () => {
   typeSlotIds().forEach(id => { const s = ss(id), m = SLOTS[id].manual; s.locked = false; s.mode = m ? 'off' : 'random'; s.rolled = !!m; if (m) s.value = []; });
   render();
 };
-/* ---- збереження й обмін (верхня панель) ---- */
+/* ---- клавіші ---- */
 document.addEventListener('keydown', e => {
   if ($('overlay').classList.contains('show')) return;
   const tag = document.activeElement.tagName;

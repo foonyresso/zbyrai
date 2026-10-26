@@ -2,11 +2,11 @@
 // Запуск: node tools/ui-rules.test.js
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert');
 const root = path.join(__dirname, '..');
-const TOOLS = ['medieval-world', 'prompt-dice'];
+const TOOLS = ['medieval-world'];
 // інструменти зі старою довідкою details.about: перевіряємо лише кнопку «Інфо» (tool-chrome.js)
 const ABOUT_TOOLS = [];
 // інструменти на UI-кіті (shared/ui, docs/ui-kit.md): довідка «i» у dialog#help, шапка .top, кіт підключено
-const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab', 'planet-forge', 'dungeon-sim', 'image-converter', 'skill-tree', 'skill-forge', 'sprite-cleaner', 'balance-curves', 'loot-forge', 'production-planner', 'idea-mixer', 'character-roller', 'colonist-foundry', 'album-builder', 'zakladyny', 'settlement-sim'];
+const KIT_TOOLS = ['atlas2', 'tessera', 'pattern-maker', 'photo-collage', 'voxel-lab', 'planet-forge', 'dungeon-sim', 'image-converter', 'skill-tree', 'skill-forge', 'sprite-cleaner', 'balance-curves', 'loot-forge', 'production-planner', 'idea-mixer', 'character-roller', 'colonist-foundry', 'album-builder', 'zakladyny', 'settlement-sim', 'prompt-dice'];
 let failed = 0;
 const test = (name, fn) => { try { fn(); console.log('  ok  ', name); } catch (e) { failed++; console.log('  FAIL', name, '\n      ', e.message); } };
 for (const t of TOOLS) {
@@ -17,7 +17,6 @@ for (const t of TOOLS) {
     for (const w of ['Що це', 'Для чого', 'Як користуватися']) assert.ok(html.includes(w), 'немає розділу «' + w + '»');
   });
   test(`${t}: збереження й обмін у верхній панелі`, () => {
-    if (t === 'prompt-dice') return; // кнопки імпорту/експорту прибрано свідомо; «Копіювати промпт» під полем промпта
     assert.ok(header.includes('class="top-actions"'), 'у шапці немає блоку top-actions');
     assert.ok(/Зберегти|Копіювати/.test(header), 'у шапці немає кнопок збереження');
     assert.ok(t === 'album-builder' || /id="(btnImport|customImport)"/.test(header), 'у шапці немає кнопки «Імпорт»');

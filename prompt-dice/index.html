@@ -22,70 +22,28 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Кубик <span>промптів</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  <span class="spacer"></span>
+  <div class="top-tools" role="group" aria-label="Збереження і налаштування">
+    <button id="btnPresets" title="Пресети: зберегти поточні параметри під своєю назвою і повернутися до них в один клік">💾 Пресети</button>
+    <button id="btnHistory" title="Історія кидків: клік по запису відновлює ці параметри">🕘 Історія</button>
+    <button id="btnSettings" title="Налаштування: розділи меню, вигляд, розділ 18+, тексти промпта">⚙ Налаштування</button>
+  </div>
 </header>
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
   <h2>Кубик промптів</h2>
   <h3>Що це</h3><p>Кубик для ШІ-промптів із манекеном людини: збирає випадкові, але продумані описи для генераторів зображень (Stable Diffusion, Flux, Gemini): персонажі, спрайт-листи, локації, піксель-арт.</p>
   <h3>Для чого</h3><p>Щоб не вигадувати кожен промпт з нуля й при цьому керувати кожною деталлю: від стопи до волосся, від пози до фону. Кидай кубик, поки не сподобається, замикай вдале, правь решту руками.</p>
-  <h3>Як користуватися</h3><ol> <li><b>Обери тип, модель, стиль і тематику</b> у смузі над робочою зоною.</li> <li><b>Клікни по манекену</b>: нога, рука, голова, очі, волосся… Праворуч від нього зʼявляться варіанти цієї ділянки та поле для власного опису. «Цілі частини» вибирає одразу всю руку, ногу чи торс.</li> <li><b>Кинь кубик</b> (Пробіл) для випадкового результату; <b>🔒</b> замикає вдале, <b>🎲</b> на картці перекидає лише його, <b>∅</b> прибирає з промпта.</li> <li><b>Забери промпт</b> праворуч: копіювання, збереження, історія й пресети; обмін файлами в панелі вгорі.</li> </ol>
+  <h3>Як користуватися</h3><ol>
+    <li><b>Обери тип, модель, стиль і тематику</b> у смузі зверху.</li>
+    <li><b>Меню ліворуч</b>: категорії (Персонаж, Волосся, Обличчя, Тіло, Одяг…) відкриваються в підгрупи; клік по підгрупі показує її параметри посередині. Пошук знаходить параметри й окремі варіанти («червоний», «роги», «окуляри»).</li>
+    <li><b>Манекен</b>: перемикач «Меню / Манекен» над меню. Клікни по нозі, руці, голові, очах… й отримаєш параметри саме цієї ділянки. «Цілі частини» вибирає одразу всю руку, ногу чи торс.</li>
+    <li><b>Кинь кубик</b> (Пробіл) для випадкового результату; <b>🔒</b> замикає вдале (у картці, підгрупі чи цілій категорії), <b>🎲</b> перекидає лише це, <b>∅</b> прибирає з промпта.</li>
+    <li><b>Забери промпт</b> праворуч (разом із негативним для SDXL). Зверху: пресети, історія кидків і налаштування (розділи меню, 18+, тексти промпта).</li>
+  </ol>
 </dialog>
 
-
-
-<main class="stage" id="stage"><div class="outwrap"><section class="pane out-pane">
-    <div class="pane-h">
-      <div class="rtabs">
-        <button class="rtab on" data-r="out" title="Готовий промпт, який можна правити">Промпт</button>
-        <button class="rtab" data-r="hist" title="Усі попередні кидки: клік відновлює">Історія</button>
-        <button class="rtab" data-r="pre" title="Збережені набори параметрів">Пресети</button>
-        <button class="rtab" data-r="set" title="Базовий текст і префікси промпта">Налаштування</button>
-      </div>
-    </div>
-    <div class="pane-b">
-      <div id="r-out">
-        <textarea class="out" id="out" spellcheck="false" title="Готовий промпт: можна правити вручну"></textarea>
-        <div class="out-actions"><button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button></div>
-        <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
-        <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
-        <div class="negbox" id="negbox" hidden>
-          <h3>Негативний промпт <button id="copyNeg" title="Скопіювати негативний промпт" style="padding:3px 10px;font-size:12px">📋 Копіювати</button></h3>
-          <textarea class="neg" id="neg" spellcheck="false" title="Що ШІ має уникати на зображенні"></textarea>
-        </div>
-        <div class="stat" id="stat" title="Скільки різних промптів можна отримати за цих налаштувань"></div>
-      </div>
-      <div id="r-hist" hidden></div>
-      <div id="r-pre" hidden></div>
-      <div id="r-set" class="set" hidden></div>
-    </div>
-  </section></div></main>
-<nav class="rail" id="rail" aria-label="Меню">
-  <button data-panel="work" title="Параметри промпта за групами: вибір значень, замки, пошук"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Параметри</span></button>
-  <button data-panel="mk" title="Манекен людини: клік по частині тіла відкриває її параметри"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M7 10l5-2 5 2M9 21l3-6 3 6"/></svg><span>Манекен</span></button>
-</nav>
-<aside class="drawer" id="drawer" data-store="pd2_panel" data-default="work" hidden>
-  <button class="x" id="drawerX" title="Закрити меню">×</button>
-  <section data-panel="work" class="work-pane">
-    <div class="pane-h wt"><div class="wtabs" id="wTabs"></div>
-      <label class="wsearch" id="wSearchBox"><input id="wSearch" placeholder="Знайти параметр…" autocomplete="off" title="Відфільтрувати параметри у вкладці за назвою"></label></div>
-    <div class="pane-b" id="wBody"></div>
-  </section>
-  <section data-panel="mk" class="mk-pane" id="mkPane">
-    <div class="pane-h"><h2>Манекен</h2><span class="spacer"></span>
-      <div class="seg" id="mkView" title="Що показувати: тіло цілком чи обличчя великим планом">
-        <button data-v="body" title="Фігура цілком: руки, торс, ноги">Тіло</button><button data-v="head" title="Обличчя великим планом: очі, ніс, рот, волосся">Обличчя</button></div>
-    </div>
-    <div class="pane-b">
-      <div class="seg wide" id="mkMode" title="Що вибирає клік по манекену">
-        <button data-m="part" title="Клік вибирає одну дрібну частину: стопу, коліно, лікоть…">Частини</button><button data-m="whole" title="Клік вибирає цілу кінцівку чи блок: всю ногу, всю руку, весь торс">Цілі частини</button></div>
-      <div id="mkSvg"></div>
-      <div class="mk-cap" id="mkCaption"></div>
-      <div class="mk-legend"><span><i class="lg has"></i>є значення</span><span><i class="lg user"></i>вибрано вручну</span><span><i class="lg sel"></i>вибрана ділянка</span></div>
-      <button id="mkClear" class="small" title="Зняти вибір ділянки на манекені">Зняти вибір ділянки</button>
-    </div>
-  </section>
-</aside>
-<div class="bar">
+<div class="bar" id="bar" role="group" aria-label="Що і для чого створюємо">
   <div class="gtabs">
     <button class="gtab" id="tabType" title="Що саме генерувати: персонаж, спрайт-лист, піксель-арт тощо"><span class="ic"></span><span><small>Тип промпта</small><b></b></span><span class="car">▾</span></button>
     <button class="gtab" id="tabModel" title="Для якого ШІ збирати промпт"><span class="ic"></span><span><small>Модель</small><b></b></span><span class="car">▾</span></button>
@@ -96,6 +54,53 @@
   <button id="unlockAll" title="Зняти всі замки й ручний вибір, повернути все під кубик">🔓 Скинути вибір</button>
   <button class="btn-main" id="roll" title="Перекинути все, що не замкнено (Пробіл)"><span class="dice">🎲</span> Кинути кубик</button>
 </div>
+
+<main class="studio" id="studio">
+  <aside class="pane nav-pane" id="navPane" aria-label="Меню та манекен">
+    <div class="pane-h nav-h">
+      <div class="seg wide" id="navMode" role="group" aria-label="Що показувати ліворуч">
+        <button data-n="menu" title="Меню параметрів: категорії й підгрупи, пошук"><span aria-hidden="true">☰</span> Меню</button><button data-n="mk" title="Манекен людини: клік по частині тіла відкриває її параметри"><span aria-hidden="true">🧍</span> Манекен</button>
+      </div>
+    </div>
+    <section class="nav-body" id="navMenu">
+      <label class="msearch"><input id="mSearch" type="search" placeholder="Знайти параметр або варіант…" autocomplete="off" title="Пошук по назвах параметрів і варіантів: «червоний», «роги», «окуляри»…" aria-label="Пошук у меню"><button id="mSearchX" type="button" class="small" title="Очистити пошук" hidden>×</button></label>
+      <nav class="mtree" id="mTree" aria-label="Категорії й підгрупи"></nav>
+      <div class="mfoot"><span id="mCount"></span><span class="mfoot-b"><button id="mExpand" class="small" title="Розгорнути всі категорії">Розгорнути</button><button id="mCollapse" class="small" title="Згорнути всі категорії">Згорнути</button></span></div>
+    </section>
+    <section class="nav-body mk-pane" id="navMk" hidden>
+      <div class="mk-bar">
+        <div class="seg" id="mkView" title="Що показувати: тіло цілком чи обличчя великим планом">
+          <button data-v="body" title="Фігура цілком: руки, торс, ноги">Тіло</button><button data-v="head" title="Обличчя великим планом: очі, ніс, рот, волосся">Обличчя</button></div>
+        <div class="seg" id="mkMode" title="Що вибирає клік по манекену">
+          <button data-m="part" title="Клік вибирає одну дрібну частину: стопу, коліно, лікоть…">Частини</button><button data-m="whole" title="Клік вибирає цілу кінцівку чи блок: всю ногу, всю руку, весь торс">Цілі частини</button></div>
+      </div>
+      <div id="mkSvg"></div>
+      <div class="mk-cap" id="mkCaption"></div>
+      <div class="mk-legend"><span><i class="lg has"></i>є значення</span><span><i class="lg user"></i>вибрано вручну</span><span><i class="lg sel"></i>вибрана ділянка</span></div>
+      <button id="mkClear" class="small" title="Зняти вибір ділянки на манекені">Зняти вибір ділянки</button>
+    </section>
+  </aside>
+
+  <section class="pane work-pane" id="workPane" aria-label="Параметри вибраної групи">
+    <div class="work-h" id="wHead"></div>
+    <div class="pane-b" id="wBody"></div>
+  </section>
+
+  <section class="pane out-pane" id="outPane" aria-label="Готовий промпт">
+    <div class="pane-h"><h2>Промпт</h2></div>
+    <div class="pane-b">
+      <textarea class="out" id="out" spellcheck="false" title="Готовий промпт: можна правити вручну"></textarea>
+      <div class="out-actions"><button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button></div>
+      <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
+      <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
+      <div class="negbox" id="negbox" hidden>
+        <h3>Негативний промпт <button id="copyNeg" class="small" title="Скопіювати негативний промпт">📋 Копіювати</button></h3>
+        <textarea class="neg" id="neg" spellcheck="false" title="Що ШІ має уникати на зображенні"></textarea>
+      </div>
+      <div class="stat" id="stat" title="Скільки різних промптів можна отримати за цих налаштувань"></div>
+    </div>
+  </section>
+</main>
 
 <div class="overlay" id="overlay"><div class="dlg" id="dlg"></div></div>
 <div class="toast" id="toast">Скопійовано!</div>
@@ -120,10 +125,14 @@
 <script src="./mk-spec.js"></script>
 <script src="./mk-merge.js"></script>
 <script src="./nsfw-data.js"></script>
+<script src="./menu-tree.js"></script>
 <script src="./flux-words.js"></script>
 <script src="./flux-grammar.js"></script>
 <script src="./ui-mannequin.js"></script>
+<script src="./ui-cards.js"></script>
 <script src="./ui-workspace.js"></script>
+<script src="./ui-menu.js"></script>
+<script src="./ui-dialogs.js"></script>
 <script src="./zb-ui.js"></script>
 <script src="./app.js"></script>
 </body>

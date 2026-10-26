@@ -4,7 +4,7 @@
 
 | Інструмент | Папка | Логіка / дані | UI | Тести | Ключ LS |
 |---|---|---|---|---|---|
-| Кубик промптів | `prompt-dice/` | `pools.js`, `styles.js`, `types.js`, `flux-words.js` + `flux-grammar.js` (Flux живою мовою); манекен: `mk-shapes.js` (фігура, ділянки, групи), `mk-data-body/head/scene/extra.js` (категорії), `mk-slots.js` (слоти й підключення до типів) | `app.js`, `ui-mannequin.js` (SVG-манекен), `ui-workspace.js` (вкладки й картки) | `test/flux.test.js`, `test/mannequin.test.js` | `pd2_` |
+| Кубик промптів | `prompt-dice/` | `pools.js`, `styles.js`, `types.js`, `flux-words.js` + `flux-grammar.js` (Flux живою мовою); манекен: `mk-shapes.js` (фігура, ділянки, групи), `mk-data-body/head/scene/extra.js` (категорії), `mk-slots.js` (слоти й підключення до типів) | `menu-tree.js` (категорії й підгрупи меню), `app.js`, `ui-menu.js` (дерево, пошук), `ui-workspace.js` + `ui-cards.js` (групи й картки), `ui-mannequin.js` (SVG-манекен), `ui-dialogs.js` (історія, пресети, налаштування) | `test/flux.test.js`, `test/mannequin.test.js`, `test/menu.test.js` | `pd2_` |
 | Колаж фото | `photo-collage/` | `collage-core.js` (режими розкладки, зум і зсув кадру) | `app.js` | `test/collage.test.js` | `pc_` |
 | Конвертер зображень | `image-converter/` | `convert-core.js` (формати, пропорції, розмір, кадр, імена), `zip-core.js` (ZIP без стиснення), `convert-render.js` (малювання й кодування), `convert-worker.js` + `convert-pool.js` (Web Worker-и з запасним варіантом на головному потоці) | `app.js` | `test/convert.test.js` | `ic_` |
 | Атлас 2.0 (новий генератор світу) | `atlas2/` | `core/` (етапи генерації без DOM) | `ui/app.js`, `ui/steps.js` (демонстрація «Як працює»), `render/` | `atlas2/test/run-all.js` | немає (у посиланні `#p=`) |

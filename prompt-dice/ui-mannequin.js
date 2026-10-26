@@ -1,5 +1,5 @@
 // Манекен: малювання SVG (тіло / обличчя), вибір ділянки кліком, підсвітка стану ділянок.
-// Стан вибору живе в st.zone / st.view / st.whole (див. app.js). Подання вкладок і карток: ui-workspace.js.
+// Стан вибору живе в st.zone / st.view / st.whole (див. app.js). Показ ділянки в центрі: ui-workspace.js; перемикач «Меню / Манекен»: ui-menu.js.
 const MK_NS = 'http://www.w3.org/2000/svg';
 const mkEl = (tag, attrs, parent) => { const e = document.createElementNS(MK_NS, tag); Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v)); if (parent) parent.appendChild(e); return e; };
 const mkZoneLabel = id => (mkGroup(id) ? mkGroup(id).label : (MK_ZONES.find(z => z.id === id) || {}).label || id);
@@ -55,10 +55,10 @@ function mkPick(z) {
 function mkSetView(v) { st.view = v; if (v === 'head' && !mkInView(st.zone, v)) st.zone = 'face'; if (v === 'body' && !mkInView(st.zone, v)) st.zone = 'body'; save(); render(); }
 function mkInView(id, v) { return !!mkGroup(id) || MK_ZONES.some(z => z.id === id && z.view === v); }
 function selectZone(id) {
-  st.zone = id; st.wtab = 'zone';
+  st.zone = id; st.ui.nav = 'mk';
   // нова ділянка не обов'язково є у виді: перемикаємо вид, якщо треба
   if (!mkGroup(id) && !MK_ZONES.some(z => z.id === id && z.view === st.view)) st.view = (MK_ZONES.find(z => z.id === id) || { view: st.view }).view;
-  save(); render(); $('wBody').scrollTop = 0;
+  save(); render(); $('wBody').scrollTop = 0; showWork();
 }
 function mkRenderToolbar() {
   const v = $('mkView'), m = $('mkMode'); if (!v) return;
