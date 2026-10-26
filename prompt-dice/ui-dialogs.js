@@ -1,4 +1,4 @@
-// Вікна верхньої панелі: пресети (зберегти/завантажити параметри), історія кидків, налаштування (розділи меню, 18+, тексти промпта).
+// Вікна верхньої панелі: пресети (зберегти/завантажити параметри), історія кидків, налаштування (теги 18+, тексти промпта).
 // Користується openModal/closeModal/gallery з app.js; стан меню (st.ui) описано в app.js, дерево меню: ui-menu.js.
 function snapshot() {
   return JSON.parse(JSON.stringify({ type: st.type, model: st.model, styleSel: st.styleSel, styleRolled: st.styleRolled, theme: st.theme, themeRolled: st.themeRolled, slots: st.slots }));
@@ -76,7 +76,7 @@ function switchRow(label, hint, checked, onChange, cls) {
   return l;
 }
 function setAdult(on) {
-  if (!on && adultFilled() && !confirm('Вимкнути розділ 18+? Усе, що вибрано в ньому, буде очищено.')) return false;
+  if (!on && adultFilled() && !confirm('Вимкнути теги 18+? Усе, що вибрано з них, буде очищено.')) return false;
   st.ui.adult = on;
   if (!on) NSFW_IDS.forEach(id => { const s = ss(id); s.mode = 'off'; s.value = []; s.locked = false; s.rolled = true; });
   save(); return true;
@@ -108,18 +108,13 @@ function textFields(box) {
   }
 }
 function openSettings() {
-  openModal(dlgHead('Налаштування') + '<div class="settings-layout" id="sbody"><div class="s-col" id="sL"></div><div class="s-col" id="sR"></div></div>');
+  openModal(dlgHead('Налаштування'));
   $('gx').onclick = closeModal;
-  const mk = (col, title, hint) => { const s = document.createElement('section'); s.className = 'settings-block'; s.innerHTML = `<h4>${esc(title)}</h4>${hint ? `<p class="hint">${esc(hint)}</p>` : ''}`; $(col).appendChild(s); return s; };
-  const cats = mk('sL', 'Розділи меню', 'Вимкнений розділ не показується в меню й пошуку. Його параметри лишаються в промпті; щоб прибрати їх із промпта, натисни «∅ Вимкнути» в потрібній групі.');
-  MENU_CATS.filter(c => !c.adult && c.id !== 'sprite' && c.id !== 'gemini').forEach(c => cats.appendChild(switchRow(c.name, c.desc, !st.ui.hide[c.id], on => { if (on) delete st.ui.hide[c.id]; else st.ui.hide[c.id] = true; save(); })));
-  const view = mk('sR', 'Вигляд меню');
-  view.appendChild(switchRow('Компактне меню', 'Менші відступи в меню й картках: більше вміщується на екрані', !!st.ui.dense, on => { st.ui.dense = on; save(); }));
-  view.appendChild(switchRow('Відкривати одну категорію за раз', 'Коли відкриваєш категорію, інші згортаються', !!st.ui.one, on => { st.ui.one = on; if (on) st.ui.open = {}; save(); }));
-  const adult = mk('sR', 'Дорослий контент', 'Розділ 18+ є лише для типу «Персонаж (арт)» і моделей SDXL та Flux. За замовчуванням вимкнено.');
-  const row = switchRow('Показувати розділ 18+', 'Оголеність, білизна, пози й вирази; без тегів статевих актів', !!st.ui.adult, on => { if (!setAdult(on)) { row.querySelector('input').checked = true; } }, 'adult-switch');
+  const mk = (title, hint) => { const s = document.createElement('section'); s.className = 'settings-block'; s.innerHTML = `<h4>${esc(title)}</h4>${hint ? `<p class="hint">${esc(hint)}</p>` : ''}`; $('dlg').appendChild(s); return s; };
+  const adult = mk('Дорослий контент', 'Теги 18+ є лише для типу «Персонаж (арт)» і моделей SDXL та Flux. Вимкнені за замовчуванням і не видні. Коли ввімкнено, вони з’являються в підгрупах поруч зі звичайними (Одяг, Поза, Тіло, Вираз…) із позначкою 18+.');
+  const row = switchRow('Показувати теги 18+', 'Оголеність, білизна, пози й вирази; без тегів статевих актів', !!st.ui.adult, on => { if (!setAdult(on)) { row.querySelector('input').checked = true; } }, 'adult-switch');
   adult.appendChild(row);
-  const txt = document.createElement('section'); txt.className = 'settings-block wide set';
+  const txt = document.createElement('section'); txt.className = 'settings-block set';
   txt.innerHTML = `<h4>${esc('Тексти промпта · ' + (T().short || T().name) + (T().kind === 'multi' ? ' · ' + MODELS[st.model].name : ''))}</h4>`;
   $('dlg').appendChild(txt); textFields(txt);
 }

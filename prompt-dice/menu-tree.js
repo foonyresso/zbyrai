@@ -14,7 +14,6 @@ const MENU_ICONS = {
   place: '<path d="M3 19.5 9 9.5l4 6 2.2-3 5.8 7z"/><circle cx="17" cy="6.5" r="1.7"/>',
   light: '<circle cx="12" cy="12" r="3.9"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6"/>',
   fx: '<path d="M10 3.5 11.9 9 17.5 11 11.9 13 10 18.5 8.1 13 2.5 11 8.1 9zM18.2 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
-  adult: '<circle cx="12" cy="12" r="9"/><text x="12" y="15.2" text-anchor="middle" font-size="8.6" font-weight="700" fill="currentColor" stroke="none">18+</text>',
   sprite: '<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
   gemini: '<path d="M12 3c.6 5.2 3.8 8.4 9 9-5.2.6-8.4 3.8-9 9-.6-5.2-3.8-8.4-9-9 5.2-.6 8.4-3.8 9-9z"/>',
   other: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
@@ -26,9 +25,9 @@ const MENU_CATS = [
   { id: 'person', name: 'Персонаж', color: '#c9a766', desc: 'Хто зображений: стать, вік, раса, шкіра, статура, особливі ознаки.', n: [
     ['sexage', 'Стать і вік', 'Стать і віковий діапазон персонажа. Від статі залежать інші варіанти.', ['gender', 'age']],
     ['race', 'Раса й тип', 'Раса або тип істоти та її особливості: роги, крила, хвости, вуха. Для раси з окремим меню особливості підлаштовуються.', ['race', 'raceFeat']],
-    ['skin', 'Шкіра, шерсть, тіло', 'Тон і стан шкіри, шерсть, волосся на тілі.', ['skin', 'pl_fur_pattern', 'x_skinstate', 'x_bodyhair']],
+    ['skin', 'Шкіра, шерсть, тіло', 'Тон і стан шкіри, шерсть, волосся на тілі.', ['skin', 'pl_fur_pattern', 'x_skinstate', 'x_bodyhair', 'n_body']],
     ['build', 'Статура і зріст', 'Зріст, постава, комплекція, м’язи.', ['build', 'x_height']],
-    ['marks', 'Особливі ознаки', 'Шрами, татуювання, родимки, аура; вільний опис тіла загалом.', ['permFeat', 'zt_body']],
+    ['marks', 'Особливі ознаки', 'Шрами, татуювання, родимки, аура; вільний опис тіла загалом.', ['permFeat', 'zt_body', 'n_text']],
   ] },
   { id: 'hair', name: 'Волосся', color: '#cf9a6a', desc: 'Довжина, колір, зачіска, чубчик, пасма й прикраси для волосся.', n: [
     ['base', 'Довжина й колір', 'Основа волосся. Колір обирається палітрою або двоколірними варіантами.', ['hairLen', 'hairColor']],
@@ -45,7 +44,7 @@ const MENU_CATS = [
     ['jaw', 'Підборіддя, щелепа, борода', 'Підборіддя, щелепа, борода й вуса.', ['pl_chin_shape', 'x_chin2', 'x_jaw', 'x_beard', 'zt_chin', 'zt_jaw']],
     ['neck', 'Шия', 'Форма шиї.', ['x_neckshape', 'zt_neck']],
     ['emotion', 'Емоція', 'Яку емоцію передає персонаж.', ['emotion'], 'Вираз і макіяж'],
-    ['expr', 'Вираз обличчя й очей', 'Міміка обличчя та вираз очей.', ['expression', 'eyeExpr']],
+    ['expr', 'Вираз обличчя й очей', 'Міміка обличчя та вираз очей.', ['expression', 'eyeExpr', 'n_expr']],
     ['makeup', 'Макіяж', 'Макіяж обличчя, очей і губ.', ['makeup']],
   ] },
   { id: 'body', name: 'Тіло', color: '#8dbf95', desc: 'Анатомія за ділянками: торс, таз, руки, ноги. Ту саму ділянку можна вибрати й на манекені.', n: [
@@ -55,19 +54,19 @@ const MENU_CATS = [
     ['legs', 'Ноги й стопи', 'Форма ніг, стегно, стопа, вільний опис кожної ділянки ноги.', ['x_legshape', 'x_thigh', 'x_footshape', 'zt_leg', 'zt_thigh', 'zt_knee', 'zt_shin', 'zt_ankle', 'zt_foot', 'zt_toes']],
   ] },
   { id: 'outfit', name: 'Одяг', color: '#88a9d6', desc: 'Комплект і стан одягу, а також одяг по частинах тіла.', n: [
-    ['set', 'Комплект і стан', 'Весь костюм чи броня, його стан, відкриті ділянки тіла.', ['outfit', 'outState', 'bareParts'], 'Загальне'],
-    ['upper', 'Верх', 'Верхній одяг, топи, білизна, спина (крила, ноша).', ['pl_upper_body', 'pl_chest_wear', 'x_torsowings'], 'По частинах тіла'],
+    ['set', 'Комплект і стан', 'Весь костюм чи броня, його стан, відкриті ділянки тіла.', ['outfit', 'outState', 'bareParts', 'n_level', 'n_nude', 'n_undress'], 'Загальне'],
+    ['upper', 'Верх', 'Верхній одяг, топи, білизна, спина (крила, ноша).', ['pl_upper_body', 'pl_chest_wear', 'x_torsowings', 'n_lingerie'], 'По частинах тіла'],
     ['lower', 'Низ', 'Штани, спідниці, панчохи, одяг на стегнах.', ['pl_lower_body', 'legwear', 'x_thighdet']],
     ['sleeves', 'Руки: рукави, рукавиці', 'Рукавиці, рукави, плечі, лікті, передпліччя, зап’ястя, пальці.', ['gloves', 'x_shouldress', 'x_upperdeco', 'x_elbow', 'x_forearm', 'x_wrist', 'x_fingers']],
     ['shoes', 'Ноги: взуття', 'Взуття, коліна, гомілки, щиколотки, пальці ніг.', ['footwear', 'x_knee', 'x_shin', 'x_ankle', 'x_toes']],
     ['hat', 'Голова: головні убори', 'Капелюхи, шоломи, корони, прикраси на лобі.', ['headwear', 'x_forehead', 'zt_hat']],
   ] },
   { id: 'gear', name: 'Аксесуари й зброя', color: '#a99bd1', desc: 'Прикраси, аксесуари, зброя та магія в руках.', n: [
-    ['acc', 'Прикраси й аксесуари', 'Намисто, сережки, окуляри, пояси, браслети й аксесуари для рук.', ['accessories', 'pl_hand_acc']],
+    ['acc', 'Прикраси й аксесуари', 'Намисто, сережки, окуляри, пояси, браслети й аксесуари для рук.', ['accessories', 'pl_hand_acc', 'n_acc']],
     ['weapon', 'Зброя й магія', 'Що персонаж тримає: зброя чи магія. Залежить від тематики.', ['weapon']],
   ] },
   { id: 'pose', name: 'Поза й дія', color: '#7fc0b8', desc: 'Положення тіла, рук і ніг, погляд, дія та взаємодія.', n: [
-    ['body', 'Загальна поза', 'Поза всього тіла.', ['pose', 'pl_body_pose', 'x_posefull', 'zt_pose']],
+    ['body', 'Загальна поза', 'Поза всього тіла.', ['pose', 'pl_body_pose', 'x_posefull', 'zt_pose', 'n_pose']],
     ['limbs', 'Руки, ноги, голова, погляд', 'Положення рук і ніг, нахил голови, куди дивиться персонаж.', ['armPos', 'legPos', 'pl_hand_pose', 'pl_leg_pose', 'x_head', 'gaze']],
     ['action', 'Дія й взаємодія', 'Що робить персонаж і з чим чи ким взаємодіє.', ['action', 'interaction']],
   ] },
@@ -76,7 +75,7 @@ const MENU_CATS = [
     ['lens', 'Об’єктив і перспектива', 'Тип об’єктива, перспектива; вільний опис кадру.', ['x_lens', 'zt_frame']],
   ] },
   { id: 'place', name: 'Локація й фон', color: '#a8bf87', desc: 'Де відбувається сцена: місце, фон, передній план.', n: [
-    ['where', 'Місце і фон', 'Інтер’єр чи екстер’єр, набір тегів фону, розмиття й глибина.', ['io', 'background', 'x_bgmood', 'zt_bg'], 'Загальне'],
+    ['where', 'Місце і фон', 'Інтер’єр чи екстер’єр, набір тегів фону, розмиття й глибина.', ['io', 'background', 'x_bgmood', 'zt_bg', 'n_set'], 'Загальне'],
     ['ready', 'Готові фони', 'Приміщення, вулиця, фентезі, фантастика, сучасність.', ['pl_bg_indoor', 'pl_bg_outdoor', 'x_bgfant', 'x_bgscifi', 'x_bgreal'], 'Готові варіанти'],
     ['plain', 'Простий фон', 'Однотонний фон, колір, візерунок.', ['pl_bg_plain', 'pl_bg_color', 'pl_bg_pattern']],
     ['fore', 'Передній план', 'Що перед персонажем чи камерою.', ['fgObjects']],
@@ -89,13 +88,6 @@ const MENU_CATS = [
   { id: 'fx', name: 'Ефекти й деталі', color: '#c99ac4', desc: 'Магічні й візуальні ефекти, матеріали, дрібні деталі, фінальні акценти.', n: [
     ['effects', 'Ефекти й магія', 'Частинки, сяйво, магічні прояви. Залежать від тематики.', ['effects']],
     ['details', 'Матеріали й деталі', 'Матеріали, текстури, дрібні деталі, фінальні акценти.', ['materials', 'details', 'finalAccent']],
-  ] },
-  { id: 'adult', name: '18+', color: '#d9786f', adult: true, desc: 'Дорослий контент (лише персонаж, SDXL і Flux). Вмикається в налаштуваннях.', n: [
-    ['level', 'Рівень і оголеність', 'Рівень відвертості та оголеність.', ['n_level', 'n_nude']],
-    ['wear', 'Білизна і роздягання', 'Білизна, відвертий одяг, зсунутий одяг.', ['n_lingerie', 'n_undress']],
-    ['look', 'Стан тіла й вираз', 'Стан тіла, вираз обличчя й погляд.', ['n_body', 'n_expr']],
-    ['poses', 'Пози й місце', 'Спокусливі пози, місце й світло.', ['n_pose', 'n_set']],
-    ['acc', 'Аксесуари і свій опис', 'Аксесуари; вільний опис.', ['n_acc', 'n_text']],
   ] },
   { id: 'sprite', name: 'Спрайт-лист', color: '#c2b076', desc: 'Як намалювати лист для скелетної анімації: ракурси, проєкція, частини, розкладка.', n: [
     ['views', 'Ракурси', 'З яких боків показати персонажа.', ['sprViews']],
@@ -110,18 +102,20 @@ const MENU_CATS = [
 
 // Усі id, названі в меню (решта параметрів типу потрапляє у запасну категорію «Інше»)
 const MENU_DEFINED = new Set(MENU_CATS.flatMap(c => c.n.flatMap(n => n[3])));
+// Параметри 18+ (nsfw-data.js) розкладено по звичайних підгрупах; їх видно, лише коли теги 18+ увімкнено в налаштуваннях
+const MENU_ADULT = new Set(typeof NSFW_IDS !== 'undefined' ? NSFW_IDS : []);
+const isAdultSlot = id => MENU_ADULT.has(id);
 
 // Будує меню типу: [{id, name, icon, color, desc, nodes: [{id, cat, name, desc, sec, slots, texts, all}]}].
-// model: sdxl | flux | gemini; o: {adult: показувати 18+, hide: {id категорії: true}}.
+// model: sdxl | flux | gemini; o: {adult: показувати параметри 18+ (n_*) у своїх підгрупах}.
 // slots — звичайні параметри, texts — вільні поля «Свій опис» (їх показують окремим блоком у підгрупі), all — обидва списки.
 function menuBuild(typeId, model, o) {
   o = o || {};
   const t = TYPES[typeId], pixel = t.kind === 'pixel';
   const inType = new Set(t.sections.flatMap(s => s.s));
-  const vis = id => { const sl = SLOTS[id]; return !!sl && inType.has(id) && (pixel || !sl.models || sl.models.includes(model)); };
+  const vis = id => { const sl = SLOTS[id]; return !!sl && inType.has(id) && (pixel || !sl.models || sl.models.includes(model)) && (o.adult || !MENU_ADULT.has(id)); };
   const cats = [];
   MENU_CATS.forEach(c => {
-    if ((c.adult && !o.adult) || (o.hide && o.hide[c.id])) return;
     const nodes = [];
     let curSec = '';
     c.n.forEach(([nid, name, desc, ids, sec]) => {

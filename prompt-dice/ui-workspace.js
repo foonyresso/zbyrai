@@ -93,7 +93,7 @@ function renderNode(box) {
     box.appendChild(note); note.querySelector('#qClear').onclick = () => setMenuQuery('');
   }
   if (!slots.length && !texts.length) { box.insertAdjacentHTML('beforeend', '<div class="hint">У цій групі нічого не знайдено за пошуком.</div>'); return; }
-  const cards = document.createElement('div'); cards.className = 'cards cols'; box.appendChild(cards);
+  const cards = document.createElement('div'); cards.className = 'cards'; box.appendChild(cards);
   slots.forEach(id => cards.appendChild(slotCard(id, '')));
   if (texts.length) box.appendChild(groupBlock('Свій опис', texts, !!q || filledCount(texts) > 0, 't:' + st.type + ':' + node.id, ''));
 }
@@ -133,7 +133,7 @@ function renderZone(box) {
     box.appendChild(sib);
   }
   const own = (MK.partSlots[z] || []).filter(id => visible(SLOTS[id]) && slotHasZoneOpts(SLOTS[id], z));
-  const cards = document.createElement('div'); cards.className = 'cards cols'; own.forEach(id => cards.appendChild(slotCard(id, z))); box.appendChild(cards);
+  const cards = document.createElement('div'); cards.className = 'cards'; own.forEach(id => cards.appendChild(slotCard(id, z))); box.appendChild(cards);
   if (g) {
     g.parts.forEach(p => {
       const ids = (MK.partSlots[p] || []).filter(id => visible(SLOTS[id]) && slotHasZoneOpts(SLOTS[id], p));
@@ -155,7 +155,6 @@ function renderWorkspace() {
   const mk = hasMannequin();
   document.body.classList.toggle('no-mk', !mk);
   document.body.classList.toggle('no-nav', !mk && menuNodes(MENU).length <= 1);
-  document.body.classList.toggle('dense', !!st.ui.dense);
   renderNav();
   if (mk) { mkRenderToolbar(); mkRenderSvg(); }
   renderMenuTree(); renderWork(); renderStat();

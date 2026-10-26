@@ -128,13 +128,13 @@ const univOpen = {};
 function buildChips(sl, s, box, q, scope) {
   box.innerHTML = '';
   const sel = new Set(s.mode === 'manual' ? s.value : []);
-  const ql = q.toLowerCase();
+  const ql = qnorm(q);   // той самий розбір запиту, що й у лічильниках меню
   const optSet = new Set(sl.opts(ctx()));
   const colored = new Set([...sel].filter(v => !optSet.has(v)).map(v => (parseColored(v, t => optSet.has(t)) || {}).base).filter(Boolean));
   const avail = sl.groups ? optSet : null;
   const mk = (o, parent) => {
     const t = mkLabel(sl, o);
-    if (ql && !t.toLowerCase().includes(ql) && !o.toLowerCase().includes(ql)) return false;
+    if (ql && !qnorm(t + ' ' + o).includes(ql)) return false;
     const b = document.createElement('button');
     b.className = 'chip' + (sel.has(o) || colored.has(o) ? ' on' : '');
     b.textContent = t; b.title = o + (sl.kind === 'multi' ? ' · клік — додати чи прибрати' : ' · клік — вибрати, ще раз — скасувати');
@@ -190,9 +190,11 @@ function buildChips(sl, s, box, q, scope) {
 const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
 // Назва поля «Свій опис» у підгрупі меню: додаємо, до чого воно належить (на ділянці манекена це й так зрозуміло)
 const textTitle = (sl, zone) => {
-  const w = zone ? '' : MK_PART_UA[sl.part] || (sl.id === 'n_text' ? '18+' : '');
+  const w = zone ? '' : MK_PART_UA[sl.part] || '';
   return w ? sl.label + ' · ' + w : sl.label;
 };
+// Позначка параметрів 18+: вони стоять у своїх групах разом зі звичайними й видні лише за ввімкненого розділу 18+
+const adultTag = id => (isAdultSlot(id) ? '<span class="bd adult" title="Дорослий контент (18+): видно, коли ввімкнено в налаштуваннях">18+</span>' : '');
 function slotCard(id, zone) {
   const sl = SLOTS[id], s = ss(id), scope = mkScope(sl, zone);
   const el = document.createElement('div');
@@ -202,15 +204,15 @@ function slotCard(id, zone) {
   if (rk) el.classList.add('race-active');
   const title = rk ? 'Особливості раси: ' + mkLabel(SLOTS.race, rk) : sl.label;
   if (sl.text) {
-    el.innerHTML = `<div class="card-h"><b>${esc(textTitle(sl, zone))}</b>${stateBadge(sl, s)}<span class="grow"></span></div>
+    el.innerHTML = `<div class="card-h"><b>${esc(textTitle(sl, zone))}</b>${adultTag(id)}${stateBadge(sl, s)}<span class="grow"></span></div>
       <textarea rows="2" spellcheck="false" placeholder="Свій опис англійськими тегами через кому, напр.: tattoo of a dragon, scar" title="Вільний текст для цієї ділянки: потрапляє в промпт як є"></textarea>
       <div class="hint">Тут можна дописати все, чого нема у списках. Теги англійською, через кому.</div>`;
     const ta = el.querySelector('textarea'); ta.value = s.mode === 'manual' ? s.value.join(', ') : '';
     ta.oninput = () => setText(id, ta.value);
     return el;
   }
-  const opts = sl.opts(ctx()), n = scope ? opts.filter(o => mkInScope(sl, o, scope)).length : opts.length;
-  el.innerHTML = `<div class="card-h"><b>${esc(title)}</b><small>${n ? n.toLocaleString('uk') + ' ' + plural(n, 'варіант', 'варіанти', 'варіантів') : 'генерується'}</small>${stateBadge(sl, s)}<span class="grow"></span>
+  const n = scopedTags(id, zone).length;   // ті самі теги, що рахує меню (ui-menu.js)
+  el.innerHTML = `<div class="card-h"><b>${esc(title)}</b>${adultTag(id)}<small>${n ? n.toLocaleString('uk') + ' ' + plural(n, 'варіант', 'варіанти', 'варіантів') : 'генерується'}</small>${stateBadge(sl, s)}<span class="grow"></span>
       <button class="ib lk" title="${s.locked ? 'Зняти замок' : 'Замкнути: кубик не змінюватиме це значення'}">${s.locked ? '🔒' : '🔓'}</button>
       <button class="ib rl" title="Перекинути тільки цей параметр">🎲</button>
       <button class="ib of" title="Не вказувати цей параметр у промпті">∅</button></div>

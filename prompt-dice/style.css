@@ -1,21 +1,24 @@
 /* Prompt Dice — розмітка поверх спільної теми (theme.css, «Обсидіан і золото») і UI-кіту (zb-ui.css).
-   Розкладка: верхня панель → смуга вибору → [ліва зона: Меню | Манекен] [центр: параметри групи] [праворуч: промпт].
+   Розкладка: верхня панель (назва, вибір типу/моделі/стилю/тематики, кубик, пресети) → [ліва зона: Меню | Манекен] [центр: параметри групи] [праворуч: промпт].
    Колір категорії меню (--cat) задає JS (menu-tree.js); решта кольорів лише з токенів теми. */
 
 /* ---------- каркас сторінки ---------- */
 html, body { height: 100%; }
 body { display: flex; flex-direction: column; overflow: hidden; }
 .spacer { flex: 1; }
-.top { position: static; margin: 10px 10px 0; max-width: none; }
-.top-tools { display: flex; flex-wrap: wrap; gap: 6px; }
-.top-tools button { padding: 5px 12px; font-size: 13px; }
-.bar { position: static; transform: none; margin: 8px 10px 0; max-width: none; left: auto; right: auto; justify-content: flex-start; gap: 10px; padding: 7px 10px; }
-.bar .gtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; flex: 1 1 auto; }
-.bar .spacer { display: none; }
-.bar .gtab { flex: 1 1 150px; min-width: 0; padding: 5px 9px; }
-.bar .gtab .ic { font-size: 18px; }
+.top { position: static; margin: 10px 10px 0; max-width: none; flex-wrap: wrap; gap: 8px 12px; padding: 7px 10px; }
+.top-l { display: flex; align-items: center; gap: 12px; order: 1; }
+.top .gtabs { display: flex; gap: 8px; flex: 1 1 560px; min-width: 0; margin: 0; order: 2; }
+.top-r { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; order: 3; }
+.top-tools { display: flex; gap: 6px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--line); }
+.top-tools button { padding: 5px 11px; font-size: 13px; }
+.top .gtab { flex: 1 1 130px; min-width: 120px; padding: 4px 9px; }
+.top .gtab .ic { font-size: 18px; }
+.top .gtab > span:nth-child(2) { flex: 1; min-width: 0; }
+.top .gtab b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top .btn-main { padding: 8px 16px; font-size: 14px; }
 
-/* ---------- смуга вибору ---------- */
+/* ---------- вибір типу, моделі, стилю й тематики (у верхній панелі) ---------- */
 .gtab { display: flex; align-items: center; gap: 10px; text-align: left; padding: 6px 10px; min-width: 168px; }
 .gtab .ic { font-size: 22px; filter: saturate(.75); }
 .gtab small { display: block; color: var(--faint); font-size: 10.5px; line-height: 1.1; text-transform: uppercase; letter-spacing: .1em; }
@@ -68,8 +71,8 @@ body.no-nav .nav-pane { display: none; }
 .sym svg { width: 16px; height: 16px; }
 .mcat-b .nm, .mnode-b .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .mcat-b .nm { white-space: nowrap; }
-.ct { flex: none; min-width: 20px; text-align: center; font-size: 11px; font-weight: 400; color: var(--faint); font-variant-numeric: tabular-nums; }
-.ct.on { background: var(--cat); color: #17120a; font-weight: 700; border-radius: 99px; padding: 0 6px; }
+.ct { flex: none; min-width: 20px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 11px; font-weight: 400; color: var(--faint); font-variant-numeric: tabular-nums; }
+.ct .sel { width: 6px; height: 6px; border-radius: 50%; background: var(--cat); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cat) 28%, transparent); }
 .car { flex: none; color: var(--faint); font-size: 17px; line-height: 1; transition: transform .15s var(--ease); }
 .mcat.open .car { transform: rotate(90deg); }
 .lock-mini { flex: none; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: transparent; font-size: 12px; line-height: 1; opacity: 0; transition: opacity .15s; }
@@ -86,10 +89,6 @@ body.no-nav .nav-pane { display: none; }
 .mnode-b { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; text-align: left; border: 0; background: transparent; color: var(--muted); padding: 7px 8px; border-radius: 8px; font-size: 13px; }
 .mnode-b:hover { background: color-mix(in srgb, var(--cat) 11%, transparent); color: var(--text); }
 .mnode.sel .mnode-b { background: color-mix(in srgb, var(--cat) 17%, var(--panel-3)); color: var(--text); box-shadow: inset 2px 0 var(--cat); font-weight: 600; }
-.mfoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--faint); }
-.mfoot-b { display: flex; gap: 5px; }
-body.dense .mcat-b { padding-top: 5px; padding-bottom: 5px; } body.dense .mnode-b { padding-top: 4px; padding-bottom: 4px; } body.dense .mcat { margin-bottom: 4px; }
-body.dense .card { padding: 6px 9px 7px; } body.dense .cards { gap: 5px; } body.dense .pane-b { padding-top: 8px; }
 
 /* ---------- ліва зона: манекен ---------- */
 .mk-pane { overflow: auto; padding: 10px 12px 14px; text-align: center; }
@@ -148,7 +147,6 @@ details.grp > summary::before { content: "▸ "; color: var(--gold-lo); }
 details.grp[open] > summary::before { content: "▾ "; }
 details.grp > summary small { color: var(--faint); font-weight: 400; margin-left: 8px; }
 .cards { display: flex; flex-direction: column; gap: 8px; padding: 0 0 2px; }
-.cards.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); align-items: start; }
 details.grp > .cards { padding: 0 9px 9px; }
 .card { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid color-mix(in srgb, var(--cat) 60%, var(--line)); border-radius: var(--r-md); padding: 9px 11px 10px; min-width: 0; }
 .card.locked { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-glow) inset; }
@@ -164,10 +162,11 @@ details.grp > .cards { padding: 0 9px 9px; }
 .bd.man { background: rgba(136, 169, 214, .14); border-color: rgba(136, 169, 214, .35); color: var(--info); }
 .bd.lck { border-color: var(--gold-line); color: var(--gold-hi); }
 .bd.rnd { color: var(--faint); }
+.bd.adult { background: rgba(217, 120, 111, .14); border-color: rgba(217, 120, 111, .4); color: #e8a199; font-weight: 700; letter-spacing: .04em; }
 .card-v { font-size: 13px; color: var(--text); margin: 5px 0 6px; word-break: break-word; min-height: 18px; }
 .card-v.empty { color: var(--faint); font-style: italic; }
 .csearch { width: 100%; margin-bottom: 7px; padding: 5px 10px; font-size: 12.5px; }
-.chips { max-height: 440px; overflow: auto; padding: 1px; }
+.chips { padding: 1px; }
 .cgroup { margin-bottom: 7px; }
 .cg-h { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); margin: 4px 0 4px; }
 .cg-h i { font-style: normal; text-transform: none; letter-spacing: 0; margin-left: 8px; color: var(--faint); opacity: .75; }
@@ -225,10 +224,8 @@ textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5
 .h-item .meta > div { flex: 1; min-width: 0; }
 .h-item .cp { padding: 2px 9px; font-size: 12px; }
 .pre-save { display: flex; gap: 8px; margin-bottom: 12px; } .pre-save input { flex: 1; }
-.settings-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
 .settings-block { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 4px 14px 14px; }
-.s-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.settings-block.wide { margin-top: 14px; }
+.settings-block + .settings-block { margin-top: 14px; }
 .settings-block h4 { margin-top: 14px; }
 .settings-block > .hint { margin: 0 0 6px; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line-soft); cursor: pointer; }
@@ -245,6 +242,10 @@ textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5
 .set textarea { width: 100%; min-height: 110px; resize: vertical; font: 12.5px/1.5 var(--ff-mono); }
 .set textarea.tall { min-height: 340px; }
 
+/* ---------- верхня панель: підписи кнопок згортаються, потім блок вибору йде другим рядком ---------- */
+@media (min-width: 1401px) and (max-width: 1639px) { .top-tools .lbl { display: none; } }
+@media (max-width: 1400px) { .top-r { order: 2; margin-left: auto; } .top .gtabs { order: 3; flex-basis: 100%; } }
+
 /* ---------- вузькі екрани: сторінка прокручується, панелі одна під одною ---------- */
 @media (max-width: 1180px) {
   html, body { height: auto; overflow: auto; }
@@ -259,8 +260,7 @@ textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5
   .studio { grid-template-columns: minmax(0, 1fr); }
   .nav-pane { height: 62vh; min-height: 380px; } .work-pane { height: auto; min-height: 420px; max-height: none; }
   .work-pane .pane-b { overflow: visible; }
-  .settings-layout { grid-template-columns: minmax(0, 1fr); }
-  .cards.cols { grid-template-columns: minmax(0, 1fr); }
   .top-tools button { padding: 5px 9px; }
-  .bar .gtab { flex-basis: 140px; }
+  .top-r { flex-basis: 100%; }
+  .top .gtab { flex-basis: 140px; }
 }

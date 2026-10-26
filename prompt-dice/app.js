@@ -28,10 +28,9 @@ const st = {
   view: saved.view === 'head' ? 'head' : 'body',
   whole: !!saved.whole,
   wtab: typeof saved.wtab === 'string' ? saved.wtab : '',   // id вибраної підгрупи меню; старі значення ('zone', 's0'…) ігноруються
-  // налаштування меню: nav — що ліворуч ('menu' | 'mk'), open — відкриті категорії, last — остання підгрупа, adult — розділ 18+, hide — приховані категорії
-  ui: Object.assign({ nav: saved.wtab === 'zone' ? 'mk' : 'menu', open: {}, last: '', adult: false, hide: {}, dense: false, one: false, init: false }, saved.ui),
+  // стан меню: nav — що ліворуч ('menu' | 'mk'), open — відкриті категорії, last — остання підгрупа, adult — показувати теги 18+, init — перший показ меню
+  ui: { nav: saved.ui && saved.ui.nav ? saved.ui.nav : saved.wtab === 'zone' ? 'mk' : 'menu', open: (saved.ui && saved.ui.open) || {}, last: (saved.ui && saved.ui.last) || '', adult: !!(saved.ui && saved.ui.adult), init: !!(saved.ui && saved.ui.init) },
 };
-st.ui.open = st.ui.open || {}; st.ui.hide = st.ui.hide || {};
 function save() {
   const { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab, ui } = st;
   store.set('state', { type, model, styleSel, styleRolled, theme, themeRolled, slots, settings, custom, closed, zone, view, whole, wtab, ui });

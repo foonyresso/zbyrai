@@ -19,14 +19,25 @@
 <body class="has-grain">
 
 <header class="top" id="top">
-  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
-  <div class="brand">Кубик <span>промптів</span></div>
-  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <span class="spacer"></span>
-  <div class="top-tools" role="group" aria-label="Збереження і налаштування">
-    <button id="btnPresets" title="Пресети: зберегти поточні параметри під своєю назвою і повернутися до них в один клік">💾 Пресети</button>
-    <button id="btnHistory" title="Історія кидків: клік по запису відновлює ці параметри">🕘 Історія</button>
-    <button id="btnSettings" title="Налаштування: розділи меню, вигляд, розділ 18+, тексти промпта">⚙ Налаштування</button>
+  <div class="top-l">
+    <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+    <div class="brand">Кубик <span>промптів</span></div>
+    <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  </div>
+  <div class="gtabs" role="group" aria-label="Що і для чого створюємо">
+    <button class="gtab" id="tabType" title="Що саме генерувати: персонаж, спрайт-лист, піксель-арт тощо"><span class="ic"></span><span><small>Тип промпта</small><b></b></span><span class="car">▾</span></button>
+    <button class="gtab" id="tabModel" title="Для якого ШІ збирати промпт"><span class="ic"></span><span><small>Модель</small><b></b></span><span class="car">▾</span></button>
+    <button class="gtab" id="tabStyle" title="Візуальний стиль зображення"><span class="ic"></span><span><small>Стиль</small><b></b></span><span class="car">▾</span></button>
+    <button class="gtab" id="tabTheme" title="Тематика й світ персонажа"><span class="ic"></span><span><small>Тематика</small><b></b></span><span class="car">▾</span></button>
+  </div>
+  <div class="top-r">
+    <button id="unlockAll" title="Зняти всі замки й ручний вибір, повернути все під кубик">🔓 Скинути вибір</button>
+    <button class="btn-main" id="roll" title="Перекинути все, що не замкнено (Пробіл)"><span class="dice">🎲</span> Кинути кубик</button>
+    <div class="top-tools" role="group" aria-label="Збереження і налаштування">
+      <button id="btnPresets" title="Пресети: зберегти поточні параметри під своєю назвою і повернутися до них в один клік"><span aria-hidden="true">💾</span><span class="lbl"> Пресети</span></button>
+      <button id="btnHistory" title="Історія кидків: клік по запису відновлює ці параметри"><span aria-hidden="true">🕘</span><span class="lbl"> Історія</span></button>
+      <button id="btnSettings" title="Налаштування: теги 18+, тексти промпта"><span aria-hidden="true">⚙</span><span class="lbl"> Налаштування</span></button>
+    </div>
   </div>
 </header>
 <dialog id="help" class="help">
@@ -35,25 +46,13 @@
   <h3>Що це</h3><p>Кубик для ШІ-промптів із манекеном людини: збирає випадкові, але продумані описи для генераторів зображень (Stable Diffusion, Flux, Gemini): персонажі, спрайт-листи, локації, піксель-арт.</p>
   <h3>Для чого</h3><p>Щоб не вигадувати кожен промпт з нуля й при цьому керувати кожною деталлю: від стопи до волосся, від пози до фону. Кидай кубик, поки не сподобається, замикай вдале, правь решту руками.</p>
   <h3>Як користуватися</h3><ol>
-    <li><b>Обери тип, модель, стиль і тематику</b> у смузі зверху.</li>
+    <li><b>Обери тип, модель, стиль і тематику</b> у верхній панелі.</li>
     <li><b>Меню ліворуч</b>: категорії (Персонаж, Волосся, Обличчя, Тіло, Одяг…) відкриваються в підгрупи; клік по підгрупі показує її параметри посередині. Пошук знаходить параметри й окремі варіанти («червоний», «роги», «окуляри»).</li>
     <li><b>Манекен</b>: перемикач «Меню / Манекен» над меню. Клікни по нозі, руці, голові, очах… й отримаєш параметри саме цієї ділянки. «Цілі частини» вибирає одразу всю руку, ногу чи торс.</li>
     <li><b>Кинь кубик</b> (Пробіл) для випадкового результату; <b>🔒</b> замикає вдале (у картці, підгрупі чи цілій категорії), <b>🎲</b> перекидає лише це, <b>∅</b> прибирає з промпта.</li>
-    <li><b>Забери промпт</b> праворуч (разом із негативним для SDXL). Зверху: пресети, історія кидків і налаштування (розділи меню, 18+, тексти промпта).</li>
+    <li><b>Забери промпт</b> праворуч (разом із негативним для SDXL). Зверху: пресети, історія кидків і налаштування (теги 18+, тексти промпта).</li>
   </ol>
 </dialog>
-
-<div class="bar" id="bar" role="group" aria-label="Що і для чого створюємо">
-  <div class="gtabs">
-    <button class="gtab" id="tabType" title="Що саме генерувати: персонаж, спрайт-лист, піксель-арт тощо"><span class="ic"></span><span><small>Тип промпта</small><b></b></span><span class="car">▾</span></button>
-    <button class="gtab" id="tabModel" title="Для якого ШІ збирати промпт"><span class="ic"></span><span><small>Модель</small><b></b></span><span class="car">▾</span></button>
-    <button class="gtab" id="tabStyle" title="Візуальний стиль зображення"><span class="ic"></span><span><small>Стиль</small><b></b></span><span class="car">▾</span></button>
-    <button class="gtab" id="tabTheme" title="Тематика й світ персонажа"><span class="ic"></span><span><small>Тематика</small><b></b></span><span class="car">▾</span></button>
-  </div>
-  <div class="spacer"></div>
-  <button id="unlockAll" title="Зняти всі замки й ручний вибір, повернути все під кубик">🔓 Скинути вибір</button>
-  <button class="btn-main" id="roll" title="Перекинути все, що не замкнено (Пробіл)"><span class="dice">🎲</span> Кинути кубик</button>
-</div>
 
 <main class="studio" id="studio">
   <aside class="pane nav-pane" id="navPane" aria-label="Меню та манекен">
@@ -65,7 +64,6 @@
     <section class="nav-body" id="navMenu">
       <label class="msearch"><input id="mSearch" type="search" placeholder="Знайти параметр або варіант…" autocomplete="off" title="Пошук по назвах параметрів і варіантів: «червоний», «роги», «окуляри»…" aria-label="Пошук у меню"><button id="mSearchX" type="button" class="small" title="Очистити пошук" hidden>×</button></label>
       <nav class="mtree" id="mTree" aria-label="Категорії й підгрупи"></nav>
-      <div class="mfoot"><span id="mCount"></span><span class="mfoot-b"><button id="mExpand" class="small" title="Розгорнути всі категорії">Розгорнути</button><button id="mCollapse" class="small" title="Згорнути всі категорії">Згорнути</button></span></div>
     </section>
     <section class="nav-body mk-pane" id="navMk" hidden>
       <div class="mk-bar">

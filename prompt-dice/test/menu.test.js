@@ -55,18 +55,21 @@ test('піксель-арт типи: одна підгрупа «Зерно д�
     assert.deepEqual([...cats[0].nodes[0].all].sort(), [...visibleIds(t, 'sdxl')].sort());
   });
 });
-test('18+: за замовчуванням прихований і не потрапляє в «Інше»; лише персонаж, SDXL і Flux', () => {
-  const ids = (t, m, o) => plain(get(`menuBuild('${t}', '${m}', ${JSON.stringify(o)}).flatMap(c => c.nodes.flatMap(n => n.all))`));
-  const has = a => a.some(id => id.startsWith('n_'));
-  assert.ok(!has(ids('char', 'sdxl', {})), 'без дозволу 18+ видно');
-  assert.ok(has(ids('char', 'sdxl', { adult: true })) && has(ids('char', 'flux', { adult: true })));
-  assert.ok(!has(ids('char', 'gemini', { adult: true })), 'Gemini не підтримує 18+');
-  assert.ok(!has(ids('sprite', 'sdxl', { adult: true })) && !has(ids('scene', 'sdxl', { adult: true })));
-});
-test('приховані користувачем категорії зникають, але їхні параметри не з’являються деінде', () => {
-  const cats = plain(get(`menuBuild('char', 'sdxl', { adult: true, hide: { light: true, fx: true } })`)), idsOf = c => c.nodes.flatMap(n => n.all);
-  assert.ok(!cats.some(c => c.id === 'light' || c.id === 'fx' || c.id === 'other'));
-  assert.ok(!cats.flatMap(idsOf).includes('lighting'));
+test('18+: немає окремої категорії; параметри n_* лежать у звичайних підгрупах і видні лише з дозволом, лише для персонажа SDXL/Flux', () => {
+  const cats = (t, m, o) => plain(get(`menuBuild('${t}', '${m}', ${JSON.stringify(o)})`)), idsOf = c => c.nodes.flatMap(n => n.all);
+  const all = a => a.flatMap(idsOf), has = a => all(a).some(id => id.startsWith('n_'));
+  assert.ok(!plain(get('MENU_CATS.map(c => c.id)')).includes('adult'), 'категорія 18+ має зникнути');
+  assert.ok(!has(cats('char', 'sdxl', {})), 'без дозволу 18+ видно');
+  assert.ok(!cats('char', 'sdxl', {}).some(c => c.id === 'other'), '18+ потрапило в «Інше»');
+  assert.ok(has(cats('char', 'sdxl', { adult: true })) && has(cats('char', 'flux', { adult: true })));
+  assert.ok(!has(cats('char', 'gemini', { adult: true })), 'Gemini не підтримує 18+');
+  assert.ok(!has(cats('sprite', 'sdxl', { adult: true })) && !has(cats('scene', 'sdxl', { adult: true })));
+  // усі параметри 18+ розкладено по підгрупах і ні в яку категорію «18+» не зібрано
+  const want = plain(get('NSFW_IDS')), got = cats('char', 'sdxl', { adult: true }).flatMap(c => c.nodes.flatMap(n => n.all)).filter(id => id.startsWith('n_'));
+  assert.deepEqual([...got].sort(), [...want].sort(), 'не всі параметри 18+ розкладено');
+  cats('char', 'sdxl', { adult: true }).forEach(c => c.nodes.forEach(n => { if (n.all.every(id => id.startsWith('n_'))) assert.fail(n.id + ': підгрупа лише з 18+'); }));
+  // тих, що без дозволу, у підгрупах не лишається: підгрупи й числа не залежать від 18+ слідів
+  assert.equal(get('isAdultSlot("n_nude")'), true); assert.equal(get('isAdultSlot("hairColor")'), false);
 });
 test('Gemini: категорія «Запит до Gemini» лише для цієї моделі', () => {
   const names = m => plain(get(`menuBuild('char', '${m}', {}).map(c => c.id)`));
