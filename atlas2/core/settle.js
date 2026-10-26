@@ -6,6 +6,8 @@
   // suit[i] 0..1: рівнина, вода поруч, річка, берег; гори й вода дають 0
   function suitability(W) {
     const { w, h } = W, N = w * h, suit = new Float32Array(N);
+    // Астракор: поселення тримаються подалі від самого обриву (відстань до космосу в клітинах)
+    let dv = null; if (A.Params.isVoid(W.params)) { dv = new Float32Array(N).fill(1e9); const q = []; for (let i = 0; i < N; i++) if (W.ocean[i]) { dv[i] = 0; q.push(i); } for (let k = 0; k < q.length; k++) { const i = q[k], x = i % w, y = (i / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (dv[j] > dv[i] + 1) { dv[j] = dv[i] + 1; q.push(j); } } } }
     for (let i = 0; i < N; i++) {
       if (!W.land[i] || W.lake[i]) continue;
       const x = i % w, y = (i / w) | 0; let slope = 0, coast = 0, lake = 0, river = 0;
@@ -17,7 +19,7 @@
       const wd = W.waterDist ? W.waterDist[i] : 9;
       let s = A.BIOMES[W.bio[i]].live * (1 - Math.min(1, slope * 14));
       s += 0.3 * (river || W.river[i] ? 1 : 0) + 0.0 * coast + 0.15 * lake + 0.12 * Math.exp(-wd / 5);
-      suit[i] = Math.min(1, Math.max(0, s));
+      suit[i] = Math.min(1, Math.max(0, s)) * (dv ? Math.min(1, Math.max(0.15, (dv[i] - 2) / 8)) : 1);
     }
     return suit;
   }

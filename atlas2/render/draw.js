@@ -15,6 +15,7 @@
     const S = 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
     const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };
     c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
+    if (A.Params.isVoid(W.params)) c.roots = A.Void.roots(W, c.land); else if (A.Void) c.sub = A.Void.subLayer(W, toCanvas);
     if (W.tier) { // шар небезпеки: по пікселю на клітину, масштабується згладжено
       const d = new ImageData(w, h), COL = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]];
       for (let i = 0; i < w * h; i++) { const q = COL[W.tier[i]]; if (q) { d.data[i * 4] = q[0]; d.data[i * 4 + 1] = q[1]; d.data[i * 4 + 2] = q[2]; d.data[i * 4 + 3] = q[3]; } }
@@ -27,12 +28,18 @@
   // view: {k px/клітина, tx, ty}; opts: {layers:{...}, hoverRegion, selRegion}
   function draw(cv, W, view, opts) {
     const c = prep(W), ctx = cv.getContext('2d'), L = opts.layers, { k, tx, ty } = view, px = 1 / k;
-    ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height);
+    const VOID = A.Params.isVoid(W.params);
+    ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); if (VOID) A.Void.backdrop(ctx, cv, view); else { ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height); }
     ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
     ctx.drawImage(c.ocean, 0, 0, W.w, W.h);
-    // берег: світле сяйво
-    ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
+    if (VOID) { // обрив: корені звисають у безодню, під краєм темна тінь і бірюзове світіння
+      A.Void.drawRoots(ctx, c.roots, px);
+      ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 9 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(47,224,198,.4)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
+    } else { // берег: світле сяйво
+      ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
+    }
     ctx.save(); path(ctx, c.land); ctx.clip(); ctx.drawImage(c.landImg, 0, 0, W.w, W.h);
+    if (c.sub && L.sub !== false) ctx.drawImage(c.sub, 0, 0, W.w, W.h); // плями біомів основного світу
     if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });
     if (L.borders) {
       ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(70,50,30,.45)'; ctx.lineWidth = 1 * px; ctx.setLineDash([4 * px, 3 * px]);

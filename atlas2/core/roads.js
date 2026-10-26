@@ -16,6 +16,7 @@
       let c = A.BIOMES[W.bio[j]].move + Math.abs(W.elev[j] - W.elev[i]) * 40;
       if (W.river[j]) c += W.acc[j] > big ? 14 : 3;
       c *= 1 + wild * (mixA * F1[j] + mixB * F2[j]);
+      if (W.root && W.root[j]) c *= 0.7; // корені: природні шляхи Астракора
       if (level[j]) c *= 0.12;
       return c * (diag ? 1.41 : 1);
     };

@@ -7,7 +7,7 @@
   const TIER = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]];
   const RAD = [7, 5, 3.8, 2.6, 2];
   // порядок етапів: кадр містить усі шари до свого включно
-  const ORDER = ['terrain', 'hydrology', 'climate', 'politics', 'settlements', 'roads', 'landmarks', 'searoutes', 'seas', 'danger', 'sites'];
+  const ORDER = ['terrain', 'hydrology', 'climate', 'subbiomes', 'politics', 'settlements', 'roads', 'landmarks', 'searoutes', 'seas', 'danger', 'sites'];
 
   // дані кадру: до кліматичного кроку світу ще немає, тож беремо проміжні масиви ландшафту й гідрології
   function view(c) {
@@ -17,12 +17,12 @@
   }
   // базова картинка клітин: висота або біом, світлотінь з північного заходу
   function baseImage(V, mode) {
-    const { w, h } = V, im = new ImageData(w, h), d = im.data, cols = mode === 'bio' ? A.BIOMES.map(b => hex(b.color)) : null;
+    const { w, h } = V, im = new ImageData(w, h), d = im.data, vd = A.Params.isVoid(V.params), pal = vd ? A.Astrakor.PALETTE : null, cols = mode === 'bio' ? A.BIOMES.map(b => hex((pal && pal[b.id]) || b.color)) : null;
     let mx = 0.001; for (let i = 0; i < w * h; i++) if (V.land[i] && V.elev[i] > mx) mx = V.elev[i];
     const el = i => V.land[i] ? V.elev[i] : V.sea * 0.6;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x, o = i * 4; let r, g, b;
-      if (!V.land[i]) { const t = Math.max(0, Math.min(1, (V.sea - V.elev[i]) * 2.5)); r = 110 - 50 * t; g = 160 - 60 * t; b = 205 - 50 * t; }
+      if (!V.land[i]) { const t = Math.max(0, Math.min(1, (V.sea - V.elev[i]) * 2.5)); if (vd) { r = 6; g = 9; b = 20; } else { r = 110 - 50 * t; g = 160 - 60 * t; b = 205 - 50 * t; } }
       else {
         if (cols) { const cc = cols[V.bio[i]]; r = cc[0]; g = cc[1]; b = cc[2]; }
         else { const t = Math.max(0, Math.min(1, (V.elev[i] - V.sea) / (mx - V.sea))); // зелений → жовтий → коричневий → білий
@@ -40,6 +40,7 @@
     opts = opts || {}; const V = view(c), { w, h } = V, up = ORDER.indexOf(id), has = k => up >= ORDER.indexOf(k);
     const cv = document.createElement('canvas'); cv.width = w * S; cv.height = h * S; const g = cv.getContext('2d');
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(toCv(baseImage(V, has('climate') ? 'bio' : 'elev')), 0, 0, w * S, h * S);
+    if (has('subbiomes') && V.sub && V.subUsed && V.subUsed.length) { const sl = A.Void.subLayer(V, toCv); if (sl) g.drawImage(sl, 0, 0, w * S, h * S); } // плями біомів основного світу
     if (has('danger') && V.tier) { const im = new ImageData(w, h); for (let i = 0; i < w * h; i++) { const q = TIER[V.tier[i]]; if (q) { im.data[i * 4] = q[0]; im.data[i * 4 + 1] = q[1]; im.data[i * 4 + 2] = q[2]; im.data[i * 4 + 3] = q[3]; } } g.drawImage(toCv(im), 0, 0, w * S, h * S); }
     if (has('politics') && V.province) { // заливка провінцій і межі (товсті провінцій, тонкі регіонів)
       const im = new ImageData(w, h); for (let i = 0; i < w * h; i++) { const p = V.province[i]; if (p >= 0 && V.land[i]) { const q = hex(PAL[p % PAL.length]); im.data[i * 4] = q[0]; im.data[i * 4 + 1] = q[1]; im.data[i * 4 + 2] = q[2]; im.data[i * 4 + 3] = 105; } }

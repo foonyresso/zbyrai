@@ -14,13 +14,13 @@
     { id: 'hydrology', label: 'Річки й озера', run: c => { c.H = A.hydrology(c.p, c.T); carveValleys(c.T, c.H); } },
     { id: 'climate', label: 'Клімат і біоми', run: c => {
       const { p, T, H } = c, C = A.climate(p, T, H);
-      c.world = { version: 1, params: p, w: p.w, h: p.h, sea: T.sea, height: T.height, elev: T.elev, land: T.land, ocean: T.ocean, lake: H.lake, river: H.river, acc: H.acc, down: H.down, rivers: H.rivers, lakes: H.lakes, temp: C.temp, moist: C.moist, bio: C.bio, waterDist: C.waterDist, riverThr: H.riverThr };
+      c.world = { version: 1, params: p, w: p.w, h: p.h, sea: T.sea, height: T.height, elev: T.elev, land: T.land, ocean: T.ocean, lake: H.lake, river: H.river, acc: H.acc, down: H.down, rivers: H.rivers, lakes: H.lakes, temp: C.temp, moist: C.moist, bio: C.bio, waterDist: C.waterDist, riverThr: H.riverThr, root: T.root || null };
     } }
   ];
-  const STAGE_LABEL = { politics: 'Провінції й регіони', settlements: 'Міста й села', roads: 'Дороги', landmarks: 'Місця за містами', searoutes: 'Морські шляхи', seas: 'Назви морів і океанів', danger: 'Рівні й небезпека', sites: 'Локації й монстри' };
+  const STAGE_LABEL = { subbiomes: 'Біоми основного світу', politics: 'Провінції й регіони', settlements: 'Міста й села', roads: 'Дороги', landmarks: 'Місця за містами', searoutes: 'Морські шляхи', seas: 'Назви морів і океанів', danger: 'Рівні й небезпека', sites: 'Локації й монстри' };
   const steps = () => STEPS.concat((A.stages || []).map(f => ({ id: f.name, label: STAGE_LABEL[f.name] || f.name, run: c => f(c.world) })));
   // приблизна частка часу кроків (за заміром на середній карті), для відсотків
-  const WEIGHT = { terrain: 6, hydrology: 8, climate: 3, politics: 42, settlements: 8, roads: 14, searoutes: 3, seas: 3, danger: 8, sites: 8 };
+  const WEIGHT = { subbiomes: 2, terrain: 6, hydrology: 8, climate: 3, politics: 42, settlements: 8, roads: 14, searoutes: 3, seas: 3, danger: 8, sites: 8 };
   function generate(input) { const c = { p: A.Params.normalize(input) }; for (const st of steps()) st.run(c); return c.world; }
   // те саме по кроках, з поверненням керування браузеру між ними: onProgress(частка 0..1, назва кроку) встигає перемалюватись
   async function generateAsync(input, onProgress) {

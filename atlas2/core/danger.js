@@ -147,7 +147,7 @@
     const hillT = el[Math.floor(el.length * 0.72)] || 1, peakT = el[Math.floor(el.length * 0.985)] || 1;
     const group = new Uint8Array(N).fill(255);
     for (let i = 0; i < N; i++) {
-      if (!W.land[i] || W.lake[i]) continue; const b = A.BIOMES[W.bio[i]].id; let g = b;
+      if (!W.land[i] || W.lake[i]) continue; const bi = A.BIOMES[W.bio[i]], b = bi.alias || bi.id; let g = b; // alias: особливі біоми виміру діють як найближча група ландшафту
       if (b === 'mountain') g = W.elev[i] > peakT ? 'peaks' : 'mountain';
       else if (b === 'snow') g = W.elev[i] > peakT ? 'peaks' : 'snow';
       else if ((b === 'grass' || b === 'forest' || b === 'steppe' || b === 'savanna' || b === 'taiga') && W.elev[i] > hillT) g = 'hills';
@@ -156,7 +156,8 @@
     // води: прибережні (до 6 клітин від суші), відкрите море, озера
     const landSrc = []; for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i]) landSrc.push(i);
     const dLand = distField(w, h, landSrc);
-    for (let i = 0; i < N; i++) if (!W.land[i] || W.lake[i]) group[i] = W.lake[i] ? GI.lake : dLand[i] <= 6 ? GI.sea : GI.deep;
+    const cosmos = A.Params.isVoid(W.params); // космос за краєм: ні монстрів, ні локацій
+    for (let i = 0; i < N; i++) if (!W.land[i] || W.lake[i]) group[i] = W.lake[i] ? GI.lake : cosmos ? 255 : dLand[i] <= 6 ? GI.sea : GI.deep;
     W.group = group;
     // доля поселень: частина сіл і міст (не столиці й не центри регіонів) зруйнована або окупована монстрів/бандитами; чим далі від центру, тим частіше
     const fr = A.Rng.stream(W.params.seed, 'fates'), dmax = Math.hypot(w, h) / 2, PF = { town: 0.1, village: 0.16, hamlet: 0.2 };
@@ -214,6 +215,7 @@
     (W.waterBodies || []).forEach((b, id) => { b.fam = b.kind === 'lake' ? 'lake' : pickFam(GI.deep, SEA_FAMS); b.famName = FAM_UA[b.fam]; b.domIdx = FAMS.indexOf(b.fam); });
     for (let i = 0; i < N; i++) if (group[i] >= 13 && W.waterBody && W.waterBody[i] >= 0) dom[i] = W.waterBodies[W.waterBody[i]].domIdx;
     W.dom = dom; W.domNames = FAMS;
+    if (cosmos) for (let i = 0; i < N; i++) if (W.ocean[i]) tier[i] = 0;
     W.tier = tier; W.dens = dens;
     // середні рівні регіонів і провінцій
     const sum = W.regions.map(() => 0), cnt = W.regions.map(() => 0), mn = W.regions.map(() => 1e9), mx = W.regions.map(() => 0);

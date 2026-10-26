@@ -2,12 +2,18 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2, $ = id => document.getElementById(id);
-  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'worldType', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity'];
+  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'worldType', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity'];
   let W = null, view = { k: 4, tx: 0, ty: 0 }, shown = { k: 4, tx: 0, ty: 0 }, settle = 0, layers = {}, hover = null, timer = 0, raf = 0;
   document.querySelectorAll('[data-layer]').forEach(e => { layers[e.dataset.layer] = e.checked; });
 
   const readParams = () => { const p = {}; for (const id of IDS) { const e = $(id); p[id] = e.type === 'number' || e.type === 'range' ? +e.value : e.value; } return p; };
-  const writeParams = p => { for (const id of IDS) if (p[id] != null) $(id).value = p[id]; };
+  // вимір задає межі провінцій (основний 2–50, Астракор 50–100) і форму світу (в Астракорі завжди материк)
+  function syncDim(setDefault) {
+    const ast = $('dimension').value === 'astrakor', pr = $('provinces');
+    pr.min = ast ? 50 : 2; pr.max = ast ? 100 : 50; if (setDefault || +pr.value < +pr.min || +pr.value > +pr.max) pr.value = ast ? 64 : 12;
+    if (ast) $('worldType').value = 'continent'; $('worldType').disabled = ast;
+  }
+  const writeParams = p => { for (const id of IDS) if (p[id] != null) $(id).value = p[id]; syncDim(false); };
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
   function resetView() { const k = Math.min(cv.width / W.w, cv.height / W.h) * 0.96; view = { k, tx: (cv.width - W.w * k) / 2, ty: (cv.height - W.h * k) / 2 }; }
   // повне перемальовування; під час руху лише дешево зсуваємо/масштабуємо вже намальований кадр (CSS), а справжній кадр малюємо, коли рух стих
@@ -32,6 +38,7 @@
   }
   const later = () => { clearTimeout(timer); timer = setTimeout(build, 250); };
   IDS.forEach(id => $(id).addEventListener(id === 'seed' ? 'change' : 'input', later));
+  $('dimension').addEventListener('change', () => syncDim(true));
   $('btnRandom').onclick = () => { $('seed').value = A.Rng.randSeed(); build(); };
   document.querySelectorAll('[data-layer]').forEach(e => e.addEventListener('change', () => { layers[e.dataset.layer] = e.checked; redraw(); }));
 
@@ -82,17 +89,20 @@
     const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K;
     out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span></div>`));
     // 4. місцевість у клітині
-    const land = W.land[i] && !W.lake[i], terr = [];
+    const land = W.land[i] && !W.lake[i], terr = []; let bdesc = '';
     if (land) {
       const gn = D.groupName(W, i), h = D.heightM(W, i); terr.push(row('Ландшафт', (D.GROUP_UA[gn] || gn) + ' · ' + fmt(h) + ' м'));
+      const bi = A.BIOMES[W.bio[i]], sb = A.SubBiomes && A.SubBiomes.at(W, i), ast = A.Params.isVoid(W.params); // біом: пляма основного світу, особливий біом виміру або базовий
+      terr.push(row('Біом', esc(sb ? sb.name : ast && A.Astrakor.RENAME[bi.id] || bi.name))); bdesc = sb ? sb.desc : bi.desc || '';
       const tl = W.tier[i]; terr.push(row('Рівень · небезпека', `${W.level[i]} · <span class="tier" style="background:${TIER_COL[tl]}"></span>${D.TIERS[tl]}`));
       let nd = 1e18, ns = null; for (const q of W.settlements) { if (q.ruined) continue; const d = (q.x - px) ** 2 + (q.y - py) ** 2; if (d < nd) { nd = d; ns = q; } }
       if (ns) terr.push(row('Найближче', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
+    } else if (W.ocean[i] && A.Params.isVoid(W.params)) { terr.push(row('Місце', 'Космічна безодня за краєм материка: вийти за межу неможливо'));
     } else { const wb = W.waterBodies && W.waterBody[i] >= 0 ? W.waterBodies[W.waterBody[i]] : null; terr.push(row('Водойма', wb ? esc(wb.name) : W.lake[i] ? 'Озеро' : 'Вода'));
       const gw = D.groupName(W, i); if (gw) terr.push(row('Води', D.GROUP_UA[gw] || gw)); const tw = W.tier[i]; terr.push(row('Рівень · небезпека', `${W.level[i]} · <span class="tier" style="background:${TIER_COL[tw]}"></span>${D.TIERS[tw]}`));
       if (wb && wb.kind === 'lake') terr.push(row('Площа озера', fmt(Math.round(wb.cells * kmc * 10) / 10) + ' км²')); else if (wb) terr.push(row('Вид', wb.kind === 'ocean' ? 'Океан' : 'Море')); }
     let enc = ''; if (W.tier[i] > 0 && W.group[i] !== 255) { const E = D.encounter(W, i); enc = `${E.dominant ? `<p class="muted">Переважають: <b>${esc(E.dominant)}</b></p>` : ''}<p class="muted">Водяться: ${E.species.map(q => `${esc(q.name)} (${q.level} р.)`).join(', ')}</p>`; }
-    out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${enc}`));
+    out.push(blk('Місцевість', `<dl>${terr.join('')}</dl>${bdesc ? `<p class="muted">${esc(bdesc)}</p>` : ''}${enc}`));
     // 5. деталі місця під курсором
     if (s) {
       const nobody = s.fate === 'occupied' ? s.monsters.slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('') : '';

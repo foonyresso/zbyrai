@@ -169,7 +169,7 @@
     for (let i = 0; i < N; i++) prov[i] = region[i] >= 0 ? regions[region[i]].prov : -1;
     const provinces = caps.map((c, k) => ({ id: k, capitalCell: c, regions: [], area: 0 }));
     for (const g of regions) provinces[g.prov].regions.push(g.id);
-    W.province = prov; W.region = region; waters(W, 8); W.provinces = provinces; W.regions = regions;
+    W.province = prov; W.region = region; waters(W, A.Params.isVoid(W.params) ? 0 : 8); W.provinces = provinces; W.regions = regions;
   }
   A.politics = politics;
   (A.stages = A.stages || []).push(politics);

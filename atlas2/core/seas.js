@@ -19,7 +19,7 @@
     for (const l of W.lakes) { const id = add('lake', 'Озеро ' + names.region(names.lang())); l.waterBody = id; for (const c of l.cells) body[c] = id; }
     // океан: смуга моря біля суші, далі — океани
     const ocean = []; for (let i = 0; i < N; i++) if (W.ocean[i]) ocean.push(i);
-    if (ocean.length) {
+    if (ocean.length && !A.Params.isVoid(W.params)) { // у вимірі з космосом за краєм морів і океанів немає
       // «берегом» вважаємо великі суходоли (дрібні далекі острови не обривають океан)
       const lc = A.Grid.components(w, h, i => !W.ocean[i]), bigMin = Math.max(1500, 0.08 * Math.max(...lc.sizes));
       const dl = chamfer(w, h, i => !W.ocean[i] && lc.sizes[lc.id[i]] >= bigMin), ds = ocean.map(i => dl[i]).sort((a, b) => a - b);

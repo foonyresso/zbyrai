@@ -7,14 +7,15 @@
   const MIND = { town: 24, village: 14, hamlet: 9 }; // мінімальні відстані в клітинах (1 клітина = 2 км); кожному поселенню — випадковий множник
 
   function settlements(W) {
+    const voidEdge = A.Params.isVoid(W.params); // край материка в космос не берег: портів немає
     const { w, h } = W, N = w * h, r = A.Rng.stream(W.params.seed, 'settle'), names = A.Names.make(W.params.seed), S = [], buckets = new Map();
     W.lakeOf = new Int32Array(N).fill(-1); const bigLake = new Set(); for (const l of W.lakes) { for (const c of l.cells) W.lakeOf[c] = l.id; if (l.size >= A.BIG_LAKE) bigLake.add(l.id); }
     const bk = (x, y) => ((y / 8) | 0) * 1000 + ((x / 8) | 0);
     const near = (x, y, d) => { for (let by = Math.floor((y - d) / 8); by <= Math.floor((y + d) / 8); by++) for (let bx = Math.floor((x - d) / 8); bx <= Math.floor((x + d) / 8); bx++) for (const s of buckets.get(by * 1000 + bx) || []) if (Math.hypot(s.x - x, s.y - y) < d) return true; return false; };
-    const wetNb = j => { const x = j % w, y = (j / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if (W.ocean[q] || (W.lake[q] && bigLake.has(W.lakeOf[q]))) return true; } return false; };
+    const wetNb = j => { const x = j % w, y = (j / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if ((W.ocean[q] && !voidEdge) || (W.lake[q] && bigLake.has(W.lakeOf[q]))) return true; } return false; };
     // «міцний» берег: клітина оточена сушею (щонайменше 5 з 8 сусідів), а не тонка коса, яку згладжений контур берега зрізав би
     const solid = j => { const x = j % w, y = (j / w) | 0; let n = 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if (W.land[q] && !W.lake[q]) n++; } return n >= 5; };
-    const wet4 = j => { const x = j % w, y = (j / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if (W.ocean[q] || (W.lake[q] && bigLake.has(W.lakeOf[q]))) return true; } return false; };
+    const wet4 = j => { const x = j % w, y = (j / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if ((W.ocean[q] && !voidEdge) || (W.lake[q] && bigLake.has(W.lakeOf[q]))) return true; } return false; };
     // місто (від містечка вище) поблизу води частіше стає саме на берег, щоб бути портом
     const snap = i => {
       const x = i % w, y = (i / w) | 0; let best = -1, bd = 1e9;
@@ -24,11 +25,11 @@
     function add(i, rank) {
       if (RANKS.indexOf(rank) <= 2 && r() < 0.65) { const j = snap(i); if (j >= 0) i = j; }
       const x = i % w, y = (i / w) | 0, pr = POP[rank]; let coast = 0, body = null;
-      for (let dy = -1; dy <= 1 && body === null; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (W.ocean[j]) { coast = 1; body = -1; break; } if (W.lake[j] && bigLake.has(W.lakeOf[j])) { coast = 1; body = W.lakeOf[j]; } }
+      for (let dy = -1; dy <= 1 && body === null; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (W.ocean[j] && !voidEdge) { coast = 1; body = -1; break; } if (W.lake[j] && bigLake.has(W.lakeOf[j])) { coast = 1; body = W.lakeOf[j]; } }
       const s = { id: S.length, name: names.town(names.lang()), rank, i, x, y, prov: W.province[i], region: W.region[i], landmass: W.landmass[i], port: !!coast && solid(i) && RANKS.indexOf(rank) <= 2, body, river: false, pop: Math.round(pr[0] + (pr[1] - pr[0]) * Math.pow(r(), 1.5)) };
       for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && W.river[ny * w + nx]) s.river = true; }
       if (s.port) { // порт стоїть на самому березі: маркер зсунуто до води (на межу клітини), а не лишено в центрі
-        let vx = 0, vy = 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if (W.ocean[q] || (W.lake[q] && bigLake.has(W.lakeOf[q]))) { vx += DX[d]; vy += DY[d]; } }
+        let vx = 0, vy = 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if ((W.ocean[q] && !voidEdge) || (W.lake[q] && bigLake.has(W.lakeOf[q]))) { vx += DX[d]; vy += DY[d]; } }
         const l = Math.hypot(vx, vy); if (l > 0) { const ux = vx / l, uy = vy / l, t = 0.5 / Math.max(Math.abs(ux), Math.abs(uy)); s.ox = +(ux * t).toFixed(2); s.oy = +(uy * t).toFixed(2); }
       }
       S.push(s); const k = bk(x, y); (buckets.get(k) || buckets.set(k, []).get(k)).push(s); return s;

@@ -29,12 +29,12 @@
       const i = q[k], x = i % w, y = (i / w) | 0;
       for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (dist[j] > dist[i] + 1) { dist[j] = dist[i] + 1; q.push(j); } }
     }
-    const temp = new Float32Array(N), moist = new Float32Array(N), bio = new Uint8Array(N), warm = (p.warm == null ? 0 : p.warm);
+    const temp = new Float32Array(N), moist = new Float32Array(N), bio = new Uint8Array(N), warm = (p.warm == null ? 0 : p.warm), astro = A.Params.isVoid(p); // Астракор: тепло й волого скрізь, без полярних поясів
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x, lat = Math.abs(y / h - 0.42) * 2;
-      const t = 0.95 - 0.42 * Math.min(1, lat) + 0.18 * (nz.fbm(x / w * 3 + 4, y / h * 3 + 8, 3) - 0.5) + warm;
+      const t = astro ? 0.68 + 0.2 * (nz.fbm(x / w * 3 + 4, y / h * 3 + 8, 3) - 0.5) + warm : 0.95 - 0.42 * Math.min(1, lat) + 0.18 * (nz.fbm(x / w * 3 + 4, y / h * 3 + 8, 3) - 0.5) + warm;
       temp[i] = Math.min(1, Math.max(0, t - 0.5 * Math.max(0, T.elev[i])));
-      moist[i] = Math.min(1, Math.max(0, H.rain[i] * 0.85 + 0.35 * Math.exp(-dist[i] / 7) - 0.12));
+      moist[i] = Math.min(1, Math.max(0, H.rain[i] * 0.85 + 0.35 * Math.exp(-dist[i] / 7) - 0.12 + (astro ? 0.08 : 0)));
       if (T.ocean[i]) { bio[i] = IDX.ocean; continue; }
       if (H.lake[i]) { bio[i] = IDX.lake; continue; }
       const e = T.elev[i], t0 = temp[i], m = moist[i];
@@ -47,6 +47,7 @@
       else b = m > 0.7 ? 'jungle' : m > 0.5 ? 'savanna' : m > 0.3 ? 'steppe' : 'desert';
       bio[i] = IDX[b];
     }
+    if (astro) A.astrakorBiomes(p, T, H, { bio, temp, moist }); // особливі біоми виміру поверх базових
     return { temp, moist, bio, waterDist: dist };
   }
   A.BIOMES = BIOMES; A.BIO = IDX; A.climate = climate;

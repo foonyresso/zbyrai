@@ -43,6 +43,7 @@
     return D;
   }
   function terrain(p) {
+    if (A.Params.isVoid(p)) return A.astrakorTerrain(p); // вимір «Астракор»: материк у космосі (core/astrakor.js)
     const { w, h } = p, N = w * h, nz = A.Noise.make(p.seed + '|t');
     function isl0(q) { return q.worldType === 'islands'; }
     const D = isl0(p) ? null : ribbonField(p), jr = A.Rng.stream(p.seed, 'micro'), hh = new Float32Array(N), isl = p.worldType === 'islands';

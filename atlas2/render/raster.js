@@ -11,7 +11,7 @@
   }
   // повертає {ocean, land}: ImageData розміром (w*S)×(h*S)
   function build(W, S, makeImage) {
-    const { w, h } = W, pw = w * S, ph = h * S, cols = A.BIOMES.map(b => hex(b.color)), ld = landDist(W);
+    const { w, h } = W, pw = w * S, ph = h * S, VOID = A.Params.isVoid(W.params), pal = VOID ? A.Astrakor.PALETTE : null, cols = A.BIOMES.map(b => hex((pal && pal[b.id]) || b.color)), ld = landDist(W), rcols = cols.map(c => [c[0] * 0.55 + 38, c[1] * 0.55 + 27, c[2] * 0.55 + 17]), RT = VOID && W.root; // RT: корені Астракора темнішають до кольору дерева
     const oc = makeImage(pw, ph), lc = makeImage(pw, ph), O = oc.data, L = lc.data;
     const el = i => W.land[i] ? W.elev[i] : 0, rg = W.params.rugged;
     for (let py = 0; py < ph; py++) for (let px = 0; px < pw; px++) {
@@ -20,7 +20,7 @@
       const ci = [ys[0] * w + xs[0], ys[0] * w + xs[1], ys[1] * w + xs[0], ys[1] * w + xs[1]], wt = [(1 - tx) * (1 - ty), tx * (1 - ty), (1 - tx) * ty, tx * ty];
       let e = 0, dd = 0, r = 0, g = 0, b = 0, ws = 0, cr = 0, cg = 0, cb = 0;
       for (let k = 0; k < 4; k++) {
-        const i = ci[k]; e += el(i) * wt[k]; dd += Math.min(ld[i], 12) * wt[k]; const c = cols[W.bio[i]]; cr += c[0] * wt[k]; cg += c[1] * wt[k]; cb += c[2] * wt[k];
+        const i = ci[k]; e += el(i) * wt[k]; dd += Math.min(ld[i], 12) * wt[k]; const c = (RT && RT[i] ? rcols : cols)[W.bio[i]]; cr += c[0] * wt[k]; cg += c[1] * wt[k]; cb += c[2] * wt[k];
         if (W.land[i]) { r += c[0] * wt[k]; g += c[1] * wt[k]; b += c[2] * wt[k]; ws += wt[k]; }
       }
       if (ws > 0.001) { r /= ws; g /= ws; b /= ws; } else { r = cr; g = cg; b = cb; }
@@ -30,6 +30,7 @@
       const f = 1 + sh - mt * 0.2, p = (py * pw + px) * 4;
       L[p] = Math.min(255, r * f); L[p + 1] = Math.min(255, g * f); L[p + 2] = Math.min(255, b * f); L[p + 3] = 255;
       const t = Math.min(1, dd / 10); // океан: світліший біля берега
+      if (VOID) { const g = (1 - t) * (1 - t); O[p] = 10; O[p + 1] = 60; O[p + 2] = 70; O[p + 3] = Math.round(150 * g); continue; } // космос: прозоре, лише бірюзове сяйво біля обриву (зорі малює draw.js)
       O[p] = 128 - 46 * t; O[p + 1] = 178 - 56 * t; O[p + 2] = 220 - 46 * t; O[p + 3] = 255;
     }
     return { ocean: oc, land: lc };
