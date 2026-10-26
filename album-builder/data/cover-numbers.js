@@ -8,7 +8,7 @@
     'hexagon', 'heart', 'watercolor', 'black-gold', 'splash', 'big-year', 'marble', 'doodles', 'letters', 'clouds',
     'noir', 'silver', 'script-year', 'only-year', 'gp-frame', 'gp-full', 'gp-oval', 'gp-3', 'gp-5', 'gp-strips',
     'cal-taupe', 'cal-virtual', 'cal-fullphoto', 'cal-brush', 'cal-peach', 'cal-gold', 'cal-sparkle', 'cal-black', 'typ-vert-year', 'typ-grad-tall',
-    'typ-numerals', 'typ-year-geo', 'min-wordmark', 'min-dark', 'min-lookbook', 'soft-botanic', 'soft-monogram', 'sch-chalk', 'sch-class', 'kid-balloon'
+    'typ-numerals', 'typ-year-geo', 'min-wordmark', 'min-dark', 'min-lookbook', 'soft-botanic', 'soft-monogram', 'sch-chalk', 'sch-class', 'kid-balloon', 'kg-crayon'
   ];
   function numOf(id) { var i = NUMBERED.indexOf(id); return i < 0 ? 0 : i + 1; }
   // Варіант, якого ще немає в списку (забули дописати), отримує наступні номери за порядком; тест на це не пропускає

@@ -75,6 +75,7 @@
     var set = {}; if (st.font) set[st.font] = 1; Object.keys(st.tf || {}).forEach(function (k) { if (st.tf[k]) set[st.tf[k]] = 1; });
     (st.spreads || []).forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { if (sp.text[j] && sp.text[j].f) set[sp.text[j].f] = 1; }); });
     var CVs = root.AlbumCoverVariants || (typeof require !== 'undefined' ? require('./cover-variants.js') : null);
+    var DSg = root.AlbumDesigns || (typeof require !== 'undefined' ? require('./designs.js') : null), dg = DSg && DSg.DESIGNS[st.designId]; if (dg && dg.fonts) dg.fonts.forEach(function (n) { set[n] = 1; });
     if (CVs && st.coverVar) CVs.fontsOf(st.coverVar).forEach(function (n) { set[n] = 1; });
     return Object.keys(set).filter(stack);
   }

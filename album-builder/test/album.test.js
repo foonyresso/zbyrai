@@ -385,5 +385,11 @@ test('напис на обкладинці не виходить за безпе
   const a = textMock(); fitText(a.ctx, 'Рік', 348, 118, 20, 400, 'x', '#000', '400', 'center', 0.3, box); const cx = (a.rec[0].x0 + a.rec[0].x1) / 2; assert.ok(Math.abs(cx - 348) < 0.01, 'центр ' + cx);
   const b = textMock(); fitText(b.ctx, 'Рік', 348, 118, 20, 400, 'x', '#000', '400', 'center', 0, box); assert.ok(Math.abs((b.rec[0].y0 + b.rec[0].y1) / 2 - (a.rec[0].y0 + a.rec[0].y1) / 2) < 0.01);
 });
+test('дизайн «Садочок: малюнки»: слот фото першого розвороту за макетом автора, обкладинка kg-crayon', () => {
+  require('../data/cover-kinder.js'); const st = S.newState(); st.designId = 'kinder'; st.catId = 'kindergarten'; st.coverVar = 'kg-crayon'; st.children = '1 Іваненко Марія'; S.buildSpreads(st);
+  const info = S.slotsFor(st, 1, S.numMapOf([])), ph = info.items.filter(i => i.kind === 'portrait1')[0].rect;
+  assert.ok(Math.abs(ph.x - info.W / 2) < 1e-6 && ph.y === 0 && Math.abs(ph.w - info.W / 2) < 1e-6 && Math.abs(ph.h / info.H - 0.8645) < 1e-6);
+  assert.strictEqual(S.coverVar(st).id, 'kg-crayon'); assert.strictEqual(S.slotsFor(st, 0, S.numMapOf([])).items.length, 0);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

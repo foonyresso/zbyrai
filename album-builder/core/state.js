@@ -277,10 +277,12 @@
 
     } else if (sp.type === 'first') {
       var pc = L.pageCenters(W, z.bleed, z.safe), f = L.firstLayout(W, H, z.sb, pc.left, pc.right), tl = teachers(st);
+      if (d.first) { var q1 = d.first.portrait, q2 = d.first.group; f.portrait = { x: q1.x * W, y: q1.y * H, w: q1.w * W, h: q1.h * H }; f.group = { x: q2.x * W, y: q2.y * H, w: q2.w * W, h: q2.h * H }; }
       if (tl.length) {
         L.teacherSlots(tl.length, W, H, Object.assign({ cx: pc.left }, st.tl || {})).forEach(function (q, i) { items.push({ rect: q.photo, capRect: q.cap, ref: { t: 'teacher', i: i }, name: (sp.teacherPhotos && sp.teacherPhotos[i]) || photoFor(tl[i], numMap), caption: tl[i].name, post: tl[i].post, kind: 'teacher' }); });
       } else items.push({ rect: generalRect(st, f.group), ref: { t: 'slot', i: 0 }, name: sp.slots[0] || null, caption: '', kind: 'group' });
       var ow1 = ownerOf(st);
+      if (d.first) { ownerName = ow1 ? ow1.name : ''; }
       halves(f.portrait, ow1).forEach(function (q) { items.push({ rect: q.rect, ref: q.m == null ? { t: 'fright' } : { t: 'fright', m: q.m }, name: (q.p && sp.kidPhotos && sp.kidPhotos[q.p.id]) || (q.p ? photoFor(q.p, numMap, true) : null), caption: '', kind: 'portrait1' }); });
     } else if (sp.type === 'portrait') {
       var k = portraitK(st), rs = L.portraitSlots(k, W, H, d.gap, st.grid, st.pstyle), cols = (st.grid && st.grid.cols) || L.gridFor(k, W, H, 0.8).cols, covered = {};
@@ -394,7 +396,8 @@
     Object.keys(b).forEach(function (k) { if (o[k] !== undefined) b[k] = o[k]; });
     return b;
   }
-  var api = { newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
+  function designOf(st) { return DS.DESIGNS[st.designId] || DS.DESIGNS.classic; }
+  var api = { designOf: designOf, newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
     moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, portraitPlaced: portraitPlaced, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;

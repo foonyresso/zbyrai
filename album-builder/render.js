@@ -161,7 +161,12 @@
       if (info.ownerName) tx('name', info.ownerName, cv.name.x, ny, H * 0.036, W * 0.34, 'font', d.text, '400', 'center', 0.1, 'upper');
       if (inst) tx('inst', inst, cv.name.x, ny + H * 0.055, H * 0.021, W * 0.34, 'font', '#9a9a9a', '400', 'center', 0.08, 'upper');
     }
-    if (sp.type === 'first') {
+    if (sp.type === 'first' && d.first) {
+      var F1 = d.first, ft = function (k) { var ov = st.cvText && st.cvText['first:' + k]; return ov != null ? ov : F1.texts[k]; };
+      if (F1.t2.box) { var bx = F1.t2.box; ctx.fillStyle = bx.c; ctx.fillRect(bx.x * W, bx.y * H, bx.w * W, bx.h * H); }
+      [['ftitle1', F1.t1], ['ftitle2', F1.t2]].forEach(function (a) { var t = ft(a[0]); if (t) tx(a[0], t, a[1].r * W - a[1].sp * a[1].s * H / 2, a[1].y * H, a[1].s * H, W * 0.3, 'fontLight', a[1].c, '400', 'right', a[1].sp, 'upper'); });
+      if (info.ownerName) tx('name', info.ownerName, F1.name.x * W, F1.name.y * H, F1.name.s * H, W * 0.4, 'font', F1.name.c, '400', 'center', F1.name.sp, 'as');
+    } else if (sp.type === 'first') {
       var fl = root.AlbumLayout.firstLayout(W, H, sb, root.AlbumLayout.pageCenters(W, info.z.bleed, info.z.safe).left);
       tx('title', 'Випуск ' + yr, fl.text.x, fl.text.y, H * 0.036, W * 0.4, 'font', d.text, '500', 'center', 0.12, 'upper');
       if (inst) tx('inst', inst, fl.text.x, fl.text.y + H * 0.048, H * 0.026, W * 0.42, 'font', '#9a9a9a', '400', 'center', 0.04);

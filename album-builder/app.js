@@ -34,7 +34,7 @@
     DS.CATEGORIES.forEach(function (cat) { var b = el('button', cat.id === st.catId ? 'on' : '', cat.name, 'Категорія дизайнів: ' + cat.name); b.onclick = function () { st.catId = cat.id; fillDesigns(); }; tabs.appendChild(b); });
     var cat = DS.CATEGORIES.filter(function (x) { return x.id === st.catId; })[0] || DS.CATEGORIES[0];
     if (!cat.designs.length) c.appendChild(el('p', 'hint', 'Дизайнів у цій категорії поки немає.'));
-    cat.designs.forEach(function (id) { var d = DS.DESIGNS[id]; card(c, d.name, 'світлий, підписи під портретами', id === st.designId, 'Дизайн «' + d.name + '»', function () { st.designId = id; showStep(4); }); });
+    cat.designs.forEach(function (id) { var d = DS.DESIGNS[id]; card(c, d.name, d.note || 'світлий, підписи під портретами', id === st.designId, 'Дизайн «' + d.name + '»', function () { st.designId = id; if (d.coverVar) { st.coverVar = d.coverVar; st.coverIndividual = null; } showStep(4); }); });
   }
   function fillForm() {
     $('instFull').value = st.inst.full; $('instShort').value = st.inst.short; $('year').value = st.year;
@@ -321,7 +321,7 @@
 
   // ---------- Контекстне меню (правий клік; клік по порожній комірці теж) ----------
   function closeMenu() { $('cellMenu').hidden = true; }
-  var TEXTNAME = { year: 'Рік', name: 'Прізвище на обкладинці', inst: 'Назва закладу', title: 'Напис «Випуск»', ctitle: 'Головний напис обкладинки', csub: 'Другий напис обкладинки', cap: 'Підписи під портретами', teach: 'Підписи вчителів' };
+  var TEXTNAME = { year: 'Рік', name: 'Прізвище на обкладинці', inst: 'Назва закладу', title: 'Напис «Випуск»', ctitle: 'Головний напис обкладинки', ftitle1: 'Напис розвороту, рядок 1', ftitle2: 'Напис розвороту, рядок 2', csub: 'Другий напис обкладинки', cap: 'Підписи під портретами', teach: 'Підписи вчителів' };
   function menuFor(it) {
     var secs = [], j = it && it.ref.j, sp = st.spreads[cur];
     if (it) {
@@ -394,6 +394,7 @@
     if (e.key === 'ArrowRight' && cur < st.spreads.length - 1) { cur++; sel = null; refresh(); }
   });
   window.addEventListener('resize', redraw);
+  window.addEventListener('album-asset', function () { redraw(); thumbs(); });
 
   // ---------- Панель «Об'єкт»: вміст залежить від вибраного ----------
   function slider(label, min, max, step, get, set, title) {
@@ -514,11 +515,11 @@
     box.appendChild(wrap);
   }
   // Варіанти обкладинки дизайну «Класичний»: фільтр за категорією закладу, мініатюри, свій заголовок
-  var CVNAME = { ctitle: 'Головний напис', csub: 'Другий напис' };
+  var CVNAME = { ctitle: 'Головний напис', csub: 'Другий напис', ftitle1: 'Напис, рядок 1', ftitle2: 'Напис, рядок 2 (на плашці)' };
   // Поле тексту напису варіанта обкладинки: змінити, стерти зовсім (нічого не малюється) або повернути стандартний
   function cvTextField(box, key) {
-    var def = AlbumCoverVariants.defaults(st.coverVar || 'classic')[key]; if (def == null) return;
-    var id = (st.coverVar || 'classic') + ':' + key; st.cvText = st.cvText || {};
+    var fd = key.indexOf('ftitle') === 0, dd = S.designOf ? S.designOf(st) : null, def = fd ? dd && dd.first && dd.first.texts[key] : AlbumCoverVariants.defaults(st.coverVar || 'classic')[key]; if (def == null) return;
+    var id = fd ? 'first:' + key : (st.coverVar || 'classic') + ':' + key; st.cvText = st.cvText || {};
     var l = el('label', '', (CVNAME[key] || key) + ': '), inp = document.createElement('input'); inp.type = 'text'; inp.value = st.cvText[id] != null ? st.cvText[id] : def; inp.title = 'Текст напису; порожнє поле означає, що напису не буде';
     inp.oninput = function () { st.cvText[id] = inp.value; redraw(); save(); }; inp.onchange = function () { thumbs(); };
     var b1 = el('button', '', 'Стерти', 'Прибрати цей напис з обкладинки'), b2 = el('button', '', 'Скинути', 'Повернути стандартний текст варіанта');
@@ -562,7 +563,7 @@
   function buildObjPanel() {
     var box = $('objBody'); if (!box) return; box.textContent = ''; var sp = st.spreads[cur]; if (!sp) return;
     var it = selItem();
-    if (sel && sel.t === 'text') { if (sel.key === 'ctitle' || sel.key === 'csub') cvTextField(box, sel.key); textCtl(box, tsAdapter(sel.key), 'Напис: ' + (TEXTNAME[sel.key] || '')); return; }
+    if (sel && sel.t === 'text') { if (/^(ctitle|csub|ftitle)/.test(sel.key)) cvTextField(box, /^ctitle\d$/.test(sel.key) ? 'ctitle' : sel.key); textCtl(box, tsAdapter(sel.key), 'Напис: ' + (TEXTNAME[sel.key] || '')); return; }
     if (sel && sel.t === 'bg') {
       box.appendChild(el('p', 'hint', 'Вибрано фон. Колір, градієнт, картинка: вкладка «Фон».'));
       var bb = el('button', '', 'Відкрити «Фон»', 'Перейти до налаштувань фону'); bb.onclick = function () { openPanel('bg'); }; box.appendChild(bb); return;
