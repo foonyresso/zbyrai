@@ -20,7 +20,7 @@
       push(st, x, y, 0); let px = x, py = y, pw = 0, hug = 0;
       for (let i = 0, n = Math.floor(len / STEP); i < n; i++) {
         ang += (r() - 0.5) * curve; const nx = px + Math.cos(ang) * STEP, ny = py + Math.sin(ang) * STEP;
-        if (Math.hypot(nx - x0, ny - y0) > o.Rmax) break; const wk = WK(nx, ny); if (wk === 2) break;
+        if (Math.hypot(nx - x0, ny - y0) > o.Rmax) break; const wk = WK(nx, ny); if (wk === 2 || (o.keep && o.keep(nx, ny))) break; // keep: зона оборонної лінії біля стіни, куди вулиці не заходять
         if (wk === 1) { let ok = false; for (let k = 1; k <= 7; k++) { const w2 = WK(nx + Math.cos(ang) * STEP * k, ny + Math.sin(ang) * STEP * k); if (w2 === 2) break; if (w2 === 0) { ok = true; break; } } if (!ok) break; }
         if (st.kind === 'street' && i >= 2 && hugsRoad(st, nx, ny, ang, 16) && ++hug >= 2) break; // дорога впритул і паралельно до більшої дороги не будується
         if (join && i >= 1 && near(nx, ny, STEP * 1.3, st.id, i < 3 ? st.parent : -2) < 5) { push(st, nx, ny, wk === 1 || pw === 1); st.joined = true; return st; }
@@ -36,22 +36,22 @@
     const rings = tier >= 4 ? [0.28, 0.5, 0.72] : tier === 3 ? [0.36, 0.66] : tier === 2 ? [0.34, 0.66] : tier === 1 ? [0.32] : [];
     for (const f of rings) {
       const ph = r() * TAU, k1 = (r() - 0.5) * 0.24, k2 = (r() - 0.5) * 0.16, k3 = (r() - 0.5) * 0.12; let cur = [];
-      const all = []; for (let t = 0; t <= 61; t++) { const th = t / 60 * TAU, rr = R * f * (1 + k1 * Math.sin(2 * th + ph) + k2 * Math.sin(3 * th + 2 * ph) + k3 * Math.sin(5 * th + ph)), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr; all.push([x, y, WK(x, y)]); }
+      const all = []; for (let t = 0; t <= 61; t++) { const th = t / 60 * TAU, rr = R * f * (1 + k1 * Math.sin(2 * th + ph) + k2 * Math.sin(3 * th + 2 * ph) + k3 * Math.sin(5 * th + ph)), x = x0 + Math.cos(th) * rr, y = y0 + Math.sin(th) * rr; all.push([x, y, o.keep && o.keep(x, y) ? 2 : WK(x, y)]); }
       // короткі ділянки глибокої води (до ~140 м) кільцева дорога перетинає неперервно, довші — розривається
-      for (let t = 0; t < all.length; t++) { if (all[t][2] !== 2) continue; let e = t; while (e + 1 < all.length && all[e + 1][2] === 2) e++; if (t > 0 && e < all.length - 1) { let len = 0; for (let q = t; q <= e + 1; q++) len += Math.hypot(all[q][0] - all[q - 1][0], all[q][1] - all[q - 1][1]); if (len <= 140) for (let q = t; q <= e; q++) all[q][2] = 1; } t = e; }
+      for (let t = 0; t < all.length; t++) { if (all[t][2] !== 2) continue; let e = t; while (e + 1 < all.length && all[e + 1][2] === 2) e++; if (t > 0 && e < all.length - 1) { let len = 0; for (let q = t; q <= e + 1; q++) len += Math.hypot(all[q][0] - all[q - 1][0], all[q][1] - all[q - 1][1]); if (len <= 140 && !o.fort) for (let q = t; q <= e; q++) all[q][2] = 1; } t = e; }
       for (const [x, y, wk] of all) { if (wk === 2) { addPoly('ring', 4.5, cur, 4); cur = []; continue; } cur.push([x, y, wk === 1]); }
       addPoly('ring', 4.5, cur, 4);
     }
     // 3. набережна уздовж берега
     const shore = []; let cur = [], lastD = 0;
-    if (tier >= 1) for (let t = 0; t <= 90; t++) {
+    if (tier >= 1 && !o.fort) for (let t = 0; t <= 90; t++) { // у фортеці «берег» — стіна: набережної немає
       const th = t / 90 * TAU, ux = Math.cos(th), uy = Math.sin(th); let hitD = -1;
       for (let d = 15; d < R * 1.15; d += 6) if (WK(x0 + ux * d, y0 + uy * d) === 2) { hitD = d; break; }
       if (hitD < 0 || (cur.length && Math.abs(hitD - lastD) > 70)) { if (tier >= 2 || o.port) addPoly('embankment', 5, cur, 6); cur = []; if (hitD < 0) continue; }
       const px = x0 + ux * (hitD - 14), py = y0 + uy * (hitD - 14); if (WK(px, py) !== 0) continue; lastD = hitD;
       shore.push({ x: px, y: py, nx: ux, ny: uy, d: hitD }); cur.push([px, py, 0]);
     }
-    if (tier >= 2 || o.port) addPoly('embankment', 5, cur, 6);
+    if ((tier >= 2 || o.port) && !o.fort) addPoly('embankment', 5, cur, 6);
     // стежка до цілі шукається по сітці (A*) в обхід води, споруд і місць, потім згладжується; кінець точно в цілі
     const api = { blocked: null, WK };
     function findPath(own, x, y, tx, ty, maxLen) {

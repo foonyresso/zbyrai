@@ -24,7 +24,7 @@
     function commit(p, lvl) { let k = 0; while (k < p.length) { if (level[p[k]]) { k++; continue; } let e = k; while (e + 1 < p.length && !level[p[e + 1]]) e++; const cells = p.slice(Math.max(0, k - 1), Math.min(p.length, e + 2)); for (let q = k; q <= e; q++) { level[p[q]] = lvl; if (W.river[p[q]]) W.bridges.push(p[q]); } W.roads.push({ level: lvl, cells }); k = e + 1; } }
     const mkName = A.CityText ? () => A.CityText.mkName(r) : () => '';
     for (const s of W.settlements) {
-      if (s.ruined || s.fate || s.region < 0 || !PER[s.rank]) continue; const [a, b] = PER[s.rank], n = a + Math.floor(r() * (b - a + 1)); let kinds = ORDER.slice().sort(() => r() - 0.5);
+      if (s.ruined || s.fate || s.fortress || s.region < 0 || !PER[s.rank]) continue; const [a, b] = PER[s.rank], n = a + Math.floor(r() * (b - a + 1)); let kinds = ORDER.slice().sort(() => r() - 0.5);
       for (let q = 0; q < n; q++) {
         const kind = kinds[q % 4], [d0, d1] = KM[s.rank], cands = [];
         for (let t = 0; t < 70 && cands.length < 10; t++) {
