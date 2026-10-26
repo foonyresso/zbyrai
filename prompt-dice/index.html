@@ -14,8 +14,6 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M16 5 26 11v10L16 27 6 21V11z%27 fill=%27none%27 stroke=%27%23c9a766%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
 <link rel="stylesheet" href="./style.css">
-<link rel="stylesheet" href="./look.css">
-<script src="./look.js"></script>
 </head>
 <body class="has-grain">
 
@@ -23,9 +21,13 @@
   <a class="hub-back" id="hubBack" href="../index.html" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/></svg><div>Кубик <span>промптів</span></div></div>
   <div class="spacer"></div>
-  <div class="look-pick">
-    <select id="lookSel" title="Колірна тема й стиль інтерфейсу" aria-label="Тема"></select>
-    <select id="layoutSel" title="Розкладка панелей: де стоять манекен, параметри й промпт" aria-label="Розкладка"></select>
+  <div class="top-actions">
+    <button id="btnImport" title="Завантажити збережені пресети й параметри з файлу .json">Імпорт</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button id="btnCopyJson" title="Скопіювати поточні параметри й пресети як JSON">Копіювати JSON</button>
+    <button id="btnJson" title="Завантажити параметри й пресети як файл prompt-dice.json">Зберегти .json</button>
+    <button id="btnTxt" title="Завантажити поточний промпт як текстовий файл">Зберегти .txt</button>
+    <button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button>
   </div>
 </header>
 
@@ -98,7 +100,6 @@
     <div class="pane-b">
       <div id="r-out">
         <textarea class="out" id="out" spellcheck="false" title="Готовий промпт: можна правити вручну"></textarea>
-        <div class="out-actions"><button class="btn-copy" id="copy" title="Скопіювати поточний промпт у буфер обміну (Ctrl+Enter)">📋 Копіювати промпт</button></div>
         <div class="hint">Текст можна правити вручну. Будь-яка зміна параметрів чи кидок перезапише його. Пробіл — кинути кубик, Ctrl+Enter — копіювати.</div>
         <div class="hint" id="note" hidden>⚠ SDXL погано робить «розбірку на частини» — спрайт-лист ракурсів вийде, але для чистих окремих частин краще Gemini або Flux.</div>
         <div class="negbox" id="negbox" hidden>
@@ -140,7 +141,6 @@ if(/^https?:$/.test(location.protocol)||s)a.hidden=false})();
 <script src="./mk-slots.js"></script>
 <script src="./mk-spec.js"></script>
 <script src="./mk-merge.js"></script>
-<script src="./nsfw-data.js"></script>
 <script src="./flux-words.js"></script>
 <script src="./flux-grammar.js"></script>
 <script src="./ui-mannequin.js"></script>

@@ -185,5 +185,3 @@ textarea.neg { width: 100%; min-height: 90px; resize: vertical; font: 12.5px/1.5
 .race-hint { margin-bottom: 6px; }
 details.univ { margin-top: 8px; border-top: 1px solid var(--line, #333); padding-top: 6px; }
 details.univ > summary { cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin-bottom: 6px; }
-
-.out-actions { display: flex; justify-content: flex-end; margin: 8px 0 4px; }

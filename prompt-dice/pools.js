@@ -240,8 +240,8 @@ theme('military', 'Військове / тактичне', '🪖', 'military', '
 
 /* ===== ЗАГАЛЬНІ ПУЛИ (теги Danbooru; для Flux/Gemini підкреслення замінюються на пробіли) ===== */
 const G = {
-age_f: L(`young_adult|adult|mature|middle-aged|elderly`),
-age_m: L(`young_adult|adult|mature|middle-aged|elderly`),
+age_f: L(`adult|mature_female|onee-san`),
+age_m: L(`adult|mature_male`),
 race_f: L(`human|elf|dark_elf|demon_girl|succubus|vampire|angel|fallen_angel|oni|kitsune|fox_girl|cat_girl|wolf_girl|dog_girl|rabbit_girl|horse_girl|tiger_girl|dragon_girl|lamia|harpy|mermaid|monster_girl|slime_girl|spider_girl|arachne|centaur|ghost|undead|android|cyborg|robot|mecha_musume|fairy|yokai|yuki_onna|witch|plant_girl|valkyrie|dullahan|snake_girl|bird_girl|goblin|orc`),
 race_m: L(`human|elf|dark_elf|demon_boy|vampire|angel|fallen_angel|oni|fox_boy|cat_boy|wolf_boy|dragon_boy|dog_boy|undead|ghost|android|cyborg|robot|fairy|yokai|werewolf|orc|minotaur|goblin`),
 raceFeat: L(`horns|demon_horns|curled_horns|long_horns|single_horn|oni_horns|goat_horns|antlers|dragon_horns|broken_horn|angel_wings|demon_wings|bat_wings|dragon_wings|feathered_wings|butterfly_wings|fairy_wings|mechanical_wings|large_wings|multiple_wings|black_wings|white_wings|head_wings|demon_tail|dragon_tail|fox_tail|multiple_tails|cat_tail|wolf_tail|lizard_tail|fluffy_tail|scorpion_tail|pointy_ears|long_pointy_ears|animal_ears|fox_ears|cat_ears|wolf_ears|fake_animal_ears|halo|mechanical_halo|broken_halo|third_eye|extra_eyes|fangs|sharp_teeth|claws|scales|fur|feathers|slit_pupils|colored_sclera|black_sclera|mechanical_arms|prosthetic_arm|mechanical_parts|glowing_veins|tentacle_hair|extra_arms|snake_hair|crystal_hair|flame_hair|facial_mark|forehead_jewel|gem_on_forehead|horns_through_hair`),

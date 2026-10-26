@@ -12,15 +12,6 @@ const wpick = arr => { const t = arr.reduce((a, x) => a + x[1], 0); let r = Math
 
 /* ---- Персонаж ---- */
 def('gender', 'Стать', 'Gender', { opts: () => ['1girl', '1boy'], gen: () => [Math.random() < 0.72 ? '1girl' : '1boy'], sd: v => v + ', solo', nl: v => (v === '1boy' ? 'male, one man' : 'female, one woman') });
-def('age', 'Вік', 'Age', {
-  // лише дорослі категорії; назви без слів про стать (стать задає лише параметр «Стать»), SD-тег підбирається за статтю
-  opts: byG(G.age_f, G.age_m),
-  gen: () => [wpick([['young_adult', 4], ['adult', 4], ['mature', 2], ['middle-aged', 1.5], ['elderly', 1]])],
-  sd: v => {
-    const male = typeof st !== 'undefined' && st.slots.gender && st.slots.gender.value[0] === '1boy';
-    return { young_adult: 'young_adult', mature: male ? 'mature_male' : 'mature_female', 'middle-aged': 'middle-aged', elderly: (male ? 'old_man' : 'old_woman') + ', wrinkles' }[v] || v;
-  },
-});
 def('race', 'Раса / тип', 'Race', { opts: byG(G.race_f, G.race_m) });
 def('raceFeat', 'Расові особливості', 'Racial features', { kind: 'multi', n: [1, 2], p: 0.6, opts: () => G.raceFeat });
 def('skin', 'Шкіра', 'Skin', { opts: byG(G.skin_f, G.skin_m) });
@@ -127,7 +118,7 @@ const PX = ids => ids.map(i => 'px_' + i);
 /* =====================================================================
    ТИПИ (що створюємо)
    ===================================================================== */
-const S1 = ['gender', 'age', 'race', 'raceFeat', 'skin', 'hairLen', 'hairColor', 'hairStyle', 'hairDetail', 'eyeColor', 'eyeDetail', 'emotion', 'expression', 'eyeExpr', 'makeup', 'nails', 'breasts', 'hips', 'limbs', 'build', 'permFeat'];
+const S1 = ['gender', 'race', 'raceFeat', 'skin', 'hairLen', 'hairColor', 'hairStyle', 'hairDetail', 'eyeColor', 'eyeDetail', 'emotion', 'expression', 'eyeExpr', 'makeup', 'nails', 'breasts', 'hips', 'limbs', 'build', 'permFeat'];
 const S2 = ['weapon', 'outfit', 'outState', 'legwear', 'footwear', 'bareParts', 'gloves', 'headwear', 'accessories'];
 const GEMSEC = { t: '⚙ Запит до Gemini', e: '', s: ['gTask'], models: ['gemini'], meta: true };
 const themeLine = () => [['Theme / genre', THEMES[curTheme()].nl]];
