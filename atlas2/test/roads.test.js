@@ -1,7 +1,7 @@
 // Тести поселень і доріг.
 'use strict';
 const assert = require('node:assert/strict'), A = require('../core/index.js');
-for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
+for (const worldType of ['continent']) for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
   const t = `${worldType}/${seed}`, W = A.generate({ seed, worldType, size: 'small' }), w = W.w, S = W.settlements;
   assert.ok(S.length >= W.regions.length, t);
   for (const s of S) { assert.ok(W.land[s.i] && !W.lake[s.i], `${t}: поселення у воді`); assert.equal(W.region[s.i], s.region); if (s.ruined) assert.equal(W.province[s.i], -1, `${t}: руїни в провінції`); }

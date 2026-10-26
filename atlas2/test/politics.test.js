@@ -1,7 +1,7 @@
 // Тести провінцій і регіонів.
 'use strict';
 const assert = require('node:assert/strict'), A = require('../core/index.js'), { components } = A.Grid;
-for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
+for (const worldType of ['continent']) for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
   const t = `${worldType}/${seed}`, W = A.generate({ seed, worldType, size: 'small' }), N = W.w * W.h;
   assert.ok(W.provinces.length >= 1, t);
   const owned = new Set(); for (let i = 0; i < N; i++) if (W.province[i] >= 0) owned.add(W.landmass[i]);

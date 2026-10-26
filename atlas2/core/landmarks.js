@@ -13,7 +13,7 @@
     const { w, h } = W, N = w * h, r = A.Rng.stream(W.params.seed, 'landmarks'), noise = A.Noise.make(W.params.seed + '|lmroads'), CS = W.params.kmPerCell, list = [], taken = W.settlements.map(s => [s.x, s.y]);
     const level = W.roadLevel, dist = new Float32Array(N), prev = new Int32Array(N), heap = new A.Heap(), big = (W.riverThr || 20) * 5, cellOf = new Int32Array(N).fill(-1);
     for (const s of W.settlements) cellOf[s.i] = s.id;
-    const cost = (j, i, diag) => { if (W.ocean[j] || W.lake[j]) return Infinity; let c = A.BIOMES[W.bio[j]].move + Math.abs(W.elev[j] - W.elev[i]) * 40; if (W.river[j]) c += W.acc[j] > big ? 14 : 3; c *= 1 + 0.9 * noise.fbm((j % w) * 0.09, ((j / w) | 0) * 0.09, 3); if (level[j]) c *= 0.12; return c * (diag ? 1.41 : 1); };
+    const cost = (j, i, diag) => { if (W.ocean[j] || W.lake[j] || (W.root && W.root[j]) || (W.wallMask && W.wallMask[j] && !W.gateMask[j])) return Infinity; let c = A.BIOMES[W.bio[j]].move + Math.abs(W.elev[j] - W.elev[i]) * 40; if (W.river[j]) c += W.acc[j] > big ? 14 : 3; c *= 1 + 0.9 * noise.fbm((j % w) * 0.09, ((j / w) | 0) * 0.09, 3); if (level[j]) c *= 0.12; return c * (diag ? 1.41 : 1); };
     function route(src, isTarget) {
       dist.fill(1e30); prev.fill(-1); heap.k.length = 0; heap.v.length = 0; dist[src] = 0; heap.push(0, src);
       while (heap.size) { const i = heap.pop(), d0 = dist[i]; if (d0 > 0 && isTarget(i)) { const p = []; for (let c = i; c >= 0; c = prev[c]) p.push(c); return p.reverse(); } const x = i % w, y = (i / w) | 0;
@@ -29,7 +29,7 @@
         const kind = kinds[q % 4], [d0, d1] = KM[s.rank], cands = [];
         for (let t = 0; t < 70 && cands.length < 10; t++) {
           const ang = r() * 6.2832, d = (d0 + (d1 - d0) * r()) * (kind === 'vista' ? 1.15 : 1) / CS, x = Math.round(s.x + Math.cos(ang) * d), y = Math.round(s.y + Math.sin(ang) * d); if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) continue;
-          const i = y * w + x; if (!W.land[i] || W.lake[i] || W.river[i] || W.landmass[i] !== s.landmass || taken.some(p => Math.hypot(p[0] - x, p[1] - y) < 4)) continue;
+          const i = y * w + x; if (!W.land[i] || W.lake[i] || W.river[i] || (W.root && W.root[i]) || (W.wallMask && W.wallMask[i]) || W.landmass[i] !== s.landmass || taken.some(p => Math.hypot(p[0] - x, p[1] - y) < 4)) continue;
           cands.push(i);
         }
         if (!cands.length) continue; let i = cands[0];

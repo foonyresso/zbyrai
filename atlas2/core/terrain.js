@@ -45,15 +45,13 @@
   function terrain(p) {
     if (A.Params.isVoid(p)) return A.astrakorTerrain(p); // вимір «Астракор»: материк у космосі (core/astrakor.js)
     const { w, h } = p, N = w * h, nz = A.Noise.make(p.seed + '|t');
-    function isl0(q) { return q.worldType === 'islands'; }
-    const D = isl0(p) ? null : ribbonField(p), jr = A.Rng.stream(p.seed, 'micro'), hh = new Float32Array(N), isl = p.worldType === 'islands';
+    const D = ribbonField(p), jr = A.Rng.stream(p.seed, 'micro'), hh = new Float32Array(N);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const nx = x / w, ny = y / h;
       const wx = nx + 0.14 * (nz.fbm(nx * 2.3 + 7, ny * 2.3 + 3, 3) - 0.5), wy = ny + 0.14 * (nz.fbm(nx * 2.3 + 31, ny * 2.3 + 19, 3) - 0.5);
       const base = nz.fbm(wx * 4.2, wy * 4.2, 6);
       let v;
-      if (isl) { const m = nz.fbm(wx * 3.4 + 50, wy * 3.4 + 50, 4); v = 0.62 * m + 0.38 * base; }
-      else {
+      {
         // материк зі «стрічок»: сильне викривлення в кількох масштабах дає півострови, затоки, фіорди й неправильний берег
         const sx = Math.min(w - 1, Math.max(0, Math.round((wx + 0.05 * (nz.fbm(nx * 7 + 61, ny * 7 + 11, 3) - 0.5) + 0.02 * (nz.fbm(nx * 21 + 5, ny * 21 + 77, 2) - 0.5)) * w))), sy = Math.min(h - 1, Math.max(0, Math.round((wy + 0.05 * (nz.fbm(nx * 7 + 12, ny * 7 + 80, 3) - 0.5) + 0.02 * (nz.fbm(nx * 21 + 66, ny * 21 + 9, 2) - 0.5)) * h)));
         let dd = D[sy * w + sx]; dd += 0.5 * (nz.fbm(nx * 3.1 + 90, ny * 3.1 + 40, 5) - 0.5) + 0.32 * (nz.fbm(nx * 11 + 17, ny * 11 + 53, 3) - 0.5);
@@ -68,7 +66,7 @@
     // рівень моря: квантиль під потрібну частку суші
     const sorted = Float32Array.from(hh).sort(), sea = sorted[Math.floor((1 - p.landFrac) * (N - 1))];
     // нічиї острови навколо материка: чим більший материк, тим їх більше; різного розміру, витягнуті, з рваним берегом
-    if (!isl) {
+    {
       let cl = 0; const d0 = new Float32Array(N); for (let i = 0; i < N; i++) if (hh[i] > sea) cl++; else d0[i] = 1e9;
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; let v = d0[i]; if (x) v = Math.min(v, d0[i - 1] + 1); if (y) { v = Math.min(v, d0[i - w] + 1); if (x) v = Math.min(v, d0[i - w - 1] + 1.41); if (x < w - 1) v = Math.min(v, d0[i - w + 1] + 1.41); } d0[i] = v; }
       for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) { const i = y * w + x; let v = d0[i]; if (x < w - 1) v = Math.min(v, d0[i + 1] + 1); if (y < h - 1) { v = Math.min(v, d0[i + w] + 1); if (x < w - 1) v = Math.min(v, d0[i + w + 1] + 1.41); if (x) v = Math.min(v, d0[i + w - 1] + 1.41); } d0[i] = v; }
@@ -86,7 +84,7 @@
     }
     let land = new Uint8Array(N); for (let i = 0; i < N; i++) land[i] = hh[i] > sea ? 1 : 0;
     // дрібні клаптики суші прибираємо
-    const cc = components(w, h, i => land[i] === 1), minIsl = isl ? 14 : 40;
+    const cc = components(w, h, i => land[i] === 1), minIsl = 40;
     for (let i = 0; i < N; i++) if (land[i] && cc.sizes[cc.id[i]] < minIsl) { land[i] = 0; hh[i] = sea - 0.002; }
     // океан = вода, пов'язана з краєм; решта води нижче рівня моря = озера-западини
     const wc = components(w, h, i => land[i] === 0), ocean = new Uint8Array(N), edgeIds = new Set();

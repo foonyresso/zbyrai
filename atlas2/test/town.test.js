@@ -2,7 +2,7 @@
 'use strict';
 const assert = require('node:assert/strict'), A = require('../core/index.js');
 let n = 0, ms = 0;
-for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'zbyrai', '7']) {
+for (const worldType of ['continent']) for (const seed of ['a', 'zbyrai', '7']) {
   const W = A.generate({ seed, worldType, size: 'small' }), ranks = {};
   for (const s of W.settlements) { const key = s.rank + (s.fate || (s.ruined ? 'ruined' : '')) + (s.port ? 'P' : ''); if (ranks[key] >= 2) continue; ranks[key] = (ranks[key] || 0) + 1;
     const t0 = Date.now(), c = A.Town.build(W, s); ms = Math.max(ms, Date.now() - t0); n++;

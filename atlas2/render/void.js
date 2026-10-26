@@ -54,5 +54,49 @@
     for (let i = 0; i < W.sub.length; i++) { const k = W.sub[i]; if (!k) continue; const c = cols[k]; d.data[i * 4] = c[0]; d.data[i * 4 + 1] = c[1]; d.data[i * 4 + 2] = c[2]; d.data[i * 4 + 3] = Math.round(W.subW[i] * 0.6); }
     return toCanvas(d);
   }
-  A.Void = { backdrop, roots, drawRoots, subLayer };
+  // великі корені зверху карти: товсті смуги вздовж W.rootLines ([x, y, піввширина] у клітинах), перекривають землю, дороги й річки; ідуть за край і звисають у безодню
+  function drawBigRoots(ctx, W, px) {
+    if (!W.rootLines) return; ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const pass = (col, f, extra) => { ctx.strokeStyle = col; for (const L of W.rootLines) for (let k = 1; k < L.length; k++) { const a = L[k - 1], b = L[k]; ctx.lineWidth = Math.max((a[2] + b[2]) * f + (extra || 0) * px, 0.4); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } };
+    pass('rgba(47,224,198,.16)', 1.0 * 1.25, 3); pass('#1f140b', 1.0 * 1.06); pass('#3b2916', 1.0 * 0.92); pass('#5a3f27', 0.5); pass('rgba(150,110,60,.45)', 0.16);
+    ctx.restore();
+  }
+  // входи в тунелі: великі дороги йдуть крізь корінь під землею, на карті видно лише портали
+  function drawTunnels(ctx, W, px) {
+    if (!W.tunnels || !W.tunnels.length) return; const r = Math.max(0.8, 4.5 * px); ctx.save();
+    for (const t of W.tunnels) { const x = t.x + 0.5 + Math.cos(t.a) * 0.35, y = t.y + 0.5 + Math.sin(t.a) * 0.35; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = '#0c0805'; ctx.fill(); ctx.strokeStyle = t.level === 1 ? '#e6c36a' : '#b9b3a6'; ctx.lineWidth = Math.max(0.25, 1.4 * px); ctx.stroke(); }
+    ctx.restore();
+  }
+  // дерево в центрі зверху: тінь, крона з часток (з зерна), світні плоди, кільця стовбура; при сильному наближенні крона стає прозорою, щоб було видно землю
+  function drawTree(ctx, W, px, k) {
+    const t = W.tree; if (!t) return; const R = t.R, a = k < 6 ? 1 : Math.max(0.28, 1 - (k - 6) / 22), lerp = (p, q, u) => Math.round(p + (q - p) * u);
+    ctx.save(); ctx.translate(t.x + 0.5, t.y + 0.5); ctx.globalAlpha = a;
+    ctx.beginPath(); ctx.arc(0, 0, R * 1.12, 0, 6.2832); ctx.fillStyle = 'rgba(0,0,0,.38)'; ctx.fill();
+    const lobe = (o, sc, light) => { const x = Math.cos(o.a) * o.d * sc, y = Math.sin(o.a) * o.d * sc, rr = o.r * (light ? 0.78 : 1), g = ctx.createRadialGradient(x - rr * 0.25, y - rr * 0.3, rr * 0.1, x, y, rr);
+      const c0 = light ? [lerp(54, 90, o.t), lerp(170, 205, o.t), lerp(90, 120, o.t)] : [lerp(18, 30, o.t), lerp(110, 140, o.t), lerp(60, 80, o.t)], c1 = light ? [20, 120, 66] : [8, 70, 40];
+      g.addColorStop(0, `rgb(${c0})`); g.addColorStop(1, `rgb(${c1})`); ctx.beginPath(); ctx.arc(x, y, rr, 0, 6.2832); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = 'rgba(4,40,22,.55)'; ctx.lineWidth = Math.max(0.2, 1 * px); ctx.stroke(); };
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.72, 0, 6.2832); ctx.fillStyle = '#0b4a2a'; ctx.fill();
+    for (const o of t.lobes) lobe(o, 1, false); for (const o of t.lobes) lobe(o, 0.62, true);
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.2, 0, 6.2832); ctx.fillStyle = '#2a1d12'; ctx.fill();
+    for (let j = 0; j < t.rings; j++) { ctx.beginPath(); ctx.arc(0, 0, R * (0.04 + 0.034 * j), 0, 6.2832); ctx.strokeStyle = j % 2 ? '#6b4a2b' : '#c89a5a'; ctx.lineWidth = Math.max(0.15, 0.9 * px); ctx.stroke(); }
+    for (const f of t.fruits) { ctx.beginPath(); ctx.arc(f[0], f[1], Math.max(0.3, 1.6 * px), 0, 6.2832); ctx.fillStyle = f[2] < 0.5 ? 'rgba(47,224,198,.9)' : 'rgba(214,180,90,.95)'; ctx.fill(); }
+    ctx.restore();
+  }
+  // Велика стіна по контуру 70 % радіуса й гігантські фортеці в її ланках
+  function drawWall(ctx, W, px, k) {
+    if (!W.wall) return; const p = W.wall.pts; ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
+    const path = () => { ctx.beginPath(); ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); ctx.closePath(); };
+    path(); ctx.strokeStyle = '#17151a'; ctx.lineWidth = Math.max(1.8, 5.2 * px); ctx.stroke();
+    path(); ctx.strokeStyle = '#a79f90'; ctx.lineWidth = Math.max(1.1, 3.2 * px); ctx.stroke();
+    if (k >= 2.5) { path(); ctx.setLineDash([2.4 * px, 2.4 * px]); ctx.strokeStyle = '#5b564d'; ctx.lineWidth = Math.max(1.1, 3.2 * px); ctx.stroke(); ctx.setLineDash([]); }
+    const s = Math.max(2.4, 10 * px);
+    for (const f of W.fortresses || []) {
+      const x = f.x + 0.5, y = f.y + 0.5; ctx.beginPath(); ctx.arc(x, y, s * 0.95, 0, 6.2832); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill();
+      ctx.fillStyle = '#9c9588'; ctx.strokeStyle = '#1d1a17'; ctx.lineWidth = Math.max(0.3, 1.3 * px); ctx.fillRect(x - s / 2, y - s / 2, s, s); ctx.strokeRect(x - s / 2, y - s / 2, s, s);
+      for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { ctx.beginPath(); ctx.arc(x + dx * s / 2, y + dy * s / 2, s * 0.26, 0, 6.2832); ctx.fillStyle = '#7d776b'; ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = '#3a3630'; ctx.fillRect(x - s * 0.2, y - s * 0.2, s * 0.4, s * 0.4); ctx.fillStyle = '#c0302f'; ctx.fillRect(x - s * 0.07, y - s * 0.07, s * 0.14, s * 0.14);
+    }
+    ctx.restore();
+  }
+  A.Void = { backdrop, roots, drawRoots, subLayer, drawBigRoots, drawTunnels, drawTree, drawWall };
 })();

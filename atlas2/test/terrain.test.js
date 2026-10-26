@@ -2,7 +2,7 @@
 'use strict';
 const assert = require('node:assert/strict'), A = require('../core/index.js');
 const count = (a) => a.reduce((s, v) => s + (v ? 1 : 0), 0);
-for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'b', 'zbyrai', '42']) {
+for (const worldType of ['continent']) for (const seed of ['a', 'b', 'zbyrai', '42']) {
   const t = `${worldType}/${seed}`, W = A.generate({ seed, worldType, size: 'small' }), N = W.w * W.h;
   const land = count(W.land); assert.ok(land > N * 0.15 && land < N * 0.65, `${t}: частка суші ${land / N}`);
   for (let x = 0; x < W.w; x++) assert.ok(!W.land[x] && !W.land[(W.h - 1) * W.w + x], `${t}: край не океан`);

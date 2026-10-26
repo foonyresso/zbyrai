@@ -12,7 +12,7 @@ for (const size of ['small', 'large']) for (const seed of ['a', 'b', 'c', 'd']) 
 const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
 assert.ok(avg(isl.small) >= 8 && avg(isl.large) >= 30 && avg(isl.large) > avg(isl.small) * 1.8, `острови: ${JSON.stringify(isl)}`);
 
-for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['islands', 'k']]) {
+for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['continent', 'x']]) {
   const t = `${worldType}/${seed}`, W = A.generate({ seed, worldType, size: 'small' }), N = W.w * W.h, wb = W.waterBodies, names = new Set();
   // кожне озеро має назву, моря й океани теж, цифр і дублів немає
   for (const l of W.lakes) assert.ok(wb[l.waterBody] && wb[l.waterBody].kind === 'lake' && wb[l.waterBody].name.startsWith('Озеро '), `${t}: озеро без назви`);

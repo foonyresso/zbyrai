@@ -1,7 +1,7 @@
 // Тести рівнів, небезпеки й локацій.
 'use strict';
 const assert = require('node:assert/strict'), A = require('../core/index.js');
-for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['islands', 'k']]) {
+for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['continent', 'x']]) {
   const t = `${worldType}/${seed}`, W = A.generate({ seed, worldType, size: 'small' }), w = W.w, N = w * W.h, K = W.params.kmPerCell;
   // рівень росте з відстанню від центру: у центрі низький, на краю високий, кореляція додатна
   const cx = W.origin.x, cy = W.origin.y; let sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, n = 0;

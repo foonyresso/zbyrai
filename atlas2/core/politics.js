@@ -90,7 +90,7 @@
     for (let k = 0; k < P; k++) {
       const cells = []; for (let i = 0; i < N; i++) if (prov[i] === k) cells.push(i);
       const part = components(w, h, i => prov[i] === k); let kk = Math.max(1, Math.min(24, Math.max(Math.round(W.params.regionsPerProvince * (0.45 + 1.1 * r())), Math.floor(cells.length / 1600)), Math.floor(cells.length / 200))); if (cells.length >= 360) kk = Math.max(3, kk); // регіон не менший ~200 клітин; у провінції зі столицею щонайменше 3 регіони
-      const parts = part.sizes.map((s, id) => ({ id, s })).filter(p => p.s >= 40).sort((a, b) => b.s - a.s);
+      let parts = part.sizes.map((s, id) => ({ id, s })).filter(p => p.s >= 40).sort((a, b) => b.s - a.s); if (!parts.length) parts = part.sizes.map((s, id) => ({ id, s })).sort((a, b) => b.s - a.s).slice(0, 1); // провінція, стиснута коренями, може бути крихітною
       const cpart = part.id[caps[k]], order = parts.filter(p => p.id === cpart).concat(parts.filter(p => p.id !== cpart));
       const tot = order.reduce((s, p) => s + p.s, 0) || 1; let left = Math.max(kk, order.length);
       const take = order.map(() => 1); left -= order.length;

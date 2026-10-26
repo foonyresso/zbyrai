@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict'), A = require('../core/index.js'), segInt = A.TownRoads.segInt;
 let n = 0, bad = { cross: 0, turn: 0, over: 0, site: 0, water: 0, ends: 0 };
 const vt = (st, i) => [st.pts[i * 2], st.pts[i * 2 + 1]];
-for (const worldType of ['continent', 'islands']) for (const seed of ['a', 'zbyrai', '7', 'oqmeyg']) {
+for (const worldType of ['continent']) for (const seed of ['a', 'zbyrai', '7', 'oqmeyg']) {
   const W = A.generate({ seed, worldType, size: 'small' });
   for (const s of W.settlements) { if (s.ruined || s.rank === 'hamlet') continue; const c = A.Town.build(W, s), t = `${worldType}/${seed}/${s.name}/${s.rank}`, S = c.streets; n++;
     // 1. перетини: жодного внутрішнього перетину відрізків різних (і однієї) вулиці

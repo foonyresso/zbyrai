@@ -6,7 +6,7 @@ const assert = require('node:assert/strict'), A = require('../core/index.js');
 assert.equal(A.Params.normalize({ dimension: 'astrakor', provinces: 10 }).provinces, 50);
 assert.equal(A.Params.normalize({ dimension: 'astrakor', provinces: 500 }).provinces, 100);
 assert.equal(A.Params.normalize({ dimension: 'astrakor' }).provinces, 64);
-assert.equal(A.Params.normalize({ dimension: 'astrakor', worldType: 'islands' }).worldType, 'continent');
+assert.equal(A.Params.normalize({ dimension: 'astrakor', worldType: 'islands' }).worldType, undefined, 'тип світу прибрано');
 assert.equal(A.Params.normalize({ provinces: 500 }).provinces, 50);
 assert.equal(A.Params.normalize({ dimension: 'nonsense' }).dimension, 'main');
 const rt = A.Save.paramsFromJSON(A.Save.paramsToJSON(A.Params.normalize({ dimension: 'astrakor', seed: 'x' })));
@@ -37,6 +37,20 @@ for (const seed of ['zbyrai', '7']) {
   assert.ok(count(W.root) > 200, `${t}: корені`);
   // стік: від кожної клітини суші ланцюг дійде до космосу (річка падає з краю материка)
   for (let i = 0; i < N; i += 3) { if (W.ocean[i]) continue; let q = i, n = 0; while (!W.ocean[q]) { q = W.down[q]; assert.ok(q >= 0 && ++n < N, `${t}: стік обірвано`); } }
+  // дерево з коренями, що ділять материк; великі дороги крізь корені як тунелі, малі не заходять на корені
+  assert.ok(W.tree && W.tree.lobes.length >= 11 && W.tree.R > 0, `${t}: дерево`); assert.ok(W.rootLines.length >= 6, `${t}: коренів ${W.rootLines.length}`);
+  assert.ok(W.tunnels.length > 0, `${t}: немає тунелів`);
+  for (let i = 0; i < N; i++) if (W.root[i] && W.roadLevel[i] > 2) assert.fail(`${t}: мала дорога на корені`);
+  for (let i = 0; i < N; i++) if (W.root[i]) assert.ok(W.suit[i] === 0, `${t}: придатність на корені`);
+  // Велика стіна на 70 %: фортеці, дороги крізь стіну лише біля воріт, цивілізація всередині, захоплені землі зовні
+  assert.ok(W.fortresses.length >= 10, `${t}: фортець ${W.fortresses.length}`); assert.ok(W.wall.pts.length > 200);
+  for (const f of W.fortresses) { assert.ok(Math.abs(W.fr[f.i] - 0.7) < 0.06, `${t}: фортеця поза стіною ${W.fr[f.i]}`); assert.ok(f.level > 0); }
+  for (let i = 0; i < N; i++) if (W.wallMask[i] && W.roadLevel[i] && !W.gateMask[i]) assert.fail(`${t}: дорога крізь стіну поза воротами`);
+  for (const p of W.provinces) assert.ok(W.fr[W.settlements[p.capital].i] < 0.7, `${t}: столиця за стіною`);
+  for (const s of W.settlements) { if (W.fr[s.i] > 0.7 && s.rank !== 'capital') assert.ok(s.fate === 'occupied' || s.fate === 'ruined', `${t}: живе поселення за стіною`); }
+  { let lo = 0, hi = 0, n1 = 0, n2 = 0; for (let i = 0; i < N; i++) if (W.land[i] && !W.lake[i]) { if (W.fr[i] < 0.3) { lo += W.tier[i]; n1++; } else if (W.fr[i] > 0.75) { assert.ok(W.tier[i] >= 3, `${t}: за стіною небезпека ${W.tier[i]}`); hi += W.tier[i]; n2++; } } assert.ok(hi / n2 > lo / n1 + 2, `${t}: небезпека не росте від дерева`); }
+  const rk = { capital: 0, regional: 1, town: 2, village: 3, hamlet: 4 }, avgPop = (a, b) => { const l = W.settlements.filter(s => W.fr[s.i] >= a && W.fr[s.i] < b && !s.fate && s.pop); return l.reduce((x, s) => x + s.pop, 0) / Math.max(1, l.length); };
+  assert.ok(avgPop(0, 0.3) > avgPop(0.4, 0.7), `${t}: міста не дрібнішають від дерева`);
   assert.equal(W.sub.length, N); assert.equal(count(W.sub), 0, `${t}: плями основного світу в Астракорі`);
 }
 

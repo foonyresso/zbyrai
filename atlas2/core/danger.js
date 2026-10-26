@@ -162,9 +162,13 @@
     // доля поселень: частина сіл і міст (не столиці й не центри регіонів) зруйнована або окупована монстрів/бандитами; чим далі від центру, тим частіше
     const fr = A.Rng.stream(W.params.seed, 'fates'), dmax = Math.hypot(w, h) / 2, PF = { town: 0.1, village: 0.16, hamlet: 0.2 };
     for (const s of W.settlements) {
-      if (s.ruined || !PF[s.rank]) continue;
-      if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;
-      s.fate = fr() < 0.4 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = fr() < 0.3 ? 'bandits' : 'monsters';
+      const outer = cosmos && s.rank !== 'capital' && W.fr[s.i] > A.WALL_FR; // Астракор: за Великою стіною всі поселення захоплені монстрами або зруїновані
+      if (s.ruined || (!PF[s.rank] && !outer)) continue;
+      if (outer) { s.fate = fr() < 0.15 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = 'monsters'; }
+      else {
+        if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;
+        s.fate = fr() < 0.4 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = fr() < 0.3 ? 'bandits' : 'monsters';
+      }
       s.popBefore = s.pop; if (s.region >= 0) { W.regions[s.region].pop -= s.pop; W.provinces[W.regions[s.region].prov].pop -= s.pop; } s.pop = 0;
     }
     // небезпека за відстанню до живих поселень
@@ -174,6 +178,7 @@
       if (!srcs.length) continue; const d = distField(w, h, srcs), k = km / REACH[rank];
       for (let i = 0; i < N; i++) { const v = d[i] * k; if (v < eff[i]) eff[i] = v; }
     }
+    if (cosmos && W.fortresses) { const fc = W.fortresses.map(f => f.i); if (fc.length) { const dF = distField(w, h, fc), kF = km / 1.5; for (let i = 0; i < N; i++) { const v = dF[i] * kF; if (v < eff[i]) eff[i] = v; } } } // фортеці відсувають небезпеку як столиці
     // на воді безпечніше біля портів (кораблі ходять, порти їх охороняють) і вздовж морських шляхів
     const effW = Float32Array.from(eff);
     { const ports = []; for (const s of W.settlements) if (s.port && !s.ruined && !s.fate) ports.push(s.i);
@@ -183,7 +188,7 @@
     const tier = new Uint8Array(N), dens = new Uint8Array(N);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x, wet = !W.land[i] || W.lake[i];
-      const e = (wet ? effW[i] : eff[i]) * Math.min(1.35, Math.max(0.7, 1 + (nz.fbm(x * 0.035 + 40, y * 0.035 + 7, 3) - 0.5) * 3));
+      const e = (cosmos && !wet && W.fr[i] < A.WALL_FR ? 0.15 + 0.85 * Math.pow(W.fr[i] / A.WALL_FR, 1.5) : 1) * (wet ? effW[i] : eff[i]) * Math.min(1.35, Math.max(0.7, 1 + (nz.fbm(x * 0.035 + 40, y * 0.035 + 7, 3) - 0.5) * 3));
       let t = 0; while (t < THR.length && e >= THR[t]) t++; tier[i] = t;
       dens[i] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + (nz.fbm(x * 0.02 + 90, y * 0.02 + 3, 3) - 0.5) * 4.5)));
     }
@@ -215,7 +220,14 @@
     (W.waterBodies || []).forEach((b, id) => { b.fam = b.kind === 'lake' ? 'lake' : pickFam(GI.deep, SEA_FAMS); b.famName = FAM_UA[b.fam]; b.domIdx = FAMS.indexOf(b.fam); });
     for (let i = 0; i < N; i++) if (group[i] >= 13 && W.waterBody && W.waterBody[i] >= 0) dom[i] = W.waterBodies[W.waterBody[i]].domIdx;
     W.dom = dom; W.domNames = FAMS;
-    if (cosmos) for (let i = 0; i < N; i++) if (W.ocean[i]) tier[i] = 0;
+    if (cosmos) { // Астракор: чим далі від дерева, тим небезпечніше; за стіною (70 %) не нижче 3, біля обриву до 6; у космосі нуль
+      for (let i = 0; i < N; i++) {
+        if (W.ocean[i]) { tier[i] = 0; continue; } if (!W.land[i] || W.lake[i]) continue;
+        const f = W.fr[i], fl = f > A.WALL_FR ? 3 + Math.min(3, Math.floor((f - A.WALL_FR) / (1 - A.WALL_FR) * 4)) : f > 0.64 ? 2 : f > 0.5 ? 1 : 0;
+        if (tier[i] < fl) tier[i] = fl;
+      }
+      for (const fo of W.fortresses || []) fo.level = W.level[fo.i] + 3;
+    }
     W.tier = tier; W.dens = dens;
     // середні рівні регіонів і провінцій
     const sum = W.regions.map(() => 0), cnt = W.regions.map(() => 0), mn = W.regions.map(() => 1e9), mx = W.regions.map(() => 0);
@@ -277,6 +289,7 @@
       let best = -1, bs = -1;
       for (let n = 0; n < 60 && cells.length; n++) {
         const i = cells[Math.floor(r() * cells.length)], x = i % w, y = (i / w) | 0; if (W.group[i] === 255 || W.river[i] || nearS(x, y, 4) || near(x, y, spacing)) continue;
+        if (W.fortresses && W.fr[i] < (kind >= 5 ? 0.78 : kind === 4 ? 0.62 : 0.5)) continue; // Астракор: сильні мешканці далеко від дерева
         const sc = W.tier[i] + r() * 1.5; if (sc > bs) { bs = sc; best = i; }
       }
       if (best < 0) return;

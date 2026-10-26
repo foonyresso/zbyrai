@@ -7,7 +7,7 @@
   const TIER = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]];
   const RAD = [7, 5, 3.8, 2.6, 2];
   // порядок етапів: кадр містить усі шари до свого включно
-  const ORDER = ['terrain', 'hydrology', 'climate', 'subbiomes', 'politics', 'settlements', 'roads', 'landmarks', 'searoutes', 'seas', 'danger', 'sites'];
+  const ORDER = ['terrain', 'hydrology', 'climate', 'subbiomes', 'politics', 'settlements', 'astrawall', 'roads', 'landmarks', 'searoutes', 'seas', 'danger', 'sites'];
 
   // дані кадру: до кліматичного кроку світу ще немає, тож беремо проміжні масиви ландшафту й гідрології
   function view(c) {
@@ -57,6 +57,7 @@
       for (const pass of [0, 1]) for (const rd of V.roads) { if (rd.level > maxL) continue; g.beginPath(); rd.cells.forEach((i, n) => { const x = ((i % w) + 0.5) * S, y = (((i / w) | 0) + 0.5) * S; n ? g.lineTo(x, y) : g.moveTo(x, y); }); g.strokeStyle = pass ? ['', '#7a3b1d', '#8a5a2c', '#9a7a4a', '#a89070'][rd.level] : 'rgba(255,255,255,.7)'; g.lineWidth = (pass ? 1 : 2.2) * Math.max(1, S * (rd.level === 1 ? 0.5 : rd.level === 2 ? 0.38 : 0.28)); g.setLineDash(rd.level >= 4 && pass ? [S, S] : []); g.stroke(); }
       g.setLineDash([]); g.fillStyle = '#fff'; g.strokeStyle = '#7a3b1d'; g.lineWidth = 1; for (const i of V.bridges || []) { if (V.roadLevel && V.roadLevel[i] > maxL) continue; const x = ((i % w) + 0.5) * S, y = (((i / w) | 0) + 0.5) * S, r = Math.max(1.8, S * 0.6); g.fillRect(x - r, y - r, r * 2, r * 2); g.strokeRect(x - r, y - r, r * 2, r * 2); }
     }
+    if (has('astrawall') && V.wall) { const p = V.wall.pts; g.beginPath(); g.moveTo(p[0] * S, p[1] * S); for (let q = 2; q < p.length; q += 2) g.lineTo(p[q] * S, p[q + 1] * S); g.closePath(); g.strokeStyle = '#d8d1c2'; g.lineWidth = Math.max(1.5, S * 0.7); g.stroke(); for (const f of V.fortresses || []) { g.fillStyle = '#c0302f'; g.fillRect((f.x + 0.5) * S - S * 1.2, (f.y + 0.5) * S - S * 1.2, S * 2.4, S * 2.4); } }
     if (has('searoutes') && V.seaRoutes) { g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = Math.max(1, S * 0.3); g.setLineDash([S * 1.6, S * 1.2]); for (const r of V.seaRoutes) { g.beginPath(); r.cells.forEach((i, n) => { const x = ((i % w) + 0.5) * S, y = (((i / w) | 0) + 0.5) * S; n ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); } g.setLineDash([]); }
     if (has('landmarks') && V.landmarks) { g.fillStyle = '#7a5ad0'; g.strokeStyle = '#fff'; g.lineWidth = 1; const r = Math.max(2, S * 0.7); for (const q of V.landmarks) { const x = (q.x + 0.5) * S, y = (q.y + 0.5) * S; g.beginPath(); g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath(); g.fill(); g.stroke(); } }
     if (has('sites') && V.sites) { for (const q of V.sites) { g.beginPath(); g.arc((q.x + 0.5) * S, (q.y + 0.5) * S, Math.max(1.6, S * 0.5), 0, 6.3); g.fillStyle = '#c0302f'; g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 0.8; g.stroke(); } }

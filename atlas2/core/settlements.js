@@ -23,6 +23,7 @@
       return best;
     };
     function add(i, rank) {
+      if (voidEdge) { const f = W.fr[i]; if (rank === 'town' && f > 0.5) rank = 'village'; if (rank === 'village' && f > 0.62) rank = 'hamlet'; } // Астракор: чим далі від дерева, тим дрібніші поселення
       if (RANKS.indexOf(rank) <= 2 && r() < 0.65) { const j = snap(i); if (j >= 0) i = j; }
       const x = i % w, y = (i / w) | 0, pr = POP[rank]; let coast = 0, body = null;
       for (let dy = -1; dy <= 1 && body === null; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (W.ocean[j] && !voidEdge) { coast = 1; body = -1; break; } if (W.lake[j] && bigLake.has(W.lakeOf[j])) { coast = 1; body = W.lakeOf[j]; } }
@@ -54,6 +55,7 @@
     W.regions.forEach(g => { const c = S[g.center], k = 0.75 + 0.5 * r(); c.pop = Math.round(g.isCapitalRegion ? (4000 + g.area * 9) * k : (600 + g.area * 5.5) * k); });
     W.provinces.forEach(p => { const reg = p.regions.map(id => S[W.regions[id].center]).filter(c => c.rank === 'regional'), mx = Math.max(0, ...reg.map(c => c.pop)), cap = S[p.capital]; if (cap.pop < mx * 1.5) cap.pop = Math.round(mx * 1.5 * (1 + 0.2 * r())); });
     for (const s of S) if (s.rank === 'town') { const cap = S[W.regions[s.region].center].pop; s.pop = Math.min(s.pop, Math.round(cap * 0.55)); }
+    if (voidEdge) for (const s of S) s.pop = Math.max(5, Math.round(s.pop * (1.25 - 0.95 * Math.min(1, W.fr[s.i] / 0.75)))); // і менше населення
     for (const s of S) { if (s.region >= 0) W.regions[s.region].pop += s.pop; }
     const maxPop = Math.max(1, ...W.regions.map(g => g.pop));
     W.regions.forEach(g => { g.popLevel = Math.max(1, Math.round(1 + 9 * g.pop / maxPop)); });

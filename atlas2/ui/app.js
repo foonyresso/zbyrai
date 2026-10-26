@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2, $ = id => document.getElementById(id);
-  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'worldType', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity'];
+  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity'];
   let W = null, view = { k: 4, tx: 0, ty: 0 }, shown = { k: 4, tx: 0, ty: 0 }, settle = 0, layers = {}, hover = null, timer = 0, raf = 0;
   document.querySelectorAll('[data-layer]').forEach(e => { layers[e.dataset.layer] = e.checked; });
 
@@ -11,7 +11,6 @@
   function syncDim(setDefault) {
     const ast = $('dimension').value === 'astrakor', pr = $('provinces');
     pr.min = ast ? 50 : 2; pr.max = ast ? 100 : 50; if (setDefault || +pr.value < +pr.min || +pr.value > +pr.max) pr.value = ast ? 64 : 12;
-    if (ast) $('worldType').value = 'continent'; $('worldType').disabled = ast;
   }
   const writeParams = p => { for (const id of IDS) if (p[id] != null) $(id).value = p[id]; syncDim(false); };
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
@@ -62,6 +61,7 @@
     const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
+    if (!near && !site && W.fortresses && layers.wall !== false) { bd = (14 * devicePixelRatio / view.k) ** 2; for (const f of W.fortresses) { const d = (f.x + 0.5 - fx) ** 2 + (f.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = { fort: true, id: 'F' + f.id, x: f.x, y: f.y, i: f.i, name: f.name, level: f.level, tier: W.tier[f.i] }; } } } // гігантська фортеця Великої стіни (Астракор)
     const ct = A.TownMap ? A.TownMap.at(W, view, fx, fy) : null; curCt = ct; if (ct) { near = ct.s; site = null; } // у межах видимого міста велике вікно лишається про це місто, а подробиці йдуть у вікно міста
     let lm = null; if (!ct && !near && !site && W.landmarks && layers.sites !== false && view.k >= 2.2) { bd = rad; for (const q of W.landmarks) { const d = (q.x + 0.5 - fx) ** 2 + (q.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; lm = q; } } }
     curNear = ct ? null : near; cv.style.cursor = ct ? '' : near || lm ? 'pointer' : ''; if (A.TownMap) A.TownMap.hover(ct, lm);
@@ -94,6 +94,7 @@
       const gn = D.groupName(W, i), h = D.heightM(W, i); terr.push(row('Ландшафт', (D.GROUP_UA[gn] || gn) + ' · ' + fmt(h) + ' м'));
       const bi = A.BIOMES[W.bio[i]], sb = A.SubBiomes && A.SubBiomes.at(W, i), ast = A.Params.isVoid(W.params); // біом: пляма основного світу, особливий біом виміру або базовий
       terr.push(row('Біом', esc(sb ? sb.name : ast && A.Astrakor.RENAME[bi.id] || bi.name))); bdesc = sb ? sb.desc : bi.desc || '';
+      if (W.fr) { const f = W.fr[i], wl = A.WALL_FR; terr.push(row('Зона', f < wl ? `Цивілізовані землі · ${Math.round(f / wl * 100)} % шляху до стіни` : '<b style="color:#b3261e">За Великою стіною: землі монстрів</b>')); if (W.root[i]) terr.push(row('Корінь', 'Прохід лише тунелями великих доріг')); }
       const tl = W.tier[i]; terr.push(row('Рівень · небезпека', `${W.level[i]} · <span class="tier" style="background:${TIER_COL[tl]}"></span>${D.TIERS[tl]}`));
       let nd = 1e18, ns = null; for (const q of W.settlements) { if (q.ruined) continue; const d = (q.x - px) ** 2 + (q.y - py) ** 2; if (d < nd) { nd = d; ns = q; } }
       if (ns) terr.push(row('Найближче', `${esc(ns.name)}, ${(Math.sqrt(nd) * K).toFixed(1).replace('.', ',')} км`));
@@ -110,6 +111,8 @@
         : s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}${s.monsters && s.monsters.length ? row('Рівень загрози', s.level + ' · охороняє бос') : ''}</dl>${(s.monsters || []).slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('')}`
         : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>`;
       out.push(blk('Деталі місця', body));
+    } else if (site && site.fort) {
+      out.push(blk('Деталі місця', `<h4>Фортеця «${esc(site.name)}»</h4><dl>${row('Вид', 'Гігантська фортеця Великої стіни')}${row('Рівень · небезпека', `${site.level} · <span class="tier" style="background:${TIER_COL[site.tier]}"></span>${D.TIERS[site.tier]}`)}</dl><p class="muted">Ланка стіни, що охороняє цивілізацію від монстрів із усіх боків. Через її ворота проходять дороги.</p>`));
     } else if (site) {
       const mons = site.monsters.slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('');
       out.push(blk('Деталі місця', `<h4>${esc(site.name)}</h4><dl>${row('Вид', esc(D.CATS[site.cat]))}${row('Рівень · небезпека', `${site.level} · <span class="tier" style="background:${TIER_COL[site.tier]}"></span>${D.TIERS[site.tier]}`)}</dl>${mons || '<p class="muted">Мешканців немає — місце безпечне.</p>'}`));

@@ -10,13 +10,15 @@
     // два гладких поля «примх» рельєфу; кожна дорога змішує їх по-своєму, тож маршрути різні й звивисті, а не однаково найкоротші
     const nzr = A.Noise.make(W.params.seed + '|roads'), F1 = new Float32Array(N), F2 = new Float32Array(N), rr = A.Rng.stream(W.params.seed, 'roads');
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { F1[y * w + x] = nzr.fbm(x * 0.09, y * 0.09, 3); F2[y * w + x] = nzr.fbm(x * 0.05 + 40, y * 0.05 + 70, 3); }
-    let mixA = 0.5, mixB = 0.5, wild = 0.8;
+    let mixA = 0.5, mixB = 0.5, wild = 0.8, curLvl = 1;
     const cellCost = (j, i, diag) => {
       if (W.ocean[j] || W.lake[j]) return Infinity;
+      if (W.wallMask && W.wallMask[j] && !W.gateMask[j]) return Infinity; // Велика стіна Астракора: лише через ворота фортець
+      if (W.root && W.root[j] && curLvl > 2) return Infinity; // крізь корені (як тунелі) йдуть лише головні й середні дороги
       let c = A.BIOMES[W.bio[j]].move + Math.abs(W.elev[j] - W.elev[i]) * 40;
       if (W.river[j]) c += W.acc[j] > big ? 14 : 3;
       c *= 1 + wild * (mixA * F1[j] + mixB * F2[j]);
-      if (W.root && W.root[j]) c *= 0.7; // корені: природні шляхи Астракора
+      if (W.root && W.root[j]) c *= 2.5; // тунель крізь корінь
       if (level[j]) c *= 0.12;
       return c * (diag ? 1.41 : 1);
     };
@@ -52,7 +54,7 @@
     }
     const roadNear = s => { let n = 0; const x = s.i % w, y = (s.i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && level[ny * w + nx]) n++; } return n; };
     function connect(s, isTarget, lvl, minNew) {
-      const p = route([s.i], isTarget); if (!p) return false; p.reverse();
+      curLvl = lvl; const p = route([s.i], isTarget); if (!p) return false; p.reverse();
       if (minNew) { let n = 0; for (const c of p) if (!level[c]) n++; if (n < minNew) return false; }
       commit(p, lvl); return true;
     }
@@ -92,6 +94,11 @@
       }
     }
     W.roadLevel = level; W.roads = list; W.bridges = Array.from(bridges);
+    if (W.root) { // входи в тунелі: клітини дороги на корені, що межують з дорогою поза коренем
+      const tun = [];
+      for (let i = 0; i < N; i++) if (level[i] && W.root[i]) { const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (level[j] && !W.root[j]) { tun.push({ x, y, a: Math.round(Math.atan2(DY[d], DX[d]) * 100) / 100, level: level[i] }); break; } } }
+      W.tunnels = tun;
+    }
   }
   A.roads = roads;
   (A.stages = A.stages || []).push(roads);

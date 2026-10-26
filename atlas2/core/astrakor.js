@@ -19,25 +19,35 @@
   const PALETTE = { snow: '#d8e6e2', mountain: '#7f8a72', tundra: '#6f9a82', taiga: '#1f7a4a', forest: '#0f6b3a', grass: '#2f9a5a', steppe: '#5e9a4a', savanna: '#7a9a45', desert: '#a89a62', swamp: '#2a6a4a', jungle: '#0d7a4a' };
   const RENAME = { grass: 'Смарагдова Спина', forest: 'Смарагдова Спина (ліси)', steppe: 'Смарагдова Спина (луки)', jungle: 'Смарагдова Спина (хащі)', swamp: 'Смарагдова Спина (болота)', lake: 'Смарагдова Спина (озера)' };
 
+  // відстань від дерева в частках радіуса материка: еліпс, зламаний шумом у двох масштабах (затоки-обриви й виступи); 1 = обрив, далі космос
+  function frField(p) {
+    const { w, h } = p, nz = A.Noise.make(p.seed + '|t'), cx = w / 2, cy = h / 2, rx = w * 0.455, ry = h * 0.455, fr = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const nx = x / w, ny = y / h, d = Math.hypot((x - cx) / rx, (y - cy) / ry); fr[y * w + x] = (d + 0.2 * (nz.fbm(nx * 2.4 + 13, ny * 2.4 + 5, 4) - 0.5) + 0.07 * (nz.fbm(nx * 8 + 3, ny * 8 + 9, 3) - 0.5)) / 0.9; }
+    return fr;
+  }
   // корені: від центру променями до краю материка, з гілками. Вузли {x, y, wd}; ширина звужується до кінця
-  function makeRoots(p) {
+  function makeRoots(p, FR) {
     const r = A.Rng.stream(p.seed, 'roots'), { w, h } = p, S = Math.min(w, h), cx = w / 2, cy = h / 2, rr = (a, b) => a + (b - a) * r(), out = [];
-    function walk(x0, y0, head, len, wd0, wd1, bend) {
+    function walk(x0, y0, head, len, wd0, wd1, bend, stop) {
       const step = S * 0.03, n = Math.max(3, Math.round(len / step)), pts = []; let x = x0, y = y0, curv = rr(-1, 1) * bend;
       for (let k = 0; k <= n; k++) {
-        const t = k / n; pts.push({ x, y, wd: wd0 + (wd1 - wd0) * t });
+        const t = k / n; if (stop && stop(x, y)) { pts.push({ x, y, wd: wd0 + (wd1 - wd0) * t }); break; } pts.push({ x, y, wd: wd0 + (wd1 - wd0) * t });
         if (r() < 0.15) curv = rr(-1, 1) * bend; head += curv * 0.5 + (r() - 0.5) * bend * 0.3; x += Math.cos(head) * step; y += Math.sin(head) * step;
       }
       return pts;
     }
-    const n = 9 + Math.floor(r() * 5), L = Math.min(w, h) * 0.5 * 1.05;
+    // кілька головних коренів ділять материк на частини: кожен іде від стовбура до самого краю й звисає за нього; поодинокі короткі гілки
+    const n = 6 + Math.floor(r() * 3), rx = w * 0.455, ry = h * 0.455, a0 = r() * 6.2832;
     for (let k = 0; k < n; k++) {
-      const a = (k + rr(-0.25, 0.25)) / n * 6.2832, main = walk(cx, cy, a, L * rr(0.9, 1.1), S * rr(0.02, 0.028), S * rr(0.007, 0.012), rr(0.25, 0.6)); out.push(main);
-      for (let b = 0, nb = 1 + Math.floor(r() * 3); b < nb; b++) {
-        const i = Math.floor(rr(0.25, 0.7) * (main.length - 1)), q = main[i], pa = main[Math.min(main.length - 1, i + 1)], pb = main[Math.max(0, i - 1)], hd = Math.atan2(pa.y - pb.y, pa.x - pb.x) + (r() < 0.5 ? 1 : -1) * rr(0.5, 1.1);
-        out.push(walk(q.x, q.y, hd, L * rr(0.22, 0.5), q.wd * 0.65, S * rr(0.005, 0.008), rr(0.3, 0.8)));
+      const a = a0 + (k + rr(-0.22, 0.22)) / n * 6.2832, L = Math.hypot(Math.cos(a) * rx, Math.sin(a) * ry) * 1.12;
+      const main = walk(cx, cy, a, L * 1.6, S * rr(0.016, 0.021), S * rr(0.007, 0.01), rr(0.1, 0.28), (x, y) => FR[Math.min(h - 1, Math.max(0, Math.round(y))) * w + Math.min(w - 1, Math.max(0, Math.round(x)))] > 1.03); out.push(main); // іде до краю й трохи за нього
+      if (r() < 0.6) {
+        const i = Math.floor(rr(0.3, 0.6) * (main.length - 1)), q = main[i], pa = main[Math.min(main.length - 1, i + 1)], pb = main[Math.max(0, i - 1)], hd = Math.atan2(pa.y - pb.y, pa.x - pb.x) + (r() < 0.5 ? 1 : -1) * rr(0.5, 1.0);
+        out.push(walk(q.x, q.y, hd, L * rr(0.15, 0.28), q.wd * 0.6, S * rr(0.005, 0.007), rr(0.3, 0.7), (x, y) => FR[Math.min(h - 1, Math.max(0, Math.round(y))) * w + Math.min(w - 1, Math.max(0, Math.round(x)))] > 0.95));
       }
     }
+    // згладжування (Чайкін): плавні вигини замість ламаних
+    for (let k = 0; k < out.length; k++) for (let it = 0; it < 2; it++) { const o = out[k], nw = [o[0]]; for (let q = 0; q < o.length - 1; q++) { const a = o[q], b = o[q + 1]; nw.push({ x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25, wd: a.wd * 0.75 + b.wd * 0.25 }, { x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75, wd: a.wd * 0.25 + b.wd * 0.75 }); } nw.push(o[o.length - 1]); out[k] = nw; }
     return out;
   }
   // 0 далеко від коренів … 1 на осі кореня (за відстанню до відрізків, поділеною на півширину)
@@ -52,19 +62,27 @@
     return D;
   }
 
+  // дерево в центрі, вигляд зверху: крона з випадкових часток (кількість, відстані, розміри, відтінки) і кільця стовбура; радіус ≈ 7,5 % меншого боку карти
+  function makeTree(p) {
+    const r = A.Rng.stream(p.seed, 'tree'), R = Math.min(p.w, p.h) * 0.075, n = 11 + Math.floor(r() * 6), lobes = [], a0 = r() * 6.2832;
+    for (let k = 0; k < n; k++) lobes.push({ a: a0 + (k + (r() - 0.5) * 0.7) / n * 6.2832, d: R * (0.5 + 0.28 * r()), r: R * (0.3 + 0.12 * r()), t: r() });
+    const fruits = []; for (let k = 0; k < 18 + Math.floor(r() * 10); k++) { const a = r() * 6.2832, d = R * 0.85 * Math.sqrt(r()); fruits.push([+(Math.cos(a) * d).toFixed(2), +(Math.sin(a) * d).toFixed(2), r()]); }
+    return { x: p.w / 2, y: p.h / 2, R, lobes, fruits, rings: 4 + Math.floor(r() * 3) };
+  }
+
   function terrain(p) {
     const { w, h } = p, N = w * h, S = Math.min(w, h), nz = A.Noise.make(p.seed + '|t'), jr = A.Rng.stream(p.seed, 'micro'), cx = w / 2, cy = h / 2, rx = w * 0.455, ry = h * 0.455;
-    const root = rootField(p, makeRoots(p)), hh = new Float32Array(N);
+    const fr = frField(p), rootLines = makeRoots(p, fr), root = rootField(p, rootLines), hh = new Float32Array(N); // fr: відстань від дерева в частках радіуса (1 = обрив материка)
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x, nx = x / w, ny = y / h;
       const wx = nx + 0.1 * (nz.fbm(nx * 2.3 + 7, ny * 2.3 + 3, 3) - 0.5), wy = ny + 0.1 * (nz.fbm(nx * 2.3 + 31, ny * 2.3 + 19, 3) - 0.5);
       // обрис: еліпс, зламаний шумом у двох масштабах (затоки-обриви й виступи); край карти лишається космосом
-      const d = Math.hypot((x - cx) / rx, (y - cy) / ry), dd = d + 0.2 * (nz.fbm(nx * 2.4 + 13, ny * 2.4 + 5, 4) - 0.5) + 0.07 * (nz.fbm(nx * 8 + 3, ny * 8 + 9, 3) - 0.5);
+      const dd = fr[i] * 0.9;
       if (dd >= 0.9) { hh[i] = 0.05 + 0.04 * jr(); continue; }
       const m = nz.fbm(wx * 4.2, wy * 4.2, 6), ridge = 1 - Math.abs(2 * nz.fbm(wx * 5 + 200, wy * 5 + 200, 4) - 1);
-      let v = SEA + 0.03 + 0.5 * m * m; // без плоских ділянок: на рівнинах вода не збирається в безліч озер
+      let v = SEA + 0.03 + 0.34 * m * m; // без плоских ділянок: на рівнинах вода не збирається в безліч озер
       v += p.rugged * 0.2 * Math.pow(ridge, 3) * sstep(0.45, 0.62, m);
-      v += 0.14 * (1 - sstep(0, 0.9, dd)); // купол: суша знижується від центру до обриву, тож вода тече до краю, а не збирається в безліч озер
+      v += 0.3 * (1 - sstep(0, 0.9, dd)); // купол: суша знижується від центру до обриву, тож вода тече до краю, а не збирається в безліч озер
       v += 0.16 * root[i]; // корені здіймаються пасмами: природні шляхи й межі провінцій
       const dc = Math.hypot(x - cx, y - cy) / S + 0.012 * (nz.fbm(nx * 14 + 5, ny * 14 + 2, 2) - 0.5);
       v += 0.35 * (1 - sstep(0.03, 0.085, dc)); // стовбур: плато в центрі
@@ -83,7 +101,7 @@
     let top = SEA + 0.01; for (let i = 0; i < N; i++) if (hh[i] > top) top = hh[i];
     const elev = new Float32Array(N), mx = top - SEA, mask = new Uint8Array(N);
     for (let i = 0; i < N; i++) { elev[i] = (hh[i] - SEA) / mx; if (land[i] && root[i] > 0.55) mask[i] = 1; }
-    return { height: hh, elev, sea: SEA, land, ocean, root: mask };
+    return { height: hh, elev, sea: SEA, land, ocean, root: mask, fr, rootLines: rootLines.map(o => o.map(q => [+q.x.toFixed(2), +q.y.toFixed(2), +q.wd.toFixed(2)])), tree: makeTree(p) };
   }
 
   // після клімату: особливі біоми виміру поверх базових (смарагдові рівнини й ліси лишаються «Смарагдовою Спиною»)
@@ -106,9 +124,9 @@
       const dc = Math.hypot(x - cx, y - cy) / S, n1 = nz.fbm(x / w * 9 + 3, y / h * 9 + 1, 3), n2 = nz.fbm(x / w * 18 + 40, y / h * 18 + 9, 3);
       if (spots.some(s => Math.hypot(x - s.x, y - s.y) / s.rad + (n2 - 0.5) * 0.7 < 1) && T.elev[i] > 0.12) bio[i] = B.starcave;
       if (dead.some(d => Math.hypot(x - d.x, y - d.y) / d.rad + (n1 - 0.5) * 0.9 < 1)) bio[i] = B.deadcrown;
-      if (sstep(0.05, 0.09, dc) * (1 - sstep(0.15, 0.24, dc)) > 0.5 + 0.45 * (n1 - 0.5)) bio[i] = B.garden;
+      if (sstep(0.07, 0.1, dc) * (1 - sstep(0.17, 0.26, dc)) > 0.5 + 0.45 * (n1 - 0.5)) bio[i] = B.garden;
       if (dv[i] <= 3 + 5 * n2) bio[i] = B.rootcoast;
-      if (dc + 0.012 * (n1 - 0.5) < 0.055) bio[i] = B.tree;
+      if (dc + 0.012 * (n1 - 0.5) < 0.06) bio[i] = B.tree;
     }
     return bio;
   }
