@@ -77,7 +77,7 @@
     function bridge(x, y, ang, tx, ty, tang) {
       const dx = tx - x, dy = ty - y, D = Math.hypot(dx, dy); if (D < 1) return [[x, y], [tx, ty]];
       const b = Math.atan2(dy, dx); let dev = 0; if (ang != null) { dev = Math.abs(b - ang) % TAU; if (dev > Math.PI) dev = TAU - dev; }
-      if (D < 10) return [[x, y], [tx, ty]]; // кілька метрів: пряме зʼєднання
+      if (D < 14 && dev < 50 * Math.PI / 180) return [[x, y], [tx, ty]]; // кілька метрів, кінець майже дивиться на дорогу: пряме зʼєднання
       if (dev > 80 * Math.PI / 180) return null;
       let ax = Math.cos(b), ay = Math.sin(b);
       if (tang != null) { const ux = Math.cos(tang), uy = Math.sin(tang), px = -uy, py = ux, bs = ax * px + ay * py;
@@ -121,7 +121,7 @@
     }
     function chaikinPath(t, it) { for (let k = 0; k < it; k++) { const p = t.pts, n = p.length / 2; if (n < 3) return; const q = [p[0], p[1]]; for (let i = 0; i < n - 1; i++) { const ax = p[i * 2], ay = p[i * 2 + 1], bx = p[i * 2 + 2], by = p[i * 2 + 3]; if (i > 0) q.push(ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25); if (i < n - 2) q.push(ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75); } q.push(p[(n - 1) * 2], p[(n - 1) * 2 + 1]); t.pts = q; t.br = new Array(q.length / 2).fill(0); } }
     const rebuild = () => { grid.clear(); segs.length = 0; for (const st of streets) { const p = st.pts; for (let i = 2; i < p.length; i += 2) addSeg(st, p[i - 2], p[i - 1], p[i], p[i + 1], st.br[i / 2]); } };
-    return Object.assign(api, { streets, near, grow, mkSt, shore, segs, addSeg, reach, rebuild });
+    return Object.assign(api, { streets, near, grow, mkSt, shore, segs, addSeg, reach, rebuild, bridge });
   }
   A.TownNet = { build, STEP, TAU };
 })();

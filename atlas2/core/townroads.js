@@ -63,6 +63,23 @@
         for (let g = 0; g < 4 && st.pts.length >= 6; g++) { const q = st.pts, m = q.length / 2, e = end ? m - 1 : 0, w = end ? m - 2 : 1, z = end ? m - 3 : 2, ux = q[w * 2] - q[z * 2], uy = q[w * 2 + 1] - q[z * 2 + 1], vx = q[e * 2] - q[w * 2], vy = q[e * 2 + 1] - q[w * 2 + 1], lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy); if (lu && lv && (ux * vx + uy * vy) / (lu * lv) > 0.34) break; q.splice(w * 2, 2); st.br.splice(w, 1); } st.snapped = (st.snapped || 0) + 1; }
     }
   }
+  // тупик, що закінчується за кілька метрів від іншої дороги, дотягується до неї плавною кривою (підхід під кутом не гострішим за 60°) із вузлом на тій дорозі
+  function closeGaps(streets, net, from) {
+    let idx = index(streets);
+    for (let si = from; si < streets.length; si++) { const st = streets[si]; if (!SMOOTH.has(st.kind) || st.pts.length < 4) continue;
+      for (const end of [1, 0]) { if (end === 0) { const n0 = st.pts.length / 2, q = []; for (let i = n0 - 1; i >= 0; i--) q.push(st.pts[i * 2], st.pts[i * 2 + 1]); st.pts = q; st.br.reverse(); idx = index(streets); }
+        const p = st.pts, n = p.length / 2, x = p[n * 2 - 2], y = p[n * 2 - 1]; let best = null, bd = 1e9;
+        const seen = new Set(), cand = []; for (let gx = Math.floor((x - 46) / GK); gx <= Math.floor((x + 46) / GK); gx++) for (let gy = Math.floor((y - 46) / GK); gy <= Math.floor((y + 46) / GK); gy++) for (const q of idx.grid.get(gx * 100003 + gy) || []) { if (q.si === si || seen.has(q)) continue; seen.add(q);
+          const dx = q.bx - q.ax, dy = q.by - q.ay, t = Math.max(0, Math.min(1, ((x - q.ax) * dx + (y - q.ay) * dy) / (dx * dx + dy * dy || 1e-9))), d = Math.hypot(q.ax + dx * t - x, q.ay + dy * t - y) - streets[q.si].hw; cand.push({ q, t, d }); }
+        if (!cand.length) continue; cand.sort((u, v) => u.d - v.d); if (cand[0].d <= 2.5) continue; // кінець уже торкається дороги
+        const ang = Math.atan2(y - p[n * 2 - 3], x - p[n * 2 - 4]); let P = null, hit = null;
+        for (const c of cand) { if (c.d > 40) break; const q = c.q, dx = q.bx - q.ax, dy = q.by - q.ay; let tx = q.ax + dx * c.t, ty = q.ay + dy * c.t; if (c.t < 0.12) { tx = q.ax; ty = q.ay; } else if (c.t > 0.88) { tx = q.bx; ty = q.by; }
+          P = net.bridge(x, y, ang, tx, ty, Math.atan2(dy, dx)); if (P) { hit = { q, t: c.t, tx, ty }; break; } }
+        if (!P) continue; const q = hit.q, other = streets[q.si], t = hit.t, tx = hit.tx, ty = hit.ty;
+        for (let i = 1; i < P.length; i++) { p.push(P[i][0], P[i][1]); st.br.push(0); } st.joined = true;
+        if (t >= 0.12 && t <= 0.88) insertNode(other, q.i, tx, ty); idx = index(streets); }
+    }
+  }
   // дублі: вулиця, що здебільшого лежить на іншій, видаляється
   function dedupe(streets, from) {
     const { grid } = index(streets), dead = new Set();
@@ -86,6 +103,7 @@
     for (let i = streets.length - 1; i >= 0; i--) if (streets[i].pts.length < 4) streets.splice(i, 1);
     const len = st => { let L = 0; for (let i = 2; i < st.pts.length; i += 2) L += Math.hypot(st.pts[i] - st.pts[i - 2], st.pts[i + 1] - st.pts[i - 1]); return L; };
     for (let i = streets.length - 1; i >= 0; i--) if (SMOOTH.has(streets[i].kind) && len(streets[i]) < 14) streets.splice(i, 1);
+    closeGaps(streets, net, 0); crossings(streets, 0); trim(streets); for (let i = streets.length - 1; i >= 0; i--) if (streets[i].pts.length < 4) streets.splice(i, 1);
     renumber(streets); net.rebuild();
   }
   // пізній прохід: нові стежки (від місць і застав) обрізаються перед перетинами й місцями, кінці зливаються; нічого не видаляється й не перенумеровується
