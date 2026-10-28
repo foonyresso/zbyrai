@@ -39,7 +39,7 @@
     if (idx === 0) { g.lineCap = 'round'; g.setLineDash([8, 6]); g.strokeStyle = '#7a3b1d'; g.lineWidth = 3; for (const r of S0.runs) { poly(g, r.pts, k); g.stroke(); } g.setLineDash([]); }
     const kp = idx >= 6 && T.snaps.castle ? T.snaps.castle.keep : null, fe = idx >= 5 ? (idx >= 7 ? T.snaps.buildings : idx === 6 && T.snaps.castle ? T.snaps.castle : T.snaps.features) : null;
     if (fe) for (const f of fe.F) { const c = FEAT[f.t]; if (!c) continue; g.beginPath(); g.arc(f.x * k, f.y * k, f.r * k, 0, TAU); g.fillStyle = c[0]; g.fill(); g.strokeStyle = c[1]; g.lineWidth = Math.max(1, 0.8 * k); g.stroke(); }
-    if (kp) for (const wd of kp.wards) { poly(g, wd.poly, k); g.closePath(); g.fillStyle = wd.kind === 'motte' ? '#bfae86' : wd.kind === 'inner' ? '#ded8c4' : '#d3cdb8'; g.fill(); }
+    if (kp) for (const wd of kp.wards) { poly(g, wd.poly, k); g.closePath(); g.fillStyle = wd.kind === 'motte' ? '#dccfa6' : wd.kind === 'inner' ? '#f5f0df' : '#ede8d5'; g.fill(); }
     // вулиці: нові на цьому етапі підсвічені, мости — червоним
     const st = upto(T, idx, ['roads', 'side', 'paths', 'castle']);
     if (st) {
@@ -52,14 +52,14 @@
     }
     if (idx >= 7) {
       const bl = T.snaps.buildings; g.strokeStyle = '#6b5a45'; g.lineWidth = Math.max(0.5, 0.3 * k);
-      for (const b of bl.B) { g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); g.fillStyle = (D.T[b.type] || {}).col || '#b79c74'; g.fillRect(-b.w * k / 2, -b.h * k / 2, b.w * k, b.h * k); if (k > 0.35) g.strokeRect(-b.w * k / 2, -b.h * k / 2, b.w * k, b.h * k); g.restore(); }
+      for (const b of bl.B) { g.save(); g.translate(b.x * k, b.y * k); g.rotate(b.a); g.fillStyle = b.kp ? '#a9a8c2' : (D.T[b.type] || {}).col || '#b79c74'; g.fillRect(-b.w * k / 2, -b.h * k / 2, b.w * k, b.h * k); if (k > 0.35) g.strokeRect(-b.w * k / 2, -b.h * k / 2, b.w * k, b.h * k); g.restore(); }
       g.strokeStyle = '#6b4a2a'; g.lineWidth = Math.max(2, 3 * k); for (const p of bl.piers) { g.beginPath(); g.moveTo(p.x1 * k, p.y1 * k); g.lineTo(p.x2 * k, p.y2 * k); g.stroke(); }
     }
     if (nat) { g.fillStyle = 'rgba(70,120,60,.8)'; for (const t of nat.trees) { g.beginPath(); g.arc(t[0] * k, t[1] * k, Math.max(1, t[2] * k), 0, TAU); g.fill(); } }
     if (kp) {
-      g.lineJoin = 'round'; const wl = (p, w) => { poly(g, p, k); g.strokeStyle = '#4c4c58'; g.lineWidth = Math.max(2, (w + 2) * k); g.stroke(); g.strokeStyle = '#a4a4b2'; g.lineWidth = Math.max(1.2, w * k); g.stroke(); };
+      g.lineJoin = 'round'; const wl = (p, w) => { poly(g, p, k); g.strokeStyle = '#292933'; g.lineWidth = Math.max(2.4, (w + 2.2) * k); g.stroke(); g.strokeStyle = '#85849a'; g.lineWidth = Math.max(1.2, w * k); g.stroke(); };
       if (kp.inner) wl(kp.inner.poly, kp.inner.w); for (const run of kp.runs) wl(run, kp.w);
-      for (const q of kp.towers) { g.beginPath(); g.arc(q.x * k, q.y * k, Math.max(2.5, q.r * k), 0, TAU); g.fillStyle = '#9090a2'; g.fill(); g.strokeStyle = '#3f3f4c'; g.lineWidth = 1; g.stroke(); }
+      for (const q of kp.towers) { g.beginPath(); g.arc(q.x * k, q.y * k, Math.max(2.5, q.r * k), 0, TAU); g.fillStyle = '#a2a1b8'; g.fill(); g.strokeStyle = '#292933'; g.lineWidth = 1.2; g.stroke(); }
       for (const q of kp.gates) { g.save(); g.translate(q.x * k, q.y * k); g.rotate(q.a); const gl = (kp.w + 7) * k, gw = Math.max(8, q.hw * 2 + 8.5) * k; g.fillStyle = q.main ? '#8f8fa0' : '#9a9aaa'; g.fillRect(-gl / 2, -gw / 2, gl, gw); g.strokeStyle = '#3f3f4c'; g.lineWidth = 1; g.strokeRect(-gl / 2, -gw / 2, gl, gw); g.restore(); }
       if (idx === 6) { g.setLineDash([7, 5]); poly(g, kp.poly.reduce((a, p) => a.concat(p), []).concat(kp.poly[0]), k); g.strokeStyle = '#ff9a4a'; g.lineWidth = 2.5; g.stroke(); g.setLineDash([]); g.font = '700 13px sans-serif'; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.9)'; g.strokeText(kp.tn, kp.x * k, kp.y * k); g.fillStyle = '#2b2218'; g.fillText(kp.tn, kp.x * k, kp.y * k); }
     }

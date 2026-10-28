@@ -24,13 +24,15 @@
     const cx = { hilly: o.hilly || 0, tier, fort: !!o.fort, walled: !!o.walled, waterAvail: wet / tot > 0.02 }, want = KT.want(cx, r);
     const plot = A.KeepPlot.find({ x0: o.x0, y0: o.y0, R, WK: o.WK, streets: o.streets, F: o.F, B: o.B, walled: o.walled, wallR: o.wallR, wtCity: o.wtCity, fort: o.fort, fortDeep: A.TownFort ? A.TownFort.DEEP + 8 : 0, anchor: o.anchor, bias: KT.bias(want), accept: P => !o.F.some(f => (f.t === 'plaza' || f.t === 'site' || f.t === 'cemetery') && (G.inside(P, f.x, f.y) || G.edgeDist(P, f.x, f.y) < f.r * 0.4)) }, A0, r);
     if (!plot) return null;
-    const ty = KT.choose(plot.m, { hilly: o.hilly || 0, tier, fort: !!o.fort, A: plot.area }, r, want), nm = o.cname(), w = ty.w[0] + r() * (ty.w[1] - ty.w[0]);
+    let ty = KT.choose(plot.m, { hilly: o.hilly || 0, tier, fort: !!o.fort, A: plot.area }, r, want); const nm = o.cname();
+    if (ty.id === 'hill') { const pl = A.KeepLayout.pole(plot.poly, 3); if (!pl || pl.d < 21) ty = KT.TYPES.enclosure; } // у вузькій ділянці мотту нема де насипати
+    const w = ty.w[0] + r() * (ty.w[1] - ty.w[0]);
     const P = A.KeepRoads.fit(plot.poly, { streets: o.streets, hard: plot.hard, w, WK: o.WK }), area = G.area(P), ce = G.centroid(P); let rr = 0; for (const q of P) rr = Math.max(rr, Math.hypot(q[0] - ce[0], q[1] - ce[1]));
     const sc = clamp(Math.sqrt(area / 6500), 0.75, 1.3), wc = { WK: o.WK, near: o.net.near, streets: o.streets, c0, walled: o.walled, wallR: o.wallR, wtCity: o.wtCity, w };
     // парки й ставки, що опинилися всередині, зникають (замок не міський сад): місце вільне для двору
     for (let i = o.F.length - 1; i >= 0; i--) { const f = o.F[i]; if ((f.t === 'park' || f.t === 'pond') && G.inside(P, f.x, f.y)) o.F.splice(i, 1); }
     // мур: сторони (вода, мур міста, дороги), ворота, вежі
-    const S = KW.sides(P, wc), gts = KW.gates(P, S, wc, { rear: !!ty.gates.rear, water: !!ty.gates.water, sally: !!ty.gates.sally, hw: 3.2 }, r);
+    const S = KW.sides(P, wc), gts = KW.gates(P, S, wc, { rear: !!ty.gates.rear, water: !!ty.gates.water, sally: !!ty.gates.sally, hw: 3.4 }, r);
     let towers = KW.towers(P, S, gts, ty.tower, ty.tower.step, r), runs = KW.runs(P, S), gaps = [];
     const ws = S.filter(s => s.water >= 0.35).sort((a, b) => b.len - a.len)[0], waterPt = ws ? [ws.mid[0] + ws.n[0] * 8, ws.mid[1] + ws.n[1] * 8] : null;
     // двори й споруди
@@ -43,14 +45,15 @@
     const rub = gaps.map(q => ({ t: 'spoil', x: q[0] + (r() - 0.5) * 3, y: q[1] + (r() - 0.5) * 3, r: 1.8 + r() * 1.5 }));
     if (o.anchor) { o.anchor.x = ce[0]; o.anchor.y = ce[1]; }
     const keep = { type: ty.id, tn: ty.n, name: 'Замок «' + nm + '»', nm, desc: ty.d, x: ce[0], y: ce[1], r: rr, area, poly: P, w, mat: ty.mat, fate, slope: !!ty.slope,
-      runs, towers, gates: gts, wards: L.wards.map(q => ({ poly: flat(q.poly), kind: q.kind })), inner: L.inner && { poly: flat(L.inner.poly), w: L.inner.w, gate: L.inner.gate, circle: L.inner.circle || null, towers: L.inner.towers || [] },
+      runs, towers, gates: gts, aprons: gts.map(g => ({ x: g.x + Math.cos(g.a) * (w / 2 + 8), y: g.y + Math.sin(g.a) * (w / 2 + 8), w: 18 + w, h: g.hw * 2 + 11, a: g.a })), wards: L.wards.map(q => ({ poly: flat(q.poly), kind: q.kind })), inner: L.inner && { poly: flat(L.inner.poly), w: L.inner.w, gate: L.inner.gate, circle: L.inner.circle || null, towers: L.inner.towers || [] },
       paths: L.paths, decos: L.decos.concat(rub), ground: L.ground.map(q => ({ poly: flat(q.poly), kind: q.kind })), ids, nA: rd.nA, stubs: rd.stubs.length, pass: plot.pass, m: { water: plot.m.water, wall: plot.m.wall, conv: plot.m.conv } };
     const nb = o.net.blocked; o.net.blocked = (x, y) => (nb && nb(x, y)) || inside(keep, x, y, 2);
     return keep;
   }
   // споруда b (повернутий прямокутник) заважає замку: перетинає мур з відступом pad
   function clash(k, b, pad) {
-    pad = (pad == null ? 4 : pad) + k.w / 2; if (Math.hypot(b.x - k.x, b.y - k.y) > k.r + Math.hypot(b.w, b.h) / 2 + pad + 4) return false;
+    pad = (pad == null ? 4 : pad) + k.w / 2; if (Math.hypot(b.x - k.x, b.y - k.y) > k.r + Math.hypot(b.w, b.h) / 2 + pad + 24) return false;
+    for (const q of k.aprons || []) if (G.rectsHit(b, q, 1.5)) return true;
     if (G.inside(k.poly, b.x, b.y) || G.edgeDist(k.poly, b.x, b.y) < pad + Math.min(b.w, b.h) / 2) return true;
     for (const c of G.rectCorners(b, 0)) if (G.inside(k.poly, c[0], c[1]) || G.edgeDist(k.poly, c[0], c[1]) < pad) return true;
     return false;

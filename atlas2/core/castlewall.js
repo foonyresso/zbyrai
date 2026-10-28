@@ -1,5 +1,5 @@
 // Атлас 2.0, замок: мур по багатокутнику ділянки. Сторони (вода, мур міста, дорога, відкрите), ворота (головні до дороги, що веде до міста; задні; водяні; вилазні),
-// вежі (кутові за поворотом, проміжні за кроком), суцільні відрізки муру без спільних із міським муром ділянок.
+// вежі (парні біля головної й задньої брами, кутові за поворотом, проміжні за кроком), суцільні відрізки муру без спільних із міським муром ділянок.
 (function () {
   'use strict';
   const A = globalThis.Atlas2, G = A.KeepGeo, TAU = Math.PI * 2, clamp = G.clamp;
@@ -39,11 +39,16 @@
     if (!o.rear && !o.water && !o.sally && cand.length > 1 && r() < 0.5) { const far = cand.slice(1).filter(q => Math.abs(q.s.i - cand[0].s.i) > 0 && q.v > 0.8)[0]; if (far) add(far.s, 'postern', 'Хвіртка', false); }
     return out;
   }
-  // вежі: кутові (поворот ≥ ang) і проміжні (крок step); не ближче за gap до воріт; сторони, що збігаються з муром міста, вежами не обставляємо
+  // вежі: біля воріт (головної й задньої) дві парні, далі кутові (поворот ≥ ang) і проміжні (крок step); сторони, що збігаються з муром міста, вежами не обставляємо;
+  // вежі, що налізають на важливіші (брама > кут > проміжна), відпадають
   // style: {corner:'round'|'square'|'bastion', mid:'round'|'square'|'none', r:[min,max]}
   function towers(P, S, gts, st, step, r) {
     const out = [], n = P.length, near = (x, y) => gts.some(g => Math.hypot(g.x - x, g.y - y) < g.hw + 13);
     const rr = () => st.r[0] + r() * (st.r[1] - st.r[0]);
+    for (const g of gts) {
+      if (!(g.main || g.kind === 'rear')) continue; const s = S[g.e], e = s && s.e, rg = st.r[0] * 0.82, d = g.hw + rg * 0.9 + 1; if (!e || g.t - d < 1 || g.t + d > s.len - 1) continue;
+      for (const sg of [-1, 1]) out.push({ x: e.ax + e.dx * (g.t + sg * d), y: e.ay + e.dy * (g.t + sg * d), r: rg, k: st.corner === 'square' ? 'square' : 'round', a: g.a, corner: false, gate: true });
+    }
     for (let i = 0; i < n; i++) {
       const a = S[(i + n - 1) % n], b = S[i], cr = a.d[0] * b.d[1] - a.d[1] * b.d[0], dt = a.d[0] * b.d[0] + a.d[1] * b.d[1], th = Math.atan2(cr, dt), v = P[i];
       if (a.city > 0.6 && b.city > 0.6) continue; if (near(v[0], v[1])) continue;
@@ -52,9 +57,11 @@
     }
     if (st.mid !== 'none') for (const s of S) {
       if (s.city > 0.6 || s.len < step * 1.3) continue; const k = Math.floor(s.len / step), e = s.e;
-      for (let j = 1; j < k; j++) { const t = s.len * j / k, x = e.ax + e.dx * t, y = e.ay + e.dy * t; if (near(x, y)) continue; out.push({ x, y, r: rr() * 0.8, k: st.mid, a: s.a + Math.PI / 2 * 0, corner: false }); }
+      for (let j = 1; j < k; j++) { const t = s.len * j / k, x = e.ax + e.dx * t, y = e.ay + e.dy * t; if (near(x, y)) continue; out.push({ x, y, r: rr() * 0.8, k: st.mid, a: s.a, corner: false }); }
     }
-    return out;
+    const rank = q => q.gate ? 2 : q.corner ? 1 : 0, kept = [];
+    for (const q of out.slice().sort((a, b) => rank(b) - rank(a))) if (!kept.some(o => Math.hypot(o.x - q.x, o.y - q.y) < (o.r + q.r) * 0.85)) kept.push(q);
+    return kept;
   }
   // суцільні відрізки муру: сторони, що не збігаються з муром міста (city < 0.6); skip(i) — пропуск сторони; сусідні зливаються в одну ламану
   function runs(P, S, skip) {
