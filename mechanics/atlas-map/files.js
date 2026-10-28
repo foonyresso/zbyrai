@@ -4,8 +4,8 @@
   'use strict';
   const Mech = root.Mech = root.Mech || {};
   const CORE = ['rng', 'noise', 'heap', 'grid', 'params', 'terrain', 'hydrology', 'climate', 'names', 'settle', 'grow', 'politics', 'settlements', 'roads', 'landmarks', 'searoutes', 'seas', 'bestiary', 'danger', 'generate', 'serialize'];
-  const CITY = ['citydata', 'citytext', 'townenv', 'townstreets', 'townsites', 'townsites2', 'townroads', 'townfields', 'townkeep', 'town', 'townquery'];
-  const RENDER = ['contours', 'raster', 'draw', 'roadgeom', 'landmarks', 'places', 'townmask', 'town'];
+  const CITY = ['citydata', 'citytext', 'townenv', 'townstreets', 'townsites', 'townsites2', 'townroads', 'townfields', 'castlegeo', 'castleplot', 'castletypes', 'castlewall', 'castlelayout', 'castleroads', 'townkeep', 'town', 'townquery'];
+  const RENDER = ['contours', 'raster', 'draw', 'roadgeom', 'landmarks', 'places', 'townmask', 'townkeep', 'town'];
   const FILES = CORE.map(f => 'core/' + f).concat(CITY.map(f => 'core/' + f), RENDER.map(f => 'render/' + f), ['ui/town']);
   // завантажує файли по черзі (порядок важливий); base — шлях до atlas2/ (напр. '../atlas2/'); повертає Promise
   function load(base, ver) {

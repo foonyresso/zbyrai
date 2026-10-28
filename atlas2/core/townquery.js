@@ -9,6 +9,7 @@
     const g = c.bgrid.get(Math.floor(x / c.BK) * 100003 + Math.floor(y / c.BK)); if (g) for (const id of g) if (rectHit(c.buildings[id], x, y, 0.6)) return { kind: 'building', o: c.buildings[id] };
     for (const b of c.buildings) if (Math.abs(b.x - x) < b.w && Math.abs(b.y - y) < b.w && rectHit(b, x, y, 0.6)) return { kind: 'building', o: b };
     for (const f of c.features) if (Math.hypot(f.x - x, f.y - y) < f.r) return { kind: 'feature', o: f };
+    if (c.keep && A.TownKeep.inside(c.keep, x, y, 0)) return { kind: 'castle', o: c.keep };
     let bs = null, bd = 1e9; for (const st of c.streets) for (let i = 2; i < st.pts.length; i += 2) { const d = c.env.segDist(x, y, st.pts[i - 2], st.pts[i - 1], st.pts[i], st.pts[i + 1]) - st.hw; if (d < bd) { bd = d; bs = st; } }
     if (bs && bd < 1.5) return { kind: 'street', o: bs };
     const d = c.districtOf(x, y); if (d >= 0 && Math.hypot(x - c.c0[0], y - c.c0[1]) < c.R * 1.3) return { kind: 'district', o: c.districts[d] };
@@ -25,6 +26,11 @@
       const sf = o.site && c.sites.find(f => f.name === o.site); if (sf) rows.unshift(['Місце', sf.sub]);
       if (o.dungeon) rows.push(['Вхід у підземелля', o.dungeon.id]);
       return { title: o.cond === 'ruined' ? 'Руїни: ' + o.name.toLowerCase() : o.name, sub: t.n + ' · ' + t.cat + (d ? ' · ' + d.name : ''), color: o.cond === 'lair' && t.cat !== 'Монстри' ? '#c0452f' : t.col, rows, text: o.cond === 'ruined' ? 'Стіни ще стоять, дах давно провалився. ' + t.d : o.cond === 'lair' && t.cat !== 'Монстри' ? 'Тут облаштували кубло загарбників. ' + t.d : (o.was ? 'Раніше тут була споруда «' + o.was.toLowerCase() + '», тепер її переробили на свій лад. ' : '') + t.d, hook: o.hook || (sf && sf.history) || null, districtId: o.district >= 0 ? o.district : null, go: 'Про район ›' };
+    }
+    if (h.kind === 'castle') {
+      const ids = o.ids.map(i => B[i]), gt = { main: 'головна', rear: 'задня', water: 'водяна', sally: 'вилазна', postern: 'хвіртка' };
+      return { color: '#8f8fa0', title: o.name, sub: o.tn + (o.fate === 'ruined' ? ' · руїни' : o.fate === 'occupied' ? ' · захоплений' : ''), rows: [['Площа', Math.round(o.area) + ' м²'], ['Двори', o.wards.length > 1 ? 'зовнішній і внутрішній' : 'один'], ['Мур', Math.round(o.w * 10) / 10 + ' м завтовшки'], ['Вежі', String(o.towers.length)], ['Брами', o.gates.map(g => gt[g.kind] || g.kind).join(', ')], ['Споруд', String(ids.length)]],
+        text: o.desc, hook: o.fate === 'ruined' ? 'Мур у проломах, дахи провалені, у дворах ростуть дерева.' : o.fate === 'occupied' ? 'У донжоні й палаці засіли загарбники.' : null, list: ids.slice().sort((p, q) => q.w * q.h - p.w * p.h).slice(0, 7).map(b => ({ id: b.id, name: b.name })) };
     }
     if (h.kind === 'district') {
       const cats = Object.entries(o.cats).sort((p, q) => q[1] - p[1]), top = Object.entries(o.types).sort((p, q) => q[1] - p[1]).slice(0, 4).map(e => T[e[0]].n + ' ×' + e[1]).join(', ');

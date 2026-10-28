@@ -11,6 +11,7 @@
     paths: o => ({ streets: o.streets.map(cpSt) }),
     districts: o => ({ anchors: o.anchors.map(a => Object.assign({}, a)), outerKind: o.outerKind, walled: o.walled }),
     features: o => ({ F: o.F.map(cpCirc) }),
+    castle: o => ({ keep: JSON.parse(JSON.stringify(o.keep)), streets: o.streets.map(cpSt), F: o.F.map(cpCirc) }),
     buildings: o => ({ B: o.B.map(b => ({ type: b.type, x: b.x, y: b.y, w: b.w, h: b.h, a: b.a })), F: o.F.map(cpCirc), piers: o.piers.map(p => Object.assign({}, p)) }),
     nature: o => ({ fields: (o.fields || []).map(f => ({ pts: f.pts.slice(), crop: f.crop })), trees: o.trees.map(t => [t.x, t.y, t.r]) }),
     wall: o => ({ wall: { on: o.wall.on, mat: o.wall.mat, w: o.wall.w, runs: o.wall.runs.map(r => r.slice()), towers: o.wall.towers.map(q => q.slice()), gates: o.wall.gates.map(g => Object.assign({}, g)) } })

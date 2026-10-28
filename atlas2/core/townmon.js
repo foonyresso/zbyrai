@@ -26,7 +26,7 @@
     if (mon) for (let k = 0, n = tier === 0 ? 1 : 2 + tier * 2, tries = 0; k < n && tries < n * 12; tries++) { const a = r() * TAU, d = R * (0.78 + 0.22 * r()), b = c.tryB({ type: 'mwatch', x: x0 + Math.cos(a) * d, y: y0 + Math.sin(a) * d, w: 8, h: 8, a: r() * TAU, st: -1, side: 1, uniq: true }); if (b) { lair.add(b.id); k++; } }
     const map = mon ? MAP : MAP_BANDITS;
     for (const b of B) {
-      if (b.site || lair.has(b.id) || b.type === 'castle' || T[b.type].cat === 'Монстри' || T[b.type].cat === 'Руїни') continue;
+      if (b.site || b.kp || lair.has(b.id) || b.type === 'castle' || T[b.type].cat === 'Монстри' || T[b.type].cat === 'Руїни') continue;
       const p = (mon ? 0.7 : 0.18) - (mon ? 0.35 : 0.1) * Math.min(1, d0(b.x, b.y) / R); if (r() >= p && !(b.type === 'hall' && mon)) continue;
       lair.add(b.id); const m = map[b.type]; if (m && (b.type === 'hall' || r() < 0.75)) { b.was = T[b.type].n; b.type = pick(r, m); }
     }
