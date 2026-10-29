@@ -283,6 +283,9 @@
       for (const b of cand) { if (np <= 0) break; const a = r() * TAU, rad = 7 + r() * 8, d = Math.max(b.w, b.h) / 2 + rad + 6, x = b.x + Math.cos(a) * d, y = b.y + Math.sin(a) * d;
         const ok = WK(x, y) === 0 && WK(x + rad, y) === 0 && WK(x - rad, y) === 0 && !B.some(o => Math.hypot(o.x - x, o.y - y) < rad * 1.3 + Math.max(o.w, o.h) / 2 + 3) && near(x, y, rad + 6, -1, -2) > rad + 4 && !F.some(f => Math.hypot(f.x - x, f.y - y) < f.r + rad + 2);
         if (ok) { addPond(x, y, rad, (b.type === 'mill' || b.type === 'windmill' ? 'Млинова ' : b.type === 'farm' ? 'Господарський ' : 'Садибний ') + 'ставок', b.type); np--; } } }
+    // ---- стежки: двори між вулицями, ферми, колодязі, хутори й поля з'єднані з дорогами (core/townpaths.js); дерева на стежках прибираються
+    const tp = fate !== 'ruined' && !fort ? A.TownPaths.make({ r: A.Rng.stream(seed, 'trails|' + s.id), tier, R, Rmap, x0, y0, streets, B, F, props, fields, WK, wall, blocked: keep ? (x, y) => A.TownKeep.inside(keep, x, y, 2) : null }) : null;
+    if (tp) trees.splice(0, trees.length, ...A.TownPaths.clearTrees(tp, trees));
     // ---- склад споруд: імена, стан, мешканці, описи
     const rampN = {}, camps = [], addrN = {}, base = { hamlet: 1, village: 1, town: 1, regional: 1, capital: 1 };
     let sumPop = 0; B.forEach(b => { const t = T[b.type]; b.pop = fate ? b.inhab || 0 : t.pop[0] + Math.floor(r() * (t.pop[1] - t.pop[0] + 1)); sumPop += b.pop; });
@@ -307,7 +310,7 @@
     dst.forEach(d => { d.notable = d.notable.sort((p, q) => B[q].w * B[q].h - B[p].w * B[p].h).slice(0, 7); });
     const stats = { buildings: B.length, streets: streets.length, lanes: streets.filter(q => q.kind === 'lane').length, squares: F.filter(f => f.t === 'plaza').length, parks: F.filter(f => f.t === 'park').length, fountains: props.filter(p => p.t === 'fountain').length, monuments: props.filter(p => p.t === 'monument').length, bridges: streets.reduce((a, st) => a + (st.br.some(Boolean) ? 1 : 0), 0), piers: piers.length, ships: ships.length, towers: wall.towers.length, gates: wall.gates.length, defences: B.filter(b => b.rampart).length, lairs: B.filter(b => b.cond === 'lair').length };
     void base;
-    return { sid: s.id, name: s.name, rank: s.rank, tier, fate, fort: !!fort, order: mon ? s.order || null : null, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, keep, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), sites, features: F, props, buildings: B, districts: dst, fields, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
+    return { sid: s.id, name: s.name, rank: s.rank, tier, fate, fort: !!fort, order: mon ? s.order || null : null, occupier: s.occupier || null, port: !!s.port, pop: s.pop, popBefore: s.popBefore, R, Rmap, c0: [x0, y0], walled, wall, keep, streets, rivers: env.rivers, shore, piers, ships, plazas: F.filter(f => f.t === 'plaza'), sites, features: F, props, buildings: B, districts: dst, fields, trails: tp ? tp.trails : [], trailStats: tp ? tp.stats : null, trees, camps, stats, group: gn, env, bgrid, BK, districtOf: (x, y) => distId(x, y), s };
   }
 
   const setCustom = (W, sid, town) => { let m = customs.get(W); if (!m) customs.set(W, m = new Map()); if (town) m.set(sid, town); else m.delete(sid); };
