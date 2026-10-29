@@ -157,7 +157,7 @@
         if (!circleFree(x, y, rad, 10) || near(x, y, rad + 8, -1, -2) < rad + 4) continue;
         let q = null, qd = 1e9; for (const st of streets) { if (st.kind === 'path') continue; for (let i = 0; i < st.pts.length; i += 2) { const dd = Math.hypot(st.pts[i] - x, st.pts[i + 1] - y); if (dd < qd) { qd = dd; q = [st.pts[i], st.pts[i + 1]]; } } } if (!q || qd > 220) continue;
         const ang = Math.atan2(y - q[1], x - q[0]), ox = x - Math.cos(ang) * spec.hl, oy = y - Math.sin(ang) * spec.hl, nsite = sites.length;
-        if (placeSite({ x: ox, y: oy, a: ang }, false, 1, { spec, S: 1 })) { const f = sites[nsite]; f.r = rad; f.x = x; f.y = y; f.paths.push({ pts: [q[0], q[1], ox, oy], w: 2.6 }); break; } }
+        if (placeSite({ x: ox, y: oy, a: ang }, false, 1, { spec, S: 1 })) { const f = sites[nsite]; f.r = rad; f.x = x; f.y = y; f.paths.push({ pts: A.TownPaths.bend(q[0], q[1], ox, oy), w: 2 }); break; } }
     }
     if (tr) tr('features', { F });
     // ---- замок (обласне місто, столиця): ділянка вирізається з готового плану; мур, комплекс споруд, ворота й дороги до них (core/castle*.js); до фронтажу, щоб вулиці всередині замку зникли

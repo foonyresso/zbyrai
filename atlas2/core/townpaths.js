@@ -80,7 +80,7 @@
     for (const b of B) { if (b.site || b.rampart || b.kp || SKIP.has(b.type)) continue; const i = cx(b.x), j = cy(b.y); if (!inG(i, j)) continue; nodes.push({ t: 'b', b, x: b.x, y: b.y, kind: kindOfB(b) }); }
     for (const f of fields) nodes.push({ t: 'f', f, x: f.x, y: f.y, kind: 'field' });
     for (const p of props) if (p.t === 'well' && !F.some(f => f.t === 'site' && Math.hypot(f.x - p.x, f.y - p.y) < f.r * 1.05)) nodes.push({ t: 'w', p, x: p.x, y: p.y, kind: 'farm' });
-    for (const f of F) if (f.t === 'site' && f.kind !== 'cemetery') nodes.push({ t: 's', f, x: f.x, y: f.y, kind: 'farm', name: f.name });
+    for (const f of F) if (f.t === 'site' && f.kind !== 'graveyard') nodes.push({ t: 's', f, x: f.x, y: f.y, kind: 'farm', name: f.name });
     for (const nd of nodes) nd.rd = roadDist(nd.x, nd.y);
     nodes.sort((p, q) => p.rd - q.rd);
     let linked = 0, failed = 0, skipped = 0;
@@ -114,5 +114,7 @@
     const { trl, N, gx0, gy0 } = res, hit = (x, y) => { const i = Math.floor((x - gx0) / CS), j = Math.floor((y - gy0) / CS); return i >= 0 && j >= 0 && i < N && j < N && trl[j * N + i] === 1; };
     return trees.filter(t => { const q = t.r * 0.55; return !(hit(t.x, t.y) || hit(t.x + q, t.y) || hit(t.x - q, t.y) || hit(t.x, t.y + q) || hit(t.x, t.y - q)); });
   }
-  A.TownPaths = { make, clearTrees, simplify, chaikin };
+  // плавна лінія між двома точками (без випадкових чисел): легкий S-вигин, що затихає на кінцях
+  function bend(x1, y1, x2, y2) { const L = Math.hypot(x2 - x1, y2 - y1) || 1e-9, m = Math.max(2, Math.ceil(L / 8)), amp = Math.min(5, L * 0.04), ph = (x1 * 0.13 + y1 * 0.29) % 6.28, o = []; for (let k = 0; k <= m; k++) { const t = k / m, off = amp * Math.sin(Math.PI * t) * Math.sin(t * 5.1 + ph); o.push(x1 + (x2 - x1) * t - (y2 - y1) / L * off, y1 + (y2 - y1) * t + (x2 - x1) / L * off); } return chaikin(o, 1); }
+  A.TownPaths = { make, clearTrees, simplify, chaikin, bend };
 })();

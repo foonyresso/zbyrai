@@ -29,3 +29,10 @@ for (const seed of ['a', 'zbyrai', '7']) {
 }
 console.log(`townpaths: ${towns} міст, ${trailsN} стежок, вузлів без стежки ${failed} з ${nodes}, вільних кінців ${loose}, найдовша побудова міста ${ms} мс`);
 assert.ok(trailsN > 0, 'жодної стежки'); assert.ok(failed <= nodes * 0.08, 'забагато вузлів без стежки'); assert.ok(loose === 0, 'є стежки, що обриваються без вузла');
+// кладовища: алеї тонкі й не лінійки (є вигин), нічого довгого й прямого; вхід від дороги теж із вигином
+{ let g = 0, straight = 0; for (const seed of ['a', 'zbyrai', '7']) { let gs = 0; const W = A.generate({ seed, worldType: 'continent', size: 'small' });
+  for (const s of W.settlements) { if (s.ruined || s.fate || s.fortress || s.rank === 'hamlet' || gs >= 6) continue; const c = A.Town.build(W, s);
+    for (const f of c.features) { if (f.t !== 'site' || f.kind !== 'graveyard') continue; g++; gs++;
+      for (const q of f.paths) { const p = q.pts, L = Math.hypot(p[p.length - 2] - p[0], p[p.length - 1] - p[1]); assert.ok(q.w <= 2.2, 'кладовище: алея завширшка'); if (L < 15) continue;
+        let dev = 0; for (let i = 2; i < p.length - 2; i += 2) dev = Math.max(dev, Math.abs((p[i] - p[0]) * (p[p.length - 1] - p[1]) - (p[i + 1] - p[1]) * (p[p.length - 2] - p[0])) / L); if (dev < 0.25) straight++; } } } }
+  console.log(`кладовищ ${g}, прямих довгих алей ${straight}`); assert.ok(g > 0); assert.equal(straight, 0, 'кладовище: довга пряма алея'); }
