@@ -10,7 +10,7 @@
   function exportWorld(W) {
     return {
       format: 'atlas2-world', version: 1, params: paramsToJSON(W.params), w: W.w, h: W.h, kmPerCell: W.params.kmPerCell,
-      astrakor: W.fortresses ? { tree: W.tree, rootLines: W.rootLines, wall: W.wall, fortresses: W.fortresses, tunnels: W.tunnels || [] } : undefined, subBiomes: (W.subUsed || []).map(n => ({ n: n + 1, id: A.BiomeData.list[n][0], name: A.BiomeData.list[n][1] })), provinces: W.provinces, regions: W.regions, settlements: W.settlements || [], roads: (W.roads || []).map(r => ({ level: r.level, from: r.from, to: r.to, cells: r.cells })), seaRoutes: W.seaRoutes || [], sites: W.sites || [], landmarks: W.landmarks || [], origin: W.origin,
+      astrakor: W.fortresses ? { tree: W.tree, rootLines: W.rootLines, wall: W.wall, fortresses: W.fortresses, tunnels: W.tunnels || [] } : undefined, subBiomes: (W.subUsed || []).map(n => ({ n: n + 1, id: A.BiomeData.list[n][0], name: A.BiomeData.list[n][1] })), provinces: W.provinces, regions: W.regions, settlements: W.settlements || [], roads: (W.roads || []).map(r => ({ level: r.level, from: r.from, to: r.to, cells: r.cells })), seaRoutes: W.seaRoutes || [], sites: W.sites || [], resources: W.resources || [], landmarks: W.landmarks || [], origin: W.origin,
       rivers: W.rivers, layers: { land: rle(W.land), ocean: rle(W.ocean), lake: rle(W.lake), biome: rle(W.bio), province: rle(W.province), region: rle(W.region), river: rle(W.river), level: rle(W.level), tier: rle(W.tier), sub: rle(W.sub || new Uint8Array(W.w * W.h)) },
     };
   }

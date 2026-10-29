@@ -47,6 +47,8 @@
       const sc = cells.map(i => [Math.pow(W.suit[i], 0.4) * (0.25 + r()) * (W.waterDist && W.waterDist[i] <= 2 && !W.river[i] ? 0.5 : 1), i]).sort((a, b) => b[0] - a[0]); let got = 0;
       for (const [, i] of sc) { if (got >= want) break; const x = i % w, y = (i / w) | 0; if (near(x, y, MIND[rank] * (0.7 + 0.7 * r()))) continue; add(i, rank); got++; }
     });
+    // острови без трьох регіонів або без порту лишаються порожніми
+    const emptyLm = A.pruneIslands(W, S); if (emptyLm.size) { buckets.clear(); for (const s of S) { const k = bk(s.x, s.y); (buckets.get(k) || buckets.set(k, []).get(k)).push(s); } }
     // зведення
     const regs = W.regions.map(g => ({ area: 0, bio: {} }));
     for (let i = 0; i < N; i++) if (W.region[i] >= 0) { const a = regs[W.region[i]]; a.area++; a.bio[W.bio[i]] = (a.bio[W.bio[i]] || 0) + 1; }
@@ -63,7 +65,7 @@
     // нічиї острови (далеко від провінцій): лише зруйновані поселення, без населення й доріг
     const own = new Set(); for (const g of S) own.add(g.landmass);
     for (const m of W.lm.list) {
-      if (own.has(m.id) || m.area < 12) continue; const cells = []; let owned = false; for (let i = 0; i < N; i++) if (W.landmass[i] === m.id) { if (W.province[i] >= 0) owned = true; if (!W.lake[i] && !W.river[i] && W.suit[i] >= 0.1) cells.push(i); }
+      if (own.has(m.id) || emptyLm.has(m.id) || m.area < 12) continue; const cells = []; let owned = false; for (let i = 0; i < N; i++) if (W.landmass[i] === m.id) { if (W.province[i] >= 0) owned = true; if (!W.lake[i] && !W.river[i] && W.suit[i] >= 0.1) cells.push(i); }
       if (owned) continue;
       const want = Math.min(12, Math.max(1, Math.round(cells.length / 500 * (0.6 + 0.8 * r())))), sc = cells.map(i => [Math.pow(W.suit[i], 0.4) * (0.3 + r()), i]).sort((a, b) => b[0] - a[0]); let got = 0;
       for (const [, i] of sc) { if (got >= want) break; if (near(i % w, (i / w) | 0, 8 * (0.7 + 0.7 * r()))) continue; const rk = got === 0 && cells.length > 400 ? 'town' : got < 3 ? 'village' : 'hamlet', x = i % w, y = (i / w) | 0; const s = { id: S.length, name: names.town(names.lang()), rank: rk, i, x, y, prov: -1, region: -1, landmass: m.id, port: false, body: null, river: false, pop: 0, ruined: true }; S.push(s); (buckets.get(bk(x, y)) || buckets.set(bk(x, y), []).get(bk(x, y))).push(s); got++; }
