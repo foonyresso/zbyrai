@@ -7,9 +7,10 @@
     const empty = new Set(); if (A.Params.isVoid(W.params)) return empty;
     const { w, h } = W, N = w * h, lmProvs = new Map();
     for (let i = 0; i < N; i++) if (W.province[i] >= 0) { const m = W.landmass[i]; (lmProvs.get(m) || lmProvs.set(m, new Set()).get(m)).add(W.province[i]); }
+    const provLms = new Map(); for (const [m, ps] of lmProvs) for (const k of ps) (provLms.get(k) || provLms.set(k, new Set()).get(k)).add(m);
     const dead = new Set();
     for (const [m, ps] of lmProvs) {
-      if (ps.size !== 1) continue; const k = [...ps][0], p = W.provinces[k];
+      if (ps.size !== 1 || provLms.get([...ps][0]).size !== 1) continue; const k = [...ps][0], p = W.provinces[k];
       if (p.regions.length >= 3 && S.some(s => s.prov === k && s.port && s.body === -1)) continue;
       dead.add(k); empty.add(m);
     }

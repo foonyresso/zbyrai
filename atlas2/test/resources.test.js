@@ -5,7 +5,7 @@ for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
   const W = A.generate({ seed, size: 'small' }), N = W.w * W.h, t = seed;
   // острів з однією провінцією: щонайменше 3 регіони й морський порт, інакше пустий
   const lmProv = new Map(); for (let i = 0; i < N; i++) if (W.province[i] >= 0) (lmProv.get(W.landmass[i]) || lmProv.set(W.landmass[i], new Set()).get(W.landmass[i])).add(W.province[i]);
-  for (const [m, ps] of lmProv) if (ps.size === 1) { const k = [...ps][0]; assert.ok(W.provinces[k].regions.length >= 3, `${t}: острів ${m} має <3 регіонів`); assert.ok(W.settlements.some(s => s.prov === k && s.port && s.body === -1), `${t}: острів ${m} без порту`); }
+  for (const [m, ps] of lmProv) if (ps.size === 1 && [...lmProv.values()].filter(q => q.has([...ps][0])).length === 1) { const k = [...ps][0]; assert.ok(W.provinces[k].regions.length >= 3, `${t}: острів ${m} має <3 регіонів`); assert.ok(W.settlements.some(s => s.prov === k && s.port && s.body === -1), `${t}: острів ${m} без порту`); }
   // порожній острів: нічого на ньому нема
   for (const s of W.settlements) if (!s.ruined) assert.ok(lmProv.has(s.landmass), `${t}: поселення на порожньому острові`);
   W.settlements.forEach((s, n) => assert.equal(s.id, n)); W.regions.forEach((g, n) => { assert.equal(g.id, n); assert.equal(W.settlements[g.center].region, n); });
