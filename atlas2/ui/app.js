@@ -2,25 +2,27 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2, $ = id => document.getElementById(id);
-  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity'];
-  let W = null, view = { k: 4, tx: 0, ty: 0 }, shown = { k: 4, tx: 0, ty: 0 }, settle = 0, layers = {}, hover = null, timer = 0, raf = 0;
+  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity', 'infinite'];
+  let W = null, B = null, cur = null, view = { k: 4, tx: 0, ty: 0 }, shown = { k: 4, tx: 0, ty: 0 }, settle = 0, layers = {}, hover = null, timer = 0, raf = 0;
   document.querySelectorAll('[data-layer]').forEach(e => { layers[e.dataset.layer] = e.checked; });
 
-  const readParams = () => { const p = {}; for (const id of IDS) { const e = $(id); p[id] = e.type === 'number' || e.type === 'range' ? +e.value : e.value; } return p; };
+  const readParams = () => { const p = {}; for (const id of IDS) { const e = $(id); p[id] = e.type === 'checkbox' ? e.checked : e.type === 'number' || e.type === 'range' ? +e.value : e.value; } return p; };
+  const V = () => cur ? A.BlocksView.local(cur, view) : view; // вигляд у координатах активного блока (для окремого світу це сам view)
   // вимір задає межі провінцій (основний 2–50, Астракор 50–100) і форму світу (в Астракорі завжди материк)
   function syncDim(setDefault) {
     const ast = $('dimension').value === 'astrakor', pr = $('provinces');
-    pr.min = ast ? 50 : 2; pr.max = ast ? 100 : 50; if (setDefault || +pr.value < +pr.min || +pr.value > +pr.max) pr.value = ast ? 64 : 12;
+    $('infinite').disabled = ast; pr.min = ast ? 50 : 2; pr.max = ast ? 100 : 50; if (setDefault || +pr.value < +pr.min || +pr.value > +pr.max) pr.value = ast ? 64 : 12;
   }
-  const writeParams = p => { for (const id of IDS) if (p[id] != null) $(id).value = p[id]; syncDim(false); };
+  const writeParams = p => { for (const id of IDS) if (p[id] != null) { const e = $(id); if (e.type === 'checkbox') e.checked = !!p[id]; else e.value = p[id]; } syncDim(false); };
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
   function resetView() { const k = Math.min(cv.width / W.w, cv.height / W.h) * 0.96; view = { k, tx: (cv.width - W.w * k) / 2, ty: (cv.height - W.h * k) / 2 }; }
   // повне перемальовування; під час руху лише дешево зсуваємо/масштабуємо вже намальований кадр (CSS), а справжній кадр малюємо, коли рух стих
-  function redraw(done) { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; A.draw.draw(cv, W, view, { layers }); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, view, hover, W && levelNow()); hlKey = infoKey = ''; if (last) hoverAt(last); if (done) done(); }); }
+  function redraw(done) { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; paint(); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, V(), hover, W && levelNow()); hlKey = infoKey = ''; if (last) hoverAt(last); keepBlocks(); if (done) done(); }); }
+  const paint = () => B ? A.BlocksView.drawBlocks(cv, B, view, { layers }) : A.draw.draw(cv, W, view, { layers });
   function moving() {
     if (!W) return;
     const s = view.k / shown.k, q = 1 / devicePixelRatio; cv.style.transform = `translate(${(view.tx - shown.tx * s) * q}px, ${(view.ty - shown.ty * s) * q}px) scale(${s})`;
-    A.draw.drawHover(ov, W, view, null, null); hlKey = infoKey = ''; clearTimeout(settle); settle = setTimeout(redraw, 140);
+    A.draw.drawHover(ov, W, V(), null, null); hlKey = infoKey = ''; clearTimeout(settle); settle = setTimeout(redraw, 140);
   }
   // смуга завантаження: кроки генерації з відсотками; кожна нова збірка скасовує попередню, яка ще йде
   const load = $('load'), loadBar = $('loadBar'), loadTxt = $('loadTxt'); let buildId = 0;
@@ -28,12 +30,29 @@
   async function build() {
     const id = ++buildId, p = readParams(), t0 = performance.now();
     const w2 = await A.generateAsync(p, (f, l) => { if (id !== buildId) return false; progress(f * 0.93, l); });
-    if (!w2 || id !== buildId) return; W = w2; A.world = W; if (A.TownMap) A.TownMap.reset(); A.getView = () => view; writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
+    if (!w2 || id !== buildId) return; if (B) B.dispose(); W = w2; A.world = W; if (A.TownMap) A.TownMap.reset(); A.getView = V; A.isLive = w => w === W || !!(B && B.has(w)); hover = null; last = null;
+    B = W.params.infinite ? A.Blocks.create(W.params, { progress: blkProgress, added: blkAdded }) : null; cur = B ? B.add(0, 0, W) : null; blkBadge(''); writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
     await new Promise(r => setTimeout(r, 0));
     redraw(() => { if (id === buildId) load.hidden = true; });
     const s = W.settlements ? W.settlements.length : 0, land = W.land.reduce((a, v) => a + v, 0);
-    $('stats').textContent = `Суша ${Math.round(land * W.params.kmPerCell ** 2).toLocaleString('uk')} км²; провінцій ${W.provinces.length}, регіонів ${W.regions.length}, річок ${W.rivers.length}, озер ${W.lakes.length}${s ? ', поселень ' + s : ''}, локацій ${W.sites ? W.sites.length : 0}.`;
+    statsHome = `Суша ${Math.round(land * W.params.kmPerCell ** 2).toLocaleString('uk')} км²; провінцій ${W.provinces.length}, регіонів ${W.regions.length}, річок ${W.rivers.length}, озер ${W.lakes.length}${s ? ', поселень ' + s : ''}, локацій ${W.sites ? W.sites.length : 0}.`; showStats();
     try { history.replaceState(null, '', '#p=' + btoa(unescape(encodeURIComponent(JSON.stringify(A.Save.paramsToJSON(W.params)))))); } catch (e) { /* не критично */ }
+  }
+  // безкінечний світ: сусідні материки створюються по одному, коли вони потрапляють у вікно; далекі вивантажуються
+  let statsHome = '';
+  const showStats = () => { $('stats').textContent = statsHome + (B ? ` Безкінечний світ: завантажено материків ${B.list().length}; цифри вище про домашній (0, 0).` : ''); };
+  const blkBadge = t => { const e = $('blkStat'); e.textContent = t; e.hidden = !t; };
+  const blkProgress = (f, l, bx, by) => blkBadge(`Створюю материк (${bx}, ${by}): ${l}… ${Math.round(f * 100)} %`);
+  const blkAdded = () => { blkBadge(''); showStats(); redraw(); };
+  function activate(b) { if (b === cur) return; cur = b; W = b.W; A.world = W; hlKey = infoKey = ''; hover = null; }
+  function keepBlocks() {
+    if (!B) return; const R = A.BlocksView, r = R.range(B, cv, view, 0.12), want = [], vis = new Set(), mid = R.range(B, cv, { k: view.k, tx: view.tx - cv.width / 2, ty: view.ty - cv.height / 2 }, 0), cx = mid.bx0, cy = mid.by0; // блок у центрі вікна
+    for (let by = r.by0; by <= r.by1; by++) for (let bx = r.bx0; bx <= r.bx1; bx++) { want.push([bx, by]); vis.add(bx + ',' + by); }
+    want.sort((p, q) => Math.hypot(p[0] - cx, p[1] - cy) - Math.hypot(q[0] - cx, q[1] - cy));
+    for (const b of B.list()) if (!vis.has(b.bx + ',' + b.by)) A.draw.release(b.W); // растри блоків поза вікном звільняємо, дані лишаються
+    if (!drag) B.request(want); if (!B.busy()) blkBadge('');
+    B.evict(cx, cy, 12, vis).forEach(b => A.draw.release(b.W));
+    if (!last) { const c = B.get(cx, cy); if (c) activate(c); } // без курсора активний блок у центрі вікна (для панелі «Як працює»)
   }
   const later = () => { clearTimeout(timer); timer = setTimeout(build, 250); };
   IDS.forEach(id => $(id).addEventListener(id === 'seed' ? 'change' : 'input', later));
@@ -42,10 +61,10 @@
   document.querySelectorAll('[data-layer]').forEach(e => e.addEventListener('change', () => { layers[e.dataset.layer] = e.checked; redraw(); }));
 
   // масштаб і пересування
-  cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, f = Math.exp(-e.deltaY * 0.0015), k = Math.min(450, Math.max(0.5, view.k * f)), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; moving(); }, { passive: false });
+  cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, f = Math.exp(-e.deltaY * 0.0015), k = Math.min(450, Math.max(B ? Math.max(0.5, cv.width / (2.2 * B.bw), cv.height / (2.2 * B.bh)) : 0.5, view.k * f)), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; moving(); }, { passive: false });
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (!d || !A.TownMap || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (curCt) A.TownMap.click(curCt); else if (curNear) A.TownMap.focus(curNear); else A.TownMap.click(null); }); // клік на місті закріплює подробиці, клік на значку наближає до міста (ui/town.js)
+  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (d && B) keepBlocks(); if (!d || !A.TownMap || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (curCt) A.TownMap.click(curCt); else if (curNear) A.TownMap.focus(curNear); else A.TownMap.click(null); }); // клік на місті закріплює подробиці, клік на значку наближає до міста (ui/town.js)
   let last = null, curNear = null, curCt = null;
   cv.addEventListener('pointermove', e => {
     last = e;
@@ -57,7 +76,9 @@
   const levelNow = () => { const bar = 150 * devicePixelRatio * W.params.kmPerCell / view.k; return bar >= 10 ? 'prov' : bar >= 2 ? 'reg' : null; };
   let hlKey = '', infoKey = '';
   function hoverAt(e) {
-    if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, fx = (mx - view.tx) / view.k, fy = (my - view.ty) / view.k, x = Math.floor(fx), y = Math.floor(fy);
+    if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, gx = (mx - view.tx) / view.k, gy = (my - view.ty) / view.k;
+    if (B) { const b = B.get(Math.floor(gx / B.bw), Math.floor(gy / B.bh)); if (!b) { clearHover(); return; } activate(b); } // курсор над іншим материком: він стає активним
+    const fx = gx - (cur ? cur.ox : 0), fy = gy - (cur ? cur.oy : 0), x = Math.floor(fx), y = Math.floor(fy);
     const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
@@ -67,7 +88,7 @@
     curNear = ct ? null : near; cv.style.cursor = ct ? '' : near || lm ? 'pointer' : ''; if (A.TownMap) A.TownMap.hover(ct, lm);
     const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = ct ? null : near || site;
     const k1 = level + '|' + id + '|' + (ct && ct.h ? ct.h.kind + (ct.h.o.id == null ? '' : ct.h.o.id) : '') + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
-    if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, view, hover, level, mark); }
+    if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, V(), hover, level, mark); }
     const k2 = (near ? near.id : '') + '|' + (site ? site.id : '') + '|' + (rsn ? 'r' + rsn.id : '') + '|' + (inside ? cell : -1);
     if (k2 !== infoKey) { infoKey = k2; showInfo(inside ? cell : -1, rid, near, site, rsn, inside ? [fx, fy] : null); }
   }
@@ -93,8 +114,8 @@
     // 2. регіон
     if (g) out.push(blk('Регіон', `<dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення · площа', (g.pop ? fmt(g.pop) : '—') + ' · ' + fmt(Math.round(g.area * kmc)) + ' км²')}${row('Місцевість', esc(g.terrain || '—'))}</dl>`, esc(g.name)));
     // 3. координати від нульової точки (центр карти): X на схід, Y на північ
-    const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K;
-    out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span></div>`));
+    const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K; // origin безкінечного світу — центр домашнього материка, тож координати наскрізні
+    out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span>${W.blk ? `<br><span class="muted">Материк (${W.blk.bx}, ${W.blk.by})${W.blk.bx || W.blk.by ? '' : ', домашній'}</span>` : ''}</div>`));
     // 4. місцевість у клітині
     const land = W.land[i] && !W.lake[i], terr = []; let bdesc = '';
     if (land) {
@@ -129,13 +150,14 @@
     }
     info.innerHTML = out.join(''); info.hidden = false;
   }
-  A.redraw = redraw; A.redrawOver = () => A.draw.drawHover(ov, W, view, hover, W && levelNow()); A.focusCell = (x, y, k) => { view.k = Math.min(450, k); view.tx = cv.width / 2 - x * view.k; view.ty = cv.height / 2 - y * view.k; redraw(); };
-  cv.addEventListener('pointerleave', () => { if (!drag) { if (A.TownMap) A.TownMap.hover(null); curCt = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, view, null, null); last = null; } });
+  A.redraw = redraw; A.redrawOver = () => A.draw.drawHover(ov, W, V(), hover, W && levelNow()); A.focusCell = (x, y, k) => { view.k = Math.min(450, k); view.tx = cv.width / 2 - (x + (cur ? cur.ox : 0)) * view.k; view.ty = cv.height / 2 - (y + (cur ? cur.oy : 0)) * view.k; redraw(); };
+  function clearHover() { if (A.TownMap) A.TownMap.hover(null); curCt = null; curNear = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, V(), null, null); }
+  cv.addEventListener('pointerleave', () => { if (!drag) { clearHover(); last = null; } });
 
   // меню (іконки, панель, довідка «i») веде спільний кіт zb-ui.js; ключ збереження панелі: data-store на #drawer
   // збереження й обмін (верхня панель)
   const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1800); };
-  addEventListener('resize', () => { if (W) { fit(); resetView(); redraw(); } });
+  addEventListener('resize', () => { if (W) { fit(); if (!B) resetView(); redraw(); } });
 
   const m = /#p=(.+)$/.exec(location.hash);
   $('seed').value = A.Rng.randSeed();

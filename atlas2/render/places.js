@@ -85,7 +85,7 @@
     for (const rank of ['hamlet', 'village', 'town', 'regional', 'capital']) {
       if (k < MINK[rank]) continue; const r = R[rank] * px;
       for (const s of W.settlements) {
-        if (s.rank !== rank) continue; ctx.globalAlpha = A.TownMap ? A.TownMap.fade(s, k) : 1; if (ctx.globalAlpha < 0.02) continue; /* значок згасає, коли проявляється місто */ const x = s.x + 0.5 + (s.ox || 0), y = s.y + 0.5 + (s.oy || 0);
+        if (s.rank !== rank) continue; ctx.globalAlpha = A.TownMap ? A.TownMap.fade(s, k, W) : 1; if (ctx.globalAlpha < 0.02) continue; /* значок згасає, коли проявляється місто */ const x = s.x + 0.5 + (s.ox || 0), y = s.y + 0.5 + (s.oy || 0);
         if (s.fortress) { // значок фортеці малює render/void.js (квадрат із вежами на стіні); тут лише підпис
           if (L.labels && k >= LBLK[rank]) { ctx.font = `700 ${11.5 * px}px sans-serif`; ctx.fillStyle = '#2a2430'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * px; ctx.strokeText(s.name, x + 8 * px, y); ctx.fillText(s.name, x + 8 * px, y); ctx.textAlign = 'center'; }
           continue;

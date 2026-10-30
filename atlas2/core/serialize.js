@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2;
-  const KEYS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity'];
+  const KEYS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity', 'infinite'];
   function paramsToJSON(p) { const o = { format: 'atlas2-params', version: 1 }; for (const k of KEYS) o[k] = p[k]; return o; }
   function paramsFromJSON(o) { if (!o || o.format !== 'atlas2-params') throw new Error('Це не файл параметрів Атласу 2.0'); const p = {}; for (const k of KEYS) if (o[k] != null) p[k] = o[k]; return p; }
   // повний експорт: об'єкти без важких масивів; шари — у RLE

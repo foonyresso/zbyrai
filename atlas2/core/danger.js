@@ -135,12 +135,12 @@
 
   // ---- етап 1: рівні, групи ландшафту, небезпека, щільність монстрів ----
   function danger(W) {
-    const { w, h } = W, N = w * h, km = W.params.kmPerCell, nz = A.Noise.make(W.params.seed + '|danger');
-    W.origin = { x: w / 2, y: h / 2 }; // нульові координати — центр карти
+    const { w, h } = W, N = w * h, km = W.params.kmPerCell, nz = A.Noise.make((W.params.wseed || W.params.seed) + '|danger'), gx0 = (W.params.bx | 0) * w, gy0 = (W.params.by | 0) * h; // шум по наскрізних координатах світу: у безкінечному світі небезпека на стику блоків не рветься
+    const bx = W.params.bx | 0, by = W.params.by | 0; W.origin = { x: w / 2 - bx * w, y: h / 2 - by * h }; // нульові координати — центр домашнього материка (у сусідніх блоках безкінечного світу лежить поза картою блока)
     let top = 0; for (let i = 0; i < N; i++) if (W.land[i] && W.elev[i] > top) top = W.elev[i]; W.top = top || 1;
     // рівень клітини
     const level = new Uint16Array(N);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const d = Math.hypot(x + 0.5 - W.origin.x, y + 0.5 - W.origin.y) * km, mult = 1 + (nz.fbm(x * 0.03 + 5, y * 0.03 + 5, 2) - 0.5) * 0.9; level[y * w + x] = Math.max(1, Math.round(1 + d / KM_PER_LEVEL * mult)); }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const d = Math.hypot(x + 0.5 - W.origin.x, y + 0.5 - W.origin.y) * km, mult = 1 + (nz.fbm((x + gx0) * 0.03 + 5, (y + gy0) * 0.03 + 5, 2) - 0.5) * 0.9; level[y * w + x] = Math.max(1, Math.round(1 + d / KM_PER_LEVEL * mult)); }
     W.level = level;
     // групи ландшафту: біом + висота (пагорби, вершини)
     const el = []; for (let i = 0; i < N; i += 7) if (W.land[i] && !W.lake[i]) el.push(W.elev[i]); el.sort((a, b) => a - b);
@@ -166,7 +166,7 @@
       if (s.ruined || s.fortress || (s.port && s.body === -1 && !outer) || (!PF[s.rank] && !outer)) continue; // морські порти не гинуть: через них острови отримують ресурси // фортеця Великої стіни живе завжди
       if (outer) { s.fate = fr() < 0.15 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = 'monsters'; }
       else {
-        if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;
+        if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - w / 2, s.y - h / 2) / dmax))) continue;
         s.fate = fr() < 0.4 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') { s.occupier = fr() < 0.3 ? 'bandits' : 'monsters'; if (!A.RoadGraph.canBlock(W, s)) { s.fate = 'ruined'; s.occupier = null; } } // окуповане лише відгалуженням: не на дорозі між живими поселеннями
       }
       s.popBefore = s.pop; if (s.region >= 0) { W.regions[s.region].pop -= s.pop; W.provinces[W.regions[s.region].prov].pop -= s.pop; } s.pop = 0;
@@ -185,12 +185,13 @@
       if (ports.length) { const d = distField(w, h, ports), k = km / 1.7; for (let i = 0; i < N; i++) { const v = d[i] * k; if (v < effW[i]) effW[i] = v; } }
       const rc = []; for (const rt of W.seaRoutes || []) for (const c of rt.cells) rc.push(c);
       if (rc.length) { const d = distField(w, h, rc); for (let i = 0; i < N; i++) if (d[i] <= 2) effW[i] *= 0.6; } }
+    if (W.params.infinite && !cosmos) { const E = 70; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x, ed = Math.min(x, w - 1 - x, y, h - 1 - y); if (ed < E && W.ocean[i]) { const t = 1 - ed / E; effW[i] += (40 - effW[i]) * t * t; } } } // безкінечний світ: біля краю карти відкритий океан до найвищої небезпеки, тож на стику материків рівні збігаються (сусіда видно лише після створення)
     const tier = new Uint8Array(N), dens = new Uint8Array(N);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x, wet = !W.land[i] || W.lake[i];
-      const e = (cosmos && !wet && W.fr[i] < A.WALL_FR ? 0.15 + 0.85 * Math.pow(W.fr[i] / A.WALL_FR, 1.5) : 1) * (wet ? effW[i] : eff[i]) * Math.min(1.35, Math.max(0.7, 1 + (nz.fbm(x * 0.035 + 40, y * 0.035 + 7, 3) - 0.5) * 3));
+      const e = (cosmos && !wet && W.fr[i] < A.WALL_FR ? 0.15 + 0.85 * Math.pow(W.fr[i] / A.WALL_FR, 1.5) : 1) * (wet ? effW[i] : eff[i]) * Math.min(1.35, Math.max(0.7, 1 + (nz.fbm((x + gx0) * 0.035 + 40, (y + gy0) * 0.035 + 7, 3) - 0.5) * 3));
       let t = 0; while (t < THR.length && e >= THR[t]) t++; tier[i] = t;
-      dens[i] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + (nz.fbm(x * 0.02 + 90, y * 0.02 + 3, 3) - 0.5) * 4.5)));
+      dens[i] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + (nz.fbm((x + gx0) * 0.02 + 90, (y + gy0) * 0.02 + 3, 3) - 0.5) * 4.5)));
     }
     // навколо окупованих і зруйнованих поселень небезпека не нижча за мінімум: у серці окупації найвища
     const FR = { town: 8, village: 5, hamlet: 4 }, FB = { town: 4, village: 3, hamlet: 3 };

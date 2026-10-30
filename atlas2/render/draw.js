@@ -12,7 +12,7 @@
     const pnW = C.net(w, h, i => W.provW[i]), rnW = C.net(w, h, i => W.regW[i]);
     c = { pn, rn, land: C.polys(pn, l => l !== -1), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: W.provinces.map(p => C.polys(pnW, l => l === p.id)), regs: W.regions.map(g => C.polys(rnW, l => l === g.id)) }; // для підсвітки: суша + прибережна вода
     c.geom = A.RoadGeom.build(W);
-    const S = 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
+    const S = W.params.infinite ? 3 : 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
     const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };
     c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
     if (A.Params.isVoid(W.params)) c.roots = A.Void.roots(W, c.land); else if (A.Void) c.sub = A.Void.subLayer(W, toCanvas);
@@ -29,7 +29,7 @@
   function draw(cv, W, view, opts) {
     const c = prep(W), ctx = cv.getContext('2d'), L = opts.layers, { k, tx, ty } = view, px = 1 / k;
     const VOID = A.Params.isVoid(W.params);
-    ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); if (VOID) A.Void.backdrop(ctx, cv, view); else { ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height); }
+    ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); if (VOID) A.Void.backdrop(ctx, cv, view); else if (!opts.keep) { ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height); } // keep: фон уже залито (малювання кількох материків, render/blocks.js)
     ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
     ctx.drawImage(c.ocean, 0, 0, W.w, W.h);
     if (VOID) { // обрив: корені звисають у безодню, під краєм темна тінь і бірюзове світіння
@@ -100,5 +100,5 @@
     path(ctx, polys[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
   }
   function drawHover(cv, W, view, id, level, mark) { drawHover0(cv, W, view, id, level, mark); if (W && A.TownMap) A.TownMap.drawOver(cv, W, view); }
-  A.draw = { draw, drawHover, prep, drawRivers, PALETTE };
+  A.draw = { draw, drawHover, prep, drawRivers, PALETTE, release: W => cache.delete(W) }; // release: звільнити растри блока, що пішов за межі екрана
 })();
