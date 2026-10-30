@@ -27,7 +27,7 @@
   const get = (W, s, extra) => { const cu = customOf(W, s); if (cu) return cu; let m = caches.get(W); if (!m) caches.set(W, m = new Map()); let c = m.get(s.id); if (!c) m.set(s.id, c = build(W, s, extra)); return c; };
   const has = (W, s) => !!customOf(W, s) || !!(caches.get(W) && caches.get(W).has(s.id));
   // орієнтовні розміри міста до побудови: радіус, радіус області, кількість споруд
-  const sizeOf = s => { const tier = s.fortress ? 4 : TIER[s.rank], popEff = s.pop || s.popBefore || [60, 380, 2000, 8000, 26000][tier], target = clamp(Math.round(popEff / PPB[tier]), MINB[tier], MAXB[tier]), R = Math.sqrt(target * AREAB[tier] / Math.PI) * (tier >= 2 ? 1.12 : 1) * (s.fortress ? 1.2 : 1); return { tier, popEff, target, R, Rmap: R * 1.9 + 120 + (s.fortress ? 800 : 0) }; }; // фортеця більша (стіна відрізає частину круга) і має запас на зсув центру
+  const sizeOf = s => { const tier = s.fortress ? 4 : TIER[s.rank], popEff = s.fortress && s.bld ? s.bld : s.pop || s.popBefore || [60, 380, 2000, 8000, 26000][tier], target = clamp(Math.round(popEff / PPB[tier]), MINB[tier], MAXB[tier]), R = Math.sqrt(target * AREAB[tier] / Math.PI) * (tier >= 2 ? 1.12 : 1) * (s.fortress ? 1.2 : 1); return { tier, popEff, target, R, Rmap: R * 1.9 + 120 + (s.fortress ? 800 : 0) }; }; // фортеця більша (стіна відрізає частину круга) і має запас на зсув центру
 
   function build(W, s, extra) {
     const seed = W.params.seed, r = A.Rng.stream(seed, 'town|' + s.id), si = A.Rng.hashSeed(seed + '|t' + s.id) & 0x7fffffff, names = A.Names.make(seed + '|town|' + s.id), lang = names.lang(), cname = () => { try { return names.region(lang); } catch (e) { return X.mkName(r); } };
