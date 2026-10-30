@@ -80,7 +80,7 @@
       for (const [key, cells] of mp) place(t, cells, count(t), t.perProv ? null : key);
     }
     const api = { blocked, fits, tooClose, nearTo, makeNode, placed, cm, km, bioId, r, sold, types: prov };
-    A.ResAssign.run(W, out, api); for (const n of out) n.road = A.ResData.byId[n.type].road; A.ResRoads.run(W, out);
+    A.ResAssign.run(W, out, api); for (const n of out) { const rd = A.ResData.byId[n.type].road; n.road = rd === 'cart' && n.q === 'poor' ? 'trail' : rd; } A.ResRoads.run(W, out); // бідні точки обходяться стежкою
     W.resources = out; W.resourceTypes = prov.map(t => ({ id: t.id, name: t.name, grp: t.grp, mat: t.mat, res: t.res }));
   }
   A.resources = resources;

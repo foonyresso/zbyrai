@@ -25,6 +25,17 @@ for (const seed of ['a', 'zbyrai', 'k']) {
   for (const n of W.resources) { const d = A.ResData.byId[n.type]; if (d.on === 'land') { assert.ok(!W.roadLevel[n.i], `${seed}: точка на дорозі`); for (const q of W.settlements) assert.ok(Math.hypot(q.x - n.x, q.y - n.y) * W.params.kmPerCell * 1000 > 400, `${seed}: точка в місті`); } }
   assert.ok(W.resRoads.length > 100); const linked = W.resources.filter(n => n.road).length; assert.ok(W.resources.filter(n => n.linked).length > linked * 0.9, `${seed}: мало точок з дорогою`);
 }
+// дороги до точок — дерево: кожен кінець шляху в точці, поселенні, основній дорозі або іншому шляху не меншого рангу (возовий не відгалужується від стежки)
+for (const seed of ['a', 'zbyrai']) {
+  const W = A.generate({ seed, size: 'small' }), cartCells = new Set(), anyCells = new Set(), nodeCells = new Map(W.resources.map(n => [n.i, n]));
+  for (const r of W.resRoads) for (const c of r.cells) { anyCells.add(c); if (r.kind === 'cart') cartCells.add(c); }
+  const sCells = new Set(W.settlements.map(q => q.i));
+  for (const r of W.resRoads) for (const e of [r.cells[0], r.cells[r.cells.length - 1]]) {
+    const ok = sCells.has(e) || W.roadLevel[e] || nodeCells.has(e) || (r.kind === 'cart' ? cartCells.has(e) : anyCells.has(e));
+    assert.ok(ok, `${seed}: кінець шляху до точки висить у повітрі`);
+    if (r.kind === 'cart' && !sCells.has(e) && !W.roadLevel[e] && !cartCells.has(e)) { const n = nodeCells.get(e); assert.ok(n && n.road === 'cart', `${seed}: возовий шлях стикується зі стежкою`); }
+  }
+}
 const a = A.generate({ seed: 'q', size: 'small' }), b = A.generate({ seed: 'q', size: 'small' });
 assert.deepEqual(a.resources, b.resources);
 console.log('resources.test.js ok');

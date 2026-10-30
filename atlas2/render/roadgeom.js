@@ -25,7 +25,7 @@
       const cs = cuts.get(n); if (!cs) { pieces.push(r); return; }
       let from = 0; for (let k = 1; k < r.cells.length; k++) if (cs.has(r.cells[k]) || k === r.cells.length - 1) { if (k - from >= 1) pieces.push({ level: r.level, cells: r.cells.slice(from, k + 1) }); from = k; }
     });
-    const pts = pieces.map(r => ({ level: r.level, pts: wavy(r.cells, r.level > 4 ? 2.2 : 1, true) }));
+    const pts = pieces.map(r => ({ level: r.level, pts: wavy(r.cells, 1, true) }));
     return { roads: pts.filter(r => r.level <= 4), res: pts.filter(r => r.level > 4), sea: (W.seaRoutes || []).map(r => ({ pts: wavy(r.cells, 0.35, false) })) };
   }
   A.RoadGeom = { build };
