@@ -163,7 +163,7 @@
     const fr = A.Rng.stream(W.params.seed, 'fates'), dmax = Math.hypot(w, h) / 2, PF = { town: 0.1, village: 0.16, hamlet: 0.2 };
     for (const s of W.settlements) {
       const outer = cosmos && s.rank !== 'capital' && W.fr[s.i] > A.WALL_FR; // Астракор: за Великою стіною всі поселення захоплені монстрами або зруїновані
-      if (s.ruined || s.fortress || (!PF[s.rank] && !outer)) continue; // фортеця Великої стіни живе завжди
+      if (s.ruined || s.fortress || (s.port && s.body === -1 && !outer) || (!PF[s.rank] && !outer)) continue; // морські порти не гинуть: через них острови отримують ресурси // фортеця Великої стіни живе завжди
       if (outer) { s.fate = fr() < 0.15 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = 'monsters'; }
       else {
         if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;

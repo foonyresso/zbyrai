@@ -61,6 +61,7 @@
     const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
     let site = null; if (!near && layers.sites !== false) { bd = rad; for (const s of W.sites || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; site = s; } } }
+    let rsn = null; if (!near && !site && W.resources && layers.resources !== false && view.k >= 3.5) { bd = rad; for (const q of W.resources) { const d = (q.x - fx) ** 2 + (q.y - fy) ** 2; if (d < bd) { bd = d; rsn = q; } } }
     const ct = A.TownMap ? A.TownMap.at(W, view, fx, fy) : null; curCt = ct; if (ct) { near = ct.s; site = null; } // у межах видимого міста велике вікно лишається про це місто, а подробиці йдуть у вікно міста
     let lm = null; if (!ct && !near && !site && W.landmarks && layers.sites !== false && view.k >= 2.2) { bd = rad; for (const q of W.landmarks) { const d = (q.x + 0.5 - fx) ** 2 + (q.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; lm = q; } } }
     curNear = ct ? null : near; cv.style.cursor = ct ? '' : near || lm ? 'pointer' : ''; if (A.TownMap) A.TownMap.hover(ct, lm);
@@ -72,6 +73,13 @@
   }
   const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const TIER_COL = ['#7bbf6a', '#e6cf4a', '#f0a23c', '#e0642f', '#c0302f', '#8a1f58', '#3c0a4a'];
+  // господарство поселення: потреби, власний видобуток і імпорт за добу
+  function ecoHtml(s) {
+    const e = s.eco; if (!e) return ''; const NM = A.Needs.NAMES, f = v => Math.round(v).toLocaleString('uk');
+    const rows = ['food', 'water', 'wood'].map(k => `<tr><td>${NM[k]}</td><td>${f(e.need[k])}</td><td>${f(e.prod[k])}</td><td>${e.imp[k] ? '+' + f(e.imp[k]) : '—'}</td></tr>`).join('');
+    const oth = Object.entries(e.other).map(([k, v]) => `${NM[k] || k}: ${f(v)}`).join(', ');
+    return `<div class="eco"><b title="За добу: скільки потрібно мешканцям, скільки дають точки ресурсів поселення, скільки доставляють ззовні">Господарство (за добу)</b><table><tr><th></th><th title="Споживання мешканців">Потрібно</th><th title="Видобуток власних точок ресурсів">Своє</th><th title="Нестача, що завозиться">Імпорт</th></tr>${rows}</table>${e.natWater ? '<p class="muted">Воду беруть із річки, озера чи моря поруч.</p>' : ''}${e.via ? `<p class="muted">Нестачу завозять ${e.via === 'port' ? 'морем через порт' : 'дорогою від сусідів'}.</p>` : ''}<p class="muted">Точок ресурсів: ${e.nodes}${oth ? '. Також видобувають: ' + oth : ''}</p></div>`;
+  }
   const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };
   function showInfo(cell, rid, s, site) {
     if (cell < 0 && !s) { info.hidden = true; return; }
@@ -109,8 +117,11 @@
       const body = s.fate ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.fate === 'occupied' ? ' — <b style="color:#b3261e">окуповане ' + (s.occupier === 'bandits' ? 'бандитами' : 'монстрами') + '</b>' : ' — <b>зруйноване</b>'))}${row('Було мешканців', fmt(s.popBefore))}${s.fate === 'occupied' ? row('Рівень загрози', s.level) : ''}${s.order ? row('Володар', esc(s.order.chief)) : ''}</dl>${s.order ? `<p class="muted"><b>Лад орди:</b> ${s.order.laws.map(esc).join(' ')} Населення: ${esc(s.order.caste)}.</p>` : ''}${nobody}`
         : s.ruined ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Руїни ' + (s.rank === 'town' ? 'міста' : s.rank === 'village' ? 'села' : 'хутора'))}${row('Власник', 'нічия земля')}${s.monsters && s.monsters.length ? row('Рівень загрози', s.level + ' · охороняє бос') : ''}</dl>${(s.monsters || []).slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('')}`
         : s.fortress ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Гігантська фортеця Великої стіни')}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}${row('Небезпека за стіною', `<span class="tier" style="background:${TIER_COL[W.tier[s.i]]}"></span>${D.TIERS[W.tier[s.i]]}`)}</dl><p class="muted">Місто, повністю зосереджене на обороні: лежить із внутрішнього боку стіни, а вздовж стіни тягнуться бастіони, метальні машини, вежі й надбрамні твердині. Через її ворота проходять дороги.</p>`
-        : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>`;
+        : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>${ecoHtml(s)}`;
       out.push(blk('Деталі місця', body));
+    } else if (rsn) {
+      const t = A.ResData.byId[rsn.type], QN = { poor: 'бідне', normal: 'звичайне', rich: 'багате' }, ow = W.settlements[rsn.sid];
+      out.push(blk('Деталі місця', `<h4>${esc(rsn.name)}</h4><dl>${row('Що тут', esc(rsn.mat))}${row('Багатство', QN[rsn.q])}${rsn.out.map(o => row(esc(o.item), o.qty + ' / добу')).join('')}${rsn.animals ? row('Тварини', esc(rsn.animals.join(', '))) : ''}${ow ? row('Належить', esc(ow.name)) : ''}${row('Дорога', rsn.road === 'cart' ? 'возовий шлях' : rsn.road ? 'стежка' : '—')}</dl><p class="muted">Джерело невичерпне: добич обмежена лише кількістю за добу.</p>`));
     } else if (site) {
       const mons = site.monsters.slice(0, 3).map(m => `<div class="mon"><b>${esc(m.name)}</b>${m.count > 1 ? ' × ' + m.count : ''}<small>${m.kind}${m.magic ? ', магічний' : ''} · рівень ${m.level}</small></div>`).join('');
       out.push(blk('Деталі місця', `<h4>${esc(site.name)}</h4><dl>${row('Вид', esc(D.CATS[site.cat]))}${row('Рівень · небезпека', `${site.level} · <span class="tier" style="background:${TIER_COL[site.tier]}"></span>${D.TIERS[site.tier]}`)}</dl>${mons || '<p class="muted">Мешканців немає — місце безпечне.</p>'}`));

@@ -51,22 +51,32 @@
         (mp.get(key) || mp.set(key, []).get(key)).push(i);
       }
     }
+    // вузол: якість (бідна ×0,7 / звичайна / багата ×1,35) визначає добич за добу
+    const makeNode = (t, i, x, y, reg, p) => {
+      const u = r(), f = u < 0.3 ? 0.7 : u < 0.8 ? 1 : 1.35, q = f < 1 ? 'poor' : f > 1 ? 'rich' : 'normal';
+      const node = { id: out.length, type: t.id, name: t.name, mat: t.mat, x: +x.toFixed(2), y: +y.toFixed(2), i, region: reg, prov: p, tier: W.tier[i], q, out: t.out.map(([res, item, v]) => ({ res, item, qty: Math.max(1, Math.round(v * f)) })) };
+      if (t.animals) { const a = t.animals.slice().sort(() => r() - 0.5); node.animals = a.slice(0, 2 + Math.floor(r() * 2)); }
+      return node;
+    };
     const place = (t, cells, want, regId) => {
       let got = 0, tries = 0; const md = Math.max(0.5, t.dist / cm);
       while (got < want && cells.length && tries++ < want * 30 + 30) {
         const k = (r() * cells.length) | 0, i = cells[k], x = (i % w) + 0.2 + 0.6 * r(), y = ((i / w) | 0) + 0.2 + 0.6 * r();
         if (tooClose(t, x, y, md) || !nearTo(t, x, y)) continue;
         const reg = regId != null ? regId : (W.region[i] >= 0 ? W.region[i] : W.regW[i]), p = reg >= 0 ? W.regions[reg].prov : -1;
-        const node = { id: out.length, type: t.id, name: t.name, mat: t.mat, x: +x.toFixed(2), y: +y.toFixed(2), i, region: reg, prov: p, tier: W.tier[i] };
+        const node = makeNode(t, i, x, y, reg, p);
         out.push(node); (placed.get(t.id) || placed.set(t.id, []).get(t.id)).push(node); got++; cells.splice(k, 1);
       }
     };
     const count = (t) => { const [a, b] = t.per[0] !== undefined ? t.per : [0, 0]; if (t.cond.rare && r() > t.cond.rare) return 0; return a + Math.floor(r() * (b - a + 1)); };
     for (const t of prov) {
+      if (t.cond.bal) continue;
       if (t.on === 'deep') { place(t, deep.get(t.id), Math.max(1, Math.round(W.regions.length * (t.per[0] + t.per[1]) / 2 * 0.5))); continue; }
       const mp = t.perProv ? byProv.get(t.id) : byReg.get(t.id);
       for (const [key, cells] of mp) place(t, cells, count(t), t.perProv ? null : key);
     }
+    const api = { fits, tooClose, nearTo, makeNode, placed, cm, km, bioId, r, sold, types: prov };
+    A.ResAssign.run(W, out, api); for (const n of out) n.road = A.ResData.byId[n.type].road; A.ResRoads.run(W, out);
     W.resources = out; W.resourceTypes = prov.map(t => ({ id: t.id, name: t.name, grp: t.grp, mat: t.mat, res: t.res }));
   }
   A.resources = resources;

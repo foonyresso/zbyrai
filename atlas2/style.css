@@ -22,3 +22,4 @@
 .loadtrack::after { content: ''; position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent); animation: loadshine 1.1s linear infinite; will-change: transform; }
 @keyframes loadshine { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
 .stage > canvas { cursor: grab; } .stats { font-size: 12.5px; opacity: .9; margin: 0; }
+.info .eco { margin-top: 4px; } .info .eco table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 2px; } .info .eco th { font-weight: 500; opacity: .6; text-align: right; } .info .eco td { text-align: right; padding: 1px 0; } .info .eco td:first-child, .info .eco th:first-child { text-align: left; }
