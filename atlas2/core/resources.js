@@ -18,7 +18,7 @@
     for (let k = 0; k < q.length; k++) { const i = q[k], x = i % w, y = (i / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (dLand[j] > dLand[i] + 1) { dLand[j] = dLand[i] + 1; q.push(j); } } }
     // клітини, де точок не буває: міста з полями навколо (радіус за рангом, м) і самі дороги
     const BLK_M = { capital: 2400, regional: 1900, town: 1400, village: 800, hamlet: 450 }, blocked = new Uint8Array(N);
-    for (const s of W.settlements) { const R = BLK_M[s.rank] / cm, r2 = Math.ceil(R); for (let dy = -r2; dy <= r2; dy++) for (let dx = -r2; dx <= r2; dx++) { const x = s.x + dx, y = s.y + dy; if (x >= 0 && y >= 0 && x < w && y < h && Math.hypot(dx, dy) <= R) blocked[y * w + x] = 1; } }
+    for (const s of W.settlements) { const R = BLK_M[s.rank] / cm + 1, r2 = Math.ceil(R); for (let dy = -r2; dy <= r2; dy++) for (let dx = -r2; dx <= r2; dx++) { const x = s.x + dx, y = s.y + dy; if (x >= 0 && y >= 0 && x < w && y < h && Math.hypot(dx, dy) <= R) blocked[y * w + x] = 1; } }
     for (let i = 0; i < N; i++) if (W.roadLevel[i]) blocked[i] = 1;
     const hillMin = 45, smallLm = new Set(W.lm.list.filter(m => m.area < 0.2 * W.lm.list[0].area).map(m => m.id));
     const hot = i => W.temp[i] > 0.55, cold = i => W.temp[i] < 0.3; // температура 0..1 з клімату
