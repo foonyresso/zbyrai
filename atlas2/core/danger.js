@@ -167,7 +167,7 @@
       if (outer) { s.fate = fr() < 0.15 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = 'monsters'; }
       else {
         if (fr() >= PF[s.rank] * (0.6 + 1.2 * Math.min(1, Math.hypot(s.x - W.origin.x, s.y - W.origin.y) / dmax))) continue;
-        s.fate = fr() < 0.4 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') s.occupier = fr() < 0.3 ? 'bandits' : 'monsters';
+        s.fate = fr() < 0.4 ? 'ruined' : 'occupied'; if (s.fate === 'occupied') { s.occupier = fr() < 0.3 ? 'bandits' : 'monsters'; if (!A.RoadGraph.canBlock(W, s)) { s.fate = 'ruined'; s.occupier = null; } } // окуповане лише відгалуженням: не на дорозі між живими поселеннями
       }
       s.popBefore = s.pop; if (s.region >= 0) { W.regions[s.region].pop -= s.pop; W.provinces[W.regions[s.region].prov].pop -= s.pop; } s.pop = 0;
     }
