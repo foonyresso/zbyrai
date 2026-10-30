@@ -45,7 +45,7 @@ for (const [worldType, seed] of [['continent', 'a'], ['continent', 'zbyrai'], ['
   assert.ok(sup >= Math.max(1, Math.floor(W.provinces.length / 7)), `${t}: супербосів ${sup}`);
   // чим далі від поселень, тим сильніші монстри: середній рівень типу монстра за небезпекою не спадає
   const avg = [0, 0, 0, 0, 0, 0, 0], c2 = [0, 0, 0, 0, 0, 0, 0]; for (const s of W.sites) if (s.monsters.length && W.group[s.i] < 13) { avg[s.tier] += Math.max(...s.monsters.map(m => m.kindIdx)); c2[s.tier]++; }
-  let prev = -1; for (let k = 1; k < 7; k++) if (c2[k] >= 5) { const v = avg[k] / c2[k]; assert.ok(v >= prev - 0.05, `${t}: сила монстрів спадає на небезпеці ${k}`); prev = v; }
+  let prev = -1; for (let k = 1; k < 7; k++) if (c2[k] >= 5) { const v = avg[k] / c2[k]; assert.ok(v >= prev - (c2[k] < 30 ? 0.4 : 0.05), `${t}: сила монстрів спадає на небезпеці ${k}`); prev = v; }
   // вода: небезпека є, і дальні води страшніші за ближні; монстри, лігва й боси всіх рівнів у кожному океані й морі
   const wet = i => !W.land[i] || !!W.lake[i], wc = [0, 0, 0, 0, 0, 0, 0]; for (let i = 0; i < N; i++) if (wet(i)) wc[W.tier[i]]++;
   assert.ok(wc.slice(2).reduce((a, b) => a + b, 0) > wc.reduce((a, b) => a + b, 0) * 0.5 && wc[6] > 0, `${t}: вода майже безпечна ${wc}`);

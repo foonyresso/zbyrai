@@ -87,7 +87,7 @@
       for (const [d, s, t, r] of near) if (!reach(s.i, t.i, Math.ceil(d * 2.2) + 4)) connect(s, i => i === t.i, r <= 2 ? Math.min(LEVEL[s.rank], LEVEL[t.rank]) === 1 && r <= 1 ? 1 : 2 : 3, 3);
       // петлі: сусідні міста вищого рангу з'єднуються ще й напряму, якщо це дає помітний новий відрізок
       for (const s of main.concat(mid)) {
-        if (rr() < 0.4 || roadNear(s) >= 3) continue;
+        if (rr() < 0.15 || roadNear(s) >= 3) continue;
         const cand = main.concat(mid).filter(t => t !== s && dst(t, s) < 45 && (rank(s) > 1 || rank(t) <= 1 || rr() < 0.3)).sort((a, b) => dst(a, s) - dst(b, s));
         const t = cand[1 + Math.floor(rr() * 2)] || cand[0]; if (!t || roadNear(t) >= 3) continue;
         connect(s, i => i === t.i, Math.max(LEVEL[s.rank], LEVEL[t.rank]) === 1 ? 1 : 2, 8);

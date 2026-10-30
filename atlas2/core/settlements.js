@@ -23,6 +23,28 @@
       for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (!W.land[j] || W.lake[j] || W.river[j] || W.region[j] !== W.region[i] || !wetNb(j) || !solid(j) || near(nx, ny, 2.5)) continue; const d = dx * dx + dy * dy + (wet4(j) ? 0 : 3); if (d < bd) { bd = d; best = j; } }
       return best;
     };
+    // порт стоїть на самому березі: маркер зсунуто до води (на межу клітини), а не лишено в центрі
+    function portOffset(s) {
+      const { x, y } = s; let vx = 0, vy = 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if ((W.ocean[q] && !voidEdge) || (W.lake[q] && bigLake.has(W.lakeOf[q]))) { vx += DX[d]; vy += DY[d]; } }
+      const l = Math.hypot(vx, vy); if (l > 0) { const ux = vx / l, uy = vy / l, t = 0.5 / Math.max(Math.abs(ux), Math.abs(uy)); s.ox = +(ux * t).toFixed(2); s.oy = +(uy * t).toFixed(2); }
+    }
+    const seaAdj = j => { const x = j % w, y = (j / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && W.ocean[ny * w + nx]) return true; } return false; };
+    // кожен острів, де є живі поселення, має морський порт: найбільше прибережне місто стає портом, а якщо такого нема, на березі виростає нове місто
+    function ensurePorts() {
+      if (voidEdge) return; const maxA = W.lm.list[0].area;
+      for (const m of W.lm.list) {
+        if (m.area >= 0.25 * maxA) continue; const here = S.filter(q => q.landmass === m.id && !q.ruined); if (!here.length || here.some(q => q.port && q.body === -1)) continue;
+        const cand = here.filter(q => RANKS.indexOf(q.rank) <= 2 && seaAdj(q.i) && solid(q.i)).sort((a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) || b.pop - a.pop)[0];
+        let ps = cand;
+        if (!cand) {
+          const cx = here.reduce((a, q) => a + q.x, 0) / here.length, cy = here.reduce((a, q) => a + q.y, 0) / here.length, cells = [];
+          for (let i = 0; i < N; i++) if (W.landmass[i] === m.id && W.region[i] >= 0 && W.land[i] && !W.lake[i] && !W.river[i] && seaAdj(i) && solid(i) && !near(i % w, (i / w) | 0, 2.5)) cells.push(i);
+          cells.sort((a, b) => Math.hypot(a % w - cx, ((a / w) | 0) - cy) - Math.hypot(b % w - cx, ((b / w) | 0) - cy)); if (!cells.length) continue;
+          ps = add(cells[0], 'town'); ps.newPort = true;
+        }
+        ps.port = true; ps.body = -1; portOffset(ps);
+      }
+    }
     function add(i, rank) {
       if (voidEdge) { const f = W.fr[i]; if (rank === 'town' && f > 0.5) rank = 'village'; if (rank === 'village' && f > 0.62) rank = 'hamlet'; } // Астракор: чим далі від дерева, тим дрібніші поселення
       if (RANKS.indexOf(rank) <= 2 && r() < 0.65) { const j = snap(i); if (j >= 0) i = j; }
@@ -30,10 +52,7 @@
       for (let dy = -1; dy <= 1 && body === null; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (W.ocean[j] && !voidEdge) { coast = 1; body = -1; break; } if (W.lake[j] && bigLake.has(W.lakeOf[j])) { coast = 1; body = W.lakeOf[j]; } }
       const s = { id: S.length, name: names.town(names.lang()), rank, i, x, y, prov: W.province[i], region: W.region[i], landmass: W.landmass[i], port: !!coast && solid(i) && RANKS.indexOf(rank) <= 2, body, river: false, pop: Math.round(pr[0] + (pr[1] - pr[0]) * Math.pow(r(), 1.5)) };
       for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx >= 0 && ny >= 0 && nx < w && ny < h && W.river[ny * w + nx]) s.river = true; }
-      if (s.port) { // порт стоїть на самому березі: маркер зсунуто до води (на межу клітини), а не лишено в центрі
-        let vx = 0, vy = 0; for (let d = 0; d < 8; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const q = ny * w + nx; if ((W.ocean[q] && !voidEdge) || (W.lake[q] && bigLake.has(W.lakeOf[q]))) { vx += DX[d]; vy += DY[d]; } }
-        const l = Math.hypot(vx, vy); if (l > 0) { const ux = vx / l, uy = vy / l, t = 0.5 / Math.max(Math.abs(ux), Math.abs(uy)); s.ox = +(ux * t).toFixed(2); s.oy = +(uy * t).toFixed(2); }
-      }
+      if (s.port) portOffset(s);
       S.push(s); const k = bk(x, y); (buckets.get(k) || buckets.set(k, []).get(k)).push(s); return s;
     }
     // провінції й регіони: назви, центри
@@ -48,8 +67,9 @@
       const sc = cells.map(i => [Math.pow(W.suit[i], 0.4) * (0.25 + r()) * (W.waterDist && W.waterDist[i] <= 2 && !W.river[i] ? 0.5 : 1), i]).sort((a, b) => b[0] - a[0]); let got = 0;
       for (const [, i] of sc) { if (got >= want) break; const x = i % w, y = (i / w) | 0; if (near(x, y, MIND[rank] * (0.7 + 0.7 * r()))) continue; add(i, rank); got++; }
     });
-    // острови без трьох регіонів або без порту лишаються порожніми
+    // острови без трьох регіонів або без порту лишаються порожніми (порт острову, де є поселення, додається вище: ensurePorts)
     const emptyLm = A.pruneIslands(W, S); if (emptyLm.size) { buckets.clear(); for (const s of S) { const k = bk(s.x, s.y); (buckets.get(k) || buckets.set(k, []).get(k)).push(s); } }
+    ensurePorts();
     // зведення
     const regs = W.regions.map(g => ({ area: 0, bio: {} }));
     for (let i = 0; i < N; i++) if (W.region[i] >= 0) { const a = regs[W.region[i]]; a.area++; a.bio[W.bio[i]] = (a.bio[W.bio[i]] || 0) + 1; }

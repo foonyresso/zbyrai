@@ -107,6 +107,10 @@
       for (const k of restore) blk[k] = 1;
       if (!ok) failed++;
     }
+    // гачки на кінцях (гострий поворот за ≤2 вузли від кінця) прибираємо: зайва точка перед вузлом
+    for (const tr of trails) { for (let g = 0; g < 3; g++) { const p = tr.pts, n = p.length / 2; if (n < 4) break; let done = true;
+      for (let i = 1; i < n - 1; i++) { if (i > 2 && i < n - 3) continue; const ux = p[i * 2] - p[i * 2 - 2], uy = p[i * 2 + 1] - p[i * 2 - 1], vx = p[i * 2 + 2] - p[i * 2], vy = p[i * 2 + 3] - p[i * 2 + 1], lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy); if (lu > 0.3 && lv > 0.3 && (ux * vx + uy * vy) / (lu * lv) < -0.15) { p.splice(i * 2, 2); done = false; break; } }
+      if (done) break; } }
     return { trails, trl, N, gx0, gy0, stats: { nodes: nodes.length, linked, failed, skipped } };
   }
   // дерева на стежці й впритул прибираються

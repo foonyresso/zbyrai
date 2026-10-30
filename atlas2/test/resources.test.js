@@ -20,7 +20,7 @@ for (const seed of ['a', 'b', 'zbyrai', '42', 'k']) {
 // баланс: життєві потреби покриті власним видобутком + імпортом; імпортують острівні лише через порт; точки мають добич і дорогу
 for (const seed of ['a', 'zbyrai', 'k']) {
   const W = A.generate({ seed, size: 'small' });
-  for (const s of W.settlements) { if (!s.eco) { assert.ok(s.ruined || s.fate || s.pop === 0, `${seed}: живе поселення без господарства`); continue; } for (const k in s.eco.need) assert.ok(s.eco.prod[k] + (s.eco.imp[k] || 0) >= s.eco.need[k] - 0.05, `${seed}: ${s.name} ${k} у мінусі`); assert.ok(s.pop <= 10000); }
+  for (const s of W.settlements) { if (!s.eco) { assert.ok(s.ruined || s.fate || s.pop === 0, `${seed}: живе поселення без господарства`); continue; } for (const k in s.eco.need) assert.ok(s.eco.prod[k] + (s.eco.imp[k] || 0) >= s.eco.need[k] - 0.05, `${seed}: ${s.name} ${k} у мінусі`); assert.ok(s.pop <= 10000); if (s.eco.via === 'port') assert.ok(W.settlements.some(p => p.port && p.body === -1 && !p.fate && !p.ruined && p.landmass === s.landmass), `${seed}: острів без порту імпортує`); }
   for (const n of W.resources) { assert.ok(n.out.length && n.out.every(o => o.qty >= 1), 'нема добичі'); assert.ok(W.settlements[n.sid]); }
   assert.ok(W.resRoads.length > 100); const linked = W.resources.filter(n => n.road).length; assert.ok(W.resources.filter(n => n.linked).length > linked * 0.9, `${seed}: мало точок з дорогою`);
 }

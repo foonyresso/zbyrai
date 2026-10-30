@@ -38,6 +38,35 @@
         for (const c of path) net[c] = 1; routes.push({ from: o.p.id, to: -1, body, cells: path }); connected.push(o);
       }
     }
+    // Усі порти однієї провінції з'єднуються між собою напряму (мінімальне дерево за відстанню), а не лише через спільну трасу з іншими провінціями;
+    // до того ж кожен порт отримує до двох запасних шляхів до найближчих портів: обхід, якщо порт чи траса стануть недоступні. Нові шляхи додають лише нові відрізки.
+    const kmc = W.params.kmPerCell;
+    function link(a, b, disc, kind) {
+      dist.fill(1e30); prev.fill(-1); heap.k.length = 0; heap.v.length = 0; dist[a.c] = 0; heap.push(0, a.c); let ok = false;
+      while (heap.size) {
+        const i = heap.pop(); if (i === b.c) { ok = true; break; } const x = i % w, y = (i / w) | 0;
+        for (let d = 0; d < 8; d++) {
+          const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx;
+          if (!(W.ocean[j] || W.lake[j]) || bodyOf(j) !== a.body) continue;
+          let c = (1 + 0.25 * Math.abs(Math.min(land[j], 14) - 4)) * (d >= 4 ? 1.41 : 1); if (net[j]) c *= disc;
+          const nd = dist[i] + c; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; heap.push(nd, j); }
+        }
+      }
+      if (!ok) return false; const path = []; for (let c = b.c; c >= 0; c = prev[c]) path.push(c); path.reverse();
+      let added = 0, k = 0; while (k < path.length) {
+        if (net[path[k]]) { k++; continue; } let e = k; while (e + 1 < path.length && !net[path[e + 1]]) e++;
+        routes.push({ from: a.p.id, to: b.p.id, body: a.body, kind, cells: path.slice(Math.max(0, k - 1), Math.min(path.length, e + 2)) }); for (let q = k; q <= e; q++) net[path[q]] = 1; added += e - k + 1; k = e + 1;
+      }
+      return added > 0;
+    }
+    const sea = []; for (const s of S) if (s.port && s.body === -1 && !s.ruined) { const c = wet(s, -1); if (c >= 0) sea.push({ p: s, c, body: -1 }); }
+    const pairs = new Set(), key = (a, b) => Math.min(a.p.id, b.p.id) * 100000 + Math.max(a.p.id, b.p.id), dd = (a, b) => Math.hypot(a.p.x - b.p.x, a.p.y - b.p.y);
+    const byProv = new Map(); for (const o of sea) (byProv.get(o.p.prov) || byProv.set(o.p.prov, []).get(o.p.prov)).push(o);
+    for (const list of byProv.values()) {
+      if (list.length < 2) continue; const inT = [list[0]], rest = list.slice(1);
+      while (rest.length) { let bi = 0, bj = 0, bd = 1e9; rest.forEach((o, k) => inT.forEach((t, m) => { const d = dd(o, t); if (d < bd) { bd = d; bi = k; bj = m; } })); const o = rest.splice(bi, 1)[0], t = inT[bj]; pairs.add(key(o, t)); link(o, t, 0.8, 'province'); inT.push(o); }
+    }
+    for (const a of sea) for (const b of sea.filter(o => o !== a).sort((x, y) => dd(a, x) - dd(a, y)).slice(0, 2)) { if (dd(a, b) * kmc > 20 || pairs.has(key(a, b))) continue; pairs.add(key(a, b)); link(a, b, 0.85, 'backup'); }
     W.seaRoutes = routes;
   }
   A.searoutes = searoutes; A.BIG_LAKE = BIG_LAKE;
