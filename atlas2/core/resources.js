@@ -16,13 +16,17 @@
       oceanNear[i] = oc; slope[i] = sl; if (W.land[i] && !W.lake[i]) { dLand[i] = 0; q.push(i); }
     }
     for (let k = 0; k < q.length; k++) { const i = q[k], x = i % w, y = (i / w) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (dLand[j] > dLand[i] + 1) { dLand[j] = dLand[i] + 1; q.push(j); } } }
+    // клітини, де точок не буває: міста з полями навколо (радіус за рангом, м) і самі дороги
+    const BLK_M = { capital: 2400, regional: 1900, town: 1400, village: 800, hamlet: 450 }, blocked = new Uint8Array(N);
+    for (const s of W.settlements) { const R = BLK_M[s.rank] / cm, r2 = Math.ceil(R); for (let dy = -r2; dy <= r2; dy++) for (let dx = -r2; dx <= r2; dx++) { const x = s.x + dx, y = s.y + dy; if (x >= 0 && y >= 0 && x < w && y < h && Math.hypot(dx, dy) <= R) blocked[y * w + x] = 1; } }
+    for (let i = 0; i < N; i++) if (W.roadLevel[i]) blocked[i] = 1;
     const hillMin = 45, smallLm = new Set(W.lm.list.filter(m => m.area < 0.2 * W.lm.list[0].area).map(m => m.id));
     const hot = i => W.temp[i] > 0.55, cold = i => W.temp[i] < 0.3; // температура 0..1 з клімату
     // чи клітина підходить типу (без урахування сусідніх точок)
     function fits(t, i) {
       const land = W.land[i] && !W.lake[i], c = t.cond, tier = A.ResData.TIER[t.tier], tr = W.tier[i];
       if (t.on === 'land' || t.on === 'river') {
-        if (!land) return false; if (t.on === 'river' && !W.river[i]) return false; if (t.on === 'land' && W.river[i]) return false;
+        if (!land || blocked[i]) return false; if (t.on === 'river' && !W.river[i]) return false; if (t.on === 'land' && W.river[i]) return false;
         if (t.bio) { const b = bioId(i); let ok = false; for (const k of t.bio) { if (k === b || (k === 'hills' && b !== 'mountain' && b !== 'snow' && hm(W.elev[i]) >= hillMin && b !== 'desert') || (k === 'beach' && oceanNear[i] && W.land[i])) { ok = true; break; } } if (!ok) return false; }
       } else if (t.on === 'lake') { if (!W.lake[i]) return false; }
       else if (t.on === 'shore') { if (!W.ocean[i] || dLand[i] > 2) return false; }
@@ -75,7 +79,7 @@
       const mp = t.perProv ? byProv.get(t.id) : byReg.get(t.id);
       for (const [key, cells] of mp) place(t, cells, count(t), t.perProv ? null : key);
     }
-    const api = { fits, tooClose, nearTo, makeNode, placed, cm, km, bioId, r, sold, types: prov };
+    const api = { blocked, fits, tooClose, nearTo, makeNode, placed, cm, km, bioId, r, sold, types: prov };
     A.ResAssign.run(W, out, api); for (const n of out) n.road = A.ResData.byId[n.type].road; A.ResRoads.run(W, out);
     W.resources = out; W.resourceTypes = prov.map(t => ({ id: t.id, name: t.name, grp: t.grp, mat: t.mat, res: t.res }));
   }

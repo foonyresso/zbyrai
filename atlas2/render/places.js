@@ -2,15 +2,16 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2;
-  const STYLE = { 1: ['#5a3d22', 3.2, []], 2: ['#7a4f2a', 2.2, []], 3: ['#8a6a44', 1.5, []], 4: ['#a3855a', 1.1, [3, 2.5]] }; // дрібні шляхи — пунктиром
+  const STYLE = { 1: ['#5a3d22', 3.2, []], 2: ['#7a4f2a', 2.2, []], 3: ['#8a6a44', 1.5, []], 4: ['#a3855a', 1.1, [3, 2.5]], 5: ['#8a6a44', 1.2, []], 6: ['#a3855a', 0.9, [2.5, 2.5]] }; // 5, 6: возові шляхи й стежки до точок ресурсів // дрібні шляхи — пунктиром
   const cxy = (W, i) => [(i % W.w) + 0.5, ((i / W.w) | 0) + 0.5];
   const poly = (ctx, p) => { ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); };
-  A.drawRoads = function (ctx, W, px, k, geom) {
+  A.drawRoads = function (ctx, W, px, k, geom, L) {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    for (const lvl of [4, 3, 2, 1]) {
+    const all = geom.roads.concat(k >= 3.5 && !(L && L.resources === false) ? geom.res || [] : []);
+    for (const lvl of [6, 5, 4, 3, 2, 1]) {
       const [col, wd, dash] = STYLE[lvl];
       for (const pass of [0, 1]) { // обвідка, потім лінія
-        ctx.beginPath(); for (const r of geom.roads) if (r.level === lvl) poly(ctx, r.pts);
+        ctx.beginPath(); for (const r of all) if (r.level === lvl) poly(ctx, r.pts);
         ctx.strokeStyle = pass ? col : 'rgba(255,248,230,.6)'; ctx.lineWidth = (pass ? wd : wd + (dash.length ? 0 : 1.4)) * px; ctx.setLineDash(pass ? dash.map(v => v * px * 1.4) : []); ctx.stroke(); ctx.setLineDash([]);
       }
     }

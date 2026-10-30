@@ -68,8 +68,8 @@
     const rid = near && near.region >= 0 ? near.region : reg >= 0 && !(near && near.ruined) ? reg : null, id = rid == null ? null : level === 'prov' ? W.regions[rid].prov : rid, mark = ct ? null : near || site;
     const k1 = level + '|' + id + '|' + (ct && ct.h ? ct.h.kind + (ct.h.o.id == null ? '' : ct.h.o.id) : '') + '|' + (mark ? (near ? 's' : 'l') + mark.id : '');
     if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, view, hover, level, mark); }
-    const k2 = (near ? near.id : '') + '|' + (site ? site.id : '') + '|' + (inside ? cell : -1);
-    if (k2 !== infoKey) { infoKey = k2; showInfo(inside ? cell : -1, rid, near, site); }
+    const k2 = (near ? near.id : '') + '|' + (site ? site.id : '') + '|' + (rsn ? 'r' + rsn.id : '') + '|' + (inside ? cell : -1);
+    if (k2 !== infoKey) { infoKey = k2; showInfo(inside ? cell : -1, rid, near, site, rsn, inside ? [fx, fy] : null); }
   }
   const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const TIER_COL = ['#7bbf6a', '#e6cf4a', '#f0a23c', '#e0642f', '#c0302f', '#8a1f58', '#3c0a4a'];
@@ -81,12 +81,12 @@
     return `<div class="eco"><b title="За добу: скільки потрібно мешканцям, скільки дають точки ресурсів поселення, скільки доставляють ззовні">Господарство (за добу)</b><table><tr><th></th><th title="Споживання мешканців">Потрібно</th><th title="Видобуток власних точок ресурсів">Своє</th><th title="Нестача, що завозиться">Імпорт</th></tr>${rows}</table>${e.natWater ? '<p class="muted">Воду беруть із річки, озера чи моря поруч.</p>' : ''}${e.via ? `<p class="muted">Нестачу завозять ${e.via === 'port' ? 'морем через порт' : 'дорогою від сусідів'}.</p>` : ''}<p class="muted">Точок ресурсів: ${e.nodes}${oth ? '. Також видобувають: ' + oth : ''}</p></div>`;
   }
   const RN = { capital: 'Столиця провінції', regional: 'Центр регіону', town: 'Місто', village: 'Село', hamlet: 'Хутір' };
-  function showInfo(cell, rid, s, site) {
+  function showInfo(cell, rid, s, site, rsn, at) {
     if (cell < 0 && !s) { info.hidden = true; return; }
     const D = A.Danger, fmt = n => n.toLocaleString('uk'), kmc = W.params.kmPerCell ** 2, K = W.params.kmPerCell, sg = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(1).replace('.', ',');
     const row = (a, b) => `<dt>${a}</dt><dd>${b}</dd>`, blk = (lb, body, title, cls) => `<div class="blk">${title ? `<div class="hd"><span class="lb">${lb}</span><h4${cls ? ' class="' + cls + '"' : ''}>${title}</h4></div>` : `<div class="lb">${lb}</div>`}${body}</div>`;
     const lv = (v, mn, mx) => `${v} <span class="muted">(${mn}–${mx})</span>`;
-    const px = s ? s.x + 0.5 : cell % W.w + 0.5, py = s ? s.y + 0.5 : ((cell / W.w) | 0) + 0.5, i = cell >= 0 ? cell : s.i;
+    const px = at ? at[0] : s ? s.x + 0.5 : cell % W.w + 0.5, py = at ? at[1] : s ? s.y + 0.5 : ((cell / W.w) | 0) + 0.5, i = cell >= 0 ? cell : s.i; // координати й висота — під курсором, а не в центрі поселення
     const g = rid != null ? W.regions[rid] : null, p = g ? W.provinces[g.prov] : null, out = [];
     // 1. провінція
     out.push(blk('Провінція', p ? `<dl>${row('Столиця', esc(W.settlements[p.capital].name))}${row('Рівень (сер.)', lv(p.level, p.levelMin, p.levelMax))}${row('Регіонів · площа', p.regions.length + ' · ' + fmt(Math.round(p.area * kmc)) + ' км²')}${row('Населення', fmt(p.pop))}</dl>` : '', p ? esc(p.name) : W.land[i] ? 'Нічия земля' : 'Нічия вода', p ? '' : 'muted'));
@@ -119,6 +119,7 @@
         : s.fortress ? `<h4>${esc(s.name)}</h4><dl>${row('Тип', 'Гігантська фортеця Великої стіни')}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}${row('Небезпека за стіною', `<span class="tier" style="background:${TIER_COL[W.tier[s.i]]}"></span>${D.TIERS[W.tier[s.i]]}`)}</dl><p class="muted">Місто, повністю зосереджене на обороні: лежить із внутрішнього боку стіни, а вздовж стіни тягнуться бастіони, метальні машини, вежі й надбрамні твердині. Через її ворота проходять дороги.</p>`
         : `<h4>${esc(s.name)}</h4><dl>${row('Тип', RN[s.rank] + (s.port ? ', порт' : ''))}${row('Населення · рівень', fmt(s.pop) + ' · ' + s.level)}</dl>${ecoHtml(s)}`;
       out.push(blk('Деталі місця', body));
+      const bd0 = curCt && curCt.h && A.Town.describe(curCt.c, curCt.h); if (bd0) out.push(blk('У місті', `<h4>${esc(bd0.title)}</h4><p class="muted">${esc(bd0.sub || '')}</p>${(bd0.rows || []).slice(0, 4).map(r => `<dl>${row(esc(r[0]), esc(r[1]))}</dl>`).join('')}`));
     } else if (rsn) {
       const t = A.ResData.byId[rsn.type], QN = { poor: 'бідне', normal: 'звичайне', rich: 'багате' }, ow = W.settlements[rsn.sid];
       out.push(blk('Деталі місця', `<h4>${esc(rsn.name)}</h4><dl>${row('Що тут', esc(rsn.mat))}${row('Багатство', QN[rsn.q])}${rsn.out.map(o => row(esc(o.item), o.qty + ' / добу')).join('')}${rsn.animals ? row('Тварини', esc(rsn.animals.join(', '))) : ''}${ow ? row('Належить', esc(ow.name)) : ''}${row('Дорога', rsn.road === 'cart' ? 'возовий шлях' : rsn.road ? 'стежка' : '—')}</dl><p class="muted">Джерело невичерпне: добич обмежена лише кількістю за добу.</p>`));

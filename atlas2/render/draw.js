@@ -52,7 +52,7 @@
     if (L.rivers) { ctx.save(); path(ctx, c.land); ctx.clip(); drawRivers(ctx, W, c, px); ctx.restore(); } // річки лише по суші; озера малюються поверх, тож річка входить у озеро й виходить з нього
     path(ctx, c.lakes); ctx.fillStyle = '#7fb2e0'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(70,110,160,.8)'; ctx.lineWidth = 1 * px; ctx.stroke();
     if (L.danger && c.danger) ctx.drawImage(c.danger, 0, 0, W.w, W.h); // небезпека покриває і воду: моря, океани, озера
-    if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k, c.geom);
+    if (A.drawRoads && L.roads) A.drawRoads(ctx, W, px, k, c.geom, L);
     if (VOID) { A.Void.drawBigRoots(ctx, W, px); if (L.roads) A.Void.drawTunnels(ctx, W, px); if (L.wall !== false) A.Void.drawWall(ctx, W, px, k); A.Void.drawTree(ctx, W, px, k); } // коріння й дерево зверху карти, стіна з фортецями
     if (A.TownMap) A.TownMap.draw(cv, W, view, L, c.geom); // міста з'являються на карті з наближенням, дороги збігаються з дорогами карти
     if (A.drawLandmarks) A.drawLandmarks(ctx, W, px, k, L);
