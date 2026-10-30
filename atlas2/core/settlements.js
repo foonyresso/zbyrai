@@ -4,6 +4,7 @@
   const A = globalThis.Atlas2, { DX, DY } = A.Grid;
   const RANKS = ['capital', 'regional', 'town', 'village', 'hamlet'];
   const POP = { capital: [14000, 38000], regional: [3500, 13000], town: [900, 3200], village: [120, 650], hamlet: [20, 110] };
+  const POP_MAX = { capital: 10000, regional: 6500 }; // ліміт населення: столиця до 10 000, центр регіону до 6 500 (столиця завжди більша)
   const MIND = { town: 24, village: 14, hamlet: 9 }; // мінімальні відстані в клітинах (1 клітина = 2 км); кожному поселенню — випадковий множник
 
   function settlements(W) {
@@ -58,6 +59,7 @@
     W.provinces.forEach(p => { const reg = p.regions.map(id => S[W.regions[id].center]).filter(c => c.rank === 'regional'), mx = Math.max(0, ...reg.map(c => c.pop)), cap = S[p.capital]; if (cap.pop < mx * 1.5) cap.pop = Math.round(mx * 1.5 * (1 + 0.2 * r())); });
     for (const s of S) if (s.rank === 'town') { const cap = S[W.regions[s.region].center].pop; s.pop = Math.min(s.pop, Math.round(cap * 0.55)); }
     if (voidEdge) for (const s of S) s.pop = Math.max(5, Math.round(s.pop * (1.25 - 0.95 * Math.min(1, W.fr[s.i] / 0.75)))); // і менше населення
+    for (const s of S) { if (s.rank === 'regional') s.pop = Math.min(s.pop, POP_MAX.regional); else if (s.rank === 'capital') s.pop = Math.min(s.pop, POP_MAX.capital); } // найбільше місто світу — 10 000
     for (const s of S) { if (s.region >= 0) W.regions[s.region].pop += s.pop; }
     const maxPop = Math.max(1, ...W.regions.map(g => g.pop));
     W.regions.forEach(g => { g.popLevel = Math.max(1, Math.round(1 + 9 * g.pop / maxPop)); });

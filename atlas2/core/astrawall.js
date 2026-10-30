@@ -30,7 +30,7 @@
     }
     // кожна фортеця є поселенням-містом (гігантським, зверненим до оборони): має дороги, деталь міста й підземелля; ранг «місто» лише для доріг, розміри міста задає s.fortress
     const pr = A.Rng.stream(W.params.seed, 'wall|pop');
-    for (const f of F) { const s = { id: W.settlements.length, name: 'Фортеця ' + f.name, rank: 'town', i: f.i, x: f.x, y: f.y, prov: f.prov, region: f.region, landmass: W.landmass[f.i], port: false, body: null, river: false, pop: Math.round(7000 + 9000 * pr()), fortress: true, fid: f.id, wf: f.wf, wa: f.wa }; W.settlements.push(s); f.sid = s.id; }
+    for (const f of F) { const s = { id: W.settlements.length, name: 'Фортеця ' + f.name, rank: 'town', i: f.i, x: f.x, y: f.y, prov: f.prov, region: f.region, landmass: W.landmass[f.i], port: false, body: null, river: false, pop: Math.round(4000 + 6000 * pr()), fortress: true, fid: f.id, wf: f.wf, wa: f.wa }; W.settlements.push(s); f.sid = s.id; }
     for (const f of F) for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const X = f.x + dx, Y = f.y + dy; if (dx * dx + dy * dy <= 10 && X >= 0 && Y >= 0 && X < w && Y < h) gateMask[Y * w + X] = 1; }
     for (const q of W.settlements) if (wallMask[q.i]) for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const X = q.x + dx, Y = q.y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h) gateMask[Y * w + X] = 1; } // поселення на лінії стіни: стіна має в нього прохід
     W.wall = { pts: pts.flatMap(p => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]), radius: WALL }; W.fortresses = F; W.wallMask = wallMask; W.gateMask = gateMask;
