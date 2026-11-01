@@ -155,6 +155,21 @@
     res.forEach(function (pi, k) { if (pi >= 0) sp.slots[k] = all[pi]; });
     return { n: all.length, tpl: t };
   }
+  // «Рандом» для вже вкладених фото: серед усіх розкладок на їхню кількість (базові, комбіновані, заміна комірок) бере випадкову з найкращих за збігом орієнтації/пропорцій, фото розставляє за пропорціями вікон. Кожен виклик дає інший варіант.
+  function shuffleFit(st, si, aspectOf, opt, rnd) {
+    rnd = rnd || Math.random; var sp = st.spreads[si], ph = groupPhotos(sp), a = areaOf(st, si);
+    if (!ph.length) return null; var pool = TP.pool(ph.length, opt), asp = ph.map(aspectOf), sc = [], tries = Math.min(pool.length, 300), i;
+    for (i = 0; i < tries; i++) {
+      var t = pool[Math.floor(rnd() * pool.length)]; if (t.id === sp.template) continue;
+      var rs = TP.rects(t, a.W, a.H, a.d.gap, 0), as = TP.assign(rs, asp), cost = 0;
+      as.forEach(function (pi, ci) { if (pi >= 0) cost += Math.abs(Math.log(asp[pi] / (rs[ci].w / rs[ci].h))); });
+      sc.push({ t: t, cost: cost / ph.length, as: as, rs: rs });
+    }
+    if (!sc.length) return null; sc.sort(function (x, y) { return x.cost - y.cost; });
+    var pick = sc[Math.floor(rnd() * Math.min(5, sc.length))];
+    sp.style = 'tpl'; sp.template = pick.t.id; sp.slots = Array(pick.t.n).fill(null); pick.as.forEach(function (pi, k) { if (pi >= 0) sp.slots[k] = ph[pi]; });
+    return pick.t;
+  }
   // Переносить фото з комірки (ref) розвороту si на розворот to: портретний бере вільну комірку, груповий додає в кінець.
   // Загальне фото першого розвороту (коли немає вчителів): розмір у % від типового, центр лишається на місці
   function generalRect(st, g) {
@@ -399,6 +414,6 @@
   function designOf(st) { return DS.DESIGNS[st.designId] || DS.DESIGNS.classic; }
   var api = { designOf: designOf, newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
-    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, portraitPlaced: portraitPlaced, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
+    moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, shuffleFit: shuffleFit, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, portraitPlaced: portraitPlaced, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;
 })(typeof self !== 'undefined' ? self : this);

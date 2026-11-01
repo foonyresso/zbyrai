@@ -694,6 +694,7 @@
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   $('btnShuffle').onclick = function () {
     var sp0 = st.spreads[cur], tp0 = sp0.template && AlbumTemplates.byId(sp0.template), cnt = layoutFilter ? +layoutFilter : (S.groupPhotos(sp0).length || (sp0.style === 'tpl' && tp0 ? tp0.n : 0));
+    if (S.groupPhotos(sp0).length && !layoutFilter && S.shuffleFit(st, cur, aspectOf, layoutOpt)) { refresh(); return; }
     if (cnt && (layoutFilter || sp0.style === 'tpl')) { var t0 = AlbumTemplates.random(cnt, layoutOpt); if (t0) { pickLayout(t0.id); return; } }
     st.spreads[cur].seed = 1 + Math.floor(Math.random() * 99999); st.spreads[cur].off = {}; refresh(); };
   $('btnStyle').onclick = function () { var sp = st.spreads[cur], ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); refresh(); };

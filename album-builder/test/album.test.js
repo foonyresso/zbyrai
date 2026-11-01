@@ -293,6 +293,17 @@ test('рандом розкладки: бере з усіх варіантів �
   assert.strictEqual(TP.random(7, { combo: false, vars: true }, rnd).combo, undefined);
   assert.strictEqual(TP.random(1, { combo: false, vars: false }, rnd).n, 1);
 });
+test('рандом для вкладених фото: розкладка на їхню кількість, орієнтація збігається, щоразу інша', () => {
+  const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
+  const g = st.spreads.findIndex(x => x.type === 'group'), sp = st.spreads[g], asp = n => (n.startsWith('v') ? 0.7 : 1.5);
+  sp.slots = ['v1', 'v2', 'v3', 'h1', 'h2', 'h3', 'h4']; const seen = new Set();
+  for (let i = 0; i < 12; i++) {
+    const t = S.shuffleFit(st, g, asp, {}); assert.ok(t && t.n === 7); assert.strictEqual(S.groupPhotos(sp).length, 7); seen.add(sp.template);
+    const rs = require('../core/templates.js').rects(t, 466, 236, 1.2, 0), vs = sp.slots.map((n, k) => n && n[0] === 'v' ? rs[k].w / rs[k].h : null).filter(x => x);
+    assert.ok(vs.reduce((a, b) => a + b, 0) / vs.length < 1.6);
+  }
+  assert.ok(seen.size > 3);
+});
 test('вибір розкладки, забагато фото: інша розкладка, пропуск зайвих, авто-підбір', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   const g = st.spreads.findIndex(x => x.type === 'group'), sp = st.spreads[g], asp = n => (n.startsWith('p') ? 0.75 : 1.5);
