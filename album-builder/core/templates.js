@@ -2,6 +2,8 @@
 (function (root) {
   var D = typeof require !== 'undefined' ? require('../data/group-layouts.js') : root.AlbumLayouts;
   // Прямокутники шаблону в мм. gap — просвіт між фото (по краях розвороту фото йдуть до краю), margin — біла рамка. tilt: усе полотно поворочено й збільшено, щоб краї виходили за розворот.
+  var CB = typeof require !== 'undefined' ? require('./combos.js') : root.AlbumCombos;
+  var COMBOS = CB.build(D.LIST), CMAP = {}; COMBOS.forEach(function (t) { CMAP[t.id] = t; });
   function rects(tpl, W, H, gap, margin) {
     var area = { x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, rot = 0, piv = null;
     if (tpl.tilt) { var s = 1.16; area = { x: -(s - 1) / 2 * W, y: -(s - 1) / 2 * H, w: s * W, h: s * H }; rot = tpl.tilt * Math.PI / 180; piv = { x: W / 2, y: H / 2 }; }
@@ -36,6 +38,6 @@
     });
     return best;
   }
-  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, byId: D.byId };
+  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, COMBOS: COMBOS, byId: function (id) { return D.byId(id) || CMAP[id] || null; } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumTemplates = api;
 })(typeof self !== 'undefined' ? self : this);

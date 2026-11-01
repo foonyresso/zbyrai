@@ -263,6 +263,16 @@ test('шаблони групових розкладок: усі валідні,
   }
   ['g4', 'g12', 'g6c', 'g8a', 'g7'].forEach(id => assert.ok(TP.byId(id)));
 });
+test('комбіновані розвороти: унікальні, валідні, без перекриття, знаходяться за id', () => {
+  const TP = require('../core/templates.js'), sig = t => t.cells.map(c => c.map(v => v).join(',')).join('|');
+  assert.ok(TP.COMBOS.length > 100);
+  const ids = new Set(TP.COMBOS.map(t => t.id)); assert.strictEqual(ids.size, TP.COMBOS.length);
+  assert.ok(TP.COMBOS.some(t => t.nl === 3 && t.nr === 4) && TP.COMBOS.some(t => t.nl === 4 && t.nr === 3) && TP.COMBOS.some(t => t.nl === 3 && t.nr === 6));
+  for (const t of TP.COMBOS) {
+    assert.strictEqual(TP.byId(t.id), t); const r = TP.rects(t, 466, 236, 1.2, 0); assert.strictEqual(r.length, t.n, t.id);
+    assert.strictEqual(t.n, t.nl + t.nr); r.forEach((a, i) => r.forEach((b, j) => i < j && assert.ok(!overlap(a, b), t.id)));
+  }
+});
 test('вибір розкладки, забагато фото: інша розкладка, пропуск зайвих, авто-підбір', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   const g = st.spreads.findIndex(x => x.type === 'group'), sp = st.spreads[g], asp = n => (n.startsWith('p') ? 0.75 : 1.5);
