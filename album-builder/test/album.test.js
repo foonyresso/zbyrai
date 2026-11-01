@@ -273,6 +273,15 @@ test('комбіновані розвороти: унікальні, валід�
     assert.strictEqual(t.n, t.nl + t.nr); r.forEach((a, i) => r.forEach((b, j) => i < j && assert.ok(!overlap(a, b), t.id)));
   }
 });
+test('заміна комірок: варіанти унікальні, валідні, відновлюються за id', () => {
+  const TP = require('../core/templates.js'), V = TP.variants(); assert.ok(V.length > 1000);
+  assert.strictEqual(new Set(V.map(t => t.id)).size, V.length);
+  V.filter((_, i) => i % 97 === 0).forEach(t => {
+    const b = TP.byId(t.id); assert.ok(b && b.n === t.n && JSON.stringify(b.cells) === JSON.stringify(t.cells), t.id);
+    const r = TP.rects(t, 466, 236, 1.2, 0); assert.strictEqual(r.length, t.n); r.forEach((a, i) => r.forEach((c, j) => i < j && assert.ok(!overlap(a, c), t.id)));
+  });
+  assert.ok(TP.variants().some(t => t.id.startsWith('g12~') && t.n === 11));
+});
 test('вибір розкладки, забагато фото: інша розкладка, пропуск зайвих, авто-підбір', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   const g = st.spreads.findIndex(x => x.type === 'group'), sp = st.spreads[g], asp = n => (n.startsWith('p') ? 0.75 : 1.5);

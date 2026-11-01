@@ -281,7 +281,7 @@
     var r = S.setTemplate(st, cur, id);
     if (r.overflow) tooMany([], r.tpl); else refresh();
   }
-  var layoutFilter = '';
+  var layoutFilter = '', layoutLimit = 120, layoutOpt = { combo: true, vars: true };
   function buildLayoutStrip() {
     var strip = $('layoutStrip'), sp = st.spreads[cur], z = S.zoneOf(st, cur), th = 50, tw = Math.round(th * z.W / z.H); strip.textContent = '';
     var opt = el('div', 'lopt'), lab = el('label', '', '', 'Біла рамка навколо фото'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!sp.frame; cb.onchange = function () { sp.frame = cb.checked; refresh(); };
@@ -289,17 +289,23 @@
     [['mosaic', 'Мозаїка (авто)'], ['rows', 'Ряди (авто)'], ['scrap', 'Вклеєні (авто)']].forEach(function (a) {
       var b = el('button', 'lt txt' + (sp.style === a[0] ? ' on' : ''), a[1], 'Авто-розкладка під будь-яку кількість фото'); b.onclick = function () { S.setStyle(st, cur, a[0]); refresh(); }; strip.appendChild(b);
     });
-    var cnt = el('label', 'lopt', null, 'Фільтр за загальною кількістю фото на розвороті'), sel = document.createElement('select'); sel.title = 'Показати лише розкладки з обраною кількістю фото; «Усі» — тільки базові, число — базові й комбіновані (ліва + права сторінка)';
+    var cnt = el('label', 'lopt', null, 'Фільтр за загальною кількістю фото на розвороті'), sel = document.createElement('select'); sel.title = 'Показати лише розкладки з обраною кількістю фото; «Усі» — тільки базові, число — ще й комбіновані та з заміною комірок';
     cnt.appendChild(document.createTextNode('Фото: ')); [['', 'Усі']].concat(Array.from({ length: 20 }, function (_, i) { return [String(i + 1), String(i + 1)]; })).forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
-    sel.value = layoutFilter; sel.onchange = function () { layoutFilter = sel.value; buildLayoutStrip(); }; cnt.appendChild(sel); strip.appendChild(cnt);
-    var fN = layoutFilter ? +layoutFilter : 0, shown = AlbumTemplates.LIST.concat(fN ? AlbumTemplates.COMBOS : []).filter(function (t) { return !fN || t.n === fN; });
-    if (fN && !shown.length) strip.appendChild(el('span', 'lopt', 'Для такої кількості розкладок немає'));
+    sel.value = layoutFilter; sel.onchange = function () { layoutFilter = sel.value; layoutLimit = 120; buildLayoutStrip(); }; cnt.appendChild(sel); strip.appendChild(cnt);
+    [['combo', 'Комбіновані', 'Ліва сторінка від однієї розкладки, права від іншої (разом з дзеркальними й половинами)'], ['vars', 'Заміна комірок', 'Розкладки, де сусідні комірки об\'єднано в одну більшу або комірку поділено навпіл']].forEach(function (o) {
+      var l2 = el('label', 'lopt', null, o[2]), c2 = document.createElement('input'); c2.type = 'checkbox'; c2.checked = layoutOpt[o[0]]; c2.onchange = function () { layoutOpt[o[0]] = c2.checked; layoutLimit = 120; buildLayoutStrip(); };
+      l2.appendChild(c2); l2.appendChild(document.createTextNode(' ' + o[1])); strip.appendChild(l2);
+    });
+    var fN = layoutFilter ? +layoutFilter : 0, pool = AlbumTemplates.LIST.concat(fN && layoutOpt.combo ? AlbumTemplates.COMBOS : [], fN && layoutOpt.vars ? AlbumTemplates.variants() : []).filter(function (t) { return !fN || t.n === fN; }), shown = pool.slice(0, layoutLimit);
+    if (fN && !pool.length) strip.appendChild(el('span', 'lopt', 'Для такої кількості розкладок немає'));
+    if (fN) strip.appendChild(el('span', 'lopt', 'Знайдено: ' + pool.length));
     shown.forEach(function (t) {
       var b = el('button', 'lt' + (sp.style === 'tpl' && sp.template === t.id ? ' on' : ''), null, t.name + ' (' + t.n + ' фото)'), c = document.createElement('canvas'); c.width = tw * 2; c.height = th * 2;
       var g = c.getContext('2d'), k = c.width / z.W; g.fillStyle = '#e9e5df'; g.fillRect(0, 0, c.width, c.height); g.setTransform(k, 0, 0, k, 0, 0);
       AlbumTemplates.rects(t, z.W, z.H, 3, 0).forEach(function (r) { g.save(); if (r.pivot) { g.translate(r.pivot.x, r.pivot.y); g.rotate(r.rot); g.translate(-r.pivot.x, -r.pivot.y); } g.fillStyle = '#3a3a42'; g.fillRect(r.x, r.y, r.w, r.h); g.restore(); });
       c.style.width = tw + 'px'; b.appendChild(c); b.appendChild(el('span', '', String(t.n))); b.onclick = function () { pickLayout(t.id); }; strip.appendChild(b);
     });
+    if (pool.length > shown.length) { var more = el('button', 'lt txt', 'Ще ' + Math.min(120, pool.length - shown.length), 'Показати наступні розкладки'); more.onclick = function () { layoutLimit += 120; buildLayoutStrip(); }; strip.appendChild(more); }
   }
   $('btnLayouts').onclick = function () { var s2 = $('layoutStrip'); s2.hidden = !s2.hidden; if (!s2.hidden) buildLayoutStrip(); setTimeout(redraw, 30); };
   var bgDraft = { type: 'color', color: '#ffffff', color2: '#cfd8ff', angle: 90, image: null };

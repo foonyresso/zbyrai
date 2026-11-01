@@ -25,7 +25,7 @@
 | [ui-kit.md](ui-kit.md), [ui-migration.md](ui-migration.md) | UI-кіт (інтерфейс як Атлас 2.0: `shared/ui/`), розмітка, як перевести інструмент; черга міграції й питання |
 | [plans/ui-rollout-queue.md](plans/ui-rollout-queue.md) | Черга: єдиний стиль інструментів (полотно + іконки) і доробки, статуси |
 | [plans/dungeon-sim-queue.md](plans/dungeon-sim-queue.md) | Черга задач симулятора підземель |
-| [plans/album-builder-queue.md](plans/album-builder-queue.md) | Черга закритого «Макетника альбомів» (`album-builder/`, не лінкується з хабу; комбіновані розвороти генеруються в `album-builder/core/combos.js`, фільтр за кількістю фото в рядку «▦ Розкладка») |
+| [plans/album-builder-queue.md](plans/album-builder-queue.md) | Черга закритого «Макетника альбомів» (`album-builder/`, не лінкується з хабу; комбіновані розвороти генеруються в `album-builder/core/combos.js`, заміна/злиття комірок у `core/variants.js`, фільтр за кількістю фото в рядку «▦ Розкладка») |
 | [plans/skill-forge-queue.md](plans/skill-forge-queue.md) | Черга задач Конструктора скілів |
 | [plans/README.md](plans/README.md) | Плани: принцип «полотно + іконки», перелік інструментів, злиття карти королівств у Атлас, рішення автора, пріоритети, питання про суперечності |
 | [skill-forge-format.md](skill-forge-format.md) | Конструктор скілів: формат `zbyrai.skill` (версія 1), види цеглинок, як додати цеглинку, зв'язок з деревом скілів, перенесення в Godot C# |

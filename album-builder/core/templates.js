@@ -3,7 +3,22 @@
   var D = typeof require !== 'undefined' ? require('../data/group-layouts.js') : root.AlbumLayouts;
   // Прямокутники шаблону в мм. gap — просвіт між фото (по краях розвороту фото йдуть до краю), margin — біла рамка. tilt: усе полотно поворочено й збільшено, щоб краї виходили за розворот.
   var CB = typeof require !== 'undefined' ? require('./combos.js') : root.AlbumCombos;
+  var VR = typeof require !== 'undefined' ? require('./variants.js') : root.AlbumVariants;
   var COMBOS = CB.build(D.LIST), CMAP = {}; COMBOS.forEach(function (t) { CMAP[t.id] = t; });
+  // Варіанти заміни комірок (id = «база~кроки», напр. g12~3.5): база — 2 кроки, комбіновані — 1 крок. Будуються за потреби й кешуються.
+  var VARS = null, VOPT = { split: true };
+  function mk(parent, v, path) { return { id: parent.id + '~' + path.join('.'), name: parent.name + ' · заміна комірок', n: v.cells.length, cols: v.cols, rows: v.rows, cells: v.cells, tilt: 0, variant: true, nl: parent.nl, nr: parent.nr }; }
+  function variantsAll() {
+    if (VARS) return VARS; var seen = {}, out = []; D.LIST.concat(COMBOS).forEach(function (t) { if (!t.tilt) seen[VR.key(t)] = 1; });
+    D.LIST.forEach(function (t) { if (!t.tilt) VR.variants(t, 2, VOPT, seen).forEach(function (r) { out.push(mk(t, r.t, r.path)); }); });
+    COMBOS.forEach(function (t) { VR.variants(t, 1, VOPT, seen).forEach(function (r) { out.push(mk(t, r.t, r.path)); }); });
+    return (VARS = out.sort(function (a, b) { return a.n - b.n; }));
+  }
+  function byIdAny(id) {
+    var base = D.byId(id) || CMAP[id]; if (base) return base; var m = /^([^~]+)~([\d.]+)$/.exec(id); if (!m) return null;
+    var p = D.byId(m[1]) || CMAP[m[1]]; if (!p || p.tilt) return null; var path = m[2].split('.').map(Number), v;
+    try { v = VR.apply(p, path, VOPT); } catch (e) { return null; } return v && v.cells ? mk(p, v, path) : null;
+  }
   function rects(tpl, W, H, gap, margin) {
     var area = { x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, rot = 0, piv = null;
     if (tpl.tilt) { var s = 1.16; area = { x: -(s - 1) / 2 * W, y: -(s - 1) / 2 * H, w: s * W, h: s * H }; rot = tpl.tilt * Math.PI / 180; piv = { x: W / 2, y: H / 2 }; }
@@ -38,6 +53,6 @@
     });
     return best;
   }
-  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, COMBOS: COMBOS, byId: function (id) { return D.byId(id) || CMAP[id] || null; } };
+  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, COMBOS: COMBOS, variants: variantsAll, byId: byIdAny };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumTemplates = api;
 })(typeof self !== 'undefined' ? self : this);
