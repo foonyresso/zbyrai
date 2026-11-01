@@ -7,6 +7,7 @@
     return cells.map(function (c) { return [(xo + c[0] / cols * xs), c[1] / rows, c[2] / cols * xs, c[3] / rows].map(function (v) { return Math.round(v * 1e4); }).join(','); }).sort().join('|');
   }
   function flip(p) { return { cols: p.cols, rows: p.rows, cells: p.cells.map(function (c) { return [c[0], p.rows - c[1] - c[3], c[2], c[3]]; }) }; }
+  function transpose(p) { return { cols: p.rows, rows: p.cols, cells: p.cells.map(function (c) { return [c[1], c[0], c[3], c[2]]; }) }; }
   function mirror(p) { return { cols: p.cols, rows: p.rows, cells: p.cells.map(function (c) { return [p.cols - c[0] - c[2], c[1], c[2], c[3]]; }) }; }
   // Усі унікальні сторінки з базових шаблонів (без нахилу): ціла розкладка на сторінці, ліва/права половина, дзеркала.
   // Сторінка майже квадратних комірок → версії з вертикальними (3:4, 2:3) та горизонтальним (3:2) прямокутниками й білими полями. Сторінка вважається квадратною за пропорціями.
@@ -25,12 +26,18 @@
     var out = [], seen = {};
     function add(p, desc, noInset) {
       if (!noInset) insets(p).forEach(function (q) { add(q, desc + ', ' + q.tag, true); });
-      [p, mirror(p), flip(p), flip(mirror(p))].forEach(function (q, k) {
-        if (q.cells.length > 10) return; var s = sig(q.cols, q.rows, q.cells, 0, 1); if (seen[s]) return; seen[s] = 1;
-        out.push({ id: 'p' + out.length, desc: desc + (k ? (k === 1 ? ' (дзеркально)' : k === 2 ? ' (догори дном)' : ' (дзеркально, догори дном)') : ''), cols: q.cols, rows: q.rows, cells: q.cells, n: q.cells.length });
+      [p, mirror(p), flip(p), flip(mirror(p)), transpose(p), mirror(transpose(p)), flip(transpose(p)), flip(mirror(transpose(p)))].forEach(function (q, k) {
+        if (q.cells.length > 8) return; var s = sig(q.cols, q.rows, q.cells, 0, 1); if (seen[s]) return; seen[s] = 1;
+        out.push({ id: 'p' + out.length, desc: desc + (k ? (k % 4 === 1 ? ' (дзеркально)' : k % 4 === 2 ? ' (догори дном)' : k % 4 === 3 ? ' (дзеркально, догори дном)' : '') + (k > 3 ? ', повернуто' : '') : ''), cols: q.cols, rows: q.rows, cells: q.cells, n: q.cells.length });
       });
     }
-    list.forEach(function (t) {
+    var VR = typeof require !== 'undefined' ? require('./variants.js') : root.AlbumVariants, extra = [];
+    for (var cc = 1; cc <= 4; cc++) for (var rr = 1; rr <= 4; rr++) {
+      var cells = []; for (var yy = 0; yy < rr; yy++) for (var xx = 0; xx < cc; xx++) cells.push([xx, yy, 1, 1]);
+      var gt = { name: cc + '×' + rr + ' сітка', cols: cc, rows: rr, cells: cells }; extra.push(gt);
+      VR.variants(gt, 3, null).forEach(function (v) { if (v.t.cells.length >= 2) extra.push({ name: gt.name + ' з об\'єднанням', cols: v.t.cols, rows: v.t.rows, cells: v.t.cells }); });
+    }
+    list.concat(extra).forEach(function (t) {
       if (t.tilt) return;
       add({ cols: t.cols, rows: t.rows, cells: t.cells }, t.name);
       var h = t.cols / 2, L = [], R = [];
@@ -45,17 +52,23 @@
     R.cells.forEach(function (c) { cells.push([C + c[0] * kr, c[1] * mr, c[2] * kr, c[3] * mr]); });
     return { cols: 2 * C, rows: Rw, cells: cells };
   }
-  // Повертає масив шаблонів у форматі data/group-layouts.js; id = 'c<ліва>_<права>' (стабільні для збережених альбомів).
-  function build(list) {
-    var P = pages(list), seen = {}, out = [];
-    list.forEach(function (t) { seen[sig(t.cols, t.rows, t.cells, 0, 1)] = 1; });
-    P.forEach(function (l, i) { P.forEach(function (r, j) {
-      var j2 = join(l, r), s = sig(j2.cols, j2.rows, j2.cells, 0, 1); if (seen[s]) return; seen[s] = 1;
-      out.push({ id: 'c' + i + '_' + j, name: 'Ліва: ' + l.desc + ' + права: ' + r.desc, n: j2.cells.length, nl: l.n, nr: r.n, cols: j2.cols, rows: j2.rows, cells: j2.cells, tilt: 0, combo: true });
-    }); });
-    out.sort(function (a, b) { return a.n - b.n; });
-    return out;
+  var cache = {};
+  function ctx(list) { return cache.list === list ? cache : (cache = { list: list, P: pages(list), base: null, byN: {} }); }
+  function make(c, i, j) {
+    var l = c.P[i], r = c.P[j], j2 = join(l, r);
+    return { id: 'c' + i + '_' + j, name: 'Ліва: ' + l.desc + ' + права: ' + r.desc, n: j2.cells.length, nl: l.n, nr: r.n, cols: j2.cols, rows: j2.rows, cells: j2.cells, tilt: 0, combo: true };
   }
-  var api = { build: build, pages: pages };
+  // Розворот за id «c<ліва>_<права>» (індекси сторінок стабільні для збережених альбомів).
+  function get(list, id) { var m = /^c(\d+)_(\d+)$/.exec(id), c = ctx(list); return m && c.P[+m[1]] && c.P[+m[2]] ? make(c, +m[1], +m[2]) : null; }
+  // Усі унікальні розвороти з рівно n фото (ліва + права), без дублікатів і без збігу з базовими розкладками. Кеш за n.
+  function build(list, n) {
+    var c = ctx(list); if (c.byN[n]) return c.byN[n]; if (Object.keys(c.byN).length > 1) c.byN = {};
+    var seen = {}, out = []; list.forEach(function (t) { seen[sig(t.cols, t.rows, t.cells, 0, 1)] = 1; });
+    c.P.forEach(function (l, i) { if (l.n >= n) return; c.P.forEach(function (r, j) {
+      if (l.n + r.n !== n) return; var t = make(c, i, j), s = sig(t.cols, t.rows, t.cells, 0, 1); if (seen[s]) return; seen[s] = 1; out.push(t);
+    }); });
+    return (c.byN[n] = out);
+  }
+  var api = { build: build, pages: pages, get: get };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumCombos = api;
 })(typeof self !== 'undefined' ? self : this);

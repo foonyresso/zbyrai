@@ -4,20 +4,20 @@
   // Прямокутники шаблону в мм. gap — просвіт між фото (по краях розвороту фото йдуть до краю), margin — біла рамка. tilt: усе полотно поворочено й збільшено, щоб краї виходили за розворот.
   var CB = typeof require !== 'undefined' ? require('./combos.js') : root.AlbumCombos;
   var VR = typeof require !== 'undefined' ? require('./variants.js') : root.AlbumVariants;
-  var COMBOS = CB.build(D.LIST), CMAP = {}; COMBOS.forEach(function (t) { CMAP[t.id] = t; });
-  // Варіанти заміни комірок (id = «база~кроки», напр. g12~3.5): база — 2 кроки, комбіновані — 1 крок. Будуються за потреби й кешуються.
+  // Варіанти заміни комірок (id = «база~кроки», напр. g12~3.5): лише від базових розкладок, 2 кроки.
   var VARS = null, VOPT = { split: true };
-  function mk(parent, v, path) { return { id: parent.id + '~' + path.join('.'), name: parent.name + ' · заміна комірок', n: v.cells.length, cols: v.cols, rows: v.rows, cells: v.cells, tilt: 0, variant: true, nl: parent.nl, nr: parent.nr }; }
+  function mk(parent, v, path, sfx) { return { id: parent.id + '~' + path.join('.') + (sfx || ''), name: parent.name + ' · заміна комірок', n: v.cells.length, cols: v.cols, rows: v.rows, cells: v.cells, tilt: 0, variant: true }; }
   function variantsAll() {
-    if (VARS) return VARS; var seen = {}, out = []; D.LIST.concat(COMBOS).forEach(function (t) { if (!t.tilt) seen[VR.key(t)] = 1; });
-    D.LIST.forEach(function (t) { if (!t.tilt) VR.variants(t, 2, VOPT, seen).forEach(function (r) { out.push(mk(t, r.t, r.path)); }); });
-    COMBOS.forEach(function (t) { VR.variants(t, 1, VOPT, seen).forEach(function (r) { out.push(mk(t, r.t, r.path)); }); });
+    if (VARS) return VARS; var seen = {}, out = []; D.LIST.forEach(function (t) { if (!t.tilt) seen[VR.key(t)] = 1; });
+    // Злиття до 3 кроків (з 2×2 в одне велике вікно), плюс 2 кроки зі змішаними поділами; id кроків для двох режимів різні (суфікс s).
+    D.LIST.forEach(function (t) { if (!t.tilt) VR.variants(t, 3, null, seen).forEach(function (r) { out.push(mk(t, r.t, r.path)); }); });
+    D.LIST.forEach(function (t) { if (!t.tilt) VR.variants(t, 2, VOPT, seen).forEach(function (r) { out.push(mk(t, r.t, r.path, 's')); }); });
     return (VARS = out.sort(function (a, b) { return a.n - b.n; }));
   }
   function byIdAny(id) {
-    var base = D.byId(id) || CMAP[id]; if (base) return base; var m = /^([^~]+)~([\d.]+)$/.exec(id); if (!m) return null;
-    var p = D.byId(m[1]) || CMAP[m[1]]; if (!p || p.tilt) return null; var path = m[2].split('.').map(Number), v;
-    try { v = VR.apply(p, path, VOPT); } catch (e) { return null; } return v && v.cells ? mk(p, v, path) : null;
+    var base = D.byId(id) || CB.get(D.LIST, id); if (base) return base; var m = /^([^~]+)~([\d.]+)(s?)$/.exec(id); if (!m) return null;
+    var p = D.byId(m[1]); if (!p || p.tilt) return null; var path = m[2].split('.').map(Number), v;
+    try { v = VR.apply(p, path, m[3] ? VOPT : null); } catch (e) { return null; } return v && v.cells ? mk(p, v, path, m[3]) : null;
   }
   function rects(tpl, W, H, gap, margin) {
     var area = { x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin }, rot = 0, piv = null;
@@ -53,6 +53,6 @@
     });
     return best;
   }
-  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, COMBOS: COMBOS, variants: variantsAll, byId: byIdAny };
+  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, combos: function (n) { return CB.build(D.LIST, n); }, variants: variantsAll, byId: byIdAny };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumTemplates = api;
 })(typeof self !== 'undefined' ? self : this);

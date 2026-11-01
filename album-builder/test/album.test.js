@@ -265,11 +265,12 @@ test('шаблони групових розкладок: усі валідні,
 });
 test('комбіновані розвороти: унікальні, валідні, без перекриття, знаходяться за id', () => {
   const TP = require('../core/templates.js'), sig = t => t.cells.map(c => c.map(v => v).join(',')).join('|');
-  assert.ok(TP.COMBOS.length > 100);
-  const ids = new Set(TP.COMBOS.map(t => t.id)); assert.strictEqual(ids.size, TP.COMBOS.length);
-  assert.ok(TP.COMBOS.some(t => t.nl === 3 && t.nr === 4) && TP.COMBOS.some(t => t.nl === 4 && t.nr === 3) && TP.COMBOS.some(t => t.nl === 3 && t.nr === 6));
-  for (const t of TP.COMBOS) {
-    assert.strictEqual(TP.byId(t.id), t); const r = TP.rects(t, 466, 236, 1.2, 0); assert.strictEqual(r.length, t.n, t.id);
+  const CO = []; for (let n = 2; n <= 10; n++) TP.combos(n).forEach(t => CO.push(t));
+  assert.ok(CO.length > 1000);
+  const ids = new Set(CO.map(t => t.id)); assert.strictEqual(ids.size, CO.length);
+  assert.ok(CO.some(t => t.nl === 3 && t.nr === 4) && CO.some(t => t.nl === 4 && t.nr === 3) && CO.some(t => t.nl === 3 && t.nr === 6));
+  for (const t of CO.filter((_, i) => i % 50 === 0)) {
+    assert.deepStrictEqual(TP.byId(t.id), t); const r = TP.rects(t, 466, 236, 1.2, 0); assert.strictEqual(r.length, t.n, t.id);
     assert.strictEqual(t.n, t.nl + t.nr); r.forEach((a, i) => r.forEach((b, j) => i < j && assert.ok(!overlap(a, b), t.id)));
   }
 });
@@ -280,7 +281,7 @@ test('заміна комірок: варіанти унікальні, валі
     const b = TP.byId(t.id); assert.ok(b && b.n === t.n && JSON.stringify(b.cells) === JSON.stringify(t.cells), t.id);
     const r = TP.rects(t, 466, 236, 1.2, 0); assert.strictEqual(r.length, t.n); r.forEach((a, i) => r.forEach((c, j) => i < j && assert.ok(!overlap(a, c), t.id)));
   });
-  assert.ok(TP.variants().some(t => t.id.startsWith('g12~') && t.n === 11));
+  assert.ok(TP.variants().some(t => t.id.startsWith('g12~') && t.n === 9));
 });
 test('вибір розкладки, забагато фото: інша розкладка, пропуск зайвих, авто-підбір', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);

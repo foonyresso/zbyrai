@@ -296,7 +296,7 @@
       var l2 = el('label', 'lopt', null, o[2]), c2 = document.createElement('input'); c2.type = 'checkbox'; c2.checked = layoutOpt[o[0]]; c2.onchange = function () { layoutOpt[o[0]] = c2.checked; layoutLimit = 120; buildLayoutStrip(); };
       l2.appendChild(c2); l2.appendChild(document.createTextNode(' ' + o[1])); strip.appendChild(l2);
     });
-    var fN = layoutFilter ? +layoutFilter : 0, pool = AlbumTemplates.LIST.concat(fN && layoutOpt.combo ? AlbumTemplates.COMBOS : [], fN && layoutOpt.vars ? AlbumTemplates.variants() : []).filter(function (t) { return !fN || t.n === fN; }), shown = pool.slice(0, layoutLimit);
+    var fN = layoutFilter ? +layoutFilter : 0, pool = AlbumTemplates.LIST.concat(fN && layoutOpt.combo ? AlbumTemplates.combos(fN) : [], fN && layoutOpt.vars ? AlbumTemplates.variants() : []).filter(function (t) { return !fN || t.n === fN; }), shown = pool.slice(0, layoutLimit);
     if (fN && !pool.length) strip.appendChild(el('span', 'lopt', 'Для такої кількості розкладок немає'));
     if (fN) strip.appendChild(el('span', 'lopt', 'Знайдено: ' + pool.length));
     shown.forEach(function (t) {
