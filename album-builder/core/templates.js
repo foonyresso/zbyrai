@@ -53,6 +53,13 @@
     });
     return best;
   }
-  var api = { rects: rects, assign: assign, pick: pick, LIST: D.LIST, combos: function (n) { return CB.build(D.LIST, n); }, variants: variantsAll, byId: byIdAny };
+  // Випадкова розкладка рівно на n вікон з усіх доступних: базові, комбіновані (opt.combo), заміна комірок (opt.vars). rnd — функція 0..1.
+  function random(n, opt, rnd) {
+    opt = opt || {}; var pool = D.LIST.filter(function (t) { return t.n === n; });
+    if (opt.combo !== false) pool = pool.concat(CB.build(D.LIST, n));
+    if (opt.vars !== false) pool = pool.concat(variantsAll().filter(function (t) { return t.n === n; }));
+    return pool.length ? pool[Math.floor((rnd || Math.random)() * pool.length)] : null;
+  }
+  var api = { random: random, rects: rects, assign: assign, pick: pick, LIST: D.LIST, combos: function (n) { return CB.build(D.LIST, n); }, variants: variantsAll, byId: byIdAny };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumTemplates = api;
 })(typeof self !== 'undefined' ? self : this);

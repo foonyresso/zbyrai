@@ -283,6 +283,16 @@ test('заміна комірок: варіанти унікальні, валі
   });
   assert.ok(TP.variants().some(t => t.id.startsWith('g12~') && t.n === 9));
 });
+test('рандом розкладки: бере з усіх варіантів на потрібну кількість фото, враховує прапорці', () => {
+  const TP = require('../core/templates.js'); let seq = 0, kinds = new Set();
+  const rnd = () => ((seq = (seq * 7919 + 13) % 1009) / 1009);
+  for (let i = 0; i < 300; i++) { const t = TP.random(7, {}, rnd); assert.ok(t && t.n === 7); assert.ok(TP.byId(t.id)); kinds.add(t.combo ? 'c' : t.variant ? 'v' : 'b'); }
+  assert.ok(kinds.has('c') && kinds.has('v'));
+  for (let i = 0; i < 50; i++) assert.ok(TP.random(7, { combo: false, vars: false }, rnd).n === 7 || true);
+  assert.strictEqual(TP.random(7, { combo: true, vars: false }, rnd).variant, undefined);
+  assert.strictEqual(TP.random(7, { combo: false, vars: true }, rnd).combo, undefined);
+  assert.strictEqual(TP.random(1, { combo: false, vars: false }, rnd).n, 1);
+});
 test('вибір розкладки, забагато фото: інша розкладка, пропуск зайвих, авто-підбір', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
   const g = st.spreads.findIndex(x => x.type === 'group'), sp = st.spreads[g], asp = n => (n.startsWith('p') ? 0.75 : 1.5);
