@@ -28,7 +28,7 @@
       if (!noInset) insets(p).forEach(function (q) { add(q, desc + ', ' + q.tag, true); });
       [p, mirror(p), flip(p), flip(mirror(p)), transpose(p), mirror(transpose(p)), flip(transpose(p)), flip(mirror(transpose(p)))].forEach(function (q, k) {
         if (q.cells.length > 8) return; var s = sig(q.cols, q.rows, q.cells, 0, 1); if (seen[s]) return; seen[s] = 1;
-        out.push({ id: 'p' + out.length, desc: desc + (k ? (k % 4 === 1 ? ' (дзеркально)' : k % 4 === 2 ? ' (догори дном)' : k % 4 === 3 ? ' (дзеркально, догори дном)' : '') + (k > 3 ? ', повернуто' : '') : ''), cols: q.cols, rows: q.rows, cells: q.cells, n: q.cells.length });
+        out.push({ id: 'p' + out.length, desc: (k > 3 ? desc.replace(/вертикальні|горизонтальні/, function (w) { return w === 'вертикальні' ? 'горизонтальні' : 'вертикальні'; }) : desc) + (k ? (k % 4 === 1 ? ' (дзеркально)' : k % 4 === 2 ? ' (догори дном)' : k % 4 === 3 ? ' (дзеркально, догори дном)' : '') + (k > 3 ? ', повернуто' : '') : ''), cols: q.cols, rows: q.rows, cells: q.cells, n: q.cells.length });
       });
     }
     var VR = typeof require !== 'undefined' ? require('./variants.js') : root.AlbumVariants, extra = [];
