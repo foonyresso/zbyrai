@@ -36,6 +36,11 @@
     }
     return res;
   }
-  var api = { variants: variants, apply: apply, step: step, key: key, norm: norm };
+  // Чи всі вікна розкладки мають придатні пропорції для групових фото (від ~2:3 до ~3:2 з запасом). ratio = ширина/висота області розкладки.
+  var MIN_ASPECT = 0.55, MAX_ASPECT = 1.8;
+  function okAspect(t, ratio) {
+    return t.cells.every(function (c) { var a = (c[2] / t.cols) * ratio / (c[3] / t.rows); return a >= MIN_ASPECT - 1e-9 && a <= MAX_ASPECT + 1e-9; });
+  }
+  var api = { okAspect: okAspect, variants: variants, apply: apply, step: step, key: key, norm: norm };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumVariants = api;
 })(typeof self !== 'undefined' ? self : this);

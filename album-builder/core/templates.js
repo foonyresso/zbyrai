@@ -12,6 +12,7 @@
     // Злиття до 3 кроків (з 2×2 в одне велике вікно), плюс 2 кроки зі змішаними поділами; id кроків для двох режимів різні (суфікс s).
     D.LIST.forEach(function (t) { if (!t.tilt) VR.variants(t, 3, null, seen).forEach(function (r) { out.push(mk(t, r.t, r.path)); }); });
     D.LIST.forEach(function (t) { if (!t.tilt) VR.variants(t, 2, VOPT, seen).forEach(function (r) { out.push(mk(t, r.t, r.path, 's')); }); });
+    out = out.filter(function (t) { return VR.okAspect(t, 466 / 236); });
     return (VARS = out.sort(function (a, b) { return a.n - b.n; }));
   }
   function byIdAny(id) {

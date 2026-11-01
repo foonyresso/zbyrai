@@ -1,5 +1,6 @@
 // Комбіновані розвороти: сторінки (половини й цілі шаблони, зі дзеркалами) з наявних розкладок парами «ліва + права». Без DOM, без дублікатів.
 (function (root) {
+  var VA = typeof require !== 'undefined' ? require('./variants.js') : root.AlbumVariants;
   function gcd(a, b) { return b ? gcd(b, a % b) : a; }
   function lcm(a, b) { return a / gcd(a, b) * b; }
   // Підпис набору клітинок у частках площі: однакові розкладки дають однаковий рядок.
@@ -27,7 +28,7 @@
     function add(p, desc, noInset) {
       if (!noInset) insets(p).forEach(function (q) { add(q, desc + ', ' + q.tag, true); });
       [p, mirror(p), flip(p), flip(mirror(p)), transpose(p), mirror(transpose(p)), flip(transpose(p)), flip(mirror(transpose(p)))].forEach(function (q, k) {
-        if (q.cells.length > 8) return; var s = sig(q.cols, q.rows, q.cells, 0, 1); if (seen[s]) return; seen[s] = 1;
+        if (q.cells.length > 8) return; if (!VA.okAspect(q, 233 / 236)) return; var s = sig(q.cols, q.rows, q.cells, 0, 1); if (seen[s]) return; seen[s] = 1;
         out.push({ id: 'p' + out.length, desc: (k > 3 ? desc.replace(/вертикальні|горизонтальні/, function (w) { return w === 'вертикальні' ? 'горизонтальні' : 'вертикальні'; }) : desc) + (k ? (k % 4 === 1 ? ' (дзеркально)' : k % 4 === 2 ? ' (догори дном)' : k % 4 === 3 ? ' (дзеркально, догори дном)' : '') + (k > 3 ? ', повернуто' : '') : ''), cols: q.cols, rows: q.rows, cells: q.cells, n: q.cells.length });
       });
     }
@@ -65,7 +66,7 @@
     var c = ctx(list); if (c.byN[n]) return c.byN[n]; if (Object.keys(c.byN).length > 1) c.byN = {};
     var seen = {}, out = []; list.forEach(function (t) { seen[sig(t.cols, t.rows, t.cells, 0, 1)] = 1; });
     c.P.forEach(function (l, i) { if (l.n >= n) return; c.P.forEach(function (r, j) {
-      if (l.n + r.n !== n) return; var t = make(c, i, j), s = sig(t.cols, t.rows, t.cells, 0, 1); if (seen[s]) return; seen[s] = 1; out.push(t);
+      if (l.n + r.n !== n) return; var t = make(c, i, j); if (!VA.okAspect(t, 466 / 236)) return; var s = sig(t.cols, t.rows, t.cells, 0, 1); if (seen[s]) return; seen[s] = 1; out.push(t);
     }); });
     return (c.byN[n] = out);
   }
