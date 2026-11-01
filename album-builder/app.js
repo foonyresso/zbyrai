@@ -66,7 +66,7 @@
   function showEditor() { $('wizard').hidden = true; $('work').hidden = false; document.body.classList.add('editing'); refresh(); }
   var saveT;
   function save() { clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem('albumBuilder.v1', S.toJSON(st)); } catch (e) {} }, 300); }
-  function refresh() { redraw(); thumbs(); updateInfo(); if (panel === 'obj') buildObjPanel(); save(); }
+  function refresh() { redraw(); thumbs(); updateInfo(); if (layoutFilter === 'auto' && $('layoutStrip') && !$('layoutStrip').hidden && st.spreads[cur] && S.groupPhotos(st.spreads[cur]).length !== lastAutoN) buildLayoutStrip(); if (panel === 'obj') buildObjPanel(); save(); }
   function sizeCanvas() {
     var z = PR.spreadSize(st.fmtId), box = $('drop'), cs = getComputedStyle(box);
     var aw = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
@@ -281,7 +281,8 @@
     var r = S.setTemplate(st, cur, id);
     if (r.overflow) tooMany([], r.tpl); else refresh();
   }
-  var layoutFilter = '', layoutLimit = 120, layoutOpt = { combo: true, vars: true };
+  function effFilter() { if (layoutFilter === 'auto') { lastAutoN = S.groupPhotos(st.spreads[cur]).length; return lastAutoN; } return layoutFilter ? +layoutFilter : 0; }
+  var lastAutoN = -1, layoutFilter = 'auto', layoutLimit = 120, layoutOpt = { combo: true, vars: true };
   function buildLayoutStrip() {
     var strip = $('layoutStrip'), sp = st.spreads[cur], z = S.zoneOf(st, cur), th = 50, tw = Math.round(th * z.W / z.H); strip.textContent = '';
     var opt = el('div', 'lopt'), lab = el('label', '', '', 'Біла рамка навколо фото'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!sp.frame; cb.onchange = function () { sp.frame = cb.checked; refresh(); };
@@ -289,14 +290,14 @@
     [['mosaic', 'Мозаїка (авто)'], ['rows', 'Ряди (авто)'], ['scrap', 'Вклеєні (авто)']].forEach(function (a) {
       var b = el('button', 'lt txt' + (sp.style === a[0] ? ' on' : ''), a[1], 'Авто-розкладка під будь-яку кількість фото'); b.onclick = function () { S.setStyle(st, cur, a[0]); refresh(); }; strip.appendChild(b);
     });
-    var cnt = el('label', 'lopt', null, 'Фільтр за загальною кількістю фото на розвороті'), sel = document.createElement('select'); sel.title = 'Показати лише розкладки з обраною кількістю фото; «Усі» — тільки базові, число — ще й комбіновані та з заміною комірок';
-    cnt.appendChild(document.createTextNode('Фото: ')); [['', 'Усі']].concat(Array.from({ length: 20 }, function (_, i) { return [String(i + 1), String(i + 1)]; })).forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
+    var cnt = el('label', 'lopt', null, 'Фільтр за загальною кількістю фото на розвороті'), sel = document.createElement('select'); sel.title = '«Авто» — кількість фото, уже вкладених у цей розворот (оновлюється сама); «Усі» — лише базові розкладки; число — базові, комбіновані й з заміною комірок на таку кількість фото';
+    cnt.appendChild(document.createTextNode('Фото: ')); [['auto', 'Авто'], ['', 'Усі']].concat(Array.from({ length: 20 }, function (_, i) { return [String(i + 1), String(i + 1)]; })).forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
     sel.value = layoutFilter; sel.onchange = function () { layoutFilter = sel.value; layoutLimit = 120; buildLayoutStrip(); }; cnt.appendChild(sel); strip.appendChild(cnt);
     [['combo', 'Комбіновані', 'Ліва сторінка від однієї розкладки, права від іншої (разом з дзеркальними й половинами)'], ['vars', 'Заміна комірок', 'Розкладки, де сусідні комірки об\'єднано в одну більшу або комірку поділено навпіл']].forEach(function (o) {
       var l2 = el('label', 'lopt', null, o[2]), c2 = document.createElement('input'); c2.type = 'checkbox'; c2.checked = layoutOpt[o[0]]; c2.onchange = function () { layoutOpt[o[0]] = c2.checked; layoutLimit = 120; buildLayoutStrip(); };
       l2.appendChild(c2); l2.appendChild(document.createTextNode(' ' + o[1])); strip.appendChild(l2);
     });
-    var fN = layoutFilter ? +layoutFilter : 0, pool = AlbumTemplates.LIST.concat(fN && layoutOpt.combo ? AlbumTemplates.combos(fN) : [], fN && layoutOpt.vars ? AlbumTemplates.variants() : []).filter(function (t) { return !fN || t.n === fN; }), shown = pool.slice(0, layoutLimit);
+    var fN = effFilter(), pool = AlbumTemplates.LIST.concat(fN && layoutOpt.combo ? AlbumTemplates.combos(fN) : [], fN && layoutOpt.vars ? AlbumTemplates.variants() : []).filter(function (t) { return !fN || t.n === fN; }), shown = pool.slice(0, layoutLimit);
     if (fN && !pool.length) strip.appendChild(el('span', 'lopt', 'Для такої кількості розкладок немає'));
     if (fN) strip.appendChild(el('span', 'lopt', 'Знайдено: ' + pool.length));
     shown.forEach(function (t) {
@@ -693,9 +694,9 @@
   document.querySelector('.rail [data-go=album]').onclick = function () { showStep(1); };
   document.querySelectorAll('#dragMode [data-dm]').forEach(function (b) { b.onclick = function () { dragMode = b.dataset.dm; document.querySelectorAll('#dragMode button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   $('btnShuffle').onclick = function () {
-    var sp0 = st.spreads[cur], tp0 = sp0.template && AlbumTemplates.byId(sp0.template), cnt = layoutFilter ? +layoutFilter : (S.groupPhotos(sp0).length || (sp0.style === 'tpl' && tp0 ? tp0.n : 0));
-    if (S.groupPhotos(sp0).length && !layoutFilter && S.shuffleFit(st, cur, aspectOf, layoutOpt)) { refresh(); return; }
-    if (cnt && (layoutFilter || sp0.style === 'tpl')) { var t0 = AlbumTemplates.random(cnt, layoutOpt); if (t0) { pickLayout(t0.id); return; } }
+    var sp0 = st.spreads[cur], tp0 = sp0.template && AlbumTemplates.byId(sp0.template), cnt = effFilter() || (S.groupPhotos(sp0).length || (sp0.style === 'tpl' && tp0 ? tp0.n : 0));
+    if (S.groupPhotos(sp0).length && (layoutFilter === 'auto' || !layoutFilter) && S.shuffleFit(st, cur, aspectOf, layoutOpt)) { refresh(); return; }
+    if (cnt && (layoutFilter || effFilter() || sp0.style === 'tpl')) { var t0 = AlbumTemplates.random(cnt, layoutOpt); if (t0) { pickLayout(t0.id); return; } }
     st.spreads[cur].seed = 1 + Math.floor(Math.random() * 99999); st.spreads[cur].off = {}; refresh(); };
   $('btnStyle').onclick = function () { var sp = st.spreads[cur], ss = ['mosaic', 'rows', 'scrap']; S.setStyle(st, cur, ss[(ss.indexOf(sp.style || 'mosaic') + 1) % 3]); refresh(); };
   $('spineIn').onchange = function () { var v = parseFloat($('spineIn').value); st.spine = isNaN(v) ? null : Math.max(0, Math.min(60, v)); refresh(); };
