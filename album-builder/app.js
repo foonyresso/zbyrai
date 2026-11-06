@@ -174,7 +174,7 @@
     $('btnStyle').textContent = 'Стиль: ' + ({ mosaic: 'мозаїка', rows: 'ряди', scrap: 'вклеєні', tpl: 'готова' }[st.spreads[cur].style || 'mosaic']);
     $('spineIn').value = st.spine == null ? PR.spreadSize(st.fmtId).spine : st.spine;
     $('safeIn').value = st.safe == null ? PR.spreadSize(st.fmtId).safe : st.safe; $('coverSafeIn').value = st.coverSafe == null ? 15 : st.coverSafe;
-    $('sizeInfo').textContent = 'Файл розвороту: ' + Math.round(z.W * 300 / 25.4) + '×' + Math.round(z.H * 300 / 25.4) + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
+    $('sizeInfo').textContent = 'Файл розвороту: ' + z.pxW + '×' + z.pxH + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
     $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться); безпечна межа ' + z.safe + ' мм від обрізу' + (t === 'cover' ? ' (для обкладинки)' : '') + ': текст і підписи тримаємо всередині. Значення типові, не з сайту друкарні; вводь свої.';
   }
 
@@ -839,8 +839,8 @@
   // Малює розворот si у точному розмірі друку (300 dpi); для обкладинки й першого розвороту підставляє дитину ownerId.
   function renderBlob(i, mime, ownerId) {
     return AlbumFonts.ensure(st).then(function () {
-      var z = PR.spreadSize(st.fmtId), k = 300 / 25.4, c = document.createElement('canvas'), keep = st.owner;
-      c.width = Math.round(z.W * k); c.height = Math.round(z.H * k);
+      var z = PR.spreadSize(st.fmtId), c = document.createElement('canvas'), keep = st.owner;
+      c.width = z.pxW; c.height = z.pxH;
       if (ownerId != null) st.owner = ownerId;
       R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: c.width / z.W, preview: false });
       st.owner = keep;

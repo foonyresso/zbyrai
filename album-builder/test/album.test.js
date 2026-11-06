@@ -5,6 +5,12 @@ let failed = 0;
 const test = (n, f) => { try { f(); console.log('  ok  ', n); } catch (e) { failed++; console.log('  FAIL', n, '\n      ', e.message); } };
 const overlap = (a, b) => a.x < b.x + b.w - 1e-6 && b.x < a.x + a.w - 1e-6 && a.y < b.y + b.h - 1e-6 && b.y < a.y + a.h - 1e-6;
 
+test('розмір розвороту 20×30 = 4819×3425 px (вимога друкарні), пропорції збігаються', () => {
+  const z = PR.spreadSize('20x30');
+  assert.deepStrictEqual(z.px, [4819, 3425]);
+  assert.ok(Math.abs(z.W / z.H - 4819 / 3425) < 2e-3);
+  assert.strictEqual(PR.spreadSize('23x23').pxW, Math.round(PR.spreadSize('23x23').W * 300 / 25.4));
+});
 test('рядок дитини: номери й ім\'я в будь-якому порядку', () => {
   assert.deepStrictEqual(P.parseChildren('12 13 Іваненко Іван')[0], { nums: ['12', '13'], name: 'Іваненко Іван' });
   assert.deepStrictEqual(P.parseChildren('Іван Іваненко, 7')[0], { nums: ['7'], name: 'Іван Іваненко' });
