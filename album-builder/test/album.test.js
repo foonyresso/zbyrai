@@ -512,5 +512,11 @@ test('PNG: чанк iCCP з профілем «sRGB IEC61966-2.1»', () => {
 test('PDF: ICCBased замість DeviceRGB', () => {
   return AX.pdf([{ jpeg: new Uint8Array([1, 2]), w: 1, h: 1, wMm: 10, hMm: 10 }]).arrayBuffer().then(ab => { const s = Buffer.from(ab).toString('latin1'); assert.ok(s.includes('/ICCBased 7 0 R') && s.includes('7 0 obj') && !s.includes('/DeviceRGB /Bits')); });
 });
+test('сторінка шрифтів: метадані покривають усі шрифти макетника, варіанти мають @font-face', () => {
+  const M = require('../data/fonts-meta.js'), FT = require('../data/fonts.js'), css = require('fs').readFileSync(__dirname + '/../fonts/fonts.css', 'utf8');
+  const fams = new Set(); M.FAMILIES.forEach(f => { assert.ok(f.author && f.source && f.license && M.LICENSES[f.license], f.id); f.variants.forEach(v => { fams.add(v.family); assert.ok(css.includes("font-family: '" + v.family + "'"), 'нема @font-face ' + v.family); }); });
+  FT.LIST.forEach(f => assert.ok(fams.has(f.n), 'нема в fonts-meta: ' + f.n));
+  assert.deepStrictEqual(M.FAMILIES.filter(f => !f.free).map(f => f.id).sort(), ['Bahnschrift', 'Pudelinka']);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);
