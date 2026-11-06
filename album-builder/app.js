@@ -5,7 +5,7 @@
   var st = S.newState(), files = new Map(), imgs = new Map(), numMap = new Map();
   var cur = 0, sel = null, step = 1, dragMode = 'swap', guides = true, centers = true, drag = null, pickRef = null, lastInfo = null, panel = null;
   var cv = $('cv'), ctx = cv.getContext('2d');
-  function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('on'); }, 2600); }
+  function toast(t, ms) { var e = $('toast'); e.textContent = t; e.classList.toggle('multi', t.indexOf('\n') >= 0); e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('on'); }, ms || 2600); }
   function el(tag, cls, text, title) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (title) e.title = title; return e; }
 
   // ---------- Майстер ----------
@@ -67,12 +67,44 @@
   var saveT;
   function save() { clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem('albumBuilder.v1', S.toJSON(st)); } catch (e) {} }, 300); }
   function refresh() { redraw(); thumbs(); updateInfo(); if (layoutFilter === 'auto' && $('layoutStrip') && !$('layoutStrip').hidden && st.spreads[cur] && S.groupPhotos(st.spreads[cur]).length !== lastAutoN) buildLayoutStrip(); if (panel === 'obj') buildObjPanel(); save(); }
-  function sizeCanvas() {
-    var z = PR.spreadSize(st.fmtId), box = $('drop'), cs = getComputedStyle(box);
-    var aw = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-    var k = Math.max(0.5, Math.min(aw / z.W, ah / z.H)), dpr = Math.min(2, window.devicePixelRatio || 1);
-    cv.width = Math.round(z.W * k * dpr); cv.height = Math.round(z.H * k * dpr); return cv.width / z.W;
+  // Масштаб полотна: zoom 1 = розворот вміщено у вікно; pan: зсув у css-пікселях від центру
+  var zoom = 1, pan = { x: 0, y: 0 }, view = null, ZMIN = 1, ZMAX = 8;
+  function viewArea() {
+    var box = $('drop'), cs = getComputedStyle(box), pl = parseFloat(cs.paddingLeft), pt = parseFloat(cs.paddingTop);
+    return { l: pl, t: pt, w: box.clientWidth - pl - parseFloat(cs.paddingRight), h: box.clientHeight - pt - parseFloat(cs.paddingBottom) };
   }
+  function clampPan() {
+    if (!view) return; var a = view.a, m = 40;
+    var lx = Math.max(0, (view.cw - a.w) / 2 + m), ly = Math.max(0, (view.ch - a.h) / 2 + m);
+    pan.x = Math.min(lx, Math.max(-lx, pan.x)); pan.y = Math.min(ly, Math.max(-ly, pan.y));
+  }
+  function placeCanvas() {
+    if (!view) return; clampPan(); var a = view.a;
+    cv.style.left = Math.round(a.l + (a.w - view.cw) / 2 + pan.x) + 'px'; cv.style.top = Math.round(a.t + (a.h - view.ch) / 2 + pan.y) + 'px';
+  }
+  function sizeCanvas() {
+    var z = PR.spreadSize(st.fmtId), a = viewArea();
+    var k = Math.max(0.5, Math.min(a.w / z.W, a.h / z.H)) * zoom, cw = z.W * k, ch = z.H * k;
+    // щільність пікселів обмежена, щоб наближене полотно не з'їдало пам'ять (макс. ~8k по стороні, 36 Мп)
+    var dpr = Math.min(2, window.devicePixelRatio || 1, 8192 / cw, 8192 / ch, Math.sqrt(36e6 / (cw * ch)));
+    cv.width = Math.max(1, Math.round(cw * dpr)); cv.height = Math.max(1, Math.round(ch * dpr));
+    cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+    view = { a: a, cw: cw, ch: ch }; placeCanvas();
+    $('zoomFit').textContent = Math.round(zoom * 100) + '%';
+    return cv.width / z.W;
+  }
+  // Змінити масштаб, тримаючи точку (cx, cy у координатах вікна) на місці
+  function setZoom(nz, cx, cy) {
+    nz = Math.min(ZMAX, Math.max(ZMIN, nz)); if (!view || Math.abs(nz - zoom) < 1e-4) { if (nz === ZMIN) { pan.x = pan.y = 0; placeCanvas(); } return; }
+    var r = cv.getBoundingClientRect(), br = $('drop').getBoundingClientRect(), f = nz / zoom;
+    var acx = br.left + view.a.l + view.a.w / 2, acy = br.top + view.a.t + view.a.h / 2;
+    if (cx == null) { cx = acx; cy = acy; }
+    // новий центр полотна: точка під курсором лишається на місці
+    var ccx = r.left + r.width / 2, ccy = r.top + r.height / 2;
+    pan.x = cx - (cx - ccx) * f - acx; pan.y = cy - (cy - ccy) * f - acy;
+    zoom = nz; if (zoom === ZMIN) pan.x = pan.y = 0; redraw();
+  }
+  function zoomStep(dir, cx, cy) { setZoom(dir > 0 ? zoom * 1.25 : zoom / 1.25, cx, cy); }
   function redraw() {
     if ($('work').hidden) return;
     var ppm = sizeCanvas();
@@ -123,7 +155,7 @@
   }
   function updateInfo() {
     var ps = S.people(st), tl = S.teachers(st), pst = S.portraitStats(st), tk = tl.filter(function (p) { return S.photoFor(p, numMap); }).length;
-    $('count').textContent = 'Портрети на розворотах: ' + pst.placed + '/' + pst.total + (tl.length ? ' · вчителі: ' + tk + '/' + tl.length : '') + ' · фото в пам\'яті: ' + files.size;
+    $('count').textContent = 'Портрети на розворотах: ' + pst.placed + '/' + pst.total + (tl.length ? '\nВчителі: ' + tk + '/' + tl.length : '') + '\nФото в пам\'яті: ' + files.size;
     var k = S.portraitK(st);
     $('kInfo').textContent = 'Дітей у списку: ' + ps.length + '. Зараз ' + k + ' на розворот, портретних розворотів: ' + st.spreads.filter(function (s) { return s.type === 'portrait'; }).length + '. Зайві вікна лишаються білими.';
     if (panel === 'layout') buildGridUI($('gridBody'));
@@ -157,7 +189,7 @@
       files.set(f.name, f); imgs.set(f.name, im); names.push(f.name);
     }
     numMap = S.numMapOf(Array.from(files.keys()));
-    var sp = st.spreads[cur], placed = 0, dup = 0;
+    var sp = st.spreads[cur], placed = 0, dup = 0, notFound = [];
     if (sp.type === 'group') {
       var fresh = names.filter(function (n) { return sp.slots.indexOf(n) < 0; });
       if (sp.style === 'tpl' && fresh.length > S.freeCount(sp)) { refresh(); tooMany(fresh); return; }
@@ -177,13 +209,14 @@
       if (sp.type === 'cover' && S.coverVar(st).cells) { rest2.forEach(function (n) { var i = 0; while (sp.slots[i]) i++; if (i < S.coverVar(st).cells({ x0: 0, x1: 1, cx: 0, W: 1, H: 1, sb: 0 }).length) { sp.slots[i] = n; placed++; } }); }
       else if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap, cur);
       else if (side === 'left') {
-        if (tl.length) placed += S.assignTeachers(st, cur, rest2, numMap);
+        if (tl.length) { var tr = S.assignTeachers(st, cur, rest2, numMap); placed += tr.matched.length; notFound = tr.unmatched; }
         else if (rest2.length) { sp.slots[0] = rest2[0]; placed++; }
       } else placed += S.assignUnmatched(st, 'fright', rest2, numMap, cur);
     }
     refresh();
     var auto = (sp.type === 'cover' || sp.type === 'first') && !placed && names.length ? ' (фото за номерами з назв підхоплено автоматично)' : '';
-    toast('Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (dup ? ', пропущено дублікатів: ' + dup : '') + (bad ? ', не прочитано: ' + bad : ''));
+    var msg = 'Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (dup ? ', пропущено дублікатів: ' + dup : '') + (bad ? ', не прочитано: ' + bad : '');
+    if (notFound.length) { msg += '\n' + notFound.map(function (n) { return 'Файл ' + n + ' не знайдено в списку'; }).join('\n'); toast(msg, 3000 + 1500 * notFound.length); } else toast(msg);
   }
   var pickSide = 'right';
   $('btnAdd').onclick = function () { pickRef = null; pickSide = 'right'; $('fileImg').click(); };
@@ -249,7 +282,35 @@
       pickRef = d.it.ref; pickSide = d.it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click();
     }
   });
+  $('zoomIn').onclick = function () { zoomStep(1); };
+  $('zoomOut').onclick = function () { zoomStep(-1); };
+  $('zoomFit').onclick = function () { setZoom(1); };
+  // Рух полотна: пробіл + перетягування, середня кнопка, перетягування поза розворотом
+  var panDrag = null, spaceDown = false;
+  function startPan(e) { panDrag = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y, id: e.pointerId }; $('drop').classList.add('panning'); try { $('drop').setPointerCapture(e.pointerId); } catch (er) {} e.preventDefault(); }
+  $('drop').addEventListener('pointerdown', function (e) {
+    if (e.target !== $('drop') && e.target !== cv) return;
+    if (e.button === 1 || spaceDown && e.button === 0 || e.target === $('drop') && e.button === 0 && zoom > 1) { e.stopPropagation(); closeMenu(); startPan(e); }
+  }, true);
+  $('drop').addEventListener('pointermove', function (e) { if (!panDrag) return; pan.x = panDrag.px + e.clientX - panDrag.x; pan.y = panDrag.py + e.clientY - panDrag.y; placeCanvas(); });
+  function endPan() { if (!panDrag) return; panDrag = null; $('drop').classList.remove('panning'); }
+  $('drop').addEventListener('pointerup', endPan); $('drop').addEventListener('pointercancel', endPan);
+  $('drop').addEventListener('auxclick', function (e) { if (e.button === 1) e.preventDefault(); });
+  $('drop').addEventListener('wheel', function (e) {
+    if (e.target !== $('drop') && e.target !== cv) return;
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); setZoom(zoom * Math.pow(1.0018, -e.deltaY), e.clientX, e.clientY); return; }
+    if (zoom > 1 && (e.target === $('drop') || !(hit(mmAt(e)) || {}).name)) { e.preventDefault(); pan.x -= e.shiftKey ? e.deltaY : e.deltaX; pan.y -= e.shiftKey ? 0 : e.deltaY; placeCanvas(); }
+  }, { passive: false });
+  window.addEventListener('keydown', function (e) {
+    if ($('work').hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+    if (e.code === 'Space') { if (!spaceDown) { spaceDown = true; $('drop').classList.add('space'); } e.preventDefault(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomStep(1); } else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomStep(-1); } else if (e.key === '0') { e.preventDefault(); setZoom(1); }
+  });
+  window.addEventListener('keyup', function (e) { if (e.code === 'Space') { spaceDown = false; $('drop').classList.remove('space'); } });
+  window.addEventListener('blur', function () { spaceDown = false; $('drop').classList.remove('space'); endPan(); });
   cv.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey) return;
     var it = hit(mmAt(e)); if (!it || !it.name) return; e.preventDefault();
     var c = R.crop(st, it.name); c.z = Math.min(4, Math.max(1, c.z * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); redraw(); thumbs();
   }, { passive: false });
@@ -538,6 +599,10 @@
     var b1 = el('button', '', 'Стерти', 'Прибрати цей напис з обкладинки'), b2 = el('button', '', 'Скинути', 'Повернути стандартний текст варіанта');
     b1.onclick = function () { st.cvText[id] = ''; refresh(); }; b2.onclick = function () { delete st.cvText[id]; refresh(); };
     l.appendChild(inp); l.appendChild(b1); l.appendChild(b2); box.appendChild(l);
+    if (fd && dd.first && dd.first.t2.box) {
+      var lb = el('label', 'chk', null, 'Чорна плашка за написом розвороту'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !st.hideFirstBox;
+      cb.onchange = function () { st.hideFirstBox = !cb.checked; redraw(); save(); }; lb.appendChild(cb); lb.appendChild(document.createTextNode(' Показувати чорну плашку')); box.appendChild(lb);
+    }
   }
   function cvTextFields(box) { ['ctitle', 'csub'].forEach(function (k) { cvTextField(box, k); }); }
   var cvAll = false, cvGrp = '';

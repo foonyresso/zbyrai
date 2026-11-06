@@ -198,9 +198,18 @@ test('портрети без збігу номерів розкладаютьс
   S.setOwnerIndex(st, 0); assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, '1.jpg');
   S.setOwnerIndex(st, 1); assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, 'x_a.jpg');
   S.setOwnerIndex(st, 2); assert.strictEqual(S.slotsFor(st, 0, m).items[0].name, 'x_b.jpg');
-  assert.strictEqual(S.assignTeachers(st, 1, ['t2.jpg', 't1.jpg'], m), 2);
+});
+test('вчителі: фото за номером у назві файлу, без збігу не підставляється', () => {
+  const st = S.newState(); st.children = '1 А А'; st.teachers = '50 Т Т Т вихователь\n51 У У У вихователь\n52 Ф Ф Ф'; S.buildSpreads(st);
+  const names = ['IMG_51.jpg', 'x.jpg', 'foto_0050.jpg', '99.jpg'], m = S.numMapOf(names);
+  const r = S.assignTeachers(st, 1, names, m);
+  assert.deepStrictEqual(r.matched, ['IMG_51.jpg', 'foto_0050.jpg']); assert.deepStrictEqual(r.unmatched, ['99.jpg', 'x.jpg']);
   const it = S.slotsFor(st, 1, m).items.filter(x => x.kind === 'teacher');
-  assert.deepStrictEqual(it.map(x => x.name), ['t1.jpg', 't2.jpg']);
+  assert.deepStrictEqual(it.map(x => x.name), ['foto_0050.jpg', 'IMG_51.jpg', null]);
+});
+test('плашка першого розвороту: прапорець зберігається', () => {
+  const st = S.newState(); assert.strictEqual(st.hideFirstBox, false); st.hideFirstBox = true;
+  assert.strictEqual(S.fromJSON(S.toJSON(Object.assign(st, { v: 1 }))).hideFirstBox, true);
 });
 test('безпечна зона обкладинки більша; можна змінити; текст обкладинки всередині неї', () => {
   const st = S.newState(); st.children = '1 А А'; S.buildSpreads(st);
