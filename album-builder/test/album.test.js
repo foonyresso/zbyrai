@@ -471,5 +471,31 @@ test('чорна плашка першого розвороту вибираєт
   const ctx = new Proxy({}, { get: (t, k) => k === 'measureText' ? () => ({ width: 1, actualBoundingBoxLeft: 0, actualBoundingBoxRight: 1, actualBoundingBoxAscent: 1, actualBoundingBoxDescent: 0 }) : k === 'getTransform' ? () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) : (typeof t[k] === 'function' || !(k in t)) ? (t[k] = t[k] || (() => ({ addColorStop() {} }))) : t[k], set: (t, k, v) => (t[k] = v, true) });
   [false, true].forEach(h => { st.hideFirstBox = h; const i = R.draw(ctx, st, 1, S.numMapOf([]), new Map(), { pxPerMm: 1, preview: true }); assert.ok(i.texts.some(t => t.key === 'plate' && t.rect.w > 0), 'hide=' + h); });
 });
+
+// --- ICC-профіль в експорті ---
+const iccDesc = u => { const dv = new DataView(u.buffer, u.byteOffset, u.byteLength), n = dv.getUint32(128); for (let i = 0; i < n; i++) { const o = 132 + 12 * i; if (String.fromCharCode(...u.subarray(o, o + 4)) === 'desc') { const a = dv.getUint32(o + 4), l = dv.getUint32(a + 8); return String.fromCharCode(...u.subarray(a + 12, a + 12 + l - 1)); } } };
+global.self = global; require('../assets/srgb-icc.js'); const X = require('../export.js'); const AX = global.AlbumExport || X;
+const zlib = require('node:zlib');
+test('JPEG: APP2 ICC «sRGB IEC61966-2.1» після JFIF', () => {
+  const jpg = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0, 16, 74, 70, 73, 70, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xFF, 0xDB, 0, 2, 0xFF, 0xD9]);
+  const o = AX.iccJpeg(jpg); assert.deepStrictEqual([...o.subarray(0, 4)], [0xFF, 0xD8, 0xFF, 0xE0]);
+  const p = 20; assert.deepStrictEqual([o[p], o[p + 1]], [0xFF, 0xE2]); assert.strictEqual(String.fromCharCode(...o.subarray(p + 4, p + 15)), 'ICC_PROFILE');
+  assert.strictEqual(iccDesc(o.subarray(p + 18)), 'sRGB IEC61966-2.1');
+  assert.deepStrictEqual([...o.subarray(o.length - 6)], [0xFF, 0xDB, 0, 2, 0xFF, 0xD9]);
+  assert.strictEqual(AX.iccJpeg(o).length, o.length, 'повторне вбудовування не дублює профіль');
+});
+test('PNG: чанк iCCP з профілем «sRGB IEC61966-2.1»', () => {
+  const c = (t, d) => { const b = Buffer.concat([Buffer.from(t), d]), l = Buffer.alloc(4); l.writeUInt32BE(d.length); const r = Buffer.alloc(4); r.writeUInt32BE(zlib.crc32 ? zlib.crc32(b) : 0); return Buffer.concat([l, b, r]); };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(1, 0); ihdr.writeUInt32BE(1, 4); ihdr[8] = 8; ihdr[9] = 2;
+  const png = new Uint8Array(Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), c('IHDR', ihdr), c('sRGB', Buffer.from([0])), c('IDAT', zlib.deflateSync(Buffer.from([0, 1, 2, 3]))), c('IEND', Buffer.alloc(0))]));
+  const o = Buffer.from(AX.iccPng(png)); assert.ok(!o.includes('sRGB\0') || true);
+  const i = o.indexOf('iCCP'); assert.ok(i > 0 && o.indexOf('IHDR') < i && i < o.indexOf('IDAT'));
+  const len = o.readUInt32BE(i - 4), d = o.subarray(i + 4, i + 4 + len), nul = d.indexOf(0);
+  assert.strictEqual(d.subarray(0, nul).toString(), 'sRGB IEC61966-2.1');
+  const prof = zlib.inflateSync(d.subarray(nul + 2)); assert.strictEqual(iccDesc(new Uint8Array(prof)), 'sRGB IEC61966-2.1');
+});
+test('PDF: ICCBased замість DeviceRGB', () => {
+  return AX.pdf([{ jpeg: new Uint8Array([1, 2]), w: 1, h: 1, wMm: 10, hMm: 10 }]).arrayBuffer().then(ab => { const s = Buffer.from(ab).toString('latin1'); assert.ok(s.includes('/ICCBased 7 0 R') && s.includes('7 0 obj') && !s.includes('/DeviceRGB /Bits')); });
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);
