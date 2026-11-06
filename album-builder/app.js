@@ -86,8 +86,9 @@
     if (!view) return; clampPan(); var a = view.a;
     cv.style.left = Math.round(a.l + (a.w - view.cw) / 2 + pan.x) + 'px'; cv.style.top = Math.round(a.t + (a.h - view.ch) / 2 + pan.y) + 'px';
   }
+  function isCoverAt(i) { return !!(st.spreads[i] && st.spreads[i].type === 'cover'); }
   function sizeCanvas() {
-    var z = PR.spreadSize(st.fmtId, st.typeId), a = viewArea();
+    var z = PR.spreadSize(st.fmtId, st.typeId, isCoverAt(cur)), a = viewArea();
     var k = Math.max(0.5, Math.min(a.w / z.W, a.h / z.H)) * zoom, cw = z.W * k, ch = z.H * k;
     // щільність пікселів обмежена, щоб наближене полотно не з'їдало пам'ять (макс. ~8k по стороні, 36 Мп)
     var dpr = Math.min(2, window.devicePixelRatio || 1, 8192 / cw, 8192 / ch, Math.sqrt(36e6 / (cw * ch)));
@@ -136,8 +137,9 @@
   var thTimer;
   function thumbs() { clearTimeout(thTimer); thTimer = setTimeout(buildThumbs, 60); }
   function buildThumbs() {
-    var strip = $('strip'), z = PR.spreadSize(st.fmtId, st.typeId); strip.textContent = '';
+    var strip = $('strip'), z; strip.textContent = '';
     st.spreads.forEach(function (sp, i) {
+      z = PR.spreadSize(st.fmtId, st.typeId, sp.type === 'cover');
       var d = el('div', 'th' + (i === cur ? ' on' : '')), c = document.createElement('canvas'), k = 0.3;
       c.width = Math.round(z.W * k); c.height = Math.round(z.H * k);
       R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: k, preview: false });
@@ -174,7 +176,7 @@
     $('btnStyle').textContent = 'Стиль: ' + ({ mosaic: 'мозаїка', rows: 'ряди', scrap: 'вклеєні', tpl: 'готова' }[st.spreads[cur].style || 'mosaic']);
     $('spineIn').value = st.spine == null ? PR.spreadSize(st.fmtId, st.typeId).spine : st.spine;
     $('safeIn').value = st.safe == null ? PR.spreadSize(st.fmtId, st.typeId).safe : st.safe; $('coverSafeIn').value = st.coverSafe == null ? 15 : st.coverSafe;
-    $('sizeInfo').textContent = 'Файл розвороту: ' + z.pxW + '×' + z.pxH + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
+    var zp = PR.spreadSize(st.fmtId, st.typeId, t === 'cover'); $('sizeInfo').textContent = (t === 'cover' ? 'Файл обкладинки: ' : 'Файл розвороту: ') + zp.pxW + '×' + zp.pxH + ' px (' + z.W + '×' + z.H + ' мм, 300 dpi). Файлів буде: ' + S.exportPlan(st).length + '.';
     $('safeInfo').textContent = 'Виліт ' + z.bleed + ' мм (точно обріжеться); безпечна межа ' + z.safe + ' мм від обрізу' + (t === 'cover' ? ' (для обкладинки)' : '') + ': текст і підписи тримаємо всередині. Значення типові, не з сайту друкарні; вводь свої.';
   }
 
@@ -629,7 +631,7 @@
     if (cvGrp && !catList.some(function (v) { return CV.groupOf(v) === cvGrp; })) cvGrp = '';
     gs.value = cvGrp; gs.onchange = function () { cvGrp = gs.value; buildObjPanel(); }; gl.appendChild(gs); box.appendChild(gl);
     cvTextFields(box);
-    var list = cvGrp ? catList.filter(function (v) { return CV.groupOf(v) === cvGrp; }) : catList, grid = el('div', 'cvgrid'), z = PR.spreadSize(st.fmtId, st.typeId), k = 0.45, lastG = null;
+    var list = cvGrp ? catList.filter(function (v) { return CV.groupOf(v) === cvGrp; }) : catList, grid = el('div', 'cvgrid'), z = PR.spreadSize(st.fmtId, st.typeId, true), k = 0.45, lastG = null;
     box.appendChild(grid);
     var fonts = {}; list.forEach(function (v) { CV.fontsOf(v.id).forEach(function (n) { fonts[n] = n; }); });
     var ens = window.AlbumFonts && AlbumFonts.ensure ? AlbumFonts.ensure({ font: null, tf: fonts, spreads: [] }) : Promise.resolve();
@@ -847,7 +849,7 @@
   // Малює розворот si у точному розмірі друку (300 dpi); для обкладинки й першого розвороту підставляє дитину ownerId.
   function renderBlob(i, mime, ownerId) {
     return AlbumFonts.ensure(st).then(function () {
-      var z = PR.spreadSize(st.fmtId, st.typeId), c = document.createElement('canvas'), keep = st.owner;
+      var z = PR.spreadSize(st.fmtId, st.typeId, isCoverAt(i)), c = document.createElement('canvas'), keep = st.owner;
       c.width = z.pxW; c.height = z.pxH;
       if (ownerId != null) st.owner = ownerId;
       R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: c.width / z.W, preview: false });
