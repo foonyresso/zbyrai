@@ -1,0 +1,35 @@
+/* Сторінка «Українські шрифти»: одна верхня панель + сітка карток, поверх theme.css */
+.bar { position: sticky; top: 0; z-index: 5; background: rgba(9,9,12,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.bar-in { max-width: 1280px; margin: 0 auto; padding: 14px 18px; display: grid; gap: 10px; }
+h1 { margin: 0; font: 600 20px var(--ff-display); font-size: 26px; color: var(--gold-hi); }
+h1 small { font: 13px var(--ff-ui); color: var(--faint); margin-left: 8px; }
+.txt { width: 100%; font-size: 17px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); }
+.txt:focus, .q:focus { outline: none; border-color: var(--gold); box-shadow: var(--ring); }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.sz { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.sz input { width: 150px; accent-color: var(--gold); } .sz output { width: 28px; color: var(--text); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: none; padding: 6px 12px; }
+.seg button.on, .chips button.on { background: var(--gold-glow); color: var(--gold-hi); border-color: var(--gold-line); }
+.q { flex: 1; min-width: 180px; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); }
+select { padding: 8px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); }
+main { max-width: 1280px; margin: 0 auto; padding: 14px 18px 50px; }
+.tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; color: var(--muted); font-size: 13px; }
+.tools button { padding: 4px 10px; font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card:hover { border-color: var(--gold-lo); }
+.card.isHidden { opacity: .55; }
+.ch { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ch b { font-size: 15px; } .ch .by { color: var(--muted); font-size: 12.5px; flex: 1; min-width: 0; }
+.ch .x { margin-left: auto; padding: 2px 9px; font-size: 12.5px; color: var(--muted); }
+.sample { line-height: 1.25; word-break: break-word; min-height: 1.3em; color: var(--text); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { padding: 3px 10px; font-size: 12.5px; border-radius: 999px; }
+.meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--faint); align-items: center; }
+.badge { padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.badge.ok { color: var(--ok); border-color: rgba(141,191,149,.4); }
+.badge.bad { color: var(--danger); border-color: rgba(217,120,111,.5); }
+.note { font-size: 12.5px; color: var(--warn); margin: 0; }
+.hint { color: var(--faint); font-size: 12.5px; margin: 14px 0 0; }
+[hidden] { display: none !important; }

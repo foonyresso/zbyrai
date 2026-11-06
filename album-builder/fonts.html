@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Українські шрифти</title>
+<meta name="description" content="Перегляд вільних шрифтів з українською кирилицею: свій текст, розмір, регістр, варіанти накреслень, автор і ліцензія.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Ctext x=%2716%27 y=%2724%27 font-size=%2722%27 text-anchor=%27middle%27 fill=%27%23c9a766%27 font-family=%27serif%27%3EА%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./fonts/fonts.css">
+<link rel="stylesheet" href="./fonts-page.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <h1>Українські шрифти <small id="count"></small></h1>
+    <input id="text" type="text" class="txt" value="Хвилини щастя: ґанок, їжак, єдність, Іван" aria-label="Ваш текст" placeholder="Введіть свій текст">
+    <div class="row">
+      <label class="sz">Розмір <input id="size" type="range" min="16" max="120" value="44"><output id="sizeOut">44</output></label>
+      <div class="seg" id="caseSeg" role="group" aria-label="Регістр">
+        <button data-c="as" class="on" title="Як введено">Аа</button>
+        <button data-c="upper" title="ВСІ ВЕЛИКІ">АА</button>
+        <button data-c="lower" title="всі малі">аа</button>
+        <button data-c="title" title="Перші Великі">Аа Аа</button>
+        <button data-c="alt" title="Чергування: ВелИка мАла">аА</button>
+      </div>
+      <input id="q" type="search" class="q" placeholder="Пошук: назва чи автор" aria-label="Пошук">
+      <select id="grp" aria-label="Стиль"><option value="">Усі стилі</option></select>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="tools"><span id="hiddenInfo"></span>
+    <button id="showHidden" hidden>Показати приховані</button>
+    <button id="exportHidden" hidden title="Зберегти список прихованих шрифтів у файл JSON">Експорт прихованих (JSON)</button>
+    <button id="restoreAll" hidden>Повернути всі</button>
+  </div>
+  <div id="grid" class="grid"></div>
+  <p id="empty" class="hint" hidden>Нічого не знайдено.</p>
+  <footer class="hint">Лише вільні шрифти (OFL, Apache, UFL), що містять українські літери. Шрифти лежать на сайті локально, нічого не надсилається. Автори вказані за каталогом Google Fonts. Шрифти з позначкою «не вільний» не можна поширювати. Список прихованих зберігається лише у вашому браузері. Деталі: <a href="./FONTS-LICENSES.md">FONTS-LICENSES.md</a>.</footer>
+</main>
+<script src="./data/fonts-meta.js"></script>
+<script src="./fonts-page.js"></script>
+</body>
+</html>
