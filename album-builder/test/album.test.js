@@ -516,7 +516,12 @@ test('сторінка шрифтів: метадані покривають у�
   const M = require('../data/fonts-meta.js'), FT = require('../data/fonts.js'), css = require('fs').readFileSync(__dirname + '/../fonts/fonts.css', 'utf8');
   const fams = new Set(); M.FAMILIES.forEach(f => { assert.ok(f.author && f.source && f.license && M.LICENSES[f.license], f.id); f.variants.forEach(v => { fams.add(v.family); assert.ok(css.includes("font-family: '" + v.family + "'"), 'нема @font-face ' + v.family); }); });
   FT.LIST.forEach(f => assert.ok(fams.has(f.n), 'нема в fonts-meta: ' + f.n));
-  assert.deepStrictEqual(M.FAMILIES.filter(f => !f.free).map(f => f.id).sort(), ['Bahnschrift', 'Pudelinka']);
+  assert.deepStrictEqual(M.FAMILIES.filter(f => !f.free).map(f => f.id), []);
+});
+test('видалені шрифти: заміна в stack/used, немає в списку й css', () => {
+  const FT = require('../data/fonts.js'), css = require('fs').readFileSync(__dirname + '/../fonts/fonts.css', 'utf8');
+  Object.keys(FT.REMOVED).forEach(n => { assert.ok(!FT.LIST.some(f => f.n === n), n); assert.ok(FT.LIST.some(f => f.n === FT.REMOVED[n]), 'заміна: ' + n); assert.strictEqual(FT.stack(n), FT.stack(FT.REMOVED[n])); assert.ok(!css.includes("'" + n + "'"), n); });
+  assert.deepStrictEqual(FT.used({ font: 'Bahnschrift', tf: { a: 'Pudelinka' }, spreads: [{ text: { 1: { f: 'Marck Script' } } }] }).sort(), ['Bad Script', 'Manrope', 'Underdog']);
 });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

@@ -111,7 +111,7 @@
         circle(c, mx, my, mr * 1.7, 'rgba(255,243,196,.10)'); circle(c, mx, my, mr * 1.35, 'rgba(255,243,196,.14)');
         c.save(); c.beginPath(); c.arc(mx, my, mr, 0, Math.PI * 2); c.clip(); c.beginPath(); c.rect(mx - mr * 2, my - mr * 2, mr * 4, mr * 4); c.arc(mx + mr * 0.5, my - mr * 0.18, mr * 0.82, 0, Math.PI * 2); c.fillStyle = '#fff3c4'; c.fill('evenodd'); c.restore();
       },
-      text: function (g) { std(g, { title: g.t('Добраніч, садочку'), ty: g.H * 0.49, tsize: g.H * 0.07, tfont: 'Marck Script', tcol: '#fff3c4', tsp: 0.02, tcase: 'as', sub: g.t2('випуск'), sy: g.H * 0.55, scol: '#c8d4ff', sfont: 'Montserrat', ssize: g.H * 0.03, yy: g.H * 0.68, ysize: g.H * 0.09, yfont: 'Comfortaa', ycol: '#ffe58f', ny: g.H * 0.78, nfont: 'Comfortaa', ncol: '#ffffff', nsize: g.H * 0.036, iy: g.H * 0.83, icol: '#c8d4ff' }); }
+      text: function (g) { std(g, { title: g.t('Добраніч, садочку'), ty: g.H * 0.49, tsize: g.H * 0.07, tfont: 'Bad Script', tcol: '#fff3c4', tsp: 0.02, tcase: 'as', sub: g.t2('випуск'), sy: g.H * 0.55, scol: '#c8d4ff', sfont: 'Montserrat', ssize: g.H * 0.03, yy: g.H * 0.68, ysize: g.H * 0.09, yfont: 'Comfortaa', ycol: '#ffe58f', ny: g.H * 0.78, nfont: 'Comfortaa', ncol: '#ffffff', nsize: g.H * 0.036, iy: g.H * 0.83, icol: '#c8d4ff' }); }
     },
     {
       id: 'p-pencils', name: 'Олівці', note: '4 клас без фото: кольорові олівці внизу, прощання з початковою школою', cats: P4, photo: false, bg: '#fffaf0',
@@ -149,7 +149,7 @@
         var c = g.ctx, cols = ['rgba(95,170,200,.35)', 'rgba(60,130,180,.45)', 'rgba(35,95,150,.65)', 'rgba(20,60,110,.9)'];
         cols.forEach(function (col, i) { fillWave(c, g.bx0, g.bx1, g.H * (0.74 + i * 0.065), 3 + i, 60 - i * 6, i * 1.3, col, g.H); });
       },
-      text: function (g) { std(g, { title: g.t('Випуск'), ty: g.H * 0.3, tsize: g.H * 0.08, tfont: 'Raleway', tcol: '#1f4f78', tw8: '700', tsp: 0.32, tcase: 'upper', sub: g.t2('9 клас'), sy: g.H * 0.37, sfont: 'Raleway', scol: '#4a86ab', ssize: g.H * 0.036, yy: g.H * 0.54, ysize: g.H * 0.15, yfont: 'Raleway', ycol: '#3a7ea6', y8: '700', ysp: 0.04, ny: g.H * 0.62, nfont: 'Raleway', ncol: '#1f4f78', nsize: g.H * 0.032, iy: g.H * 0.66, icol: '#5a8aa8' }); }
+      text: function (g) { std(g, { title: g.t('Випуск'), ty: g.H * 0.3, tsize: g.H * 0.08, tfont: 'Montserrat', tcol: '#1f4f78', tw8: '700', tsp: 0.32, tcase: 'upper', sub: g.t2('9 клас'), sy: g.H * 0.37, sfont: 'Montserrat', scol: '#4a86ab', ssize: g.H * 0.036, yy: g.H * 0.54, ysize: g.H * 0.15, yfont: 'Montserrat', ycol: '#3a7ea6', y8: '700', ysp: 0.04, ny: g.H * 0.62, nfont: 'Montserrat', ncol: '#1f4f78', nsize: g.H * 0.032, iy: g.H * 0.66, icol: '#5a8aa8' }); }
     },
     {
       id: 'g11-gold', name: 'Graduation Gold', note: '11 клас та виші без фото: темно-синій фон, золота рамка, великий «Graduation»', cats: HI, photo: false, bg: ['#14213d', '#0b1226'],
@@ -191,7 +191,7 @@
         var c = g.ctx, cx = g.cx; sprig(c, cx - g.H * 0.28, g.H * 0.62, g.H * 0.3, -Math.PI * 0.08, '#8aa17a', 9); sprig(c, cx + g.H * 0.28, g.H * 0.62, g.H * 0.3, Math.PI * 1.08, '#8aa17a', 9);
         sprig(c, g.W * 0.2, g.H * 0.92, g.H * 0.45, -Math.PI * 0.4, '#c9d6bf', 10); sprig(c, g.W * 0.3, g.H * 0.95, g.H * 0.3, -Math.PI * 0.5, '#dfe7d8', 8);
       },
-      text: function (g) { std(g, { title: g.t('Випускний альбом'), ty: g.H * 0.34, tsize: g.H * 0.075, tfont: 'Marck Script', tcol: '#4d6340', tsp: 0.02, tcase: 'as', yy: g.H * 0.48, ysize: g.H * 0.055, yfont: 'Cormorant Garamond', ycol: '#8aa17a', y8: '700', ysp: 0.2, ny: g.H * 0.75, nfont: 'Cormorant Garamond', ncol: '#4d6340', nsize: g.H * 0.034, nsp: 0.16, iy: g.H * 0.8, icol: '#8d9a85' }); }
+      text: function (g) { std(g, { title: g.t('Випускний альбом'), ty: g.H * 0.34, tsize: g.H * 0.075, tfont: 'Bad Script', tcol: '#4d6340', tsp: 0.02, tcase: 'as', yy: g.H * 0.48, ysize: g.H * 0.055, yfont: 'Cormorant Garamond', ycol: '#8aa17a', y8: '700', ysp: 0.2, ny: g.H * 0.75, nfont: 'Cormorant Garamond', ncol: '#4d6340', nsize: g.H * 0.034, nsp: 0.16, iy: g.H * 0.8, icol: '#8d9a85' }); }
     },
     {
       id: 'lines', name: 'Лінії', note: 'Універсальна, без фото: тонкі діагоналі та великий рік', cats: null, photo: false, bg: '#f4f4f2',
@@ -209,7 +209,7 @@
         var c = g.ctx, p = g.ph; sprig(c, p.x - 2, p.y + p.h * 0.97, g.H * 0.26, -Math.PI * 0.42, '#8f9a78', 8); sprig(c, p.x + p.w + 2, p.y + p.h * 0.97, g.H * 0.26, -Math.PI * 0.58, '#a7b08e', 8);
         flower(c, p.x + 3, p.y + p.h * 0.93, 5, '#e9b8a4', '#c98467', 6, 0.2); flower(c, p.x + p.w - 2, p.y + p.h * 0.95, 4, '#f1d29a', '#c98467', 5, 0.7);
       },
-      text: function (g) { std(g, { title: g.t('Наш випуск'), ty: g.H * 0.855, tsize: g.H * 0.05, tfont: 'Marck Script', tcol: '#7a5b3d', tsp: 0.02, tcase: 'as', yy: g.H * 0.9, ysize: g.H * 0.034, yfont: 'Cormorant Garamond', ycol: '#a07c58', y8: '700', ysp: 0.3, ny: g.H * 0.94, nsize: g.H * 0.022, ncol: '#7a5b3d', nfont: 'Cormorant Garamond', iy: g.H * 0.962, icol: '#a08c76' }); }
+      text: function (g) { std(g, { title: g.t('Наш випуск'), ty: g.H * 0.855, tsize: g.H * 0.05, tfont: 'Bad Script', tcol: '#7a5b3d', tsp: 0.02, tcase: 'as', yy: g.H * 0.9, ysize: g.H * 0.034, yfont: 'Cormorant Garamond', ycol: '#a07c58', y8: '700', ysp: 0.3, ny: g.H * 0.94, nsize: g.H * 0.022, ncol: '#7a5b3d', nfont: 'Cormorant Garamond', iy: g.H * 0.962, icol: '#a08c76' }); }
     }
     ,{
       id: 'oval-flowers', name: 'Овал і квіти', note: 'Овальне фото, акварельні квіти заходять на краї', cats: null, photo: true, shape: 'oval', pr: { top: 0.1, h: 0.6, asp: 0.8 }, bg: ['#fff9f3', '#fdeff0'],
@@ -232,12 +232,12 @@
     ,{
       id: 'hexagon', name: 'Шестикутник неон', note: 'Фото в шестикутнику, неонові лінії на темно-фіолетовому', cats: SCH.concat(P4), photo: true, shape: 'hex', pr: { top: 0.1, h: 0.6, asp: 0.87 }, bg: ['#1b1035', '#0e0820'],
       deco: function (g) { var c = g.ctx; spray(c, g.cx, g.H * 0.4, g.H * 0.3, g.H * 0.55, 70, ['rgba(255,80,200,.5)', 'rgba(80,220,255,.5)', 'rgba(255,255,255,.4)'], 21, 0.9); outline(c, g.ph, 'hex', 3, 'rgba(255,60,190,.45)', 2.4); outline(c, g.ph, 'hex', 3, '#ff4fc3', 0.6); outline(c, g.ph, 'hex', 7, '#4fe3ff', 0.5); },
-      text: function (g) { std(g, { title: g.t('Graduation'), ty: g.H * 0.84, tsize: g.H * 0.05, tfont: 'Unbounded', tcol: '#ffffff', tsp: 0.14, tcase: 'upper', yy: g.H * 0.9, ysize: g.H * 0.05, yfont: 'Unbounded', ycol: '#4fe3ff', ny: g.H * 0.945, nsize: g.H * 0.024, ncol: '#ff9be0', nfont: 'Montserrat', nsp: 0.2 }); }
+      text: function (g) { std(g, { title: g.t('Graduation'), ty: g.H * 0.84, tsize: g.H * 0.05, tfont: 'Rubik', tcol: '#ffffff', tsp: 0.14, tcase: 'upper', yy: g.H * 0.9, ysize: g.H * 0.05, yfont: 'Rubik', ycol: '#4fe3ff', ny: g.H * 0.945, nsize: g.H * 0.024, ncol: '#ff9be0', nfont: 'Montserrat', nsp: 0.2 }); }
     }
     ,{
       id: 'heart', name: 'Сердечко', note: 'Фото в сердечку, рожеві сердечка навколо', cats: ['kindergarten', 'grade4'], photo: true, shape: 'heart', pr: { top: 0.12, h: 0.52, asp: 1 }, bg: ['#fff0f4', '#ffe3ec'],
       deco: function (g) { var c = g.ctx, r = rnd(4), i; for (i = 0; i < 22; i++) { var x = g.x0 + 8 + r() * (g.x1 - g.x0 - 16), y = r() * g.H, s = 4 + r() * 9; shapePath(c, { x: x, y: y, w: s, h: s }, 'heart'); c.fillStyle = ['rgba(255,150,180,.35)', 'rgba(255,200,215,.5)', 'rgba(250,120,150,.25)'][i % 3]; c.fill(); } outline(c, g.ph, 'heart', 2, '#f48fb1', 1.6); },
-      text: function (g) { std(g, { title: g.t('Наш садочок'), ty: g.H * 0.78, tsize: g.H * 0.075, tfont: 'Marck Script', tcol: '#c2185b', tsp: 0.02, tcase: 'as', yy: g.H * 0.86, ysize: g.H * 0.05, yfont: 'Comfortaa', ycol: '#e57399', ny: g.H * 0.92, nsize: g.H * 0.028, ncol: '#8a3a56', nfont: 'Comfortaa', ncase: 'as' }); }
+      text: function (g) { std(g, { title: g.t('Наш садочок'), ty: g.H * 0.78, tsize: g.H * 0.075, tfont: 'Bad Script', tcol: '#c2185b', tsp: 0.02, tcase: 'as', yy: g.H * 0.86, ysize: g.H * 0.05, yfont: 'Comfortaa', ycol: '#e57399', ny: g.H * 0.92, nsize: g.H * 0.028, ncol: '#8a3a56', nfont: 'Comfortaa', ncase: 'as' }); }
     }
     ,{
       id: 'watercolor', name: 'Акварель з квітами', note: 'Без фото: акварельні плями й квіти по кутах, тонкі лінії та рукописний заголовок', cats: null, photo: false, bg: '#fffefb',
@@ -248,7 +248,7 @@
         bouquet(c, 22, H - 16, H * 0.12, -0.8, pal); bouquet(c, 20, 18, H * 0.1, 0.7, pal);
         line(c, g.cx - 38, H * 0.37, g.cx + 38, H * 0.37, '#b9b0a3', 0.3); line(c, g.cx - 38, H * 0.66, g.cx + 38, H * 0.66, '#b9b0a3', 0.3);
       },
-      text: function (g) { std(g, { title: g.t('Наш випуск'), ty: g.H * 0.55, tsize: g.H * 0.095, tfont: 'Marck Script', tcol: '#4d4a46', tsp: 0.02, tcase: 'as', sub: g.t2('спогади дитинства'), sy: g.H * 0.345, sfont: 'Cormorant Garamond', scol: '#8a847b', ssize: g.H * 0.026, ssp: 0.3, yy: g.H * 0.72, ysize: g.H * 0.034, yfont: 'Cormorant Garamond', ycol: '#8a847b', ysp: 0.3, ny: g.H * 0.78, nfont: 'Cormorant Garamond', ncol: '#4d4a46', nsize: g.H * 0.026, nsp: 0.2, iy: g.H * 0.81, icol: '#9a948b' }); }
+      text: function (g) { std(g, { title: g.t('Наш випуск'), ty: g.H * 0.55, tsize: g.H * 0.095, tfont: 'Bad Script', tcol: '#4d4a46', tsp: 0.02, tcase: 'as', sub: g.t2('спогади дитинства'), sy: g.H * 0.345, sfont: 'Cormorant Garamond', scol: '#8a847b', ssize: g.H * 0.026, ssp: 0.3, yy: g.H * 0.72, ysize: g.H * 0.034, yfont: 'Cormorant Garamond', ycol: '#8a847b', ysp: 0.3, ny: g.H * 0.78, nfont: 'Cormorant Garamond', ncol: '#4d4a46', nsize: g.H * 0.026, nsp: 0.2, iy: g.H * 0.81, icol: '#9a948b' }); }
     }
     ,{
       id: 'black-gold', name: 'Чорне золото', note: 'Без фото: чорний фон, золоті діагоналі й пил, рік у рамці', cats: SCH, photo: false, bg: '#0e0e0f',
@@ -309,9 +309,9 @@
       deco: function (g) { var c = g.ctx, r = rnd(9); for (var i = 0; i < 26; i++) { var x = g.x0 + r() * (g.x1 - g.x0), y = r() * g.H, s = 1.5 + r() * 3; (i % 2 ? tri : function (cc, a, b, d, f) { circle(cc, a, b, d * 0.7, f); })(c, x, y, s, ['#ff8a80', '#ffd54f', '#81c784', '#64b5f6', '#ba68c8'][i % 5], r() * 6); } },
       text: function (g) {
         var c = g.ctx, letters = (g.get('ctitle', 'ВИПУСК') || '').split(''), cols = ['#ef6c57', '#f7b733', '#5fb36b', '#4a9fe0', '#a066c9', '#f27da5'], sz = g.H * 0.15, x0 = g.cx - sz * 0.62, y0 = g.H * 0.2;
-        letters.forEach(function (ch, i) { var col = i % 2, row = Math.floor(i / 2), x = x0 + col * sz * 1.25 + (row % 2) * 3, y = y0 + row * sz * 1.18; circle(c, x, y - sz * 0.32, sz * 0.52, cols[i % cols.length] + '33'); g.fx('ctitle', ch, x, y, sz, sz, 'Unbounded', cols[i % cols.length], '700', 'center', 0, 'as'); });
-        if (g.year) g.tx('year', g.year, g.cx, g.H * 0.8, g.H * 0.065, (g.x1 - g.x0) * 0.6, 'Unbounded', '#4a4a4a', '700', 'center', 0.1, 'as');
-        std(g, { ny: g.H * 0.87, nsize: g.H * 0.03, ncol: '#4a4a4a', nfont: 'Unbounded', ncase: 'as', iy: g.H * 0.91, icol: '#8a8a8a', ifont: 'Montserrat' });
+        letters.forEach(function (ch, i) { var col = i % 2, row = Math.floor(i / 2), x = x0 + col * sz * 1.25 + (row % 2) * 3, y = y0 + row * sz * 1.18; circle(c, x, y - sz * 0.32, sz * 0.52, cols[i % cols.length] + '33'); g.fx('ctitle', ch, x, y, sz, sz, 'Rubik', cols[i % cols.length], '700', 'center', 0, 'as'); });
+        if (g.year) g.tx('year', g.year, g.cx, g.H * 0.8, g.H * 0.065, (g.x1 - g.x0) * 0.6, 'Rubik', '#4a4a4a', '700', 'center', 0.1, 'as');
+        std(g, { ny: g.H * 0.87, nsize: g.H * 0.03, ncol: '#4a4a4a', nfont: 'Rubik', ncase: 'as', iy: g.H * 0.91, icol: '#8a8a8a', ifont: 'Montserrat' });
       }
     }
     ,{
@@ -340,18 +340,18 @@
       id: 'script-year', name: 'Рік і каліграфія', note: 'Блідий рожевий фон, великий контурний рік і рукописне слово поверх нього', cats: null, photo: false, bg: ['#f2e9ec', '#e8dbe0'],
       text: function (g) { var c = g.ctx, y = g.year || '';
         if (y) { c.save(); c.beginPath(); c.rect(g.x0, 0, g.W - g.x0, g.H); c.clip(); var ol = { stroke: '#b9aab0', lw: 0.5 }; g.fx('yearbg', y.slice(0, 2), g.cx + 10, g.H * 0.4, g.H * 0.36, g.W - g.x0, 'Montserrat', ol, '700', 'center', 0, 'as'); g.fx('yearbg', y.slice(2), g.cx + 10, g.H * 0.8, g.H * 0.36, g.W - g.x0, 'Montserrat', ol, '700', 'center', 0, 'as'); c.restore(); g.tx('year', y, g.cx, g.H * 0.93, g.H * 0.022, 80, 'Montserrat', '#8b7b83', '400', 'center', 0.4, 'as'); }
-        std(g, { title: g.t('Випуск'), ty: g.H * 0.62, tsize: g.H * 0.15, tfont: 'Marck Script', tcol: '#2d2428', tsp: 0, tcase: 'as', ny: g.H * 0.85, nsize: g.H * 0.024, ncol: '#4a3e44', nfont: 'Montserrat', nsp: 0.2, iy: g.H * 0.885, icol: '#8b7b83' }); }
+        std(g, { title: g.t('Випуск'), ty: g.H * 0.62, tsize: g.H * 0.15, tfont: 'Bad Script', tcol: '#2d2428', tsp: 0, tcase: 'as', ny: g.H * 0.85, nsize: g.H * 0.024, ncol: '#4a3e44', nfont: 'Montserrat', nsp: 0.2, iy: g.H * 0.885, icol: '#8b7b83' }); }
     }
     ,{
       id: 'only-year', name: 'Лише рік', note: 'Максимум повітря: маленький рік угорі й рукописний підпис унизу', cats: null, photo: false, bg: '#ffffff',
       text: function (g) { var c = g.ctx; if (g.year) g.tx('year', g.year, g.x1 - g.sb - 16, g.sb + 6, g.H * 0.03, 40, 'Montserrat', '#222222', '700', 'center', 0.05, 'as');
-        std(g, { sub: g.t2('випускний альбом'), sy: g.sb + 11, ssize: g.H * 0.012, sfont: 'Montserrat', scol: '#888888', ssp: 0.05, scase: 'as', title: g.t('Випуск'), ty: g.H * 0.92, tsize: g.H * 0.06, tfont: 'Marck Script', tcol: '#3a3a3a', tsp: 0, tcase: 'as', ny: g.H * 0.8, nsize: g.H * 0.02, ncol: '#555555', nfont: 'Montserrat', nsp: 0.2 }); }
+        std(g, { sub: g.t2('випускний альбом'), sy: g.sb + 11, ssize: g.H * 0.012, sfont: 'Montserrat', scol: '#888888', ssp: 0.05, scase: 'as', title: g.t('Випуск'), ty: g.H * 0.92, tsize: g.H * 0.06, tfont: 'Bad Script', tcol: '#3a3a3a', tsp: 0, tcase: 'as', ny: g.H * 0.8, nsize: g.H * 0.02, ncol: '#555555', nfont: 'Montserrat', nsp: 0.2 }); }
     }
     ,{
       id: 'gp-frame', name: 'Класне фото в рамці', note: 'Одне загальне фото класу, одна обкладинка на всіх (прізвище за прапорцем)', cats: null, photo: false, general: true, bg: '#fbf8f2',
       cells: function (f) { var w = (f.x1 - f.x0) * 0.8, h = w * 0.64; return [{ x: f.cx - w / 2, y: f.H * 0.12, w: w, h: h }]; },
       deco: function (g) { var w = (g.x1 - g.x0) * 0.8, h = w * 0.64; frame(g.ctx, g.cx - w / 2 - 3, g.H * 0.12 - 3, w + 6, h + 6, '#b9ad98', 0.4); },
-      text: function (g) { std(g, { title: g.t('Наш клас'), ty: g.H * 0.76, tsize: g.H * 0.07, tfont: 'Marck Script', tcol: '#6d6454', tsp: 0.02, tcase: 'as', yy: g.H * 0.83, ysize: g.H * 0.045, yfont: 'Cormorant Garamond', ycol: '#8c8372', y8: '700', ysp: 0.3, ny: g.H * 0.89, nsize: g.H * 0.026, ncol: '#6d6454', nfont: 'Cormorant Garamond', iy: g.H * 0.93, icol: '#9a917f' }); }
+      text: function (g) { std(g, { title: g.t('Наш клас'), ty: g.H * 0.76, tsize: g.H * 0.07, tfont: 'Bad Script', tcol: '#6d6454', tsp: 0.02, tcase: 'as', yy: g.H * 0.83, ysize: g.H * 0.045, yfont: 'Cormorant Garamond', ycol: '#8c8372', y8: '700', ysp: 0.3, ny: g.H * 0.89, nsize: g.H * 0.026, ncol: '#6d6454', nfont: 'Cormorant Garamond', iy: g.H * 0.93, icol: '#9a917f' }); }
     }
     ,{
       id: 'gp-full', name: 'Класне фото на всю ширину', note: 'Велике фото класу зверху, нижче білий блок з рік й назвою', cats: null, photo: false, general: true, bg: '#ffffff',
@@ -367,7 +367,7 @@
     ,{
       id: 'gp-3', name: 'Колаж із 3 фото', note: 'Одне велике й два менших фото класу, загальна обкладинка', cats: null, photo: false, general: true, bg: '#f6f4f0',
       cells: function (f) { var m = f.sb + 4, iw = f.x1 - f.x0 - 2 * m, y = f.H * 0.09, ah = f.H * 0.62, g = 3, bw = iw * 0.62; return [{ x: f.x0 + m, y: y, w: bw, h: ah }, { x: f.x0 + m + bw + g, y: y, w: iw - bw - g, h: (ah - g) / 2 }, { x: f.x0 + m + bw + g, y: y + (ah - g) / 2 + g, w: iw - bw - g, h: (ah - g) / 2 }]; },
-      text: function (g) { std(g, { title: g.t('Наш клас'), ty: g.H * 0.8, tsize: g.H * 0.075, tfont: 'Marck Script', tcol: '#3d3a38', tsp: 0.02, tcase: 'as', yy: g.H * 0.88, ysize: g.H * 0.045, yfont: 'Montserrat', ycol: '#c27a5f', y8: '700', ysp: 0.2, ny: g.H * 0.935, nsize: g.H * 0.022, ncol: '#3d3a38', nfont: 'Montserrat', nsp: 0.2 }); }
+      text: function (g) { std(g, { title: g.t('Наш клас'), ty: g.H * 0.8, tsize: g.H * 0.075, tfont: 'Bad Script', tcol: '#3d3a38', tsp: 0.02, tcase: 'as', yy: g.H * 0.88, ysize: g.H * 0.045, yfont: 'Montserrat', ycol: '#c27a5f', y8: '700', ysp: 0.2, ny: g.H * 0.935, nsize: g.H * 0.022, ncol: '#3d3a38', nfont: 'Montserrat', nsp: 0.2 }); }
     }
     ,{
       id: 'gp-5', name: 'Колаж із 5 фото', note: 'Широке фото зверху та чотири квадрати під ним', cats: null, photo: false, general: true, bg: '#ffffff',

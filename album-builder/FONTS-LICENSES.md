@@ -1,39 +1,27 @@
 # Ліцензії шрифтів макетника
 
-Перевірено: 6.11.2026. Усього 73 шрифти (71 з Google Fonts, 2 власні файли автора).
+Перевірено: 6.11.2026. Усього 59 шрифтів, усі з Google Fonts (`@fontsource/*`, локально в `fonts/*.woff2`, без CDN).
 
-## Підсумок
-
-| Статус | Кількість | Шрифти |
-|---|---|---|
-| Ок (вільні, комерційний друк і вбудовування в PNG/PDF дозволені) | 71 | усі з `fonts/NOTICE.md` |
-| Невизначено | 1 | **Pudelinka** |
-| Проблемні | 1 | **Bahnschrift** |
-
-## Ок (71)
-
-Джерело: `@fontsource/*` (збірки Google Fonts), локально в `fonts/*.woff2`, без CDN.
-
-- **OFL-1.1** — 68 шрифтів. Дозволяє комерційне використання, вбудовування в документи та зображення, друк. Продавати сам файл шрифту окремо не можна, але ми цього не робимо.
+- **OFL-1.1** — 58 шрифтів. Комерційне використання, вбудовування в документи та зображення, друк дозволені. Продавати сам файл шрифту окремо не можна.
 - **Apache-2.0** — Roboto Slab. Комерційне використання дозволене.
-- **UFL-1.0** (Ubuntu Font Licence) — Ubuntu. Вільна, комерційне використання й вбудовування дозволені.
 
 Повний перелік із групами: `fonts/NOTICE.md`.
 
-## Проблемні й невизначені
+## Прибрані шрифти (6.11.2026)
 
-| Шрифт | Файл | Джерело | Ліцензія | Висновок |
-|---|---|---|---|---|
-| Bahnschrift | `fonts/bahnschrift.ttf` | Microsoft (Windows 10+) | Власницька. У файлі: «You may use this font to create, display, and print content as permitted by the license terms… of the Microsoft product… Any other use is prohibited». Ліцензія Windows, не дозволяє роздавати файл у репозиторії/на сайті. | **Проблемний.** Друк результату, ймовірно, ок, але розповсюдження файлу у вебзастосунку — ні. |
-| Pudelinka | `fonts/pudelinka.ttf` | Gophmann A.L., 2007 (gophmann@mail.ru) | У файлі лише «All rights reserved», ліцензії немає; походження файлу невідоме. | **Невизначений.** Без явного дозволу комерційне використання не гарантоване. |
+Прибрано 14 шрифтів (файли, CSS, список, сторінка шрифтів). Збережені альбоми з ними малюються замінником (`REMOVED` у `data/fonts.js`).
 
-Використання: обидва лише в дизайні «Садочок» (`data/designs.js`, `data/cover-kinder.js`).
-
-## Пропоновані заміни (не застосовано, щоб не змінити наявні альбоми)
-
-| Замість | Схожий вільний шрифт із кирилицею (OFL) | Примітка |
-|---|---|---|
-| Bahnschrift (DIN-подібний, світлий) | **Sofia Sans** (світла вага), або Manrope / Jura | Sofia Sans — найближчий до DIN; на Google Fonts, `@fontsource/sofia-sans` |
-| Pudelinka (округлий дитячий) | **Underdog**, **Marmelad** або **Pangolin** (вже підключені) | Underdog/Pangolin найближчі за настроєм; без нових файлів |
-
-Альтернатива: написати автору Pudelinka (gophmann@mail.ru) і отримати дозвіл, або мати власну ліцензію на Bahnschrift.
+| Прибрано | Заміна |
+|---|---|
+| Bahnschrift (власницький, Microsoft) | Manrope |
+| Pudelinka (ліцензія невідома) | Underdog |
+| Didact Gothic | Nunito |
+| Fira Sans, Ubuntu, Noto Sans | Open Sans |
+| Raleway | Montserrat |
+| Sofia Sans Extra Condensed | Oswald |
+| Kurale | Philosopher |
+| Unbounded | Rubik |
+| Kelly Slab | Roboto Slab |
+| Advent Pro | Jura |
+| Stalinist One | Rubik Mono One |
+| Marck Script | Bad Script |

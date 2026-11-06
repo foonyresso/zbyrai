@@ -2,7 +2,7 @@
 (function () {
   var M = window.FontsMeta, KEY = 'zb-fonts-hidden', $ = function (id) { return document.getElementById(id); };
   var st = { text: $('text').value, size: 44, cs: 'as', q: '', grp: '', showHidden: false, pick: {} };
-  var hidden = {}; try { (JSON.parse(localStorage.getItem(KEY)) || []).forEach(function (n) { hidden[n] = 1; }); } catch (e) {}
+  var hidden = {}; try { (JSON.parse(localStorage.getItem(KEY)) || []).forEach(function (n) { if (M.FAMILIES.some(function (f) { return f.id === n; })) hidden[n] = 1; }); } catch (e) {}
   function saveHidden() { try { localStorage.setItem(KEY, JSON.stringify(Object.keys(hidden))); } catch (e) {} }
   function applyCase(s, c) {
     if (c === 'upper') return s.toUpperCase(); if (c === 'lower') return s.toLowerCase();
