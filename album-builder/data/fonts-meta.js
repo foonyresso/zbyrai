@@ -5,7 +5,6 @@
   var OFL = 'OFL-1.1', LIC = {
     'OFL-1.1': { name: 'SIL Open Font License 1.1', url: 'https://openfontlicense.org/', free: true },
     'Apache-2.0': { name: 'Apache License 2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0', free: true },
-    'UFL-1.0': { name: 'Ubuntu Font Licence 1.0', url: 'https://ubuntu.com/legal/font-licence', free: true },
     'proprietary': { name: 'Власницька (Microsoft), не вільна', url: '', free: false },
     'unknown': { name: 'Невідома, не вільна', url: '', free: false }
   };
@@ -34,38 +33,25 @@
     ['Prata', 'Cyreal', S, OFL, v('Prata', R)],
     ['PT Sans', 'ParaType (О. Корольова, О. Умпелєва, В. Єфімов)', G, OFL, v('PT Sans', RB)],
     ['Montserrat', 'Julieta Ulanovsky та ін.', G, OFL, v('Montserrat', RB).concat(v('Montserrat Alternates', [['Alternates', 400], ['Alternates жирний', 700]]))],
-    ['Raleway', 'Matt McInerney, Pablo Impallari, Rodrigo Fuenzalida', G, OFL, v('Raleway', RB)],
     ['Roboto', 'Christian Robertson', G, OFL, v('Roboto', RB)],
     ['Open Sans', 'Steve Matteson', G, OFL, v('Open Sans', RB)],
-    ['Noto Sans', 'Google', G, OFL, v('Noto Sans', RB)],
-    ['Ubuntu', 'Dalton Maag', G, 'UFL-1.0', v('Ubuntu', RB), 'https://design.ubuntu.com/font'],
     ['Exo 2', 'Natanael Gama', G, OFL, v('Exo 2', RB)],
-    ['Fira Sans', 'Erik Spiekermann, Carrois Apparel', G, OFL, v('Fira Sans', RB)],
     ['Rubik', 'Hubert & Fischer, Meir Sadan', G, OFL, v('Rubik', RB).concat(v('Rubik Mono One', [['Mono One', 400]]), v('Rubik Bubbles', [['Bubbles', 400]]))],
     ['Nunito', 'Vernon Adams, Jacques Le Bailly', G, OFL, v('Nunito', RB)],
     ['Manrope', 'Михайло Шаранда', G, OFL, v('Manrope', RB)],
     ['Jura', 'Ek Type (Naipol)', G, OFL, v('Jura', RB)],
-    ['Didact Gothic', 'Daniel Johnson та ін.', G, OFL, v('Didact Gothic', R)],
     ['Cuprum', 'Jovanny Lemonad', G, OFL, v('Cuprum', RB)],
     ['Play', 'Jonas Hecksher', G, OFL, v('Play', RB)],
     ['Tenor Sans', 'Vernon Adams', G, OFL, v('Tenor Sans', R)],
-    ['Bahnschrift', 'Aaron Bell (Microsoft)', G, 'proprietary', v('Bahnschrift', [['Світлий', 300], ['Звичайний', 400], ['Жирний', 700]]), '', 'Файл із Windows 10+, розповсюджувати його не можна. Лише для довідки, замінити (напр. Sofia Sans).'],
     ['Oswald', 'Vernon Adams, Kalapi Gajjar, Cyreal', D, OFL, v('Oswald', RB)],
     ['Russo One', 'Jovanny Lemonad', D, OFL, v('Russo One', R)],
     ['Ruslan Display', 'Павло Ємельянов', D, OFL, v('Ruslan Display', R)],
     ['Philosopher', 'Jovanny Lemonad', D, OFL, v('Philosopher', RB)],
     ['Yeseva One', 'Jovanny Lemonad', D, OFL, v('Yeseva One', R)],
-    ['Stalinist One', 'Денис Машаров', D, OFL, v('Stalinist One', R)],
     ['Poiret One', 'Денис Машаров', D, OFL, v('Poiret One', R)],
-    ['Advent Pro', 'Vernon Adams', D, OFL, v('Advent Pro', RB)],
-    ['Kelly Slab', 'Денис Машаров', D, OFL, v('Kelly Slab', R)],
     ['Tektur', 'Ek Type', D, OFL, v('Tektur', RB)],
-    ['Unbounded', 'Nicole Fally', D, OFL, v('Unbounded', RB)],
     ['Yanone Kaffeesatz', 'Yanone', D, OFL, v('Yanone Kaffeesatz', RB)],
-    ['Kurale', 'Eduardo Tunni', D, OFL, v('Kurale', R)],
-    ['Sofia Sans Extra Condensed', 'Олекса Волочай', D, OFL, v('Sofia Sans Extra Condensed', [['Напівжирний', 600], ['Екстражирний', 800]])],
     ['Caveat', 'Impallari Type', H, OFL, v('Caveat', RB)],
-    ['Marck Script', 'Денис Машаров', H, OFL, v('Marck Script', R)],
     ['Pacifico', 'Vernon Adams, Jacques Le Bailly, Botjo Nikoltchev, Ani Petrova', H, OFL, v('Pacifico', R)],
     ['Bad Script', 'Gaslight', H, OFL, v('Bad Script', R)],
     ['Lobster', 'Impallari Type', H, OFL, v('Lobster', R)],
@@ -77,8 +63,7 @@
     ['Amatic SC', 'Vernon Adams, Ani Petrova', K, OFL, v('Amatic SC', RB)],
     ['Playpen Sans', 'Tjarda Koster, Jelle Bosma (Typearture)', K, OFL, v('Playpen Sans', RB)],
     ['Neucha', 'Jovanny Lemonad', K, OFL, v('Neucha', R)],
-    ['Marmelad', 'Сергій Ткаченко (Ukrainian Type)', K, OFL, v('Marmelad', R)],
-    ['Pudelinka', 'Gophmann A.L. (2007)', K, 'unknown', v('Pudelinka', R), '', 'Походження й ліцензія файлу невідомі («All rights reserved»). Замінити (Underdog, Marmelad, Pangolin).']
+    ['Marmelad', 'Сергій Ткаченко (Ukrainian Type)', K, OFL, v('Marmelad', R)]
   ];
   var FAMILIES = F.map(function (f) {
     var lic = LIC[f[3]];

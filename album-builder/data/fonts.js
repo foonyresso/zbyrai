@@ -21,18 +21,13 @@
     { n: 'Prata', k: 'serif', g: 'Класичні із засічками' },
     { n: 'PT Sans', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Montserrat', k: 'sans-serif', g: 'Гротески без засічок' },
-    { n: 'Raleway', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Roboto', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Open Sans', k: 'sans-serif', g: 'Гротески без засічок' },
-    { n: 'Noto Sans', k: 'sans-serif', g: 'Гротески без засічок' },
-    { n: 'Ubuntu', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Exo 2', k: 'sans-serif', g: 'Гротески без засічок' },
-    { n: 'Fira Sans', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Rubik', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Nunito', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Manrope', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Jura', k: 'sans-serif', g: 'Гротески без засічок' },
-    { n: 'Didact Gothic', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Cuprum', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Play', k: 'sans-serif', g: 'Гротески без засічок' },
     { n: 'Tenor Sans', k: 'sans-serif', g: 'Гротески без засічок' },
@@ -42,18 +37,11 @@
     { n: 'Philosopher', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Yeseva One', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Rubik Mono One', k: 'sans-serif', g: 'Заголовкові й декоративні' },
-    { n: 'Stalinist One', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Poiret One', k: 'sans-serif', g: 'Заголовкові й декоративні' },
-    { n: 'Advent Pro', k: 'sans-serif', g: 'Заголовкові й декоративні' },
-    { n: 'Kelly Slab', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Tektur', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Montserrat Alternates', k: 'sans-serif', g: 'Заголовкові й декоративні' },
-    { n: 'Unbounded', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Yanone Kaffeesatz', k: 'sans-serif', g: 'Заголовкові й декоративні' },
-    { n: 'Kurale', k: 'sans-serif', g: 'Заголовкові й декоративні' },
-    { n: 'Sofia Sans Extra Condensed', k: 'sans-serif', g: 'Заголовкові й декоративні' },
     { n: 'Caveat', k: 'cursive', g: 'Рукописні й каліграфічні' },
-    { n: 'Marck Script', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Pacifico', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Bad Script', k: 'cursive', g: 'Рукописні й каліграфічні' },
     { n: 'Lobster', k: 'cursive', g: 'Рукописні й каліграфічні' },
@@ -67,18 +55,19 @@
     { n: 'Rubik Bubbles', k: 'cursive', g: 'Дитячі й ігрові' },
     { n: 'Playpen Sans', k: 'cursive', g: 'Дитячі й ігрові' },
     { n: 'Neucha', k: 'cursive', g: 'Дитячі й ігрові' },
-    { n: 'Marmelad', k: 'cursive', g: 'Дитячі й ігрові' },
-    { n: 'Pudelinka', k: 'cursive', g: 'Дитячі й ігрові' },
-    { n: 'Bahnschrift', k: 'sans-serif', g: 'Гротески без засічок' }
+    { n: 'Marmelad', k: 'cursive', g: 'Дитячі й ігрові' }
   ];
-  function stack(n) { var f = LIST.filter(function (x) { return x.n === n; })[0]; return f ? '"' + f.n + '", ' + f.k : null; }
+  // Видалені шрифти → найближча заміна: збережені альбоми, що їх використовують, малюються замінником.
+  var REMOVED = {"Bahnschrift": "Manrope", "Didact Gothic": "Nunito", "Fira Sans": "Open Sans", "Ubuntu": "Open Sans", "Noto Sans": "Open Sans", "Raleway": "Montserrat", "Sofia Sans Extra Condensed": "Oswald", "Kurale": "Philosopher", "Unbounded": "Rubik", "Kelly Slab": "Roboto Slab", "Advent Pro": "Jura", "Stalinist One": "Rubik Mono One", "Marck Script": "Bad Script", "Pudelinka": "Underdog"};
+  function canon(n) { return REMOVED.hasOwnProperty(n) ? REMOVED[n] : n; }
+  function stack(n) { n = canon(n); var f = LIST.filter(function (x) { return x.n === n; })[0]; return f ? '"' + f.n + '", ' + f.k : null; }
   // Завантажує шрифти, що використовує макет, перед малюванням на canvas. Повертає Promise<true>, якщо щось довелося чекати.
   function used(st) {
-    var set = {}; if (st.font) set[st.font] = 1; Object.keys(st.tf || {}).forEach(function (k) { if (st.tf[k]) set[st.tf[k]] = 1; });
-    (st.spreads || []).forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { if (sp.text[j] && sp.text[j].f) set[sp.text[j].f] = 1; }); });
+    var set = {}; if (st.font) set[canon(st.font)] = 1; Object.keys(st.tf || {}).forEach(function (k) { if (st.tf[k]) set[canon(st.tf[k])] = 1; });
+    (st.spreads || []).forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { if (sp.text[j] && sp.text[j].f) set[canon(sp.text[j].f)] = 1; }); });
     var CVs = root.AlbumCoverVariants || (typeof require !== 'undefined' ? require('./cover-variants.js') : null);
-    var DSg = root.AlbumDesigns || (typeof require !== 'undefined' ? require('./designs.js') : null), dg = DSg && DSg.DESIGNS[st.designId]; if (dg && dg.fonts) dg.fonts.forEach(function (n) { set[n] = 1; });
-    if (CVs && st.coverVar) CVs.fontsOf(st.coverVar).forEach(function (n) { set[n] = 1; });
+    var DSg = root.AlbumDesigns || (typeof require !== 'undefined' ? require('./designs.js') : null), dg = DSg && DSg.DESIGNS[st.designId]; if (dg && dg.fonts) dg.fonts.forEach(function (n) { set[canon(n)] = 1; });
+    if (CVs && st.coverVar) CVs.fontsOf(st.coverVar).forEach(function (n) { set[canon(n)] = 1; });
     return Object.keys(set).filter(stack);
   }
   function ensure(st) {
@@ -87,6 +76,6 @@
     return need.length ? Promise.all(need).then(function () { return true; }, function () { return false; }) : Promise.resolve(false);
   }
   var GROUPS = []; LIST.forEach(function (f) { if (GROUPS.indexOf(f.g) < 0) GROUPS.push(f.g); });
-  var api = { GROUPS: GROUPS, LIST: LIST, stack: stack, used: used, ensure: ensure };
+  var api = { GROUPS: GROUPS, LIST: LIST, stack: stack, canon: canon, REMOVED: REMOVED, used: used, ensure: ensure };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumFonts = api;
 })(typeof self !== 'undefined' ? self : this);

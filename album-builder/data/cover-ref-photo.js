@@ -134,29 +134,29 @@
     },
     // ---- Типографіка й цифри ----
     {
-      id: 'typ-vert-year', grp: G2, name: 'Рік по вертикалі', note: 'Велике вертикальне число року поруч із фото, рукописне слово накладається на край фото', cats: SCH, photo: true, bg: '#f8f7f4', fonts: ['Montserrat', 'Marck Script'],
+      id: 'typ-vert-year', grp: G2, name: 'Рік по вертикалі', note: 'Велике вертикальне число року поруч із фото, рукописне слово накладається на край фото', cats: SCH, photo: true, bg: '#f8f7f4', fonts: ['Montserrat', 'Bad Script'],
       prf: function (f) { var w = (f.x1 - f.x0) * 0.56; return { x: f.x0 + f.sb * 0.9, y: f.sb * 0.9, w: w, h: f.H * 0.78 }; },
       text: function (g) { g = K.safe(g);
         var T = g.get('ctitle', 'випуск'), S = g.get('csub', 'випускний клас'), c = g.ctx, p = g.ph; if (!c) return; var cxr = (p.x + p.w + g.W - g.sb) / 2;
         K.rot90(c, cxr + g.H * 0.075, g.sb * 1.1 + g.H * 0.3, function () { g.rfx('year', g.year, 0, 0, g.H * 0.25, g.H * 0.66, 'Montserrat', '#0c0c0c', '500', 'center', 0.02, 'as'); });
         K.rot90(c, cxr + g.H * 0.075 + g.H * 0.052, g.H * 0.6 + g.sb * 0.2, function () { g.rfx('csub', S, 0, 0, g.H * 0.024, g.H * 0.3, 'Montserrat', '#333', '500', 'center', 0.2, 'upper'); });
         var y = g.H * 0.86, sz = g.H * 0.17;
-        K.splitClip(c, g, p, function () { g.fx('ctitle', T, p.x + sz * 0.12, y, sz, p.w * 1.15, 'Marck Script', '#ffffff', '700', 'left', 0, 'as'); }, function () { g.tx('ctitle', T, p.x + sz * 0.12, y, sz, p.w * 1.15, 'Marck Script', '#0c0c0c', '700', 'left', 0, 'as'); });
+        K.splitClip(c, g, p, function () { g.fx('ctitle', T, p.x + sz * 0.12, y, sz, p.w * 1.15, 'Bad Script', '#ffffff', '700', 'left', 0, 'as'); }, function () { g.tx('ctitle', T, p.x + sz * 0.12, y, sz, p.w * 1.15, 'Bad Script', '#0c0c0c', '700', 'left', 0, 'as'); });
         g.tx('name', g.owner, g.W - g.sb, g.H * 0.905, g.H * 0.02, cat(g) * 0.4, 'Montserrat', '#222', '600', 'right', 0.24, 'upper');
         g.tx('inst', g.inst, g.W - g.sb, g.H * 0.935, g.H * 0.017, cat(g) * 0.4, 'Montserrat', '#777', '400', 'right', 0.1, 'as');
       }
     },
     {
-      id: 'typ-grad-tall', grp: G2, name: 'Висока вертикаль', note: 'Дуже висока вузька «ВИПУСК» уздовж лівого краю, що заходить на фото й змінює колір', cats: SCH, photo: true, bg: '#eeeae3', fonts: ['Sofia Sans Extra Condensed', 'Montserrat'],
+      id: 'typ-grad-tall', grp: G2, name: 'Висока вертикаль', note: 'Дуже висока вузька «ВИПУСК» уздовж лівого краю, що заходить на фото й змінює колір', cats: SCH, photo: true, bg: '#eeeae3', fonts: ['Oswald', 'Montserrat'],
       prf: function (f) { var x = f.x0 + (f.x1 - f.x0) * 0.3; return { x: x, y: 0, w: f.bx1 - x, h: f.H * 0.8 }; },
       text: function (g) { g = K.safe(g);
         var T = g.get('ctitle', 'ВИПУСК'), S = g.get('csub', 'випускний альбом'), c = g.ctx, p = g.ph; if (!c) return; var sz = Math.min(g.H * 0.38, cat(g) * 0.42), len = (g.H - 2 * g.sb) * 0.98, bx = g.x0 + g.sb * 0.9 + sz * 0.66;
-        var dr = function (col, tx) { K.rot90(c, bx, g.H * 0.5 + len / 2, function () { (tx ? g.rtx : g.rfx)('ctitle', T, len / 2, 0, sz, len, 'Sofia Sans Extra Condensed', col, '800', 'center', 0.02, 'upper'); }); };
+        var dr = function (col, tx) { K.rot90(c, bx, g.H * 0.5 + len / 2, function () { (tx ? g.rtx : g.rfx)('ctitle', T, len / 2, 0, sz, len, 'Oswald', col, '800', 'center', 0.02, 'upper'); }); };
         K.splitClip(c, g, p, function () { dr('#ffffff', false); }, function () { dr('#241f1c', false); });
         // область для клацання: рисуємо невидимо
-        c.save(); c.globalAlpha = 0; K.rot90(c, bx, g.H * 0.5 + len / 2, function () { g.rtx('ctitle', T, len / 2, 0, sz, len, 'Sofia Sans Extra Condensed', '#000', '800', 'center', 0.02, 'upper'); }); c.restore();
+        c.save(); c.globalAlpha = 0; K.rot90(c, bx, g.H * 0.5 + len / 2, function () { g.rtx('ctitle', T, len / 2, 0, sz, len, 'Oswald', '#000', '800', 'center', 0.02, 'upper'); }); c.restore();
         var px = p.x + p.w / 2;
-        g.tx('year', g.year, px, g.H * 0.895, g.H * 0.05, cat(g) * 0.5, 'Sofia Sans Extra Condensed', '#241f1c', '600', 'center', 0.2, 'as');
+        g.tx('year', g.year, px, g.H * 0.895, g.H * 0.05, cat(g) * 0.5, 'Oswald', '#241f1c', '600', 'center', 0.2, 'as');
         g.tx('name', g.owner, px, g.H * 0.935, g.H * 0.024, cat(g) * 0.6, 'Montserrat', '#241f1c', '600', 'center', 0.3, 'upper');
         g.tx('csub', S, px, g.H * 0.96, g.H * 0.017, cat(g) * 0.6, 'Montserrat', '#6c655d', '400', 'center', 0.2, 'upper');
       }
