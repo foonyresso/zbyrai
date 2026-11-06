@@ -236,7 +236,7 @@
   }
   function hit(p) {
     if (!lastInfo) return null; var it = lastInfo.items;
-    for (var i = it.length - 1; i >= 0; i--) { var r = it[i].rect; if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) return it[i]; }
+    for (var i = it.length - 1; i >= 0; i--) { var r = it[i].rect, q = it[i].capRect; if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h || q && p.x >= q.x && p.x <= q.x + q.w && p.y >= q.y && p.y <= q.y + q.h) return it[i]; }
     return null;
   }
   // Напис під курсором (обкладинка, перший розворот): його ключ для st.tf
@@ -691,6 +691,14 @@
       } else box.appendChild(el('p', 'hint', 'Порожня клітинка: клік додає фото чи текст, правий клік дає візерунки й об\'єднання.'));
       return;
     }
+    if (it && it.kind === 'teacher') {
+      box.appendChild(el('p', 'hint', 'Об\'єкт: блок вчителів (клік по будь-якому фото чи підпису). Розташування, кількість, підписи й порядок:'));
+      buildTeacherUI(box); textCtl(box, tsAdapter('teach'), 'Підписи вчителів:');
+      var ds = sub(box, 'Вибраний вчитель' + (it.caption ? ': ' + it.caption : ''), true);
+      var rp0 = el('button', '', it.name ? 'Замінити фото…' : 'Додати фото…', 'Вибрати файл для цього вчителя'); rp0.onclick = function () { pickRef = it.ref; pickSide = it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click(); }; ds.appendChild(rp0);
+      if (it.name) { var rc0 = el('button', '', 'Скинути кадр', 'Повернути масштаб і зсув фото'); rc0.onclick = function () { st.crops[it.name] = { z: 1, fx: 0.5, fy: 0.35 }; refresh(); }; ds.appendChild(rc0); }
+      return;
+    }
     if (it && (it.kind === 'group' || it.kind === 'cover' || it.kind === 'portrait1' || it.kind === 'teacher')) {
       box.appendChild(el('p', 'hint', (it.name ? 'Фото: ' + it.name : 'Порожнє вікно фото') + (it.kind === 'teacher' ? ' (вчитель)' : '')));
       var rp = el('button', '', it.name ? 'Замінити фото…' : 'Додати фото…', 'Вибрати файл для цього вікна'); rp.onclick = function () { pickRef = it.ref; pickSide = it.rect.x < lastInfo.W / 2 ? 'left' : 'right'; $('fileImg').click(); }; box.appendChild(rp);
@@ -730,7 +738,7 @@
     }
     if (sp.type === 'first') {
       box = sub(box, S.teachers(st).length ? 'Вчителі' : 'Загальне фото', true);
-      if (S.teachers(st).length) { buildTeacherUI(box); textCtl(box, tsAdapter('teach'), 'Підписи вчителів:'); } else buildGeneralUI(box);
+      if (S.teachers(st).length) { box.appendChild(el('p', 'hint', 'Блок вчителів — окремий об\'єкт: клікни на фото чи підпис вчителя на макеті або відкрий його тут.')); var tb = el('button', '', 'Налаштувати блок вчителів', 'Відкрити меню «Об\'єкт» для блоку вчителів'); tb.onclick = function () { sel = { t: 'teacher', i: 0 }; redraw(); focusPanel('obj'); }; box.appendChild(tb); } else buildGeneralUI(box);
       plateCtl(box); box.appendChild(el('p', 'hint', 'Напис «Випуск», назву закладу й чорну плашку клікни на макеті: меню «Об\'єкт».'));
       box = $('spreadBody');
     }
