@@ -12,6 +12,14 @@ test('розворот UniBook Light 20×30 = 4819×3425 px (вимога дру
   for (const t of ['bamboo', 'slim']) assert.deepStrictEqual(PR.spreadSize('20x30', t).px, [4795, 3614]);
   assert.strictEqual(PR.spreadSize('23x23', 'unibook').pxW, Math.round(PR.spreadSize('23x23').W * 300 / 25.4));
 });
+test('UniBook Light 20×30: обкладинка 5386×3780, розворот 4819×3425; інші типи без окремої обкладинки', () => {
+  assert.deepStrictEqual(PR.spreadSize('20x30', 'unibook', true).px, [5386, 3780]);
+  assert.deepStrictEqual(PR.spreadSize('20x30', 'unibook', false).px, [4819, 3425]);
+  assert.deepStrictEqual(PR.spreadSize('20x30', 'bamboo', true).px, PR.spreadSize('20x30', 'bamboo', false).px);
+  assert.deepStrictEqual(PR.spreadSize('23x23', 'unibook', true).px, PR.spreadSize('23x23', 'unibook', false).px);
+  const c = PR.spreadSize('20x30', 'unibook', true);
+  assert.strictEqual(Math.round(c.W * 300 / 25.4), 5386); assert.strictEqual(Math.round(c.H * 300 / 25.4), 3780);
+});
 test('рядок дитини: номери й ім\'я в будь-якому порядку', () => {
   assert.deepStrictEqual(P.parseChildren('12 13 Іваненко Іван')[0], { nums: ['12', '13'], name: 'Іваненко Іван' });
   assert.deepStrictEqual(P.parseChildren('Іван Іваненко, 7')[0], { nums: ['7'], name: 'Іван Іваненко' });
