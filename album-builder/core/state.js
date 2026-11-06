@@ -11,7 +11,7 @@
 
   function newState() {
     return { v: 1, typeId: 'bamboo', fmtId: '23x23', catId: 'grade11', designId: 'classic', inst: { full: '', short: '' }, year: String(new Date().getFullYear()),
-      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverVar: 'classic', cvText: {}, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
+      children: '', names: {}, alias: {}, pairs: [], noAlbum: '', teachers: '', hideFirstBox: false, kOverride: null, grid: null, pstyle: 'dense', order: [], crops: {}, owner: 0, coverNoPhoto: false, coverVar: 'classic', cvText: {}, coverPhotos: {}, coverIndividual: null, bg: null, round: 0, seen: {}, font: null, ts: {}, tf: {}, pattern: null, tl: null, gp: null, safe: null, coverSafe: null, spine: null, spreads: [] };
   }
   // Подвійні альбоми: рядок блоку «5 + 6» або «Іваненко + Коваль» (чи з повними записами) вказує двох дітей із загального списку.
   // Діти шукаються за номером фото або за ім'ям; якщо не знайдено, додаються в кінець списку. Раніша в списку дитина = перша в парі.
@@ -247,11 +247,14 @@
     un.forEach(function (nm) { var p = need.shift(); if (p) { map[p.id] = nm; n++; } });
     return n;
   }
+  // Вчителі: фото стають лише за номером у назві файлу (показує photoFor). Тут лише розбір: які файли збіглися, а які ні. Випадкової підстановки немає.
   function assignTeachers(st, si, names, numMap) {
-    var sp = st.spreads[si], tl = teachers(st), n = 0;
-    var need = tl.map(function (t, i) { return i; }).filter(function (i) { return !sp.teacherPhotos[i] && !photoFor(tl[i], numMap); });
-    names.slice().sort().forEach(function (nm) { var i = need.shift(); if (i != null) { sp.teacherPhotos[i] = nm; n++; } });
-    return n;
+    var tl = teachers(st), matched = [], unmatched = [];
+    names.slice().sort().forEach(function (nm) {
+      var runs = P.fileRuns(nm), ok = tl.some(function (t) { return runs.some(function (r) { return t.nums.indexOf(r) >= 0; }); });
+      (ok ? matched : unmatched).push(nm);
+    });
+    return { matched: matched, unmatched: unmatched };
   }
   var CELL_STYLES = ['plain', 'ornament', 'frame'];
   function presets(st) {

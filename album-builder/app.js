@@ -5,7 +5,7 @@
   var st = S.newState(), files = new Map(), imgs = new Map(), numMap = new Map();
   var cur = 0, sel = null, step = 1, dragMode = 'swap', guides = true, centers = true, drag = null, pickRef = null, lastInfo = null, panel = null;
   var cv = $('cv'), ctx = cv.getContext('2d');
-  function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('on'); }, 2600); }
+  function toast(t, ms) { var e = $('toast'); e.textContent = t; e.classList.toggle('multi', t.indexOf('\n') >= 0); e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('on'); }, ms || 2600); }
   function el(tag, cls, text, title) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (title) e.title = title; return e; }
 
   // ---------- Майстер ----------
@@ -189,7 +189,7 @@
       files.set(f.name, f); imgs.set(f.name, im); names.push(f.name);
     }
     numMap = S.numMapOf(Array.from(files.keys()));
-    var sp = st.spreads[cur], placed = 0, dup = 0;
+    var sp = st.spreads[cur], placed = 0, dup = 0, notFound = [];
     if (sp.type === 'group') {
       var fresh = names.filter(function (n) { return sp.slots.indexOf(n) < 0; });
       if (sp.style === 'tpl' && fresh.length > S.freeCount(sp)) { refresh(); tooMany(fresh); return; }
@@ -209,13 +209,14 @@
       if (sp.type === 'cover' && S.coverVar(st).cells) { rest2.forEach(function (n) { var i = 0; while (sp.slots[i]) i++; if (i < S.coverVar(st).cells({ x0: 0, x1: 1, cx: 0, W: 1, H: 1, sb: 0 }).length) { sp.slots[i] = n; placed++; } }); }
       else if (sp.type === 'cover') placed += S.assignUnmatched(st, 'cover', rest2, numMap, cur);
       else if (side === 'left') {
-        if (tl.length) placed += S.assignTeachers(st, cur, rest2, numMap);
+        if (tl.length) { var tr = S.assignTeachers(st, cur, rest2, numMap); placed += tr.matched.length; notFound = tr.unmatched; }
         else if (rest2.length) { sp.slots[0] = rest2[0]; placed++; }
       } else placed += S.assignUnmatched(st, 'fright', rest2, numMap, cur);
     }
     refresh();
     var auto = (sp.type === 'cover' || sp.type === 'first') && !placed && names.length ? ' (фото за номерами з назв підхоплено автоматично)' : '';
-    toast('Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (dup ? ', пропущено дублікатів: ' + dup : '') + (bad ? ', не прочитано: ' + bad : ''));
+    var msg = 'Додано файлів: ' + names.length + (placed ? ', поставлено: ' + placed : '') + auto + (dup ? ', пропущено дублікатів: ' + dup : '') + (bad ? ', не прочитано: ' + bad : '');
+    if (notFound.length) { msg += '\n' + notFound.map(function (n) { return 'Файл ' + n + ' не знайдено в списку'; }).join('\n'); toast(msg, 3000 + 1500 * notFound.length); } else toast(msg);
   }
   var pickSide = 'right';
   $('btnAdd').onclick = function () { pickRef = null; pickSide = 'right'; $('fileImg').click(); };
@@ -598,6 +599,10 @@
     var b1 = el('button', '', 'Стерти', 'Прибрати цей напис з обкладинки'), b2 = el('button', '', 'Скинути', 'Повернути стандартний текст варіанта');
     b1.onclick = function () { st.cvText[id] = ''; refresh(); }; b2.onclick = function () { delete st.cvText[id]; refresh(); };
     l.appendChild(inp); l.appendChild(b1); l.appendChild(b2); box.appendChild(l);
+    if (fd && dd.first && dd.first.t2.box) {
+      var lb = el('label', 'chk', null, 'Чорна плашка за написом розвороту'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !st.hideFirstBox;
+      cb.onchange = function () { st.hideFirstBox = !cb.checked; redraw(); save(); }; lb.appendChild(cb); lb.appendChild(document.createTextNode(' Показувати чорну плашку')); box.appendChild(lb);
+    }
   }
   function cvTextFields(box) { ['ctitle', 'csub'].forEach(function (k) { cvTextField(box, k); }); }
   var cvAll = false, cvGrp = '';
