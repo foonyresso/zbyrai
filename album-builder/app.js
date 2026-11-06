@@ -844,7 +844,7 @@
       if (ownerId != null) st.owner = ownerId;
       R.draw(c.getContext('2d'), st, i, numMap, imgs, { pxPerMm: c.width / z.W, preview: false });
       st.owner = keep;
-      return new Promise(function (res) { c.toBlob(res, mime, 1); });
+      return new Promise(function (res) { c.toBlob(res, mime, 1); }).then(X.tagBlob);
     });
   }
   function one(mime, ext) { if (needEditor()) return; renderBlob(cur, mime).then(function (b) { X.download(b, S.exportName(st, cur) + ext); }); }
