@@ -423,7 +423,38 @@
     if (mode === 'title') return t.toLowerCase().replace(/(^|[\s\-'’])(\S)/g, function (m, a, b) { return a + b.toUpperCase(); });
     return t;
   }
-  var api = { applyCase: applyCase, designOf: designOf, newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
+  // ---------- Глобальні дії (на весь альбом) ----------
+  var TEXT_KEYS = ['year', 'name', 'inst', 'title', 'ctitle', 'csub', 'ftitle1', 'ftitle2', 'cap', 'teach'];
+  function eachCellText(st, fn) { st.spreads.forEach(function (sp) { Object.keys(sp.text || {}).forEach(function (j) { if (sp.text[j]) fn(sp.text[j]); }); }); }
+  // Регістр усіх написів, підписів і текстів у клітинках (null/'' = як типово)
+  function setCaseAll(st, mode) {
+    st.ts = st.ts || {};
+    TEXT_KEYS.forEach(function (k) { var o = st.ts[k] = st.ts[k] || {}; if (mode) o.case = mode; else delete o.case; });
+    eachCellText(st, function (o) { if (mode) o.case = mode; else delete o.case; });
+  }
+  // Шрифт скрізь: шрифт альбому, окремі шрифти написів і клітинок скидаються
+  function setFontAll(st, font) {
+    st.font = font || null; st.tf = {}; eachCellText(st, function (o) { delete o.f; });
+  }
+  // Колір і розмір усіх написів до типових
+  function resetTextStyleAll(st) { st.ts = {}; eachCellText(st, function (o) { delete o.c; delete o.k; }); }
+  // Фон на всі розвороти (власні фони розворотів скидаються)
+  function setBgAll(st, bg) { st.bg = bg || null; st.spreads.forEach(function (s) { s.bg = null; }); }
+  // Скопіювати налаштування розвороту si на всі розвороти того ж типу: bg, round, frame, style
+  function copyToAll(st, si, what) {
+    var src = st.spreads[si], n = 0; if (!src) return 0;
+    st.spreads.forEach(function (sp, i) {
+      if (i === si) return;
+      if (what === 'bg') { sp.bg = src.bg ? JSON.parse(JSON.stringify(src.bg)) : null; n++; return; }
+      if (sp.type !== src.type) return;
+      if (what === 'round') { sp.round = src.round; n++; }
+      else if (what === 'frame') { sp.frame = !!src.frame; n++; }
+      else if (what === 'style' && sp.type === 'group' && src.style !== 'tpl') { setStyle(st, i, src.style || 'mosaic'); n++; }
+    });
+    if (what === 'round') st.round = src.round != null ? src.round : st.round;
+    return n;
+  }
+  var api = { setCaseAll: setCaseAll, setFontAll: setFontAll, resetTextStyleAll: resetTextStyleAll, setBgAll: setBgAll, copyToAll: copyToAll, TEXT_KEYS: TEXT_KEYS, applyCase: applyCase, designOf: designOf, newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
     moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, shuffleFit: shuffleFit, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, portraitPlaced: portraitPlaced, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;

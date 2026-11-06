@@ -156,7 +156,11 @@
     }
     if (sp.type === 'first' && d.first) {
       var F1 = d.first, ft = function (k) { var ov = st.cvText && st.cvText['first:' + k]; return ov != null ? ov : F1.texts[k]; };
-      if (F1.t2.box && !st.hideFirstBox) { var bx = F1.t2.box; ctx.fillStyle = bx.c; ctx.fillRect(bx.x * W, bx.y * H, bx.w * W, bx.h * H); }
+      if (F1.t2.box) {
+        var bx = F1.t2.box, pr = { x: bx.x * W, y: bx.y * H, w: bx.w * W, h: bx.h * H };
+        if (!st.hideFirstBox) { ctx.fillStyle = bx.c; ctx.fillRect(pr.x, pr.y, pr.w, pr.h); }
+        hits.push({ key: 'plate', plate: true, rect: pr }); // чорну плашку можна вибрати клацанням (навіть прихованою — щоб повернути)
+      }
       [['ftitle1', F1.t1], ['ftitle2', F1.t2]].forEach(function (a) { var t = ft(a[0]); if (t) tx(a[0], t, a[1].r * W - a[1].sp * a[1].s * H / 2, a[1].y * H, a[1].s * H, W * 0.3, 'fontLight', a[0] === 'ftitle2' && st.hideFirstBox && F1.t2.box ? '#555555' : a[1].c, '300', 'right', a[1].sp, 'upper'); });
       if (info.ownerName) tx('name', info.ownerName, F1.name.x * W, F1.name.y * H, F1.name.s * H, W * 0.4, 'font', F1.name.c, '300', 'center', F1.name.sp, 'as');
     } else if (sp.type === 'first') {
@@ -186,6 +190,7 @@
         if (z.spine > 0 && sp.type === 'cover') { ctx.beginPath(); ctx.moveTo(W / 2 - z.spine / 2, 0); ctx.lineTo(W / 2 - z.spine / 2, H); ctx.moveTo(W / 2 + z.spine / 2, 0); ctx.lineTo(W / 2 + z.spine / 2, H); ctx.stroke(); }
         ctx.setLineDash([]);
       }
+      if (st.hideFirstBox && sp.type === 'first') hits.forEach(function (h) { if (h.plate) { ctx.save(); ctx.strokeStyle = 'rgba(120,120,120,.6)'; ctx.lineWidth = Math.max(0.4, 1 / o.pxPerMm); ctx.setLineDash([1.5, 1.5]); ctx.strokeRect(h.rect.x, h.rect.y, h.rect.w, h.rect.h); ctx.restore(); } });
       if (o.sel && o.sel.t === 'text') hits.forEach(function (h) { if (h.key === o.sel.key) { ctx.strokeStyle = '#b9a0e6'; ctx.lineWidth = Math.max(0.6, 2 / o.pxPerMm); ctx.setLineDash([2, 1.5]); ctx.strokeRect(h.rect.x, h.rect.y, h.rect.w, h.rect.h); ctx.setLineDash([]); } });
       if (o.sel && o.sel.t === 'bg') { ctx.strokeStyle = '#b9a0e6'; ctx.lineWidth = Math.max(0.8, 3 / o.pxPerMm); ctx.setLineDash([4, 3]); ctx.strokeRect(1, 1, W - 2, H - 2); ctx.setLineDash([]); }
       if (o.sel) info.items.forEach(function (it) {
