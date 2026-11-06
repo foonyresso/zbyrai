@@ -412,7 +412,15 @@
     return b;
   }
   function designOf(st) { return DS.DESIGNS[st.designId] || DS.DESIGNS.classic; }
-  var api = { designOf: designOf, newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
+  // Регістр напису: upper | title | lower | design (як у дизайні, defCase) | порожнє = рівно як введено
+  function applyCase(t, mode, def) {
+    t = String(t); if (mode === 'design') mode = def;
+    if (mode === 'upper') return t.toUpperCase();
+    if (mode === 'lower') return t.toLowerCase();
+    if (mode === 'title') return t.toLowerCase().replace(/(^|[\s\-'’])(\S)/g, function (m, a, b) { return a + b.toUpperCase(); });
+    return t;
+  }
+  var api = { applyCase: applyCase, designOf: designOf, newState: newState, people: people, teachers: teachers, portraitK: portraitK, buildSpreads: buildSpreads, resizePortrait: resizePortrait, mkSpread: mkSpread,
     numMapOf: numMapOf, photoFor: photoFor, personByFile: personByFile, slotsFor: slotsFor, swapRefs: swapRefs, setPhoto: setPhoto, removePhoto: removePhoto,
     moveSpread: moveSpread, setStyle: setStyle, setTemplate: setTemplate, addGroupPhotos: addGroupPhotos, fillBest: fillBest, fitAll: fitAll, shuffleFit: shuffleFit, freeGroup: freeGroup, freeCount: freeCount, groupPhotos: groupPhotos, personByName: personByName, placePortrait: placePortrait, portraitPlaced: portraitPlaced, sortForPortrait: sortForPortrait, reflowPortrait: reflowPortrait, portraitStats: portraitStats, movePhoto: movePhoto, swapAcross: swapAcross, freeCells: freeCells, ownerOf: ownerOf, presets: presets, setText: setText, setPattern: setPattern, cycleStyle: cycleStyle, setSpan: setSpan, CELL_STYLES: CELL_STYLES, exportName: exportName, coverIndividual: coverIndividual, coverVar: coverVar, isIndividual: isIndividual, makeIndividual: makeIndividual, makeGeneral: makeGeneral, exportPlan: exportPlan, zoneOf: zoneOf, albumKids: albumKids, ownerIndex: ownerIndex, setOwnerIndex: setOwnerIndex, assignUnmatched: assignUnmatched, assignTeachers: assignTeachers, toJSON: toJSON, fromJSON: fromJSON };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumState = api;

@@ -1,6 +1,6 @@
 // Малювання розвороту на canvas (одиниці — мм). Використовується і для перегляду, і для експорту.
 (function (root) {
-  var S = root.AlbumState;
+  var S = root.AlbumState || (typeof require !== 'undefined' ? require('./core/state.js') : null);
   function crop(st, name) { var c = st.crops[name]; return c || (st.crops[name] = { z: 1, fx: 0.5, fy: 0.35 }); }
   function rrect(ctx, r, rad) {
     rad = Math.min(rad || 0, r.w / 2, r.h / 2); ctx.beginPath();
@@ -54,14 +54,7 @@
     }
     ctx.translate(x + off(), y); ctx.scale(sx, 1); if (stroke) ctx.strokeText(text, 0, 0); else ctx.fillText(text, 0, 0); fitText.w = w; fitText.x = x; fitText.y = y; ctx.restore(); return s;
   }
-  // Регістр напису: upper | title (Перша Велика в Слові) | lower | null (як є / типовий)
-  function applyCase(t, mode, def) {
-    mode = mode || def; t = String(t);
-    if (mode === 'upper') return t.toUpperCase();
-    if (mode === 'lower') return t.toLowerCase();
-    if (mode === 'title') return t.toLowerCase().replace(/(^|[\s\-'’])(\S)/g, function (m, a, b) { return a + b.toUpperCase(); });
-    return t;
-  }
+  var applyCase = S.applyCase;
   // Фон розвороту: однотонний, градієнт або картинка (bg.type: color | gradient | image); без bg колір дизайну.
   function paintBg(ctx, W, H, bg, imgs, fallback) {
     ctx.fillStyle = fallback; ctx.fillRect(0, 0, W, H);
@@ -92,7 +85,7 @@
     // Текст зі своїм шрифтом (st.tf[key]) і областю для клацання (hits)
     var fx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase) {
       var ov = st.ts && st.ts[key] || {}, f = st.tf && st.tf[key] && FT && FT.stack(st.tf[key]) || d[kind || 'font'] || FT && FT.stack(kind) || d.font, k = ov.scale || 1;
-      return fitText(ctx, applyCase(text, defCase === 'as' ? null : ov.case, defCase), x, y, size * k, maxW * Math.max(1, k), f, ov.color || color, weight, align, spacing, tbox);
+      return fitText(ctx, applyCase(text, ov.case, defCase), x, y, size * k, maxW * Math.max(1, k), f, ov.color || color, weight, align, spacing, tbox);
     };
     var tx = function (key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase) {
       var s = fx(key, text, x, y, size, maxW, kind, color, weight, align, spacing, defCase), w = fitText.w || maxW, hx = fitText.x, hy = fitText.y;
