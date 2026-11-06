@@ -441,5 +441,14 @@ test('дизайн «Садочок: малюнки»: слот фото пер�
   assert.ok(Math.abs(ph.x - info.W / 2) < 1e-6 && ph.y === 0 && Math.abs(ph.w - info.W / 2) < 1e-6 && Math.abs(ph.h / info.H - 0.8645) < 1e-6);
   assert.strictEqual(S.coverVar(st).id, 'kg-crayon'); assert.strictEqual(S.slotsFor(st, 0, S.numMapOf([])).items.length, 0);
 });
+test('регістр: «як типово» лишає текст як введено, «як у дизайні» бере типовий', () => {
+  assert.strictEqual(S.applyCase('aLtErNaTiNg ІвАн', undefined, 'upper'), 'aLtErNaTiNg ІвАн');
+  assert.strictEqual(S.applyCase('мАрІя', null, 'upper'), 'мАрІя');
+  assert.strictEqual(S.applyCase('мАрІя', 'design', 'upper'), 'МАРІЯ');
+  assert.strictEqual(S.applyCase('мАрІя', 'design', 'as'), 'мАрІя');
+  assert.strictEqual(S.applyCase('іВАНЕНКО олена', 'upper', 'as'), 'ІВАНЕНКО ОЛЕНА');
+  assert.strictEqual(S.applyCase('ІВАНЕНКО олена', 'title'), 'Іваненко Олена');
+  assert.strictEqual(S.applyCase('ІВАНЕНКО олена', 'lower'), 'іваненко олена');
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

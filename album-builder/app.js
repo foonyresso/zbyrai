@@ -534,7 +534,7 @@
     var fb = el('button', '', ad.font() || 'Шрифт: як в альбомі', 'Відкрити вікно шрифтів'); fb.type = 'button'; if (ad.font()) fb.style.fontFamily = AlbumFonts.stack(ad.font());
     fb.onclick = function () { pickFont(ad.font(), function (v) { ad.setFont(v); refresh(); }); }; box.appendChild(fb);
     var cl = el('label', '', 'Регістр: '), cs = el('select', '', null, 'ВЕЛИКІ, Перша Велика в Слові або малі');
-    [['', 'Як типово'], ['upper', 'ПРІЗВИЩЕ ІМ\'Я'], ['title', 'Прізвище Ім\'я'], ['lower', 'прізвище ім\'я']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; cs.appendChild(op); }); cs.value = ad.case() || '';
+    [['', 'Як типово'], ['design', 'Як у дизайні'], ['upper', 'ПРІЗВИЩЕ ІМ\'Я'], ['title', 'Прізвище Ім\'я'], ['lower', 'прізвище ім\'я']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; cs.appendChild(op); }); cs.value = ad.case() || '';
     cs.onchange = function () { ad.setCase(cs.value || null); refresh(); }; cl.appendChild(cs); box.appendChild(cl);
     var kl = el('label', '', 'Колір: '), ki = document.createElement('input'); ki.type = 'color'; ki.value = ad.color() || '#6b6b6b'; ki.title = 'Колір тексту';
     ki.oninput = function () { ad.setColor(ki.value); redraw(); thumbs(); save(); }; kl.appendChild(ki);
