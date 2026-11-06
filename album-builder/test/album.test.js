@@ -450,5 +450,26 @@ test('регістр: «як типово» лишає текст як введ�
   assert.strictEqual(S.applyCase('ІВАНЕНКО олена', 'title'), 'Іваненко Олена');
   assert.strictEqual(S.applyCase('ІВАНЕНКО олена', 'lower'), 'іваненко олена');
 });
+test('глобальні дії: регістр, шрифт, фон на весь альбом, копіювання налаштувань розворота', () => {
+  const st = S.newState(); st.children = '1 Іваненко Марія\n2 Коваль Іван'; S.buildSpreads(st);
+  st.spreads.push(S.mkSpread('group'), S.mkSpread('group')); const g = st.spreads.length - 2;
+  st.tf = { year: 'X' }; st.spreads[g].text = { 0: { t: 'a', f: 'Y', case: 'lower' } };
+  S.setFontAll(st, 'Roboto'); assert.strictEqual(st.font, 'Roboto'); assert.deepStrictEqual(st.tf, {}); assert.strictEqual(st.spreads[g].text[0].f, undefined);
+  S.setCaseAll(st, 'upper'); assert.ok(S.TEXT_KEYS.every(k => st.ts[k].case === 'upper')); assert.strictEqual(st.spreads[g].text[0].case, 'upper');
+  S.setCaseAll(st, null); assert.ok(S.TEXT_KEYS.every(k => st.ts[k].case === undefined));
+  st.spreads[2].bg = { type: 'color', color: '#111111' }; S.setBgAll(st, { type: 'color', color: '#eeeeee' });
+  assert.ok(st.spreads.every(s => s.bg === null)); assert.strictEqual(st.bg.color, '#eeeeee');
+  st.spreads[g].bg = { type: 'color', color: '#abcdef' }; st.spreads[g].round = 5; st.spreads[g].frame = true;
+  assert.strictEqual(S.copyToAll(st, g, 'bg'), st.spreads.length - 1); assert.ok(st.spreads.every(s => s.bg && s.bg.color === '#abcdef'));
+  assert.strictEqual(S.copyToAll(st, g, 'round'), st.spreads.filter((s, i) => s.type === 'group' && i !== g).length); assert.strictEqual(st.spreads[g + 1].round, 5); assert.strictEqual(st.spreads[0].round, undefined);
+  S.copyToAll(st, g, 'frame'); assert.strictEqual(st.spreads[g + 1].frame, true);
+});
+require('../data/cover-kinder.js');
+test('чорна плашка першого розвороту вибирається як об\'єкт, навіть прихована', () => {
+  const R = require('../render.js').AlbumRender, st = S.newState(); st.designId = 'kinder'; st.catId = 'kindergarten'; st.coverVar = 'kg-crayon'; st.children = '1 Іваненко Марія'; S.buildSpreads(st);
+  const d = S.designOf(st); assert.ok(d.first && d.first.t2.box);
+  const ctx = new Proxy({}, { get: (t, k) => k === 'measureText' ? () => ({ width: 1, actualBoundingBoxLeft: 0, actualBoundingBoxRight: 1, actualBoundingBoxAscent: 1, actualBoundingBoxDescent: 0 }) : k === 'getTransform' ? () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) : (typeof t[k] === 'function' || !(k in t)) ? (t[k] = t[k] || (() => ({ addColorStop() {} }))) : t[k], set: (t, k, v) => (t[k] = v, true) });
+  [false, true].forEach(h => { st.hideFirstBox = h; const i = R.draw(ctx, st, 1, S.numMapOf([]), new Map(), { pxPerMm: 1, preview: true }); assert.ok(i.texts.some(t => t.key === 'plate' && t.rect.w > 0), 'hide=' + h); });
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);
