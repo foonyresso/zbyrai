@@ -235,7 +235,7 @@
   var DEF_COVER_SAFE = 15;
   // Зони розвороту: виліт, безпечна межа (для обкладинки окрема, більша), їх сума від краю полотна.
   function zoneOf(st, si) {
-    var z = PR.spreadSize(st.fmtId), cover = st.spreads[si] && st.spreads[si].type === 'cover';
+    var z = PR.spreadSize(st.fmtId, st.typeId), cover = st.spreads[si] && st.spreads[si].type === 'cover';
     var safe = cover ? (st.coverSafe == null ? DEF_COVER_SAFE : st.coverSafe) : (st.safe == null ? z.safe : st.safe);
     return { W: z.W, H: z.H, bleed: z.bleed, safe: safe, sb: z.bleed + safe, spine: st.spine == null ? z.spine : st.spine, pageW: z.pageW, pageH: z.pageH };
   }

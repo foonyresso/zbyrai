@@ -6,18 +6,24 @@
 (function (root) {
   var FMT = {
     '23x23': { label: '23×23 см', pageW: 230, pageH: 230, bleed: 3, safe: 5, spine: 0 },
-    // 20×30: розворот 408×290 мм = 4819×3425 px (300 dpi) — розмір, який вимагає друкарня (взято з їхнього TIF-шаблону).
-    // Розбивка на сторінку й виліт умовна (200×282 мм + 4 мм виліт); точні px задає поле px.
-    '20x30': { label: '20×30 см (розворот 408×290 мм)', pageW: 200, pageH: 282, bleed: 4, safe: 5, px: [4819, 3425] }
+    // 20×30: одна орієнтація (сторінка 200 мм завширшки, 300 мм заввишки). Це припущення, не з сайту Цифролабу.
+    '20x30': { label: '20×30 см', pageW: 200, pageH: 300, bleed: 3, safe: 5 }
+  };
+  // Розміри, що залежать від типу друку (перекривають FMT). UniBook Light 20×30: розворот 408×290 мм = 4819×3425 px (300 dpi),
+  // як вимагає друкарня (з її TIF-шаблону). Розбивка на сторінку й виліт умовна (200×282 мм + 4 мм); точні px задає поле px.
+  var TYPE_FMT = {
+    unibook: { '20x30': { pageW: 200, pageH: 282, bleed: 4, px: [4819, 3425] } }
   };
   var TYPES = [
     { id: 'bamboo', name: 'Бамбук', note: 'Заглушка розмірів', formats: ['23x23', '20x30'] },
     { id: 'slim', name: 'Slim Book', note: 'Заглушка розмірів', formats: ['23x23', '20x30'] },
-    { id: 'unibook', name: 'Unibook Light', note: 'Заглушка розмірів', formats: ['23x23', '20x30'] }
+    { id: 'unibook', name: 'Фотокнига: UniBook Light', note: 'Заглушка розмірів', formats: ['23x23', '20x30'] }
   ];
   // Розворот у мм: дві сторінки поруч + виліт з усіх боків.
-  function spreadSize(fmtId) {
-    var f = FMT[fmtId === '20x30v' ? '20x30' : fmtId] || FMT['23x23'];
+  function spreadSize(fmtId, typeId) {
+    var fid = fmtId === '20x30v' ? '20x30' : fmtId, base = FMT[fid] || FMT['23x23'], ov = (TYPE_FMT[typeId] || {})[fid], f = {};
+    for (var k in base) f[k] = base[k];
+    if (ov) for (var k2 in ov) f[k2] = ov[k2];
     var sf = f.safe == null ? 5 : f.safe;
     var W = 2 * f.pageW + 2 * f.bleed, H = f.pageH + 2 * f.bleed;
     // Точний розмір файлу в пікселях (300 dpi): явний від друкарні або округлений з мм.
