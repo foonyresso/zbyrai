@@ -36,16 +36,16 @@ async function ping(db) {
   return J({ online: !!a && now() - a.v < LIMITS.onlineMs, queue: q ? q.n : 0 });
 }
 
-const authed = (request, env) => userOf(env.ACCESS_CODES, request.headers.get('x-access-code'));
+const authed = (request, env) => userOf(env.ACCESS_CODES, decodeURIComponent(request.headers.get('x-login') || ''), decodeURIComponent(request.headers.get('x-pass') || ''));
 
 function me(request, env) {
   const u = authed(request, env);
-  return u ? J({ user: u }) : J({ error: 'Невірний код доступу' }, 401);
+  return u ? J({ user: u }) : J({ error: 'Невірний логін або пароль' }, 401);
 }
 
 async function submit(request, env, db) {
   const user = authed(request, env);
-  if (!user) return J({ error: 'Невірний код доступу' }, 401);
+  if (!user) return J({ error: 'Невірний логін або пароль' }, 401);
   let body; try { body = await request.json(); } catch { return J({ error: 'Некоректний запит' }, 400); }
   const p = cleanParams(body);
   if (!p.prompt) return J({ error: 'Напиши промпт' }, 400);

@@ -10,12 +10,12 @@
 - Bindings → Add → D1 database → змінна `DB`, база `zbyrai-sd`.
 - Variables and Secrets → Add (тип Secret):
   - `WORKER_TOKEN`: довгий випадковий рядок (для твого ПК);
-  - `ACCESS_CODES`: коди друзів, напр. `anya:abc123,vasyl:xyz789` (ім'я:код через кому).
+  - `ACCESS_CODES`: логіни й паролі друзів, напр. `anya:Pa55word,vasyl:Qw3rty` (логін:пароль через кому).
 - Після цього зроби Redeploy (або будь-який новий коміт).
 
 **3. ПК.** Запусти Forge Neo з прапорцем `--api` (у `webui-user.bat`: `set COMMANDLINE_ARGS=--api`). Скопіюй у папку Forge файли `worker/sd_worker.py`, `worker/start-worker.bat`, а `worker.example.json` перейменуй у `worker.json` й встав той самий `WORKER_TOKEN`. Запускай `start-worker.bat`, поки ПК має генерувати.
 
-**4.** Дай другові посилання `/sd-remote/` і його код.
+**4.** Дай другові посилання `/sd-remote/`, логін і пароль. Без них сторінка показує лише екран входу.
 
 ## Обмеження
 До 3 задач у черзі на людину, 256–1024 px, до 40 кроків; картинки живуть 7 днів. Модель береться та, що зараз завантажена у Forge.

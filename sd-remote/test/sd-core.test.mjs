@@ -3,12 +3,13 @@ import assert from 'node:assert';
 import { userOf, cleanParams, LIMITS } from '../../functions/api/sd/sd-core.js';
 let failed = 0;
 const test = (n, f) => { try { f(); console.log('  ok  ', n); } catch (e) { failed++; console.log('  FAIL', n, '\n      ', e.message); } };
-test('userOf: імена й коди', () => {
-  assert.equal(userOf('anya:abc, vasya:xyz', 'xyz'), 'vasya');
-  assert.equal(userOf('abc', 'abc'), 'abc');
-  assert.equal(userOf('anya:abc', 'nope'), null);
-  assert.equal(userOf('anya:abc', ''), null);
-  assert.equal(userOf('', ''), null);
+test('userOf: логін і пароль', () => {
+  assert.equal(userOf('anya:abc, vasya:x:y', 'vasya', 'x:y'), 'vasya');
+  assert.equal(userOf('anya:abc', 'anya', 'abc'), 'anya');
+  assert.equal(userOf('anya:abc', 'anya', 'bad'), null);
+  assert.equal(userOf('anya:abc', 'bob', 'abc'), null);
+  assert.equal(userOf('anya:abc', '', ''), null);
+  assert.equal(userOf('', 'a', 'b'), null);
 });
 test('cleanParams: обмеження розміру, кроків, cfg', () => {
   const p = cleanParams({ prompt: ' cat ', width: 5000, height: 10, steps: 999, cfg: 99, seed: 'x' });

@@ -2,13 +2,13 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var C = window.SDClient, LS = 'sd_';
-  var S = { code: '', params: { w: 512, h: 512, steps: 25, cfg: 7, seed: -1, neg: 'lowres, bad anatomy, blurry, watermark' }, jobs: [] };
+  var S = { login: '', pass: '', params: { w: 512, h: 512, steps: 25, cfg: 7, seed: -1, neg: 'lowres, bad anatomy, blurry, watermark' }, jobs: [] };
   var timers = {};
-  function load() { try { var x = JSON.parse(localStorage.getItem(LS + 'state') || '{}'); S.code = x.code || ''; Object.assign(S.params, x.params || {}); S.jobs = x.jobs || []; } catch (e) { /* не критично */ } }
-  function save() { try { localStorage.setItem(LS + 'state', JSON.stringify({ code: S.code, params: S.params, jobs: S.jobs.slice(-60) })); } catch (e) { /* не критично */ } }
+  function load() { try { var x = JSON.parse(localStorage.getItem(LS + 'state') || '{}'); S.login = x.login || ''; S.pass = x.pass || ''; Object.assign(S.params, x.params || {}); S.jobs = x.jobs || []; } catch (e) { /* не критично */ } }
+  function save() { try { localStorage.setItem(LS + 'state', JSON.stringify({ login: S.login, pass: S.pass, params: S.params, jobs: S.jobs.slice(-60) })); } catch (e) { /* не критично */ } }
   function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2600); }
   function api(path, opt) {
-    opt = opt || {}; opt.headers = Object.assign({ 'x-access-code': S.code, 'content-type': 'application/json' }, opt.headers || {});
+    opt = opt || {}; opt.headers = Object.assign({ 'x-login': encodeURIComponent(S.login), 'x-pass': encodeURIComponent(S.pass), 'content-type': 'application/json' }, opt.headers || {});
     return fetch('/api/sd/' + path, opt).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Помилка ' + r.status); return j; }); });
   }
 
@@ -58,7 +58,6 @@
 
   function go() {
     var prompt = $('prompt').value.trim();
-    if (!S.code) { ZB.showPanel('access'); return toast('Спочатку введи код доступу'); }
     if (!prompt) return toast('Напиши промпт');
     var p = S.params, body = { prompt: prompt, negative: p.neg, width: p.w, height: p.h, steps: p.steps, cfg: p.cfg, seed: p.seed };
     $('btnGo').disabled = true;
@@ -68,11 +67,14 @@
     }, function (e) { toast(e.message); }).then(function () { $('btnGo').disabled = false; });
   }
 
-  function login() {
-    var code = $('code').value.trim(); if (!code) return;
-    var old = S.code; S.code = code;
-    api('me').then(function (r) { $('who').textContent = 'Увійшов як: ' + r.user; save(); toast('Вітаю, ' + r.user); }, function (e) { S.code = old; $('who').textContent = e.message; });
+  function enter(login, pass, silent) {
+    var old = [S.login, S.pass]; S.login = login; S.pass = pass;
+    return api('me').then(function () {
+      save(); document.body.classList.add('authed'); $('gate').hidden = true; ping();
+      S.jobs.forEach(function (j) { if (j.status === 'queued' || j.status === 'running') poll(j); });
+    }, function (e) { S.login = old[0]; S.pass = old[1]; if (!silent) $('gateErr').textContent = e.message; $('gate').hidden = false; });
   }
+  function logout() { S.login = ''; S.pass = ''; save(); location.reload(); }
 
   function syncForm() {
     var p = S.params;
@@ -90,13 +92,11 @@
     $('neg').addEventListener('change', function () { S.params.neg = this.value; save(); });
     $('btnGo').addEventListener('click', go);
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
-    $('btnLogin').addEventListener('click', login);
-    $('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+    $('gateForm').addEventListener('submit', function (e) { e.preventDefault(); enter($('login').value.trim(), $('pass').value); });
     $('btnClear').addEventListener('click', function () { S.jobs = []; save(); render(); });
   }
 
   load(); bind(); syncForm(); render();
-  if (S.code) { $('code').value = S.code; api('me').then(function (r) { $('who').textContent = 'Увійшов як: ' + r.user; }, function (e) { $('who').textContent = e.message; }); }
-  S.jobs.forEach(function (j) { if (j.status === 'queued' || j.status === 'running') poll(j); });
-  ping(); setInterval(ping, 20000);
+  if (S.login && S.pass) enter(S.login, S.pass, true);
+  setInterval(function () { if (S.login) ping(); }, 20000);
 })();

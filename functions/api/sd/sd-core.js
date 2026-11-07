@@ -1,14 +1,14 @@
 // Чиста логіка «Віддаленого SD» (без Cloudflare-API): перевірка кодів, обмеження параметрів. Тести: sd-remote/test/sd-core.test.js
 export const LIMITS = { minSide: 256, maxSide: 1024, maxSteps: 40, maxCfg: 15, maxPrompt: 2000, maxQueuePerUser: 3, keepDays: 7, jobTimeoutMs: 10 * 60 * 1000, onlineMs: 60 * 1000 };
 
-// ACCESS_CODES = "ім'я:код,ім'я2:код2" (або просто "код"). Повертає ім'я або null.
-export function userOf(codes, code) {
-  code = String(code || '').trim();
-  if (!code) return null;
+// ACCESS_CODES = "логін:пароль,логін2:пароль2". Повертає логін або null.
+export function userOf(codes, login, pass) {
+  login = String(login || '').trim(); pass = String(pass || '');
+  if (!login || !pass) return null;
   for (const part of String(codes || '').split(',')) {
     const i = part.indexOf(':');
-    const name = (i < 0 ? part : part.slice(0, i)).trim(), c = (i < 0 ? part : part.slice(i + 1)).trim();
-    if (c && c === code) return name || 'user';
+    if (i < 0) continue;
+    if (part.slice(0, i).trim() === login && part.slice(i + 1).trim() === pass) return login;
   }
   return null;
 }

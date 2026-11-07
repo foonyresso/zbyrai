@@ -5,13 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Віддалений SD</title>
-<meta name="description" content="Генерація картинок Stable Diffusion на комп'ютері власника сайту: за кодом доступу, через чергу.">
+<meta name="description" content="Генерація картинок Stable Diffusion на комп'ютері власника сайту: за логіном і паролем, через чергу.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M7 22l6-8 5 6 3-4 4 6z%27 fill=%27none%27 stroke=%27%237fb8e8%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2711%27 cy=%2710%27 r=%272.5%27 fill=%27%237fb8e8%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
 <link rel="stylesheet" href="./zb-ui.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body class="has-grain">
+
+<div class="gate" id="gate">
+  <form class="gate-box" id="gateForm">
+    <h1>Віддалений <span>SD</span></h1>
+    <p>Закрита сторінка. Введи логін і пароль.</p>
+    <input type="text" id="login" autocomplete="username" placeholder="Логін" title="Логін, виданий власником сайту" required>
+    <input type="password" id="pass" autocomplete="current-password" placeholder="Пароль" title="Пароль, виданий власником сайту" required>
+    <button class="btn-main" type="submit" title="Увійти">Увійти</button>
+    <p class="err" id="gateErr"></p>
+  </form>
+</div>
 
 <header class="top" id="top">
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
@@ -24,9 +35,9 @@
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
   <h2>Віддалений SD</h2>
   <h3>Що це</h3><p>Генерація картинок Stable Diffusion на потужному комп'ютері власника сайту. Ти пишеш промпт у браузері, задача йде в чергу, комп'ютер власника генерує картинку, і вона з'являється тут.</p>
-  <h3>Для чого</h3><p>Щоб пробувати Stable Diffusion, навіть якщо твій комп'ютер слабкий: потрібні лише браузер і код доступу.</p>
+  <h3>Для чого</h3><p>Щоб пробувати Stable Diffusion, навіть якщо твій комп'ютер слабкий: потрібні лише браузер, логін і пароль.</p>
   <h3>Як користуватися</h3><ol>
-    <li><b>Код доступу</b>: введи код, який дав власник (іконка «Доступ»).</li>
+    <li><b>Вхід</b>: введи логін і пароль, які дав власник.</li>
     <li><b>Параметри</b>: розмір, кількість кроків, CFG, зерно (seed), негативний промпт.</li>
     <li>Напиши промпт унизу й натисни <b>«Згенерувати»</b>. Поруч видно позицію в черзі.</li>
     <li>Генерація працює, лише коли комп'ютер власника увімкнений (індикатор «ПК» угорі). Картинки зберігаються на сервері 7 днів; з обмеженнями: до 3 задач у черзі, до 1024 px.</li>
@@ -36,14 +47,13 @@
 <main class="stage" id="work">
   <div class="stagebox">
     <div class="grid" id="grid"></div>
-    <div class="empty" id="empty">Введи код доступу й напиши промпт унизу</div>
+    <div class="empty" id="empty">Напиши промпт унизу</div>
   </div>
 
   <nav class="rail" id="rail" aria-label="Меню">
     <button data-panel="params" title="Розмір, кроки, CFG, seed, негативний промпт"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Параметри</span></button>
-    <button data-panel="access" title="Код доступу, виданий власником сайту"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Доступ</span></button>
   </nav>
-  <aside class="drawer" id="drawer" data-store="sd_panel" data-default="access" hidden>
+  <aside class="drawer" id="drawer" data-store="sd_panel" data-default="params" hidden>
     <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="params">
       <h2>Розмір, px</h2>
@@ -62,12 +72,6 @@
       <h2>Негативний промпт</h2>
       <label title="Чого не має бути на картинці">
         <textarea id="neg" rows="3" maxlength="2000" title="Негативний промпт: чого уникати"></textarea></label>
-    </section>
-    <section data-panel="access">
-      <h2>Код доступу</h2>
-      <label title="Код, який дав власник сайту">Код <input type="password" id="code" autocomplete="off" placeholder="встав код" title="Код доступу від власника сайту"></label>
-      <button id="btnLogin" title="Перевірити й запам'ятати код у цьому браузері">Увійти</button>
-      <p class="hint" id="who"></p>
     </section>
   </aside>
 

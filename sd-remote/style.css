@@ -21,3 +21,10 @@
 .chips button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
 [hidden] { display: none !important; }
 @media (max-width: 760px) { .stagebox { padding: 110px 8px 130px; } .bar { flex-wrap: wrap; } }
+.gate { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: var(--bg, #09090c); padding: 16px; }
+.gate[hidden] { display: none; }
+.gate-box { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
+.gate-box h1 { margin: 0; font-size: 22px; } .gate-box h1 span { opacity: .7; }
+.gate-box p { margin: 0; color: var(--muted); font-size: 13px; } .gate-box .err { color: #e8924a; min-height: 1.2em; }
+.gate-box input { box-sizing: border-box; width: 100%; }
+body:not(.authed) .stage, body:not(.authed) .top { visibility: hidden; }
