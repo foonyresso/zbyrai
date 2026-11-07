@@ -36,7 +36,13 @@ async function ping(db) {
   return J({ online: !!a && now() - a.v < LIMITS.onlineMs, queue: q ? q.n : 0 });
 }
 
-const authed = (request, env) => userOf(env.ACCESS_CODES, decodeURIComponent(request.headers.get('x-login') || ''), decodeURIComponent(request.headers.get('x-pass') || ''));
+// Вхід: заголовки x-login + x-pass (сторінка) або x-api-key: логін:пароль (скрипти й нейронки)
+const authed = (request, env) => {
+  const h = (n) => request.headers.get(n) || '';
+  const key = h('x-api-key'), i = key.indexOf(':');
+  if (i > 0) return userOf(env.ACCESS_CODES, key.slice(0, i), key.slice(i + 1));
+  return userOf(env.ACCESS_CODES, decodeURIComponent(h('x-login')), decodeURIComponent(h('x-pass')));
+};
 
 function me(request, env) {
   const u = authed(request, env);
