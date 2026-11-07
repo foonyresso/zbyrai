@@ -16,6 +16,12 @@
     return (n ? n + (st.year ? ' ' + st.year : '') : 'Без назви' + (st.year ? ' ' + st.year : ''));
   }
 
+  // Ім'я файлу з назви закладу (скорочена, інакше повна) без недопустимих символів
+  function fileBase(st) {
+    var n = (st.inst && (st.inst.short || st.inst.full) || '').replace(/[\\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').replace(/^[\s.]+|[\s.]+$/g, '').slice(0, 100).trim();
+    return n || 'album';
+  }
+
   // ---------- Читання ZIP (stored і deflate) ----------
   function u16(b, o) { return b[o] | b[o + 1] << 8; }
   function u32(b, o) { return (b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24) >>> 0; }
@@ -73,6 +79,6 @@
   function del(id) { return tx('readwrite', function (s) { return s.delete(id); }); }
   function uid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
-  var api = { FORMAT: FORMAT, pack: pack, unpack: unpack, nameOf: nameOf, unzip: unzip, readProjectFile: readProjectFile, list: list, get: get, put: put, del: del, uid: uid };
+  var api = { FORMAT: FORMAT, pack: pack, unpack: unpack, nameOf: nameOf, fileBase: fileBase, unzip: unzip, readProjectFile: readProjectFile, list: list, get: get, put: put, del: del, uid: uid };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AlbumProjects = api;
 })(typeof self !== 'undefined' ? self : this);

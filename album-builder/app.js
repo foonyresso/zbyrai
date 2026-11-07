@@ -307,7 +307,7 @@
     var f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try { openState(await PRJ.readProjectFile(f), null); if ($('projDlg').open) $('projDlg').close(); } catch (err) { toast('Не вдалось відкрити проєкт: ' + err.message, 4000); }
   };
-  $('pSave').onclick = function () { X.download(new Blob([PRJ.pack(S.toJSON(st))], { type: 'application/json' }), 'project-' + PRJ.nameOf(st).replace(/[^\wа-яіїєґ\-]+/gi, '_') + '.json'); toast('Проєкт збережено у файл'); };
+  $('pSave').onclick = function () { X.download(new Blob([PRJ.pack(S.toJSON(st))], { type: 'application/json' }), PRJ.fileBase(st) + '.json'); toast('Проєкт збережено у файл'); };
 
   // ---------- Взаємодія з полотном ----------
   function mmAt(e) {
@@ -956,7 +956,7 @@
     if (needEditor()) return; var r = await renderAll('image/jpeg'), out = [];
     out.push({ name: 'project.json', data: new TextEncoder().encode(PRJ.pack(S.toJSON(st))) });
     for (var f of r) out.push({ name: f.name + '.jpg', data: new Uint8Array(await f.blob.arrayBuffer()) });
-    X.download(X.zip(out), 'album-spreads.zip'); toast('Архів готовий: ' + (out.length - 1) + ' розворотів + project.json');
+    X.download(X.zip(out), PRJ.fileBase(st) + '.zip'); toast('Архів готовий: ' + (out.length - 1) + ' розворотів + project.json');
   };
 
   showStep(1);

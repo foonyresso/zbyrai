@@ -529,6 +529,7 @@ const asyncTest = (async () => {
     const st = S.newState(); st.inst.short = 'Ліцей 1'; st.crops = { '0001.jpg': { z: 1.5, x: 0.1, y: -0.2 } }; st.spreads = [{ type: 'group', slots: ['a.jpg', 'b.jpg'] }];
     assert.strictEqual(PJ.nameOf(st), 'Ліцей 1 ' + st.year);
     assert.deepStrictEqual(JSON.parse(PJ.unpack(PJ.pack(S.toJSON(st)))), JSON.parse(S.toJSON(st)));
+    assert.strictEqual(PJ.fileBase({ inst: { short: ' Ліцей №1: "Зоря"/2? ', full: 'x' } }), 'Ліцей №1 Зоря 2'); assert.strictEqual(PJ.fileBase({ inst: { short: '', full: 'Повна назва' } }), 'Повна назва'); assert.strictEqual(PJ.fileBase({ inst: {} }), 'album');
     assert.throws(() => PJ.unpack('{"a":1}'));
     const z = X.zip([{ name: 'project.json', data: new TextEncoder().encode(PJ.pack(S.toJSON(st))) }, { name: '01.jpg', data: new Uint8Array([1, 2, 3]) }]);
     const back = S.fromJSON(await PJ.readProjectFile(z));
