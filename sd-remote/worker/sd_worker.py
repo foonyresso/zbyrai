@@ -16,6 +16,8 @@ cfg = {
     "hr_upscaler": "RealESRGAN_x4plus_anime_6B.pth", "hr_steps": 8, "hr_cfg": 1.4, "hr_shift": 8, "hr_denoise": 0.4,
     # ADetailer
     "ad_face_model": "face_yolov8n.pt",
+    # збереження копій на ПК: PNG із метаданими (як у Forge) у папці save_dir поруч зі скриптом
+    "save_png": True, "save_dir": "site_outputs",
     "ad": {"ad_confidence": 0.75, "ad_dilate_erode": 4, "ad_mask_blur": 8, "ad_denoising_strength": 0.27,
            "ad_inpaint_only_masked": True, "ad_inpaint_only_masked_padding": 56,
            "ad_use_inpaint_width_height": True, "ad_inpaint_width": 1024, "ad_inpaint_height": 1024},
@@ -103,20 +105,43 @@ def generate(p, job_id=None):
 
 
 def _generate(p):
+    body = forge_body(p)
     try:
-        r = call(cfg["forge"] + "/sdapi/v1/txt2img", forge_body(p), timeout=1800)
+        r = call(cfg["forge"] + "/sdapi/v1/txt2img", body, timeout=1800)
     except Exception as e:
         if not adetailer_args(p):
             raise
         print("  ADetailer не спрацював (%s), пробую без нього" % e)
-        r = call(cfg["forge"] + "/sdapi/v1/txt2img", forge_body(p, with_ad=False), timeout=1800)
+        body = forge_body(p, with_ad=False)
+        r = call(cfg["forge"] + "/sdapi/v1/txt2img", body, timeout=1800)
     png = base64.b64decode(r["images"][0])
     try:
-        seed = json.loads(r.get("info", "{}")).get("seed", -1)
+        info = json.loads(r.get("info", "{}"))
     except Exception:
-        seed = -1
+        info = {}
+    texts = info.get("infotexts") or [""]
     img, mime = pack(png)
-    return img, mime, seed
+    return img, mime, info.get("seed", -1), str(texts[0])[:6000], body, png
+
+
+def save_copy(png, infotext, job, request):
+    """Копія результату на ПК: PNG із метаданими «parameters» (читається у PNG Info) + що саме надіслав сайт."""
+    if not cfg.get("save_png"):
+        return
+    try:
+        from PIL import Image
+        from PIL.PngImagePlugin import PngInfo
+        im = Image.open(io.BytesIO(png))
+        meta = PngInfo()
+        meta.add_text("parameters", im.info.get("parameters") or infotext)
+        meta.add_text("sd_site", json.dumps({"job": job["id"], "site_params": job["params"], "forge_request": request}, ensure_ascii=False))
+        d = os.path.join(HERE, cfg["save_dir"], time.strftime("%Y-%m-%d"))
+        os.makedirs(d, exist_ok=True)
+        path = os.path.join(d, "%s_%s.png" % (time.strftime("%H%M%S"), job["id"][:8]))
+        im.save(path, "PNG", pnginfo=meta)
+        print("  збережено:", path)
+    except Exception as e:
+        print("  не вдалося зберегти копію:", e)
 
 
 def read_json(path):
@@ -217,8 +242,9 @@ def main():
             time.sleep(cfg["poll"]); continue
         print("Задача", job["id"], "-", job["params"]["prompt"][:60])
         try:
-            img, mime, seed = generate(job["params"], job["id"])
-            out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed}}
+            img, mime, seed, infotext, request, png = generate(job["params"], job["id"])
+            save_copy(png, infotext, job, request)
+            out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed, "infotext": infotext, "request": request}}
         except Exception as e:
             print("  помилка генерації:", e)
             out = {"id": job["id"], "error": "Помилка генерації на ПК: " + str(e)[:200]}

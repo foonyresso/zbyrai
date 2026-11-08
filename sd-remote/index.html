@@ -48,6 +48,14 @@
   </ol>
 </dialog>
 
+<dialog id="logDlg" class="help wide">
+  <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
+  <h2>Лог генерації</h2>
+  <p class="hint">Усе, що надіслано на сервер і що отримав Forge. Якщо результат не той, подивись сюди: чи є зайві теги, LoRA, який seed.</p>
+  <pre id="logPre" class="logpre"></pre>
+  <button id="logCopy" title="Копіювати весь лог у буфер обміну">Копіювати</button>
+</dialog>
+
 <dialog id="adDlg" class="help">
   <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
   <h2>ADetailer: теги</h2>
@@ -92,13 +100,16 @@
       <p class="hint warn" id="upHint" hidden></p>
       <label class="rng" title="Число, що визначає результат; -1 = випадкове">Seed
         <input type="number" id="seed" min="-1" step="1" title="Seed; -1 = випадкове"></label>
+      <p class="hint" id="seedState"></p>
       <div class="two"><button id="seedRand" title="Випадковий seed для кожної генерації (-1)">🎲 Випадковий</button><button id="seedLast" title="Підставити seed останньої картинки">↺ З останньої</button></div>
     </section>
 
     <section class="blk">
       <h2>ADetailer</h2>
-      <div class="ad-row"><label class="chk" title="Автоматично знаходить обличчя й перемальовує його чіткіше"><input type="checkbox" id="adOn" title="Увімкнути ADetailer для обличчя"> Обличчя</label>
-        <button id="adBtn" hidden title="Окремі позитивні й негативні теги для ADetailer">⚙ Теги</button></div>
+      <div class="ad-row"><div class="seg" id="adSeg" role="group" aria-label="ADetailer для обличчя">
+          <button id="adOff" title="ADetailer вимкнено">Вимкнено</button><button id="adOnB" title="ADetailer автоматично знаходить обличчя й перемальовує його чіткіше">Увімкнено</button></div>
+        <button id="adBtn" title="Окремі позитивні й негативні теги для ADetailer (лише для обличчя)">⚙ Теги</button></div>
+      <p class="hint">Виправляє лише обличчя.</p>
     </section>
 
     <section class="blk">
@@ -119,7 +130,7 @@
     </nav>
 
     <section class="view" id="vGen">
-      <div class="preview-wrap" id="pvWrap"><div class="preview" id="preview"><div class="pv-in" id="pvIn"></div><span class="pv-tag" id="pvTag"></span><button class="pv-full" id="btnFull" title="Показати картинку на весь екран (Esc виходить)">⛶</button></div></div>
+      <div class="preview-wrap" id="pvWrap"><div class="preview" id="preview"><div class="pv-in" id="pvIn"></div><span class="pv-tag" id="pvTag"></span><button class="pv-log" id="btnLog" title="Показати всі налаштування й теги останньої картинки (що саме надіслано)">Лог</button><button class="pv-full" id="btnFull" title="Показати картинку на весь екран (Esc виходить)">⛶</button></div></div>
       <section class="builder" id="builder" hidden aria-label="Групи тегів">
         <div class="b-head"><b>Теги</b><input type="search" id="bSearch" placeholder="Пошук тегу, напр. ponytail" title="Пошук по всіх тегах"></div>
         <div class="b-tabs" id="bTabs" role="tablist"></div>

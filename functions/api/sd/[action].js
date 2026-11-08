@@ -177,7 +177,7 @@ async function result(request, db) {
     return J({ ok: true });
   }
   if (!b.image || b.image.length > 1.5e6) return J({ error: 'Картинка порожня або завелика (макс. ~1 МБ)' }, 400);
-  await db.prepare("UPDATE jobs SET status='done', image=?, mime=?, info=?, updated=? WHERE id=?").bind(b.image, b.mime === 'image/png' ? 'image/png' : 'image/webp', JSON.stringify(b.info || {}), t, id).run();
+  await db.prepare("UPDATE jobs SET status='done', image=?, mime=?, info=?, updated=? WHERE id=?").bind(b.image, b.mime === 'image/png' ? 'image/png' : 'image/webp', safeInfo(b.info), t, id).run();
   // ліміт: у кожного користувача зберігається лише останні maxImagesPerUser картинок (старі стираються, щоб не розросталась база)
   const j = await db.prepare('SELECT user FROM jobs WHERE id=?').bind(id).first();
   if (j) await db.prepare('UPDATE jobs SET image=NULL WHERE user=? AND image IS NOT NULL AND id NOT IN (SELECT id FROM jobs WHERE user=? AND image IS NOT NULL ORDER BY updated DESC LIMIT ?)').bind(j.user, j.user, LIMITS.maxImagesPerUser).run();
@@ -207,4 +207,14 @@ async function progress(request, db) {
   const v = Math.round(Math.min(1, Math.max(0, Number(b.p) || 0)) * 1000);
   await db.prepare('INSERT INTO meta (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('p:' + b.id, v).run();
   return J({ ok: true });
+}
+
+// Лог генерації: seed, підсумок Forge (infotext) і запит воркера; обмежено за розміром
+function safeInfo(i) {
+  i = i || {};
+  const info = { seed: Number.isFinite(+i.seed) ? +i.seed : -1, infotext: String(i.infotext || '').slice(0, 6000) };
+  if (i.request && typeof i.request === 'object') info.request = i.request;
+  let json = JSON.stringify(info);
+  if (json.length > 20000) { delete info.request; json = JSON.stringify(info); }
+  return json;
 }

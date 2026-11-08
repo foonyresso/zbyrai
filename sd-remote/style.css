@@ -147,3 +147,9 @@ body.vw-open { overflow: hidden; }
 .acp { position: absolute; left: 0; right: 0; top: 100%; z-index: 45; max-height: 270px; overflow: auto; margin-top: 2px; background: #17171d; border: 1px solid var(--accent); border-radius: 8px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
 .acr { display: flex; align-items: baseline; gap: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; } .acr.on, .acr:hover { background: var(--accent-glow); }
 .acn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .aca { color: var(--faint); font-size: 11.5px; } .acc { color: var(--faint); font-size: 11.5px; min-width: 38px; text-align: right; }
+
+/* лог, ADetailer */
+.pv-log { position: absolute; right: 46px; top: 8px; height: 30px; padding: 0 10px; font-size: 12px; opacity: .85; }
+.logpre { max-height: 60vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; background: #101015; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin: 8px 0; }
+dialog.help.wide { width: min(820px, 94vw); max-width: 94vw; }
+#adSeg button { padding: 6px 12px; } #adBtn:disabled { opacity: .45; }

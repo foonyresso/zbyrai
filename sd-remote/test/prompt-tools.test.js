@@ -34,7 +34,8 @@ test('highlightHtml: коми золоті, групи (…) і […], LoRA, е�
 });
 test('loraTags і joinPrompt', () => {
   assert.equal(P.loraTags([{ name: 'a', w: 0.2 }, { name: 'b', w: -1 }]), '<lora:a:0.2>, <lora:b:-1>');
-  assert.equal(P.joinPrompt('1girl, ', [{ name: 'a', w: 0.15 }]), '1girl, <lora:a:0.15>');
+  assert.equal(P.joinPrompt('1girl, ', [{ name: 'a', w: 0.15 }, { name: 'b', w: 0.3 }]), '<lora:a:0.15>, <lora:b:0.3>, 1girl');
+  assert.equal(P.joinPrompt('1girl', []), '1girl');
   assert.equal(P.joinPrompt('', []), '');
 });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
