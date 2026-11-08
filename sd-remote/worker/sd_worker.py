@@ -34,6 +34,39 @@ except FileNotFoundError:
 cfg["site"] = os.environ.get("SD_SITE", cfg["site"]).rstrip("/")
 cfg["token"] = os.environ.get("SD_TOKEN", cfg["token"])
 cfg["forge"] = os.environ.get("SD_FORGE", cfg["forge"]).rstrip("/")
+try:   # кирилиця й символи в консолі Windows
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+if os.name == "nt":
+    os.system("")   # вмикає кольори ANSI у консолі Windows
+USE_COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+CLR = {"dim": "90", "green": "92", "red": "91", "yellow": "93", "cyan": "96", "bold": "1"}
+
+
+def paint(t, c):
+    return "\x1b[%sm%s\x1b[0m" % (CLR[c], t) if (USE_COLOR and c) else str(t)
+
+
+def stamp():
+    return time.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def log(msg, color=None, icon="· "):
+    """Рядок із датою й часом: [час] значок текст."""
+    print("%s %s%s" % (paint(stamp(), "dim"), icon, paint(msg, color)), flush=True)
+
+
+def detail(label, value, color=None):
+    """Рядок-деталь під подією, вирівняний під текст."""
+    print("%s %s %s" % (" " * 22, paint(label.ljust(11), "dim"), paint(value, color)), flush=True)
+
+
+def short(t, n=110):
+    t = " ".join(str(t).split())
+    return t if len(t) <= n else t[:n - 1] + "…"
+
+
 UA = "zbyrai-sd-worker/1.0"  # без User-Agent Cloudflare може відхилити запит
 
 
@@ -152,7 +185,7 @@ def _generate(p):
     except Exception as e:
         if not adetailer_args(p):
             raise
-        print("  ADetailer не спрацював (%s), пробую без нього" % e)
+        log("ADetailer не спрацював (%s), пробую без нього" % short(e, 120), "yellow", "⚠ ")
         body = forge_body(p, with_ad=False)
         r = call(cfg["forge"] + "/sdapi/v1/txt2img", body, timeout=1800)
     png = base64.b64decode(r["images"][0])
@@ -180,9 +213,9 @@ def save_copy(png, infotext, job, request):
         os.makedirs(d, exist_ok=True)
         path = os.path.join(d, "%s_%s.png" % (time.strftime("%H%M%S"), job["id"][:8]))
         im.save(path, "PNG", pnginfo=meta)
-        print("  збережено:", path)
+        detail("Копія PNG", path, "dim")
     except Exception as e:
-        print("  не вдалося зберегти копію:", e)
+        log("Не вдалося зберегти копію PNG: %s" % e, "yellow", "⚠ ")
 
 
 def forge_outdir(inpaint=False):
@@ -296,7 +329,7 @@ def civ_save():
             with open(CACHE_FILE, "w", encoding="utf-8") as f:
                 json.dump(CIV["cache"], f, ensure_ascii=False)
         except Exception as e:
-            print("Не вдалося записати кеш LoRA:", e)
+            log("Не вдалося записати кеш LoRA: %s" % e, "yellow", "⚠ ")
 
 
 def file_sha256(path):
@@ -362,7 +395,7 @@ def civitai_pass(items):
                 data = civ_parse(ver, model)
                 data["thumb"] = civ_thumb(data["image"]) if data["image"] and not lora_thumb(os.path.splitext(path)[0]) else ""
                 ent["data"] = data
-                print("  Civitai: знайдено «%s»" % (data["title"] or key))
+                log("Civitai: знайдено «%s» (%s)" % (data["title"] or key, data["base"] or "?"), "dim", "◆ ")
             except urllib.error.HTTPError as e:
                 if e.code != 404:
                     raise
@@ -370,7 +403,7 @@ def civitai_pass(items):
                 cache[key] = ent
             civ_save(); changed = True; time.sleep(0.7)
     except Exception as e:
-        print("Civitai: зупинено (%s). Спробую пізніше." % e)
+        log("Civitai: зупинено (%s). Спробую пізніше." % short(e, 100), "yellow", "⚠ ")
     CIV["thread"] = None
     if changed:
         sync_loras(force=True)
@@ -443,53 +476,97 @@ def sync_loras(force=False):
         if h != LORA_STATE["hash"]:
             res = call(cfg["site"] + "/api/sd/loras-sync", {"loras": data}, cfg["token"], timeout=120)
             LORA_STATE["hash"] = h
-            print("LoRA на сайті: %s з %d (знайдено у Forge)" % (res.get("count"), len(data)))
+            log("LoRA на сайті: %s з %d (знайдено у Forge)" % (res.get("count"), len(data)), "cyan", "↻ ")
     except Exception as e:
-        print("LoRA: не вдалося оновити список (%s)" % e)
+        log("LoRA: не вдалося оновити список (%s)" % short(e, 100), "yellow", "⚠ ")
+
+
+def job_start(job):
+    """Блок «Нова задача»: тип, промпт, LoRA, розмір, кроки, апскейл, ADetailer."""
+    prm = job["params"]; inp = prm.get("kind") == "inpaint"
+    log("Нова задача #%s  ·  %s" % (job["id"][:8], "перемалювання" if inp else "генерація"), "cyan", "▶ ")
+    detail("Промпт", short(prm["prompt"], 120))
+    loras = re.findall(r"<lora:([^:>]+):(-?[\d.]+)>", prm["prompt"])
+    if loras:
+        detail("LoRA", ", ".join("%s %s" % l for l in loras))
+    if prm.get("negative"):
+        detail("Негатив", short(prm["negative"], 80), "dim")
+    steps = prm.get("steps") or cfg["steps"]
+    base = "кроки %s · CFG %s · %s/%s · Shift %s" % (steps, prm.get("cfg") or cfg["cfg"], prm.get("sampler") or cfg["sampler"], prm.get("scheduler") or cfg["scheduler"], cfg["shift"])
+    if inp:
+        detail("Інпейнт", "сила зміни %s · обробка %d×%d · відступ %s · розмиття %s" % (prm.get("denoise"), prm["width"], prm["height"], prm.get("padding"), prm.get("blur")))
+    else:
+        up = prm.get("upscale", 1) or 1
+        size = "%d×%d" % (prm["width"], prm["height"]) + (" → %d×%d (апскейл %s×)" % (round(prm["width"] * up), round(prm["height"] * up), up) if up > 1 else "")
+        detail("Розмір", size)
+        detail("ADetailer", "обличчя" + (" · +" + short(prm["adPrompt"], 40) if prm.get("adPrompt") else "") if prm.get("adFace") else "вимкнено")
+    detail("Параметри", base + "  ·  seed " + ("випадковий" if prm.get("seed", -1) < 0 else str(prm["seed"])))
+
+
+def job_done(job, t0, img, mime, seed, infotext, saved, outdir):
+    log("Готово за %d с  ·  seed %s" % (time.time() - t0, seed), "green", "✔ ")
+    detail("Файл", saved or "не знайдено (папка Forge: %s)" % (outdir or "невідома"), None if saved else "yellow")
+    detail("На сайт", "%d КБ · %s" % (len(img) * 3 // 4 // 1024, mime.split("/")[-1].upper()))
+    lines = [l for l in str(infotext).strip().splitlines() if l.strip()]
+    if lines:
+        detail("Forge", short(lines[-1], 150), "dim")
 
 
 def main():
     if not cfg["token"]:
         sys.exit("Не задано токен: SD_TOKEN або worker.json {\"token\": \"...\"}")
-    print(f"Воркер запущено. Сайт: {cfg['site']}  Forge: {cfg['forge']}  (Ctrl+C щоб зупинити)")
+    log("Воркер запущено (Ctrl+C щоб зупинити)", "green", "● ")
+    detail("Сайт", cfg["site"]); detail("Forge", cfg["forge"])
     d = forge_outdir()
-    print("Forge зберігає картинки в:", d or "(не вдалося дізнатися; перевір, що Forge запущений з --api)")
+    detail("Збереження", (d or "(не вдалося дізнатися; перевір, що Forge запущений з --api)") + ("" if cfg["forge_save"] else "  [вимкнено]"))
+    detail("Налаштування", "кроки %s · CFG %s · %s/%s · Shift %s  ·  Hires: %s, %s кр., denoise %s" % (cfg["steps"], cfg["cfg"], cfg["sampler"], cfg["scheduler"], cfg["shift"], cfg["hr_upscaler"], cfg["hr_steps"], cfg["hr_denoise"]))
+    detail("Civitai", "ввімкнено (метадані LoRA)" if cfg.get("civitai") else "вимкнено")
     sync_loras(force=True)
+    down, last, next_idle = False, None, time.time() + 300
     while True:
         sync_loras()
         try:
             nx = call(cfg["site"] + "/api/sd/next", {}, cfg["token"])
             job = nx.get("job")
+            if down:
+                log("Зв'язок із сайтом відновлено", "green", "● "); down = False
             if nx.get("refresh"):
-                print("Сайт попросив оновити список LoRA")
+                log("Сайт попросив оновити список LoRA", "cyan", "↻ ")
                 sync_loras(force=True)
         except urllib.error.HTTPError as e:
-            print("Сайт відповів помилкою", e.code, "(перевір токен)"); time.sleep(15); continue
+            if not down:
+                log("Сайт відповів помилкою %s (перевір токен у worker.json)" % e.code, "red", "✖ "); down = True
+            time.sleep(15); continue
         except Exception as e:
-            print("Немає зв'язку із сайтом:", e); time.sleep(10); continue
+            if not down:
+                log("Немає зв'язку із сайтом: %s. Повторюю…" % short(e, 100), "red", "✖ "); down = True
+            time.sleep(10); continue
         if not job:
+            if time.time() >= next_idle:   # раз на 5 хв: воркер живий, коли була остання дія
+                log("Очікую задач…  остання дія: %s" % (last or "ще не було"), "dim", "· "); next_idle = time.time() + 300
             time.sleep(cfg["poll"]); continue
-        print("Задача", job["id"], "-", job["params"]["prompt"][:60])
+        job_start(job)
         t0 = time.time()
         try:
             img, mime, seed, infotext, request, png = generate(job["params"], job["id"])
             save_copy(png, infotext, job, request)
             outdir = forge_outdir(job["params"].get("kind") == "inpaint")
             saved = find_saved(outdir, t0) if cfg["forge_save"] else ""
-            print("  Forge зберіг:", saved) if saved else print("  файл не знайдено; папка Forge:", outdir or "невідома")
+            job_done(job, t0, img, mime, seed, infotext, saved, outdir)
             out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed, "infotext": infotext, "request": request, "saved": saved or ("папка Forge: " + outdir)}}
         except Exception as e:
-            print("  помилка генерації:", e)
+            log("Помилка генерації через %d с: %s" % (time.time() - t0, short(e, 200)), "red", "✖ ")
             out = {"id": job["id"], "error": "Помилка генерації на ПК: " + str(e)[:200]}
         for attempt in range(3):
             try:
-                call(cfg["site"] + "/api/sd/result", out, cfg["token"], timeout=60); print("  готово"); break
+                call(cfg["site"] + "/api/sd/result", out, cfg["token"], timeout=60)
+                log("Результат передано на сайт", "green", "↑ "); last = stamp(); next_idle = time.time() + 300; break
             except Exception as e:
-                print("  не вдалося віддати результат:", e); time.sleep(5)
+                log("Не вдалося віддати результат (спроба %d/3): %s" % (attempt + 1, short(e, 100)), "red", "✖ "); time.sleep(5)
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("Зупинено.")
+        log("Воркер зупинено", "yellow", "■ ")
