@@ -56,6 +56,11 @@
   <button id="logCopy" title="Копіювати весь лог у буфер обміну">Копіювати</button>
 </dialog>
 
+<dialog id="lDlg" class="help wide lds">
+  <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
+  <div class="ldbody" id="lDlgBody"></div>
+</dialog>
+
 <dialog id="adDlg" class="help">
   <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
   <h2>ADetailer: теги</h2>
@@ -171,7 +176,7 @@
     </section>
 
     <section class="view" id="vLora" hidden>
-      <div class="b-head"><b>LoRA на ПК</b><label class="switch" title="Показувати LoRA з позначкою 18+ (типово приховані)"><input type="checkbox" id="lAdult"><span></span> Показувати 18+</label><input type="search" id="lSearch" placeholder="Пошук LoRA" title="Пошук серед LoRA за назвою, тригер-словами, базовою моделлю"></div>
+      <div class="b-head"><b>LoRA на ПК</b><select id="lBy" title="За чим групувати LoRA: категорії Civitai, базова модель чи папка"></select><input type="search" id="lSearch" placeholder="Пошук LoRA" title="Пошук серед LoRA за назвою, тригер-словами, базовою моделлю"></div>
       <div class="chips lgroups" id="lGroups"></div>
       <p class="hint" id="lInfo"></p>
       <div class="lgrid" id="lGrid"></div>

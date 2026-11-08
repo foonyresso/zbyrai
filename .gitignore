@@ -5,3 +5,5 @@ sd-remote/worker/worker.json
 __pycache__/
 sd-remote/worker/site_outputs/
 site_outputs/
+lora_cache.json
+sd-remote/worker/lora_cache.json
