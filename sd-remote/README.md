@@ -14,7 +14,7 @@
   - `ACCESS_CODES` (необов'язково): готові акаунти `логін:пароль`, через кому.
 - Після цього зроби Redeploy (або будь-який новий коміт).
 
-**3. ПК.** Запусти Forge Neo з прапорцем `--api` (у `webui-user.bat`: `set COMMANDLINE_ARGS=--api`). Скопіюй у папку Forge файли `worker/sd_worker.py`, `worker/start-worker.bat`, а `worker.example.json` перейменуй у `worker.json` й встав той самий `WORKER_TOKEN`. Запускай `start-worker.bat`, поки ПК має генерувати.
+**3. ПК.** Запусти Forge Neo з прапорцем `--api` (у `webui-user.bat`: `set COMMANDLINE_ARGS=--api`). Скопіюй у папку Forge файли `worker/sd_worker.py`, `worker/start-worker.bat`, а `worker.example.json` перейменуй у `worker.json` й встав той самий `WORKER_TOKEN`. Запускай `start-worker.bat`, поки ПК має генерувати. Цей один файл сам качає й оновлює `sd_worker.py` при кожному запуску (з `https://zbyrai.pages.dev/sd-remote/worker/`) і сам створює `worker.json` із шаблону, якщо його нема (лишається вписати токен); окремо нічого копіювати не треба.
 
 **4. Акаунти.** Друг відкриває `/sd-remote/` і подає заявку (логін + пароль). Ти заходиш на `/sd-remote/admin.html`, вводиш `ADMIN_PASSWORD` і тискаєш «Відкрити доступ». Для нейронки зареєструй окремий акаунт так само й задай `SD_KEY=логін:пароль`.
 Захист: заявка без підтвердження нічого не дає; максимум 20 заявок у черзі; після 8 хибних паролів вхід блокується на 15 хв.
