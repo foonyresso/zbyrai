@@ -5,7 +5,7 @@
 
 Запуск (з папки Forge, venv-Python):  venv\\Scripts\\python.exe sd_worker.py
 Налаштування: змінні середовища SD_SITE, SD_TOKEN, SD_FORGE або файл worker.json поруч зі скриптом."""
-import base64, io, json, os, sys, threading, time, urllib.request, urllib.error
+import base64, hashlib, io, json, os, re, sys, threading, time, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 cfg = {
@@ -20,6 +20,8 @@ cfg = {
     "forge_save": True,
     # додаткова власна копія PNG із метаданами (параметри + запит сайту) у папці save_dir поруч зі скриптом; типово вимкнена
     "save_png": False, "save_dir": "site_outputs",
+    # метадані LoRA з Civitai (категорії, теги, тригер-слова, картинки): знаходить за хешем файлу, кеш у lora_cache.json; civitai_key (необов'язково) — ключ API Civitai
+    "civitai": True, "civitai_key": "",
     "ad": {"ad_confidence": 0.75, "ad_dilate_erode": 4, "ad_mask_blur": 8, "ad_denoising_strength": 0.27,
            "ad_inpaint_only_masked": True, "ad_inpaint_only_masked_padding": 56,
            "ad_use_inpaint_width_height": True, "ad_inpaint_width": 1024, "ad_inpaint_height": 1024},
@@ -241,8 +243,8 @@ def lora_thumb(stem):
         if os.path.isfile(stem + ext):
             try:
                 from PIL import Image
-                im = Image.open(stem + ext).convert("RGB"); im.thumbnail((192, 192))
-                buf = io.BytesIO(); im.save(buf, "WEBP", quality=70)
+                im = Image.open(stem + ext).convert("RGB"); im.thumbnail((400, 600))
+                buf = io.BytesIO(); im.save(buf, "WEBP", quality=72)
                 return base64.b64encode(buf.getvalue()).decode()
             except Exception:
                 return ""
@@ -267,7 +269,123 @@ def lora_flags(ci, um):
     return tags, str(model.get("type") or ""), adult
 
 
-def lora_info(it):
+# ---- Civitai: знаходимо LoRA за SHA256 файлу, беремо категорії/теги/тригери/картинку; результат кешується на диск
+CACHE_FILE = os.path.join(HERE, "lora_cache.json")
+CIV = {"cache": None, "lock": threading.Lock(), "thread": None}
+
+
+def civ_cache():
+    with CIV["lock"]:
+        if CIV["cache"] is None:
+            CIV["cache"] = read_json(CACHE_FILE) or {}
+        return CIV["cache"]
+
+
+def civ_save():
+    with CIV["lock"]:
+        try:
+            with open(CACHE_FILE, "w", encoding="utf-8") as f:
+                json.dump(CIV["cache"], f, ensure_ascii=False)
+        except Exception as e:
+            print("Не вдалося записати кеш LoRA:", e)
+
+
+def file_sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def civ_get(url, binary=False):
+    headers = {"User-Agent": UA}
+    if cfg.get("civitai_key"):
+        headers["Authorization"] = "Bearer " + cfg["civitai_key"]
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=40) as r:
+        data = r.read()
+    return data if binary else json.loads(data.decode("utf-8"))
+
+
+def strip_html(t):
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", str(t or ""))).strip()
+
+
+def civ_parse(ver, model):
+    """Потрібні поля з відповідей Civitai (версія за хешем + сама модель)."""
+    vm = ver.get("model") or {}
+    tags = [t if isinstance(t, str) else str(t.get("name", "")) for t in (model.get("tags") or [])]
+    img = next((i for i in (ver.get("images") or []) if i.get("url") and str(i.get("type", "image")) == "image"), None)
+    return {"modelId": ver.get("modelId") or model.get("id"), "title": vm.get("name") or model.get("name") or "", "version": ver.get("name") or "",
+            "base": ver.get("baseModel") or "", "triggers": [str(x) for x in (ver.get("trainedWords") or []) if str(x).strip()], "tags": [t for t in tags if t][:20],
+            "type": vm.get("type") or model.get("type") or "", "nsfw": bool(vm.get("nsfw") or model.get("nsfw")),
+            "image": re.sub(r"/width=\d+", "/width=450", img["url"]) if img else "", "note": strip_html(model.get("description"))[:400]}
+
+
+def civ_thumb(url):
+    try:
+        from PIL import Image
+        im = Image.open(io.BytesIO(civ_get(url, binary=True))).convert("RGB"); im.thumbnail((400, 600))
+        buf = io.BytesIO(); im.save(buf, "WEBP", quality=72)
+        return base64.b64encode(buf.getvalue()).decode()
+    except Exception:
+        return ""
+
+
+def civitai_pass(items):
+    """У фоні: для LoRA без запису в кеші рахує хеш і питає Civitai (повільно й обережно; без інтернету тихо завершується)."""
+    cache, changed = civ_cache(), False
+    try:
+        for it in items:
+            path = it.get("path") or ""
+            if not os.path.isfile(path):
+                continue
+            st, key = os.stat(path), it["name"]
+            ent = cache.get(key)
+            if ent and ent.get("size") == st.st_size and ent.get("mtime") == int(st.st_mtime) and (ent.get("data") is not None or time.time() - ent.get("t", 0) < 7 * 86400):
+                continue
+            ent = {"size": st.st_size, "mtime": int(st.st_mtime), "t": time.time(), "data": None}
+            try:
+                ver = civ_get("https://civitai.com/api/v1/model-versions/by-hash/" + file_sha256(path))
+                try:
+                    model = civ_get("https://civitai.com/api/v1/models/%s" % ver.get("modelId"))
+                except Exception:
+                    model = {}
+                data = civ_parse(ver, model)
+                data["thumb"] = civ_thumb(data["image"]) if data["image"] and not lora_thumb(os.path.splitext(path)[0]) else ""
+                ent["data"] = data
+                print("  Civitai: знайдено «%s»" % (data["title"] or key))
+            except urllib.error.HTTPError as e:
+                if e.code != 404:
+                    raise
+            with CIV["lock"]:
+                cache[key] = ent
+            civ_save(); changed = True; time.sleep(0.7)
+    except Exception as e:
+        print("Civitai: зупинено (%s). Спробую пізніше." % e)
+    CIV["thread"] = None
+    if changed:
+        sync_loras(force=True)
+
+
+def ensure_civitai(items):
+    if not cfg.get("civitai") or (CIV["thread"] and CIV["thread"].is_alive()):
+        return
+    cache = civ_cache()
+    todo = [i for i in items if i.get("path") and os.path.isfile(i["path"]) and i["name"] not in cache]
+    if todo:
+        CIV["thread"] = threading.Thread(target=civitai_pass, args=(items,), daemon=True); CIV["thread"].start()
+
+
+def lora_folder(it, root):
+    try:
+        rel = os.path.relpath(os.path.dirname(it.get("path") or ""), root)
+        return "" if rel in (".", "") else rel.replace("\\", "/")
+    except Exception:
+        return ""
+
+
+def lora_info(it, root=""):
     """Метадані LoRA: Civitai (.civitai.info), Forge (.json), службові поля safetensors, прев'ю поруч."""
     stem = os.path.splitext(it.get("path") or "")[0]
     meta = it.get("metadata") or {}
@@ -280,13 +398,16 @@ def lora_info(it):
     except Exception:
         weight = 0
     tags, mtype, adult = lora_flags(ci, um)
+    cv = ((civ_cache().get(it["name"]) or {}).get("data")) or {}   # дані з Civitai за хешем (якщо знайдено)
+    if cv:
+        tags = tags or cv.get("tags", []); mtype = mtype or cv.get("type", ""); adult = adult or bool(cv.get("nsfw"))
     return {
-        "tags": tags, "type": mtype, "nsfw": adult,
-        "name": it["name"], "title": model.get("name") or meta.get("ss_output_name") or it["name"],
-        "version": ci.get("name") or "", "base": ci.get("baseModel") or um.get("sd version") or meta.get("ss_base_model_version") or "",
-        "triggers": as_list(ci.get("trainedWords") or um.get("activation text")), "hints": top_tags(meta),
-        "weight": weight, "civitai": ("https://civitai.com/models/%s" % ci["modelId"]) if ci.get("modelId") else "",
-        "note": str(um.get("description") or um.get("notes") or "")[:400], "thumb": lora_thumb(stem),
+        "folder": lora_folder(it, root), "tags": tags, "type": mtype, "nsfw": adult,
+        "name": it["name"], "title": model.get("name") or cv.get("title") or meta.get("ss_output_name") or it["name"],
+        "version": ci.get("name") or cv.get("version") or "", "base": ci.get("baseModel") or cv.get("base") or um.get("sd version") or meta.get("ss_base_model_version") or "",
+        "triggers": as_list(ci.get("trainedWords") or um.get("activation text") or cv.get("triggers")), "hints": top_tags(meta),
+        "weight": weight, "civitai": ("https://civitai.com/models/%s" % (ci.get("modelId") or cv.get("modelId"))) if (ci.get("modelId") or cv.get("modelId")) else "",
+        "note": str(um.get("description") or um.get("notes") or cv.get("note") or "")[:400], "thumb": lora_thumb(stem) or cv.get("thumb", ""),
     }
 
 
@@ -300,7 +421,12 @@ def sync_loras(force=False):
     LORA_STATE["at"] = time.time()
     try:
         items = call(cfg["forge"] + "/sdapi/v1/loras", timeout=60)
-        data = sorted((lora_info(i) for i in items), key=lambda x: x["name"].lower())
+        try:   # спільна коренева папка LoRA: від неї рахуються підпапки-групи
+            root = os.path.commonpath([os.path.dirname(i["path"]) for i in items if i.get("path")])
+        except Exception:
+            root = ""
+        data = sorted((lora_info(i, root) for i in items), key=lambda x: x["name"].lower())
+        ensure_civitai(items)
         h = hash(json.dumps(data, sort_keys=True))
         if h != LORA_STATE["hash"]:
             call(cfg["site"] + "/api/sd/loras-sync", {"loras": data}, cfg["token"], timeout=120)

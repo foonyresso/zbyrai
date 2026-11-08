@@ -41,76 +41,90 @@
     });
   }
 
-  // ---- групи й 18+: автоматично з метаданих Civitai (теги, nsfw), можна змінити вручну; вибір зберігається в браузері (host.state.loraMeta)
-  var TAG_GROUPS = [['character', 'Персонажі'], ['style', 'Стилі'], ['concept', 'Концепти'], ['clothing', 'Одяг'], ['pose', 'Пози'], ['poses', 'Пози'], ['background', 'Фони'], ['scenery', 'Фони'], ['tool', 'Інструменти'], ['detail', 'Інструменти']];
+  // ---- групи: категорії Civitai (з тегів), базова модель або папка; групу можна змінити вручну (зберігається в браузері: host.state.loraMeta)
+  var CATS = [['character', 'Персонажі'], ['style', 'Стилі'], ['concept', 'Концепти'], ['clothing', 'Одяг'], ['outfit', 'Одяг'], ['costume', 'Одяг'], ['armor', 'Одяг'], ['poses', 'Пози'], ['pose', 'Пози'],
+    ['background', 'Фони'], ['backgrounds', 'Фони'], ['scenery', 'Фони'], ['landscape', 'Фони'], ['buildings', 'Будівлі'], ['building', 'Будівлі'], ['architecture', 'Будівлі'],
+    ['vehicle', 'Транспорт'], ['vehicles', 'Транспорт'], ['objects', 'Предмети'], ['object', 'Предмети'], ['prop', 'Предмети'], ['weapon', 'Предмети'],
+    ['animal', 'Тварини'], ['animals', 'Тварини'], ['creature', 'Тварини'], ['action', 'Дії'], ['assets', 'Ресурси'], ['tool', 'Інструменти'], ['detail', 'Інструменти'], ['slider', 'Інструменти'], ['enhancer', 'Інструменти']];
+  var BY = [['category', 'Категорії'], ['base', 'Базова модель'], ['folder', 'Папка']];
   function meta(name) { var m = host.state.loraMeta; return m[name] || (m[name] = {}); }
-  function autoGroup(k) {
+  function category(k) {
     var tags = (k.tags || []).map(function (t) { return String(t).toLowerCase(); });
-    for (var i = 0; i < TAG_GROUPS.length; i++) if (tags.indexOf(TAG_GROUPS[i][0]) >= 0) return TAG_GROUPS[i][1];
-    return k.base || 'Інше';
+    for (var i = 0; i < CATS.length; i++) if (tags.indexOf(CATS[i][0]) >= 0) return CATS[i][1];
+    return '';
+  }
+  function autoGroup(k) {
+    var by = host.state.loraBy;
+    if (by === 'base') return k.base || 'Невідома модель';
+    if (by === 'folder') return k.folder || 'Коренева папка';
+    return category(k) || 'Без категорії';
   }
   function groupOf(k) { var m = host.state.loraMeta[k.name]; return (m && m.group) || autoGroup(k); }
-  function adultOf(k) { var m = host.state.loraMeta[k.name]; return m && m.adult != null ? !!m.adult : !!k.nsfw; }
-  function allGroups() { var g = {}; known.forEach(function (k) { g[groupOf(k)] = 1; }); Object.keys(host.state.loraMeta).forEach(function (n) { var m = host.state.loraMeta[n]; if (m && m.group) g[m.group] = 1; }); return Object.keys(g).sort(); }
+  function allGroups() { var g = {}; known.forEach(function (k) { g[groupOf(k)] = 1; }); return Object.keys(g).sort(); }
+  function thumbUrl(k) { return k.thumb ? 'data:image/webp;base64,' + k.thumb : ''; }
 
-  // вкладка зі списком
+  // деталі LoRA у вікні: більша картинка, метадані, тригер-слова, група, посилання
+  function openDetail(k) {
+    var d = $('lDlg'), box = $('lDlgBody'); box.textContent = '';
+    var on = activeIdx(k.name) >= 0, im = thumbUrl(k);
+    var left = el('div', 'ldimg'); if (im) { var i = el('img'); i.src = im; i.alt = k.title || k.name; left.appendChild(i); } else left.textContent = 'без прев\u2019ю'; box.appendChild(left);
+    var r = el('div', 'ldinfo'); r.appendChild(el('h3', null, k.title || k.name));
+    var mt = [k.version, k.base, k.type].filter(Boolean).join(' · '); if (mt) r.appendChild(el('p', 'lm', mt));
+    r.appendChild(el('p', 'lm', '<lora:' + k.name + '>' + (k.folder ? '  ·  папка: ' + k.folder : '')));
+    if (k.nsfw) r.appendChild(el('p', 'lm', '18+')); if (k.note) r.appendChild(el('p', 'lnote2', k.note));
+    var tr = k.triggers && k.triggers.length ? k.triggers : [], hints = !tr.length && k.hints ? k.hints : [];
+    if (tr.length || hints.length) {
+      r.appendChild(el('p', 'lm', tr.length ? 'Тригер-слова (натисни, щоб додати в промпт):' : 'Часті теги навчання:'));
+      var row = el('div', 'chips'); (tr.length ? tr : hints).forEach(function (w) { var ch = el('button', 'chip tg', w); ch.type = 'button'; ch.addEventListener('click', function () { host.insert(w); }); row.appendChild(ch); }); r.appendChild(row);
+    }
+    var cfg = el('div', 'lcfg'), gs = el('select'); gs.title = 'Група цієї LoRA';
+    var opts = allGroups(); if (opts.indexOf(groupOf(k)) < 0) opts.push(groupOf(k));
+    opts.concat(['＋ Нова група…']).forEach(function (n) { var o = el('option', null, n); o.value = n; if (n === groupOf(k)) o.selected = true; gs.appendChild(o); });
+    gs.addEventListener('change', function () {
+      var v = gs.value; if (v === '＋ Нова група…') { v = (window.prompt('Назва нової групи') || '').trim().slice(0, 40); if (!v) { openDetail(k); return; } }
+      meta(k.name).group = v === autoGroup(k) ? undefined : v; host.save(); renderManager(); openDetail(k);
+    });
+    cfg.appendChild(el('span', 'lm', 'Група:')); cfg.appendChild(gs); r.appendChild(cfg);
+    var acts = el('div', 'acts'), add = el('button', on ? 'on' : 'btn-main', on ? '✓ Додано (прибрати)' : 'Додати в генерацію'); add.addEventListener('click', function () { toggle(k.name); openDetail(k); });
+    acts.appendChild(add);
+    if (k.civitai) { var a2 = el('a', 'lnk', 'Civitai ↗'); a2.href = k.civitai; a2.target = '_blank'; a2.rel = 'noopener'; acts.appendChild(a2); }
+    r.appendChild(acts); box.appendChild(r); if (!d.open) d.showModal();
+  }
+
+  // галерея: щільні плитки з великою картинкою, як на Civitai
   function renderManager() {
     var g = $('lGrid'); g.textContent = '';
-    var q = $('lSearch').value.trim().toLowerCase(), st = host.state, showAdult = !!st.loraAdult;
-    $('lAdult').checked = showAdult;
-    var visible = known.filter(function (k) { return showAdult || !adultOf(k); }), hidden = known.length - visible.length;
-    // чіпси груп із лічильниками
+    var q = $('lSearch').value.trim().toLowerCase(), st = host.state;
+    var by = $('lBy'); if (!by.options.length) BY.forEach(function (o) { var op = el('option', null, 'Групувати: ' + o[1]); op.value = o[0]; by.appendChild(op); }); by.value = st.loraBy;
     var gr = $('lGroups'); gr.textContent = '';
-    var counts = {}; visible.forEach(function (k) { var n = groupOf(k); counts[n] = (counts[n] || 0) + 1; });
+    var counts = {}; known.forEach(function (k) { var n = groupOf(k); counts[n] = (counts[n] || 0) + 1; });
     var sel = counts[st.loraGroup] ? st.loraGroup : '';
-    [['', 'Усі (' + visible.length + ')']].concat(Object.keys(counts).sort().map(function (n) { return [n, n + ' (' + counts[n] + ')']; })).forEach(function (c) {
-      var b = el('button', sel === c[0] ? 'on' : '', c[1]); b.type = 'button'; b.title = c[0] ? 'Показати лише групу «' + c[0] + '»' : 'Показати всі LoRA';
+    [['', 'Усі (' + known.length + ')']].concat(Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b); }).map(function (n) { return [n, n + ' (' + counts[n] + ')']; })).forEach(function (c) {
+      var b = el('button', sel === c[0] ? 'on' : '', c[1]); b.type = 'button'; b.title = c[0] ? 'Показати лише «' + c[0] + '»' : 'Показати всі LoRA';
       b.addEventListener('click', function () { st.loraGroup = c[0]; host.save(); renderManager(); }); gr.appendChild(b);
     });
-    $('lInfo').textContent = known.length ? 'LoRA на ПК: ' + known.length + (hidden ? ' · приховано 18+: ' + hidden + ' (увімкни перемикач «Показувати 18+»)' : '') + '. «Додати» створює блок із повзунком сили ліворуч.'
+    var nocat = known.filter(function (k) { return !category(k); }).length;
+    $('lInfo').textContent = known.length ? 'LoRA на ПК: ' + known.length + '. Клік по плитці відкриває деталі; «＋» додає в генерацію.'
+      + (st.loraBy === 'category' && nocat > known.length / 2 ? ' Категорій мало: воркер добирає їх з Civitai у фоні (потрібен інтернет на ПК), тимчасово можна групувати за папкою чи базовою моделлю.' : '')
       : 'Список LoRA ще не отримано. Запусти воркер на ПК (нова версія): він сам надішле список із папки Forge разом із метаданими.';
-    visible.filter(function (k) {
-      return (!sel || groupOf(k) === sel) && (!q || (k.name + ' ' + (k.title || '') + ' ' + (k.base || '') + ' ' + groupOf(k) + ' ' + (k.triggers || []).join(' ')).toLowerCase().indexOf(q) >= 0);
+    known.filter(function (k) {
+      return (!sel || groupOf(k) === sel) && (!q || (k.name + ' ' + (k.title || '') + ' ' + (k.base || '') + ' ' + groupOf(k) + ' ' + (k.tags || []).join(' ') + ' ' + (k.triggers || []).join(' ')).toLowerCase().indexOf(q) >= 0);
     }).forEach(function (k) {
-      var c = el('div', 'lcard'), on = activeIdx(k.name) >= 0;
-      var th = el('div', 'lth');
-      if (k.thumb) { var im = el('img'); im.src = 'data:image/webp;base64,' + k.thumb; im.alt = k.title || k.name; im.loading = 'lazy'; th.appendChild(im); } else th.textContent = 'без прев\u2019ю';
-      c.appendChild(th);
-      var b = el('div', 'lbody');
-      var head = el('b', null, k.title || k.name); if (adultOf(k)) head.appendChild(el('span', 'badge18', ' 18+')); b.appendChild(head);
-      var mt = [k.version, k.base].filter(Boolean).join(' · '); if (mt) b.appendChild(el('span', 'lm', mt));
-      b.appendChild(el('span', 'lm', '<lora:' + k.name + '>'));
-      if (k.note) b.appendChild(el('span', 'lnote', k.note));
-      var tr = k.triggers && k.triggers.length ? k.triggers : [], hints = !tr.length && k.hints ? k.hints : [];
-      if (tr.length || hints.length) {
-        var row = el('div', 'chips');
-        (tr.length ? tr : hints).forEach(function (w) { var ch = el('button', 'chip tg', w); ch.type = 'button'; ch.title = (tr.length ? 'Тригер-слово' : 'Частий тег навчання') + ': натисни, щоб додати в промпт'; ch.addEventListener('click', function () { host.insert(w); }); row.appendChild(ch); });
-        b.appendChild(row);
-      }
-      // група й 18+ (можна змінити вручну)
-      var cfgRow = el('div', 'lcfg'), gs = el('select'); gs.title = 'Група цієї LoRA';
-      var opts = allGroups(); if (opts.indexOf(groupOf(k)) < 0) opts.push(groupOf(k));
-      opts.concat(['＋ Нова група…']).forEach(function (n) { var o = el('option', null, n); o.value = n; if (n === groupOf(k)) o.selected = true; gs.appendChild(o); });
-      gs.addEventListener('change', function () {
-        var v = gs.value; if (v === '＋ Нова група…') { v = (window.prompt('Назва нової групи') || '').trim().slice(0, 40); if (!v) { renderManager(); return; } }
-        meta(k.name).group = v === autoGroup(k) ? undefined : v; host.save(); renderManager();
-      });
-      var ad = el('label', 'chk'), ac = el('input'); ac.type = 'checkbox'; ac.checked = adultOf(k); ac.title = 'Позначити як 18+ (прихована, поки не ввімкнено перемикач)';
-      ac.addEventListener('change', function () { meta(k.name).adult = ac.checked; host.save(); renderManager(); }); ad.appendChild(ac); ad.appendChild(document.createTextNode(' 18+'));
-      cfgRow.appendChild(gs); cfgRow.appendChild(ad); b.appendChild(cfgRow);
-      var acts = el('div', 'acts');
-      var add = el('button', on ? 'on' : '', on ? '✓ Додано' : 'Додати'); add.title = on ? 'Прибрати з генерації' : 'Додати в генерацію зі стандартною силою'; add.addEventListener('click', function () { toggle(k.name); });
-      acts.appendChild(add);
-      if (k.civitai) { var a = el('a', 'lnk', 'Civitai ↗'); a.href = k.civitai; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Сторінка LoRA на Civitai'; acts.appendChild(a); }
-      b.appendChild(acts); c.appendChild(b); g.appendChild(c);
+      var on = activeIdx(k.name) >= 0, c = el('div', 'ltile' + (on ? ' on' : '')), im = thumbUrl(k); c.title = (k.title || k.name) + (k.base ? ' · ' + k.base : '');
+      if (im) { var i = el('img'); i.src = im; i.alt = ''; i.loading = 'lazy'; c.appendChild(i); } else c.appendChild(el('div', 'lnoimg', 'без прев\u2019ю'));
+      if (k.base) c.appendChild(el('span', 'lbase', k.base)); if (k.nsfw) c.appendChild(el('span', 'badge18 lb18', '18+'));
+      c.appendChild(el('span', 'ltitle', k.title || k.name));
+      var add = el('button', 'ladd', on ? '✓' : '＋'); add.type = 'button'; add.title = on ? 'Додано: натисни, щоб прибрати' : 'Додати в генерацію';
+      add.addEventListener('click', function (e) { e.stopPropagation(); toggle(k.name); }); c.appendChild(add);
+      c.addEventListener('click', function () { openDetail(k); }); g.appendChild(c);
     });
   }
 
   function render() { renderActive(); renderManager(); }
   window.SDLoras = {
     DEFAULT_LIST: Object.keys(DEFAULTS).map(function (n) { return { name: n, w: DEFAULTS[n] }; }),
-    defaultWeight: defaultWeight, render: render, names: function () { return known.filter(function (k) { return host.state.loraAdult || !adultOf(k); }).map(function (k) { return k.name; }); },
-    init: function (h) { host = h; $('lSearch').addEventListener('input', renderManager); $('lAdult').addEventListener('change', function () { host.state.loraAdult = this.checked; host.save(); renderManager(); }); render(); },
+    defaultWeight: defaultWeight, render: render, names: function () { return known.map(function (k) { return k.name; }); },
+    init: function (h) { host = h; $('lSearch').addEventListener('input', renderManager); $('lBy').addEventListener('change', function () { host.state.loraBy = this.value; host.state.loraGroup = ''; host.save(); renderManager(); }); $('lDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); }); render(); },
     load: function () { host.api('loras').then(function (r) { known = r.loras || []; render(); }, function () { /* без списку */ }); },
   };
 })();
