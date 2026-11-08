@@ -4,7 +4,7 @@
   var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
   var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
   var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
-    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, loraMeta: {}, loraBy: 'category', loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, loraMeta: {}, i2p: { top: 93, left: 48, h: 860, mode: 'replace' }, loraBy: 'category', loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
   var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
   function load() {
@@ -53,7 +53,7 @@
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
     $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
     document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); });
-    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show(); updateGo();
+    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vI2p').hidden = S.tab !== 'i2p'; if (S.tab === 'i2p' && window.SDI2p) SDI2p.show(); $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show(); updateGo();
     if (S.tab !== lastTab) { lastTab = S.tab; if (S.tab === 'lora' && window.SDLoras && S.token) SDLoras.load(); }   // при відкритті вкладки список оновлюється з сервера
     var tags = S.mode === 'flex' && S.view === 'tags';
     $('pvWrap').hidden = tags; $('builder').hidden = !tags;
@@ -284,6 +284,7 @@
   SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },
     colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
   SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
+  SDI2p.init({ state: S, save: save, toast: toast, setPrompt: function (t) { S.prompt = t; edP.set(t); save(); if (window.SDBuilder) SDBuilder.refresh(); } });
   SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
   syncLayout();   // модулі вже готові: застосувати відкриту вкладку (LoRA, Перемалювання)
   checkToken();
