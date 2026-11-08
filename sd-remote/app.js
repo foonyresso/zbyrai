@@ -109,7 +109,7 @@
       if (j.status === 'done' && (j.src || !j.live)) {
         var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.loading = 'lazy'; im.title = 'Відкрити: зум, редагування';
         im.addEventListener('click', function () { openView(j); });
-        im.addEventListener('error', function () { fr.textContent = 'Картинка вже видалена з сервера'; }); fr.appendChild(im);
+        im.addEventListener('error', function () { fr.textContent = 'Картинку видалено з сервера (зберігаються останні 40 і 7 днів)'; }); fr.appendChild(im);
       } else if (st && st.frac !== undefined) fr.appendChild(bar(st.frac, st.text)); else fr.textContent = st ? st.text : '';
       var cap = document.createElement('div'); cap.className = 'cap';
       var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = j.prompt; pr.title = j.prompt;
