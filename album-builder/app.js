@@ -69,7 +69,15 @@
   // ---------- Редактор ----------
   function showEditor() { $('wizard').hidden = true; $('work').hidden = false; document.body.classList.add('editing'); refresh(); }
   var saveT;
-  function save() { clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem('albumBuilder.v1', S.toJSON(st)); } catch (e) {} }, 300); }
+  var pid = null, PRJ = AlbumProjects;
+  function save() {
+    clearTimeout(saveT);
+    saveT = setTimeout(function () {
+      if (!st.spreads.length) return; if (!pid) pid = PRJ.uid();
+      try { localStorage.setItem('albumBuilder.last', pid); } catch (e) {}
+      PRJ.put({ id: pid, name: PRJ.nameOf(st), updated: Date.now(), spreads: st.spreads.length, state: S.toJSON(st) }).catch(function () {});
+    }, 300);
+  }
   function refresh() { redraw(); thumbs(); updateInfo(); if (layoutFilter === 'auto' && $('layoutStrip') && !$('layoutStrip').hidden && st.spreads[cur] && S.groupPhotos(st.spreads[cur]).length !== lastAutoN) buildLayoutStrip(); if (panel) buildObjPanel(); save(); }
   // Масштаб полотна: zoom 1 = розворот вміщено у вікно; pan: зсув у css-пікселях від центру
   var zoom = 1, pan = { x: 0, y: 0 }, view = null, ZMIN = 1, ZMAX = 8;
@@ -227,9 +235,79 @@
   var pickSide = 'right';
   $('btnAdd').onclick = function () { pickRef = null; pickSide = 'right'; $('fileImg').click(); };
   $('btnLeftPhotos').onclick = function () { pickRef = null; pickSide = 'left'; $('fileImg').click(); };
-  $('btnFolder').onclick = function () { pickRef = null; $('fileDir').click(); };
+  $('btnFolder').onclick = $('pFolder').onclick = function () { pickRef = null; $('fileDir').click(); };
   $('fileImg').onchange = function (e) { addFiles(e.target.files, pickRef, pickSide); e.target.value = ''; pickRef = null; pickSide = 'right'; };
-  $('fileDir').onchange = function (e) { addFiles(e.target.files, null, 'right'); e.target.value = ''; };
+  $('fileDir').onchange = function (e) { var l = Array.from(e.target.files); e.target.value = ''; loadFolder(l); };
+  // Глобальне завантаження папки: усі фото в пам'ять, місця беруться з проєкту (за номерами й назвами); нічого не додається «вручну» на поточний розворот
+  var IMG_RE = /\.(jpe?g|png|webp|gif|bmp)$/i;
+  function refNames() {
+    var set = new Set(); (function walk(v, k) {
+      if (typeof v === 'string') { if (IMG_RE.test(v)) set.add(v); }
+      else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === 'object') Object.keys(v).forEach(function (key) { if (IMG_RE.test(key)) set.add(key); walk(v[key], key); });
+    })(st); return set;
+  }
+  async function loadFolder(list) {
+    if (needEditor()) return;
+    var all = list.filter(function (f) { return /^image\//.test(f.type) || IMG_RE.test(f.name); });
+    if (!all.length) return toast('У папці не знайдено зображень');
+    var bad = 0, n = 0;
+    for (var f of all) {
+      toast('Читаю фото ' + (++n) + '/' + all.length);
+      var im = await loadImage(f); if (!im) { bad++; continue; } files.set(f.name, f); imgs.set(f.name, im);
+    }
+    numMap = S.numMapOf(Array.from(files.keys()));
+    var refs = refNames(), nums = new Set();
+    S.people(st).concat(S.teachers(st)).forEach(function (p) { p.nums.forEach(function (x) { nums.add(x); }); });
+    var missing = Array.from(refs).filter(function (r) { return !files.has(r); });
+    var extra = Array.from(files.keys()).filter(function (nm) { return !refs.has(nm) && !require_(nm); });
+    function require_(nm) { return AlbumParse.fileRuns(nm).some(function (r) { return nums.has(r); }); }
+    var noPhoto = S.people(st).filter(function (p) { return !S.photoFor(p, numMap); }), placed = 0;
+    // Портрети дітей зі списку, яких ще нема на портретних розворотах, стають за порядком списку (вже поставлені й кадровані не чіпаємо)
+    var p0 = Math.max(0, st.spreads.findIndex(function (x) { return x.type === 'portrait'; }));
+    S.people(st).forEach(function (p) { var nm = S.photoFor(p, numMap); if (nm && !S.portraitPlaced(st, nm) && S.placePortrait(st, p0, nm) >= 0) placed++; });
+    refresh();
+    var msg = 'Папка: прочитано ' + (all.length - bad) + (bad ? ', не прочитано ' + bad : '') + (placed ? ', нових портретів розставлено: ' + placed : '');
+    if (missing.length) msg += '\nНе знайдено фото з проєкту: ' + missing.length + ' (' + missing.slice(0, 3).join(', ') + (missing.length > 3 ? '…' : '') + ')';
+    if (noPhoto.length) msg += '\nНемає фото в дітей зі списку: ' + noPhoto.length;
+    if (extra.length) msg += '\nЛишні (нема в проєкті): ' + extra.length + ', додай їх на розворот кнопкою «＋ Додати фото»';
+    if (!missing.length && !noPhoto.length && !extra.length) msg += '\nУсі фото стали на місця';
+    toast(msg, 4000 + 800 * (msg.split('\n').length - 1));
+  }
+
+  // ---------- Проєкти ----------
+  function resetPhotos() { files.clear(); imgs.clear(); numMap = new Map(); }
+  function openState(json, id) {
+    var s0 = S.fromJSON(json); if (!s0.spreads.length) throw new Error('У проєкті нема розворотів');
+    resetPhotos(); st = s0; pid = id || null; cur = 0; sel = null; zoom = 1; pan = { x: 0, y: 0 };
+    showEditor(); if (!pid) save();
+    toast('Проєкт «' + PRJ.nameOf(st) + '» відкрито. Тепер завантаж папку з фото (кнопка «Завантажити папку з фото»)', 4000);
+  }
+  function fmtDate(t) { var d = new Date(t); return d.toLocaleDateString('uk-UA') + ' ' + d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }); }
+  async function showProjects() {
+    var box = $('projList'); box.textContent = '';
+    var l = []; try { l = await PRJ.list(); } catch (e) {}
+    if (!l.length) box.appendChild(el('p', 'hint', 'Поки що проєктів немає. Створи новий або відкрий з файлу.'));
+    l.forEach(function (r) {
+      var row = el('div', 'prow'), o = el('button', 'open', r.name + (r.id === pid ? ' (відкрито)' : '')); o.appendChild(el('small', '', fmtDate(r.updated) + ' · розворотів: ' + r.spreads));
+      o.onclick = function () { try { openState(r.state, r.id); $('projDlg').close(); } catch (e) { toast('Не вдалось відкрити: ' + e.message); } };
+      var d = el('button', '', '🗑', 'Видалити проєкт із кешу браузера'); d.onclick = async function () { if (confirm('Видалити «' + r.name + '» з кешу? Це не можна скасувати.')) { await PRJ.del(r.id); if (r.id === pid) pid = null; showProjects(); } };
+      row.appendChild(o); row.appendChild(d); box.appendChild(row);
+    });
+    if (!$('projDlg').open) $('projDlg').showModal();
+  }
+  $('btnProjects').onclick = $('pList').onclick = showProjects;
+  $('projNew').onclick = function () {
+    clearTimeout(saveT); if (st.spreads.length) { if (!pid) pid = PRJ.uid(); PRJ.put({ id: pid, name: PRJ.nameOf(st), updated: Date.now(), spreads: st.spreads.length, state: S.toJSON(st) }).catch(function () {}); }
+    st = S.newState(); pid = null; resetPhotos(); cur = 0; sel = null; $('children').value = $('noAlbum').value = $('teachers').value = $('instFull').value = $('instShort').value = ''; $('year').value = st.year; pairVals = []; buildPairs();
+    $('projDlg').close(); showStep(1);
+  };
+  $('projOpenFile').onclick = $('pOpen').onclick = function () { $('fileProj').click(); };
+  $('fileProj').onchange = async function (e) {
+    var f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try { openState(await PRJ.readProjectFile(f), null); if ($('projDlg').open) $('projDlg').close(); } catch (err) { toast('Не вдалось відкрити проєкт: ' + err.message, 4000); }
+  };
+  $('pSave').onclick = function () { X.download(new Blob([PRJ.pack(S.toJSON(st))], { type: 'application/json' }), PRJ.fileBase(st) + '.json'); toast('Проєкт збережено у файл'); };
 
   // ---------- Взаємодія з полотном ----------
   function mmAt(e) {
@@ -876,13 +954,17 @@
   }
   $('btnZip').onclick = async function () {
     if (needEditor()) return; var r = await renderAll('image/jpeg'), out = [];
+    out.push({ name: 'project.json', data: new TextEncoder().encode(PRJ.pack(S.toJSON(st))) });
     for (var f of r) out.push({ name: f.name + '.jpg', data: new Uint8Array(await f.blob.arrayBuffer()) });
-    X.download(X.zip(out), 'album-spreads.zip'); toast('Архів готовий: ' + out.length + ' файлів');
+    X.download(X.zip(out), PRJ.fileBase(st) + '.zip'); toast('Архів готовий: ' + (out.length - 1) + ' розворотів + project.json');
   };
 
   showStep(1);
-  try {
-    var saved = localStorage.getItem('albumBuilder.v1');
-    if (saved) { var s0 = S.fromJSON(saved); if (s0.spreads.length) { st = s0; cur = 0; showEditor(); toast('Відновлено останній макет. Фото додай знову (за назвами файлів вони стануть на місця)'); } }
-  } catch (e) {}
+  (async function () {
+    try {
+      var legacy = localStorage.getItem('albumBuilder.v1');
+      if (legacy) { var l0 = S.fromJSON(legacy); if (l0.spreads.length) await PRJ.put({ id: PRJ.uid(), name: PRJ.nameOf(l0), updated: Date.now(), spreads: l0.spreads.length, state: legacy }); localStorage.removeItem('albumBuilder.v1'); }
+    } catch (e) {}
+    try { if ((await PRJ.list()).length) showProjects(); } catch (e) {}
+  })();
 })();

@@ -523,5 +523,21 @@ test('видалені шрифти: заміна в stack/used, немає в �
   Object.keys(FT.REMOVED).forEach(n => { assert.ok(!FT.LIST.some(f => f.n === n), n); assert.ok(FT.LIST.some(f => f.n === FT.REMOVED[n]), 'заміна: ' + n); assert.strictEqual(FT.stack(n), FT.stack(FT.REMOVED[n])); assert.ok(!css.includes("'" + n + "'"), n); });
   assert.deepStrictEqual(FT.used({ font: 'Bahnschrift', tf: { a: 'Pudelinka' }, spreads: [{ text: { 1: { f: 'Marck Script' } } }] }).sort(), ['Bad Script', 'Manrope', 'Underdog']);
 });
-console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
-process.exit(failed ? 1 : 0);
+const asyncTest = (async () => {
+  try {
+    const PJ = require('../projects.js'); require('../export.js'); const X = (typeof self !== 'undefined' ? self : global).AlbumExport || module.exports;
+    const st = S.newState(); st.inst.short = 'Ліцей 1'; st.crops = { '0001.jpg': { z: 1.5, x: 0.1, y: -0.2 } }; st.spreads = [{ type: 'group', slots: ['a.jpg', 'b.jpg'] }];
+    assert.strictEqual(PJ.nameOf(st), 'Ліцей 1 ' + st.year);
+    assert.deepStrictEqual(JSON.parse(PJ.unpack(PJ.pack(S.toJSON(st)))), JSON.parse(S.toJSON(st)));
+    assert.strictEqual(PJ.fileBase({ inst: { short: ' Ліцей №1: "Зоря"/2? ', full: 'x' } }), 'Ліцей №1 Зоря 2'); assert.strictEqual(PJ.fileBase({ inst: { short: '', full: 'Повна назва' } }), 'Повна назва'); assert.strictEqual(PJ.fileBase({ inst: {} }), 'album');
+    assert.throws(() => PJ.unpack('{"a":1}'));
+    const z = X.zip([{ name: 'project.json', data: new TextEncoder().encode(PJ.pack(S.toJSON(st))) }, { name: '01.jpg', data: new Uint8Array([1, 2, 3]) }]);
+    const back = S.fromJSON(await PJ.readProjectFile(z));
+    assert.deepStrictEqual(back.crops, st.crops); assert.deepStrictEqual(back.spreads, st.spreads);
+    console.log('  ok   проєкт: pack/unpack і читання project.json із ZIP (кадрування й розташування збережені)');
+  } catch (e) { failed++; console.log('  FAIL проєкт ZIP\n      ', e.message); }
+})();
+asyncTest.then(() => {
+  console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
+  process.exit(failed ? 1 : 0);
+});
