@@ -4,7 +4,7 @@
   var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
   var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
   var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
-    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, acSets: { danbooru: true, e621: false } };
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {} };
   var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
   function load() {
@@ -230,9 +230,7 @@
   load();
   edP = PromptEditor.create({ ta: $('prompt'), mirror: $('mP'), bar: $('wP'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.prompt = t; save(); if (window.SDBuilder) SDBuilder.refresh(); } });
   edN = PromptEditor.create({ ta: $('neg'), mirror: $('mN'), bar: $('wN'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.neg = t; save(); } });
-  SDAutocomplete.init({ names: SDLoras.names, weight: SDLoras.defaultWeight }); SDAutocomplete.attach($('prompt')); SDAutocomplete.attach($('neg')); SDAutocomplete.setSets(S.acSets);
-  $('acDan').checked = !!S.acSets.danbooru; $('acE621').checked = !!S.acSets.e621;
-  [['acDan', 'danbooru'], ['acE621', 'e621']].forEach(function (a) { $(a[0]).addEventListener('change', function () { S.acSets[a[1]] = this.checked; SDAutocomplete.setSets(S.acSets); save(); }); });
+  SDAutocomplete.init({ names: SDLoras.names, weight: SDLoras.defaultWeight }); SDAutocomplete.attach($('prompt')); SDAutocomplete.attach($('neg')); 
   bind(); fillEditors(); syncForm(); syncLayout(); renderAll();
   SDLoras.init({ get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
   SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },

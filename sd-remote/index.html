@@ -40,7 +40,7 @@
   <h3>Для чого</h3><p>Щоб пробувати Stable Diffusion, навіть якщо твій комп'ютер слабкий: потрібні лише браузер, логін і пароль.</p>
   <h3>Як користуватися</h3><ol>
     <li>Ліворуч: <b>промпт</b> і негативний промпт (теги підсвічуються), пропорції з кнопкою вертикаль/горизонталь, розмір, кроки, апскейл, seed, ADetailer і активні LoRA з повзунками сили.</li>
-    <li><b>Автопідказки:</b> пиши тег у промпті, і під полем з'являться варіанти з кількістю використань (стрілки, Enter або Tab вставляють). Пишеш <code>&lt;lora:</code>, і підказуються твої LoRA. Джерела (Danbooru, e621) перемикаються під промптом.</li>
+    <li><b>Автопідказки:</b> пиши тег у промпті, і під полем з'являться варіанти з кількістю використань (стрілки, Enter або Tab вставляють). Пишеш <code>&lt;lora:</code>, і підказуються твої LoRA. Теги беруться з Danbooru і e621.</li>
     <li><b>Вага тегів:</b> виділи текст у промпті, і під полем з'явиться повзунок ваги (0.1–5). Він не зсуває меню й не затуляє теги.</li>
     <li><b>Гнучкий режим</b> (перемикач ліворуч вгорі): перемикач «Картинка / Теги» показує в центрі групи готових тегів. Натискай теги, вони додаються в промпт, повторний клік прибирає. Там, де можна вказати колір, є палітра; «＋ колір» додає ще один колір (наприклад, різнокольорове волосся). Є пошук по тегах і групах.</li>
     <li>Вкладки в центрі: <b>Генерація</b>, <b>LoRA</b> (список із метаданими), <b>Шаблони</b> (готові й власні) та <b>Історія</b>. Клік по картинці відкриває перегляд із зумом та редактор (кадр, пензель, текст, поворот, корекція, відміна дій).</li>
@@ -73,10 +73,7 @@
       <div class="field"><span class="lbl">Промпт</span>
         <div class="ed" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" rows="4" maxlength="2000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
         <div class="wbar" id="wP" hidden></div></div>
-      <div class="acset" title="Звідки брати автопідказки тегів під час набору"><span>Підказки:</span>
-        <label class="chk"><input type="checkbox" id="acDan" checked title="Теги Danbooru"> Danbooru</label>
-        <label class="chk"><input type="checkbox" id="acE621" title="Теги e621 (звірячі та інші)"> e621</label></div>
-      <div class="field"><span class="lbl lrow">Негативний промпт <button type="button" class="link" id="negReset" title="Повернути стандартний негативний промпт">↺ скинути</button></span>
+            <div class="field"><span class="lbl lrow">Негативний промпт <button type="button" class="link" id="negReset" title="Повернути стандартний негативний промпт">↺ скинути</button></span>
         <div class="ed" id="edN"><pre id="mN" aria-hidden="true"></pre><textarea id="neg" rows="3" maxlength="2000" spellcheck="false" title="Негативний промпт: чого уникати"></textarea></div>
         <div class="wbar" id="wN" hidden></div></div>
     </section>
