@@ -4,13 +4,10 @@
   var DEFAULTS = [
     { g: 'Промпти й опис картинок', title: 'Картинка → промпт (Vheer)', url: 'https://vheer.com/app/image-to-prompt', note: 'Завантаж картинку й отримай її опис-промпт англійською. Сторонній безкоштовний сервіс: картинка йде на їхній сервер, не вантаж приватного.' },
     { g: 'Промпти й опис картинок', title: 'WD Tagger (Hugging Face)', url: 'https://huggingface.co/spaces/SmilingWolf/wd-tagger', note: 'Картинка → теги у стилі Danbooru (аніме). Онлайн-демо моделей WD14.' },
-    { g: 'Промпти й опис картинок', title: 'DeepL Перекладач', url: 'https://www.deepl.com/translator', note: 'Переклад задуму українською на англійську для промптів.' },
+    { g: 'Промпти й опис картинок', title: 'DeepL Перекладач', url: 'https://www.deepl.com/translator', note: 'Переклад задуму українською на англійську для промпта.' },
     { g: 'Промпти й опис картинок', title: 'Danbooru: групи тегів', url: 'https://danbooru.donmai.us/wiki_pages/tag_groups', note: 'Довідник тегів за групами (може містити відвертий вміст).' },
-    { g: 'Моделі й апскейлери', title: 'Civitai', url: 'https://civitai.com', note: 'Моделі, LoRA, приклади картинок із промптами.' },
-    { g: 'Моделі й апскейлери', title: 'OpenModelDB', url: 'https://openmodeldb.info', note: 'Каталог моделей-апскейлерів (ESRGAN та ін.) з порівнянням «до/після».' },
-    { g: 'Редагування', title: 'Photopea', url: 'https://www.photopea.com', note: 'Онлайн-редактор у стилі Photoshop: шари, маски, ретуш.' },
-    { g: 'Програми', title: 'Forge Neo (GitHub)', url: 'https://github.com/Haoming02/sd-webui-forge-classic', note: 'Сторінка Forge Neo: оновлення й документація (гілка neo).' },
-    { g: 'Програми', title: 'Stability Matrix (GitHub)', url: 'https://github.com/LykosAI/StabilityMatrix', note: 'Менеджер, через який запускаються Forge та інші інтерфейси.' },
+    { g: 'Натхнення', title: 'Civitai', url: 'https://civitai.com', note: 'Приклади картинок разом із промптами й налаштуваннями для ідей.' },
+    { g: 'Редагування', title: 'Photopea', url: 'https://www.photopea.com', note: 'Онлайн-редактор у стилі Photoshop: шари, маски, ретуш готових картинок.' },
   ];
 
   // Приймає лише http(s); повертає нормалізовану адресу або ''
