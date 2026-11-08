@@ -10,4 +10,8 @@ test('стандартні посилання: валідні адреси, ун
   L.DEFAULTS.forEach(l => { assert.ok(L.cleanUrl(l.url), l.url); assert.ok(l.g && l.title && l.note, l.title); });
   assert.ok(urls.includes('https://vheer.com/app/image-to-prompt'));
 });
+test('посилання на інструменти цього сайту ведуть на наявні папки', () => {
+  const fs = require('node:fs'), path = require('node:path'); const root = path.join(__dirname, '..', '..');
+  L.DEFAULTS.filter(l => l.url.startsWith('https://zbyrai.pages.dev/')).forEach(l => { const dir = l.url.replace('https://zbyrai.pages.dev/', ''); assert.ok(fs.existsSync(path.join(root, dir, 'index.html')), 'немає ' + dir); });
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);
