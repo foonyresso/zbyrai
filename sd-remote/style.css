@@ -178,3 +178,19 @@ dialog.help.wide { width: min(820px, 94vw); max-width: 94vw; }
 .selbox { position: absolute; border: 2px dashed #ff3b6b; background: rgba(255,59,107,.2); pointer-events: none; }
 .go2 { display: flex; } .go2 .btn-main { padding: 10px 22px; font-size: 15px; }
 .inp-recent { display: flex; flex-wrap: wrap; gap: 8px; } .rth { width: 72px; height: 72px; padding: 0; overflow: hidden; border-radius: 8px; } .rth.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); } .rth img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* перемалювання: індикатор поверх старої картинки, версії, порівняння */
+.inp-stage-box { position: relative; } .inp-stage-box .inp-stage { height: min(66vh, 760px); }
+.inp-busy { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; background: rgba(8,8,12,.62); backdrop-filter: blur(2px); border-radius: var(--r-md); pointer-events: all; }
+.vers { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.vth { position: relative; width: 84px; padding: 0; overflow: hidden; border-radius: 8px; display: flex; flex-direction: column; font-size: 11px; background: var(--panel); }
+.vth img { width: 100%; height: 84px; object-fit: cover; display: block; } .vth span { padding: 3px 4px; color: var(--muted); text-align: center; }
+.vth.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); } .vth.on span { color: var(--accent-hi); }
+.vth.pend { cursor: default; } .vth.pend .ph { height: 84px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--accent-hi); background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 14px 14px; }
+.cmpl { position: absolute; inset: 0; pointer-events: none; } .cmpimg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cmph { position: absolute; top: 0; bottom: 0; width: 22px; margin-left: -11px; cursor: ew-resize; pointer-events: all; touch-action: none; display: flex; justify-content: center; }
+.cmph::before { content: ''; width: 3px; height: 100%; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,.8); } .cmph::after { content: '◂▸'; position: absolute; top: 50%; transform: translateY(-50%); background: #fff; color: #111; border-radius: 99px; font-size: 11px; padding: 4px 3px; letter-spacing: -2px; }
+.cmpt { position: absolute; top: 8px; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: rgba(0,0,0,.65); color: #fff; } .cmpt.l { left: 8px; } .cmpt.r { right: 8px; }
+#inpCmp.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.brushcur { position: absolute; z-index: 4; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000; background: rgba(255,59,107,.18); transform: translate(-50%, -50%); pointer-events: none; }
+.brushcur.er { background: transparent; border-style: dashed; }

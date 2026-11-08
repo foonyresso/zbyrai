@@ -151,8 +151,10 @@
         <button id="inpUndo" title="Скасувати останню дію з маскою (Ctrl+Z)">↶ Скасувати</button>
         <button id="inpInvert" title="Інвертувати маску: перемалюється все, окрім зафарбованого">⇄ Інвертувати</button>
         <button id="inpClear" title="Прибрати всю маску">Очистити маску</button>
+        <button id="inpCmp" title="Порівняти з попередньою версією: повзунок «до / після»">◐ Порівняти</button>
       </div>
-      <div class="inp-stage" id="inpStage"></div>
+      <div class="inp-stage-box"><div class="inp-stage" id="inpStage"></div><div class="inp-busy" id="inpBusy" hidden></div></div>
+      <div class="vers" id="inpVers" hidden></div>
       <p class="hint" id="inpInfo"></p>
       <label class="rng" title="Наскільки сильно змінювати ділянку: 0.05 майже без змін, 1.0 повністю заново">Сила зміни (denoise) <span id="inpDnV"></span>
         <input type="range" id="inpDn" min="0.05" max="1" step="0.05" title="Denoising strength від 0.05 до 1.0"></label>
@@ -164,7 +166,7 @@
         <div class="wbar" id="wIN" hidden></div></div>
       <p class="hint">Інші налаштування (кроки, CFG, семплер) як при генерації. ADetailer і апскейл тут не працюють.</p>
       <div class="go2"><button class="btn-main" id="inpGo" title="Поставити перемалювання в чергу">🖌 Перемалювати</button></div>
-      <div class="b-head"><b>Остання історія</b></div>
+      <div class="b-head"><b>Обрати іншу картинку</b></div>
       <div class="inp-recent" id="inpRecent"></div>
     </section>
 
