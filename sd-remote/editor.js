@@ -38,6 +38,11 @@
     function away(e) { var t = e.relatedTarget; if (!t || (t !== ta && !bar.contains(t))) bar.hidden = true; }
     ta.addEventListener('blur', away); bar.addEventListener('focusout', away);
     window.addEventListener('resize', fit);
+    // Ширина поля може змінитись без події resize (з'явилась смуга прокрутки панелі, відкрилась вкладка, завантажився шрифт):
+    // тоді текст переноситься інакше, і висоту треба перерахувати, інакше нижні рядки обрізаються
+    var lastW = 0;
+    if (window.ResizeObserver) new ResizeObserver(function (en) { var w = en[0].contentRect.width; if (Math.abs(w - lastW) > 0.5) { lastW = w; fit(); } }).observe(ta);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
     return { set: function (v) { ta.value = v; paint(); bar.hidden = true; }, paint: paint };
   }
   window.PromptEditor = { create: create };

@@ -208,3 +208,6 @@ dialog.help.wide { width: min(820px, 94vw); max-width: 94vw; }
 dialog.lds { width: min(900px, 94vw); } .ldbody { display: grid; grid-template-columns: minmax(180px, 320px) 1fr; gap: 16px; } .ldimg { aspect-ratio: 2 / 3; background: #14141a; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--faint); } .ldimg img { width: 100%; height: 100%; object-fit: cover; }
 .ldinfo { display: flex; flex-direction: column; gap: 8px; min-width: 0; } .ldinfo h3 { margin: 0; } .ldinfo p { margin: 0; } .lnote2 { color: var(--muted); font-size: 13px; line-height: 1.45; }
 @media (max-width: 640px) { .ldbody { grid-template-columns: 1fr; } .lgrid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
+
+/* смуга прокрутки панелі не має зсувати ширину полів промпта, коли з'являється */
+.left, .center { scrollbar-gutter: stable; }
