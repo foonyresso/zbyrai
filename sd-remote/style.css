@@ -1,0 +1,33 @@
+/* Віддалений SD: розмітка поверх спільної теми (theme.css) і UI-кіту. */
+:root { --accent: #7fb8e8; --accent-hi: #a9d2f2; --accent-glow: rgba(127, 184, 232, .14); }
+.pc { font-size: 12px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pc.on { color: #7fd69a; border-color: #3f8f5c; } .pc.off { color: #e8924a; border-color: #a8662f; }
+.btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); color: var(--gold-ink); border-color: #d6bb82; font-weight: 700; }
+.bar { width: min(760px, calc(100vw - 24px)); flex-wrap: nowrap; }
+.bar textarea { flex: 1; min-width: 0; resize: vertical; max-height: 30vh; box-sizing: border-box; }
+.stagebox { position: absolute; inset: 0; padding: 66px 14px 110px 84px; overflow: auto; }
+.empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--faint); pointer-events: none; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; align-items: start; }
+.card { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); padding: 6px; position: relative; }
+.card .frame { display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #14141a; overflow: hidden; min-height: 120px; color: var(--muted); font-size: 13px; text-align: center; padding: 6px; }
+.card .frame img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.card.err .frame { color: #e8924a; }
+.card .cap { padding: 6px 2px 0; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.card .cap .pr { color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card .acts { display: flex; gap: 6px; margin-top: 4px; } .card .acts button { padding: 3px 8px; font-size: 12px; }
+.drawer .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.drawer textarea { width: 100%; box-sizing: border-box; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; } .chips button { padding: 4px 9px; font-size: 12px; }
+.chips button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+[hidden] { display: none !important; }
+@media (max-width: 760px) { .stagebox { padding: 110px 8px 130px; } .bar { flex-wrap: wrap; } }
+.gate { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: var(--bg, #09090c); padding: 16px; }
+.gate[hidden] { display: none; }
+.gate-box { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
+.gate-box h1 { margin: 0; font-size: 22px; } .gate-box h1 span { opacity: .7; }
+.gate-box p { margin: 0; color: var(--muted); font-size: 13px; } .gate-box .err { color: #e8924a; min-height: 1.2em; }
+.gate-box input { box-sizing: border-box; width: 100%; }
+body:not(.authed) .stage, body:not(.authed) .top { visibility: hidden; }
+.gate-box .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.gate-box .link { background: none; border: 0; color: var(--accent-hi); font-size: 13px; padding: 4px; text-decoration: underline; }
+.gate-box .err.ok { color: #7fd69a; }

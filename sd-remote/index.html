@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Віддалений SD</title>
+<meta name="description" content="Генерація картинок Stable Diffusion на комп'ютері власника сайту: за логіном і паролем, через чергу.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M7 22l6-8 5 6 3-4 4 6z%27 fill=%27none%27 stroke=%27%237fb8e8%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2711%27 cy=%2710%27 r=%272.5%27 fill=%27%237fb8e8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<div class="gate" id="gate">
+  <form class="gate-box" id="gateForm">
+    <h1>Віддалений <span>SD</span></h1>
+    <p id="gateHint">Закрита сторінка. Увійди або подай заявку на доступ.</p>
+    <input type="text" id="login" autocomplete="username" placeholder="Логін (латиниця, цифри)" title="Логін: 3–20 символів, латиниця, цифри або _" required>
+    <input type="password" id="pass" autocomplete="current-password" placeholder="Пароль (від 8 символів)" title="Пароль від 8 символів" required>
+    <input type="text" id="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="btn-main" type="submit" id="gateBtn" title="Увійти">Увійти</button>
+    <button type="button" id="gateSwitch" class="link" title="Перемкнути між входом і заявкою на доступ">Немає акаунта? Подати заявку</button>
+    <p class="err" id="gateErr"></p>
+  </form>
+</div>
+
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Віддалений <span>SD</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+  <span class="pc" id="pcState" title="Чи увімкнений комп'ютер власника з Stable Diffusion">ПК: перевіряю…</span>
+</header>
+
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Віддалений SD</h2>
+  <h3>Що це</h3><p>Генерація картинок Stable Diffusion на потужному комп'ютері власника сайту. Ти пишеш промпт у браузері, задача йде в чергу, комп'ютер власника генерує картинку, і вона з'являється тут.</p>
+  <h3>Для чого</h3><p>Щоб пробувати Stable Diffusion, навіть якщо твій комп'ютер слабкий: потрібні лише браузер, логін і пароль.</p>
+  <h3>Як користуватися</h3><ol>
+    <li><b>Вхід</b>: введи логін і пароль, які дав власник.</li>
+    <li><b>Параметри</b>: розмір, кількість кроків, CFG, зерно (seed), негативний промпт.</li>
+    <li>Напиши промпт унизу й натисни <b>«Згенерувати»</b>. Поруч видно позицію в черзі.</li>
+    <li>Генерація працює, лише коли комп'ютер власника увімкнений (індикатор «ПК» угорі). Картинки зберігаються на сервері 7 днів; з обмеженнями: до 3 задач у черзі, до 1024 px.</li>
+  </ol>
+</dialog>
+
+<main class="stage" id="work">
+  <div class="stagebox">
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty">Напиши промпт унизу</div>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="params" title="Розмір, кроки, CFG, seed, негативний промпт"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Параметри</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" data-store="sd_panel" data-default="params" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="params">
+      <h2>Розмір, px</h2>
+      <div class="chips" id="sizes"></div>
+      <div class="two">
+        <label title="Ширина картинки (256–1024, кратна 8)">Ширина <input type="number" id="w" min="256" max="1024" step="64" title="Ширина в пікселях"></label>
+        <label title="Висота картинки (256–1024, кратна 8)">Висота <input type="number" id="h" min="256" max="1024" step="64" title="Висота в пікселях"></label>
+      </div>
+      <h2>Якість</h2>
+      <label title="Скільки кроків робить модель: більше = детальніше й довше">Кроки <span id="stV"></span>
+        <input type="range" id="steps" min="1" max="40" step="1" title="Кількість кроків (1–40)"></label>
+      <label title="Наскільки строго модель слідує промпту (CFG)">CFG <span id="cfgV"></span>
+        <input type="range" id="cfg" min="1" max="15" step="0.5" title="CFG scale (1–15)"></label>
+      <label title="Число, що визначає результат; -1 = випадкове. Той самий seed і параметри дадуть ту саму картинку">Seed
+        <input type="number" id="seed" min="-1" step="1" title="Seed; -1 = випадкове"></label>
+      <h2>Негативний промпт</h2>
+      <label title="Чого не має бути на картинці">
+        <textarea id="neg" rows="3" maxlength="2000" title="Негативний промпт: чого уникати"></textarea></label>
+    </section>
+  </aside>
+
+  <div class="bar" id="bar">
+    <textarea id="prompt" rows="2" maxlength="2000" placeholder="Промпт, напр.: a cozy cabin in snowy mountains, golden hour, detailed" title="Опис картинки (англійською працює найкраще); Ctrl+Enter запускає генерацію"></textarea>
+    <button class="btn-main" id="btnGo" title="Поставити задачу в чергу (Ctrl+Enter)">✨ Згенерувати</button>
+    <button id="btnClear" title="Прибрати картинки зі списку на цій сторінці (на сервері вони лишаються 7 днів)">Очистити</button>
+  </div>
+</main>
+
+<div class="toast" id="toast">Готово</div>
+
+<script src="./zb-ui.js"></script>
+<script src="./sd-client.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,3 +1,5 @@
 CLAUDE.md
 .claude/
 node_modules/
+sd-remote/worker/worker.json
+__pycache__/

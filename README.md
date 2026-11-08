@@ -48,6 +48,7 @@ assets/             стилі й скрипт лише для головної
 shared/theme.css    єдина дизайн-система «Обсидіан і золото» (джерело)
 tools/sync-theme.mjs копіює shared/theme.css у theme.css кожного інструмента
 prompt-dice/        інструмент
+sd-remote/          прихований інструмент: віддалена генерація SD через чергу (+ worker/, test/); серверна частина у functions/
 photo-collage/      інструмент (+ test/)
 image-converter/    інструмент (+ test/): конвертер зображень
 medieval-world/     «Проект Атлас»: інструмент; worlds/continent/ — тип світу «Материк» (core/, data/, render/, ui/, test/)
