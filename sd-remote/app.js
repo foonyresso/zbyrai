@@ -4,7 +4,7 @@
   var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
   var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
   var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
-    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, loraMeta: {}, i2p: { top: 93, left: 48, h: 860, mode: 'replace' }, loraBy: 'category', loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, loraMeta: {}, i2p: { top: 93, left: 48, h: 860, mode: 'replace', auto: true, dark: true }, loraBy: 'category', loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
   var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
   function load() {

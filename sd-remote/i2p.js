@@ -32,12 +32,32 @@
     var sv = host.state.i2p, c = ready ? { top: 0, left: 0, h: sv.h } : sv, v = $('i2pView'), f = $('i2pFrame');   // зі скриптом меню вже сховане, обрізання не потрібне
     v.style.height = c.h + 'px'; f.style.marginTop = -c.top + 'px'; f.style.height = (c.h + c.top) + 'px'; f.style.marginLeft = -c.left + 'px'; f.style.width = 'calc(100% + ' + c.left + 'px)';
     $('i2pTop').value = sv.top; $('i2pTopV').textContent = sv.top + ' px'; $('i2pLeft').value = sv.left; $('i2pLeftV').textContent = sv.left + ' px';
+    var dk = !!sv.dark && !ready; v.classList.toggle('dk', dk); f.classList.toggle('dk', dk);   // без скрипта: темна тема CSS-фільтром поверх рамки
     document.querySelectorAll('#i2pTop,#i2pLeft').forEach(function (e) { e.disabled = ready; e.parentNode.style.opacity = ready ? .45 : 1; }); $('i2pH').value = c.h; $('i2pHV').textContent = c.h + ' px';
   }
+  // Автовставка з буфера (без розширень): після «Copy» на vheer.com достатньо клацнути будь-де на нашій сторінці
+  var lastClip = null, busyClip = false;
+  function applyMode(t, how) { var mode = host.state.i2p.mode || 'replace'; $('i2pBox').value = t; if (mode === 'none') host.toast('Промпт з буфера у полі нижче'); else { put(t, mode === 'append', true); host.toast(how + (mode === 'append' ? ': додано до промпта' : ': вставлено в промпт')); } }
+  function peekClipboard(baseline) {
+    if (busyClip || !navigator.clipboard || !navigator.clipboard.readText) return;
+    busyClip = true; var guard = setTimeout(function () { busyClip = false; }, 3000);   // читання буфера може зависнути, якщо вікно без фокусу
+    navigator.clipboard.readText().then(function (raw) {
+      clearTimeout(guard); busyClip = false; var t = clean(raw);
+      if (baseline) { lastClip = t; return; }
+      if (!host.state.i2p.auto) return;   // за час очікування автовставку вимкнули
+      if (!t || t.length < 15 || t === lastClip) return;
+      lastClip = t; if (t === clean(host.state.prompt)) return; applyMode(t, 'З буфера');
+    }, function () { clearTimeout(guard); busyClip = false; var st = $('i2pStatus'); if (!ready) st.textContent = 'Автовставка: немає дозволу на буфер обміну (дозволь у браузері) або встав текст вручну'; });
+  }
+  function onUserReturn() { var inTab = !$('vI2p').hidden; if (inTab && host.state.i2p.auto && !ready) setTimeout(function () { peekClipboard(false); }, 60); }
   window.SDI2p = {
     init: function (h) {
       host = h; var sv = host.state.i2p || {}; if (sv.top === 0 && sv.h === 720 && sv.left === undefined) sv = {};   // старі типові значення замінюються новими
       host.state.i2p = Object.assign({ top: 93, left: 48, h: 860, mode: 'replace' }, sv); crop();
+      var clipOk = !!(navigator.clipboard && navigator.clipboard.readText); $('i2pAuto').checked = host.state.i2p.auto !== false && clipOk; host.state.i2p.auto = $('i2pAuto').checked; if (!clipOk) { $('i2pAuto').disabled = true; $('i2pAutoLbl').title = 'Цей браузер не дозволяє читати буфер обміну: користуйся кнопкою вставки або скриптом'; }
+      $('i2pAuto').addEventListener('change', function () { host.state.i2p.auto = this.checked; host.save(); if (this.checked) peekClipboard(true); });
+      window.addEventListener('focus', onUserReturn); document.addEventListener('pointerdown', onUserReturn);
+      $('i2pDark').checked = host.state.i2p.dark !== false; host.state.i2p.dark = $('i2pDark').checked; $('i2pDark').addEventListener('change', function () { host.state.i2p.dark = this.checked; host.save(); crop(); }); crop();
       $('i2pMode').value = host.state.i2p.mode; $('i2pMode').addEventListener('change', function () { host.state.i2p.mode = this.value; host.save(); });
       $('i2pUndo').addEventListener('click', function () { if (prev != null) { host.setPrompt(prev); prev = null; this.disabled = true; host.toast('Повернено попередній промпт'); } });
       $('i2pLeft').addEventListener('input', function () { host.state.i2p.left = +this.value; crop(); host.save(); });
@@ -49,6 +69,8 @@
       $('i2pOpen').addEventListener('click', function () { window.open(URL_I2P, '_blank', 'noopener'); });
     },
     show: function () {   // сторонній сайт вантажиться лише тоді, коли відкриваєш вкладку
+      if (!host) return;
+      if (host.state.i2p.auto) peekClipboard(true);   // запам'ятати, що вже лежить у буфері, щоб старе не вставлялось
       if (loaded) return; loaded = true; $('i2pFrame').src = URL_I2P;
       setTimeout(function () { if (!ready) $('i2pStatus').textContent = 'Скрипт не знайдено: промпт копіюй вручну або встанови скрипт (кнопка нижче)'; }, 6000);
     },
