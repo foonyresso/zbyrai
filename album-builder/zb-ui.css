@@ -53,11 +53,3 @@ dialog.help .close { position: absolute; right: 10px; top: 8px; font-size: 20px;
 
 
 @media print { .top, .rail, .drawer, .bar, .zb-card { display: none; } html, body { height: auto; overflow: visible; } .stage { position: static; overflow: visible; } }
-
-.toast.multi { white-space: pre-line; border-radius: 16px; }
-.top-btn { padding: 4px 12px; }
-#projList { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; max-height: 50vh; overflow: auto; }
-#projList .prow { display: flex; gap: 8px; align-items: center; }
-#projList .prow .open { flex: 1; text-align: left; display: flex; flex-direction: column; gap: 2px; }
-#projList .prow .open small { opacity: .65; }
-.projbtns { display: flex; gap: 8px; flex-wrap: wrap; }
