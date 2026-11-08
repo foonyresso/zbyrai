@@ -103,7 +103,7 @@
   function loraTags(list) {
     return (list || []).filter(function (l) { return l && l.name; }).map(function (l) { return '<lora:' + l.name + ':' + fmt(Number(l.w) || 0) + '>'; }).join(', ');
   }
-  function joinPrompt(text, list) { return [String(text || '').trim().replace(/,\s*$/, ''), loraTags(list)].filter(Boolean).join(', '); }
+  function joinPrompt(text, list) { return [loraTags(list), String(text || '').trim().replace(/,\s*$/, '')].filter(Boolean).join(', '); }   // LoRA спочатку, потім теги
 
   var api = { WMIN: WMIN, WMAX: WMAX, segments: segments, parseTag: parseTag, setWeight: setWeight, selectionWeight: selectionWeight, highlightHtml: highlightHtml, loraTags: loraTags, joinPrompt: joinPrompt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.PromptTools = api;

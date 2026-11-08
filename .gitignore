@@ -3,3 +3,5 @@ CLAUDE.md
 node_modules/
 sd-remote/worker/worker.json
 __pycache__/
+sd-remote/worker/site_outputs/
+site_outputs/

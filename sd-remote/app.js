@@ -43,7 +43,8 @@
     $('sizeInfo').textContent = d.w + '×' + d.h + (S.upscale > 1 ? ' → ' + f.w + '×' + f.h : '');
     $('steps').value = S.steps; $('stV').textContent = S.steps;
     $('upscale').value = S.upscale; $('upV').textContent = S.upscale > 1 ? S.upscale + '×' : 'вимкнено';
-    $('seed').value = S.seed; $('adOn').checked = S.adOn; $('adBtn').hidden = !S.adOn;
+    $('seed').value = S.seed; $('adOnB').classList.toggle('on', S.adOn); $('adOff').classList.toggle('on', !S.adOn); $('adBtn').disabled = !S.adOn;
+    $('seedState').textContent = S.seed < 0 ? 'Seed: випадковий для кожної генерації' : '🔒 Seed зафіксовано: ' + S.seed + ' (кожна генерація буде схожою)'; $('seedState').classList.toggle('warn', S.seed >= 0);
     $('preview').style.setProperty('--ar', (d.w / d.h).toFixed(4)); $('pvTag').textContent = (S.upscale > 1 ? f.w + '×' + f.h : d.w + '×' + d.h) + ' · ' + S.ratio;
   }
   function syncLayout() {
@@ -118,14 +119,29 @@
       var acts = document.createElement('div'); acts.className = 'acts';
       var btn = function (label, title, fn) { var b = document.createElement('button'); b.textContent = label; b.title = title; b.addEventListener('click', fn); acts.appendChild(b); };
       if (j.status === 'done') btn('Завантажити', 'Зберегти картинку на комп’ютер', function () { var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); a.click(); });
+      btn('Лог', 'Усі налаштування й теги цієї картинки', function () { openLog(j); });
       btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
-        Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.seed >= 0 ? j.seed : -1, upscale: j.upscale || 1, adOn: !!j.adOn, adPrompt: j.adPrompt || '', adNeg: j.adNeg || '', loras: JSON.parse(JSON.stringify(j.loras || [])) });
+        Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.reqSeed != null ? j.reqSeed : -1, upscale: j.upscale || 1, adOn: !!j.adOn, adPrompt: j.adPrompt || '', adNeg: j.adNeg || '', loras: JSON.parse(JSON.stringify(j.loras || [])) });
         S.tab = 'gen'; fillEditors(); syncForm(); syncLayout(); SDLoras.render(); save(); toast('Параметри підставлено');
       });
       btn('×', 'Прибрати зі списку', function () { S.jobs = S.jobs.filter(function (x) { return x.id !== j.id; }); save(); renderAll(); });
       cap.appendChild(acts); card.appendChild(fr); card.appendChild(cap); g.appendChild(card);
     });
   }
+  function logText(j) {
+    var s = j.sent || {}, o = ['=== Надіслано з сайту ==='];
+    o.push('Повний промпт (LoRA спочатку, потім теги):\n' + (s.prompt || j.prompt || '—'));
+    o.push('Негативний промпт:\n' + (s.negative != null ? s.negative : j.neg || '—'));
+    o.push('Розмір: ' + (s.width || j.w) + '×' + (s.height || j.h) + '  ·  Кроки: ' + (s.steps || '—') + '  ·  Апскейл: ' + ((s.upscale || j.upscale || 1) > 1 ? (s.upscale || j.upscale) + '×' : 'вимкнено'));
+    o.push('Seed (запит): ' + ((j.reqSeed != null ? j.reqSeed : s.seed) < 0 || (j.reqSeed == null && s.seed == null) ? '-1 (випадковий)' : (j.reqSeed != null ? j.reqSeed : s.seed)) + (j.seed >= 0 ? '  ·  Seed (результат): ' + j.seed : ''));
+    o.push('ADetailer: ' + (j.adOn ? 'увімкнено' : 'вимкнено') + (j.adOn ? '\n  позитивний: ' + (j.adPrompt || '—') + '\n  негативний: ' + (j.adNeg || '—') : ''));
+    o.push('LoRA: ' + ((j.loras || []).length ? j.loras.map(function (l) { return l.name + ' ' + l.w; }).join(', ') : 'немає'));
+    var lg = j.log;
+    o.push('\n=== Підсумок Forge (infotext) ===\n' + (lg && lg.infotext ? lg.infotext : 'ще немає (з\u2019явиться, коли картинка готова; потрібна нова версія воркера)'));
+    if (lg && lg.request) o.push('\n=== Запит воркера до Forge (JSON) ===\n' + JSON.stringify(lg.request, null, 1));
+    return o.join('\n');
+  }
+  function openLog(j) { if (!j) return toast('Ще немає картинок'); $('logPre').textContent = logText(j); $('logDlg').showModal(); }
   function renderAll() { renderPreview(); renderHistory(); }
 
   function poll(job) {
@@ -135,6 +151,7 @@
         var was = job.status; job.status = st.status; job.text = C.queueText(st); job.error = st.error;
         if (st.progress != null) job.progress = Math.max(job.progress || 0, st.progress);
         if (st.info && st.info.seed != null) job.seed = st.info.seed;
+        if (st.info && (st.info.infotext || st.info.request)) job.log = { infotext: st.info.infotext || '', request: st.info.request || null };
         if (st.status === 'done' || st.status === 'error') { clearInterval(timers[job.id]); delete timers[job.id]; if (st.status === 'done' && was !== 'done') job.live = true; save(); }
         renderAll();
       }, function (e) {
@@ -148,7 +165,7 @@
     var body = { prompt: full, negative: S.neg, width: d.w, height: d.h, steps: S.steps, seed: S.seed, upscale: S.upscale, adFace: S.adOn, adPrompt: S.adOn ? S.adPrompt : '', adNeg: S.adOn ? S.adNeg : '' };
     $('btnGo').disabled = true;
     api('submit', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
-      var job = { id: r.id, status: 'queued', text: 'У черзі…', progress: 0, prompt: text, neg: S.neg, loras: JSON.parse(JSON.stringify(S.loras)), w: d.w, h: d.h, seed: S.seed, upscale: S.upscale, adOn: S.adOn, adPrompt: S.adPrompt, adNeg: S.adNeg };
+      var job = { id: r.id, status: 'queued', text: 'У черзі…', progress: 0, sent: body, reqSeed: S.seed, prompt: text, neg: S.neg, loras: JSON.parse(JSON.stringify(S.loras)), w: d.w, h: d.h, seed: S.seed, upscale: S.upscale, adOn: S.adOn, adPrompt: S.adPrompt, adNeg: S.adNeg };
       S.jobs.push(job); save(); S.tab = 'gen'; if (S.view === 'tags') S.view = 'img'; syncLayout(); renderAll(); poll(job);
     }, function (e) { toast(e.message); }).then(function () { $('btnGo').disabled = false; });
   }
@@ -203,7 +220,8 @@
       var j = S.jobs.slice().reverse().filter(function (x) { return x.seed >= 0; })[0];
       if (!j) return toast('Ще немає готової картинки з seed'); S.seed = j.seed; syncForm(); save(); toast('Seed ' + j.seed + ' зафіксовано');
     });
-    $('adOn').addEventListener('change', function () { S.adOn = this.checked; syncForm(); save(); });
+    $('adOnB').addEventListener('click', function () { S.adOn = true; syncForm(); save(); });
+    $('adOff').addEventListener('click', function () { S.adOn = false; syncForm(); save(); });
     $('adBtn').addEventListener('click', function () { $('adP').value = S.adPrompt; $('adN').value = S.adNeg; $('adDlg').showModal(); });
     $('adP').addEventListener('input', function () { S.adPrompt = this.value; save(); });
     $('adN').addEventListener('input', function () { S.adNeg = this.value; save(); });
@@ -218,6 +236,9 @@
       var p = $('preview'); if (document.fullscreenElement) return document.exitFullscreen();
       if (p.requestFullscreen) p.requestFullscreen().catch(function () { /* без повного екрана */ });
     });
+    $('btnLog').addEventListener('click', function () { openLog(S.jobs[S.jobs.length - 1]); });
+    $('logCopy').addEventListener('click', function () { var t = $('logPre').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Лог скопійовано'); }, function () { toast('Не вдалося скопіювати'); }); });
+    $('logDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
     $('btnGo').addEventListener('click', go);
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
     $('btnClear').addEventListener('click', function () { S.jobs = []; save(); renderAll(); });
