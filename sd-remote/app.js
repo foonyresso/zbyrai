@@ -221,6 +221,7 @@
     $('btnGo').addEventListener('click', go);
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
     $('btnClear').addEventListener('click', function () { S.jobs = []; save(); renderAll(); });
+    $('negReset').addEventListener('click', function () { S.neg = NEG; edN.set(NEG); save(); toast('Негативний промпт скинуто до стандартного'); });
     $('btnClearPrompt').addEventListener('click', function () { S.prompt = ''; edP.set(''); save(); if (window.SDBuilder) SDBuilder.refresh(); });
     $('gateForm').addEventListener('submit', submitGate);
     $('gateSwitch').addEventListener('click', function () { setMode(!registerMode); });
