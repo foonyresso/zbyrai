@@ -17,10 +17,12 @@ test('cleanParams: кроки й cfg необов\u2019язкові (0 = з во
   assert.equal(p.prompt, 'cat'); assert.equal(p.width, LIMITS.maxSide); assert.equal(p.height, LIMITS.minSide);
   assert.equal(p.steps, LIMITS.maxSteps); assert.equal(p.cfg, LIMITS.maxCfg); assert.equal(p.seed, -1);
 });
-test('cleanParams: апскейл 1–2, ADetailer', () => {
-  assert.equal(cleanParams({ upscale: 5 }).upscale, 2); assert.equal(cleanParams({ upscale: 0 }).upscale, 1); assert.equal(cleanParams({ upscale: 1.65 }).upscale, 1.65); assert.equal(cleanParams({ upscale: 1.34 }).upscale, 1.35);
-  const p = cleanParams({ adFace: 1, adHands: 0 }); assert.equal(p.adFace, true); assert.equal(p.adHands, false);
-  assert.ok(cleanParams({ width: 9999, upscale: 2 }).width * 2 <= LIMITS.maxFinal);
+test('cleanParams: апскейл 1–2, обмежений довгою стороною ≤ 2800, ADetailer із промптами', () => {
+  assert.equal(cleanParams({ upscale: 5, width: 512, height: 512 }).upscale, 2); assert.equal(cleanParams({ upscale: 0 }).upscale, 1);
+  assert.equal(cleanParams({ upscale: 1.65, width: 768, height: 1344 }).upscale, 1.65); assert.equal(cleanParams({ upscale: 1.34, width: 512, height: 512 }).upscale, 1.35);
+  const big = cleanParams({ upscale: 2, width: 1024, height: 1536 }); assert.ok(big.height * big.upscale <= LIMITS.maxFinal);
+  const p = cleanParams({ adFace: 1, adPrompt: ' detailed eyes ', adNeg: 'blurry' }); assert.equal(p.adFace, true); assert.equal(p.adPrompt, 'detailed eyes'); assert.equal(p.adNeg, 'blurry');
+  assert.equal(p.adHands, undefined);
 });
 test('cleanParams: розмір кратний 8', () => assert.equal(cleanParams({ width: 515 }).width % 8, 0));
 test('validLogin/validPass', () => {

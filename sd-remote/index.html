@@ -30,77 +30,125 @@
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Віддалений <span>SD</span></div>
   <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
-  <div class="seg modes" id="modes" role="group" aria-label="Режим">
-    <button id="modeBasic" title="Базовий режим: промпт, пропорції, апскейл, ADetailer">Базовий</button>
-    <button id="modeFlex" title="Гнучкий режим: те саме плюс групи готових тегів, які додаються в промпт кліком">Гнучкий</button>
-  </div>
-  <span class="pc" id="pcState" title="Чи увімкнений комп'ютер власника з Stable Diffusion">ПК: перевіряю…</span>
+  <span class="pc" id="pcState" title="Чи увімкнений сервер із Stable Diffusion">Сервер: перевіряю…</span>
 </header>
 
 <dialog id="help" class="help">
   <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
   <h2>Віддалений SD</h2>
-  <h3>Що це</h3><p>Генерація картинок Stable Diffusion на потужному комп'ютері власника сайту. Ти пишеш промпт у браузері, задача йде в чергу, комп'ютер власника генерує картинку, і вона з'являється тут.</p>
+  <h3>Що це</h3><p>Генерація картинок Stable Diffusion на потужному комп'ютері власника сайту. Ти пишеш промпт у браузері, задача йде в чергу, сервер генерує картинку, і вона з'являється тут.</p>
   <h3>Для чого</h3><p>Щоб пробувати Stable Diffusion, навіть якщо твій комп'ютер слабкий: потрібні лише браузер, логін і пароль.</p>
   <h3>Як користуватися</h3><ol>
-    <li>Напиши <b>промпт</b> (англійською) і, за потреби, негативний. Обери <b>пропорцію</b>: рамка ліворуч-вгорі одразу показує форму майбутньої картинки; кнопка ⇄ перемикає вертикаль і горизонталь.</li>
-    <li><b>Апскейл</b> від 1.1× до 2×: картинка збільшується з дорисуванням деталей. <b>ADetailer</b> окремо виправляє обличчя і руки.</li>
-    <li><b>Гнучкий режим</b>: нижче з'являються групи тегів (Персонаж, Волосся, Одяг…). Відкрий групу й натискай теги: вони додаються в промпт, повторний клік прибирає. Є пошук по всіх тегах.</li>
-    <li>Натисни <b>«Згенерувати»</b>: задача піде в чергу на ПК власника (індикатор «ПК» угорі). До 3 задач у черзі, картинки лежать на сервері 7 днів.</li>
+    <li>Ліворуч: <b>промпт</b> і негативний промпт (теги підсвічуються), пропорції з кнопкою вертикаль/горизонталь, розмір, кроки, апскейл, seed, ADetailer і активні LoRA з повзунками сили.</li>
+    <li><b>Вага тегів:</b> виділи текст у промпті, і під полем з'являться кнопки −100% … +100%; «Норма» повертає вагу 1.0 (для LoRA: типову).</li>
+    <li><b>Гнучкий режим</b> (перемикач ліворуч вгорі): перемикач «Картинка / Теги» показує у центрі групи готових тегів. Натискай теги, вони додаються в промпт, повторний клік прибирає.</li>
+    <li>Вкладки в центрі: <b>Генерація</b>, <b>LoRA</b> (список із метаданими з ПК власника) та <b>Історія</b>. Смужка прогресу показує реальний хід генерації на сервері й завантаження в браузер.</li>
+    <li>До 3 задач у черзі; картинки лежать на сервері 7 днів. Якщо сервер вимкнений, сторінка сіра й генерація недоступна.</li>
   </ol>
 </dialog>
 
-<main class="sd" id="work">
-  <aside class="side" id="side" aria-label="Параметри">
-    <h2>Пропорції</h2>
-    <div class="chips" id="ratios"></div>
-    <button id="btnOrient" title="Перемкнути вертикальну й горизонтальну орієнтацію">⇄ Вертикально</button>
-    <h2>Розмір</h2>
-    <div class="chips" id="longs"></div>
-    <p class="hint" id="sizeInfo"></p>
-    <h2>Seed</h2>
-    <label title="Число, що визначає результат; -1 = випадкове">Число
-      <input type="number" id="seed" min="-1" step="1" title="Seed; -1 = випадкове"></label>
-    <div class="two"><button id="seedRand" title="Випадковий seed для кожної генерації (-1)">🎲 Випадковий</button><button id="seedLast" title="Підставити seed останньої картинки, щоб повторити її з іншими змінами">↺ З останньої</button></div>
-    <h2>Апскейл</h2>
-    <label title="Збільшення готової картинки з дорисуванням деталей (Hires. fix); 1× = вимкнено">Збільшення <span id="upV"></span>
-      <input type="range" id="upscale" min="1" max="2" step="0.05" title="Апскейл від 1.1× до 2×; 1× вимикає"></label>
-    <h2>ADetailer</h2>
-    <label class="chk" title="Автоматично знаходить обличчя й перемальовує його чіткіше"><input type="checkbox" id="adFace" title="ADetailer для обличчя"> Обличчя</label>
-    <label class="chk" title="Автоматично знаходить руки й виправляє їх"><input type="checkbox" id="adHands" title="ADetailer для рук"> Руки</label>
-  </aside>
+<dialog id="adDlg" class="help">
+  <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
+  <h2>ADetailer: теги</h2>
+  <p class="hint">Окремі промпти лише для виправлення обличчя. Можна лишити порожніми.</p>
+  <div class="field"><span class="lbl">Позитивний промпт ADetailer</span><textarea id="adP" rows="3" maxlength="1000" placeholder="напр. detailed eyes, smile" title="Теги, які додаються під час перемальовування обличчя"></textarea></div>
+  <div class="field"><span class="lbl">Негативний промпт ADetailer</span><textarea id="adN" rows="3" maxlength="1000" title="Чого уникати під час перемальовування обличчя"></textarea></div>
+</dialog>
 
-  <section class="content">
-    <div class="preview-wrap"><div class="preview" id="preview"><div class="pv-in" id="pvIn"></div><span class="pv-tag" id="pvTag"></span><button class="pv-full" id="btnFull" title="Показати картинку на весь екран (Esc виходить)">⛶</button></div></div>
-    <label class="field" title="Опис картинки англійською; у гнучкому режимі сюди додаються вибрані теги">Промпт
-      <textarea id="prompt" rows="4" maxlength="2000" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською); Ctrl+Enter запускає генерацію"></textarea></label>
-    <label class="field" title="Чого не має бути на картинці">Негативний промпт
-      <textarea id="neg" rows="2" maxlength="2000" title="Негативний промпт: чого уникати"></textarea></label>
+<div class="app" id="app">
+  <aside class="left" id="left" aria-label="Налаштування генерації">
+    <div class="mode-row">
+      <div class="seg" id="modes" role="group" aria-label="Режим">
+        <button id="modeBasic" title="Базовий режим: промпт, пропорції, апскейл, ADetailer, LoRA">Базовий</button>
+        <button id="modeFlex" title="Гнучкий режим: те саме плюс групи готових тегів">Гнучкий</button>
+      </div>
+      <div class="seg" id="views" role="group" aria-label="Що показувати в центрі" hidden>
+        <button id="viewImg" title="У центрі показувати картинку">Картинка</button>
+        <button id="viewTags" title="У центрі показувати групи тегів">Теги</button>
+      </div>
+    </div>
 
-    <section class="builder" id="builder" hidden aria-label="Групи тегів">
-      <div class="b-head"><button id="bToggle" class="min" title="Згорнути або розгорнути вікно з тегами">▾</button><b>Теги</b><input type="search" id="bSearch" placeholder="Пошук тегу, напр. ponytail" title="Пошук по всіх тегах (англійською або українською підказкою)"></div>
-      <div class="b-tabs" id="bTabs" role="tablist"></div>
-      <div class="b-body" id="bBody"></div>
+    <section class="blk">
+      <div class="field"><span class="lbl">Промпт</span>
+        <div class="ed" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" rows="4" maxlength="2000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
+        <div class="wbar" id="wP" hidden></div></div>
+      <div class="field"><span class="lbl">Негативний промпт</span>
+        <div class="ed" id="edN"><pre id="mN" aria-hidden="true"></pre><textarea id="neg" rows="3" maxlength="2000" spellcheck="false" title="Негативний промпт: чого уникати"></textarea></div>
+        <div class="wbar" id="wN" hidden></div></div>
     </section>
 
-    <div class="grid" id="grid"></div>
-    <div class="empty" id="empty">Тут з'являться готові картинки</div>
-  </section>
-</main>
+    <section class="blk">
+      <h2>Пропорції</h2>
+      <div class="chips" id="ratios"></div>
+      <button id="btnOrient" title="Перемкнути вертикальну й горизонтальну орієнтацію">⇄ Вертикально</button>
+      <label class="rng" title="Довга сторона картинки до апскейлу, кратна 64">Розмір (довга сторона) <span id="longV"></span>
+        <input type="range" id="long" step="64" title="Довга сторона в пікселях, крок 64"></label>
+      <p class="hint" id="sizeInfo"></p>
+      <label class="rng" title="Скільки кроків робить модель (2–12)">Кроки <span id="stV"></span>
+        <input type="range" id="steps" min="2" max="12" step="1" title="Кількість кроків (2–12)"></label>
+      <label class="rng" title="Збільшення готової картинки з дорисуванням деталей (Hires. fix); 1× = вимкнено">Апскейл <span id="upV"></span>
+        <input type="range" id="upscale" min="1" max="2" step="0.05" title="Апскейл до 2×; обмежений довгою стороною 2800 px"></label>
+      <p class="hint warn" id="upHint" hidden></p>
+      <label class="rng" title="Число, що визначає результат; -1 = випадкове">Seed
+        <input type="number" id="seed" min="-1" step="1" title="Seed; -1 = випадкове"></label>
+      <div class="two"><button id="seedRand" title="Випадковий seed для кожної генерації (-1)">🎲 Випадковий</button><button id="seedLast" title="Підставити seed останньої картинки">↺ З останньої</button></div>
+    </section>
 
-<div class="bar" id="bar">
-  <button class="btn-main" id="btnGo" title="Поставити задачу в чергу (Ctrl+Enter)">✨ Згенерувати</button>
-  <button id="btnSide" title="Сховати або показати панель параметрів, щоб картинка була більшою">Сховати параметри</button>
-  <button id="btnClear" title="Прибрати картинки зі списку на цій сторінці (на сервері вони лишаються 7 днів)">Очистити список</button>
-  <button id="btnClearPrompt" title="Очистити поле промпта">Очистити промпт</button>
+    <section class="blk">
+      <h2>ADetailer</h2>
+      <div class="ad-row"><label class="chk" title="Автоматично знаходить обличчя й перемальовує його чіткіше"><input type="checkbox" id="adOn" title="Увімкнути ADetailer для обличчя"> Обличчя</label>
+        <button id="adBtn" hidden title="Окремі позитивні й негативні теги для ADetailer">⚙ Теги</button></div>
+    </section>
+
+    <section class="blk">
+      <h2>LoRA <button class="link" id="loraManage" title="Відкрити вкладку LoRA: список, метадані, додавання">керувати</button></h2>
+      <div id="loraActive" class="lactive"></div>
+    </section>
+
+    <div class="go"><button class="btn-main" id="btnGo" title="Поставити задачу в чергу (Ctrl+Enter)">✨ Згенерувати</button>
+      <button id="btnClearPrompt" title="Очистити поле промпта">Очистити</button></div>
+  </aside>
+
+  <main class="center" id="center">
+    <nav class="ctabs" id="ctabs" role="tablist">
+      <button data-tab="gen" title="Картинка й теги">Генерація</button>
+      <button data-tab="lora" title="Список LoRA з ПК власника, метадані, додавання у генерацію">LoRA</button>
+      <button data-tab="hist" title="Усі згенеровані картинки">Історія</button>
+    </nav>
+
+    <section class="view" id="vGen">
+      <div class="preview-wrap" id="pvWrap"><div class="preview" id="preview"><div class="pv-in" id="pvIn"></div><span class="pv-tag" id="pvTag"></span><button class="pv-full" id="btnFull" title="Показати картинку на весь екран (Esc виходить)">⛶</button></div></div>
+      <section class="builder" id="builder" hidden aria-label="Групи тегів">
+        <div class="b-head"><b>Теги</b><input type="search" id="bSearch" placeholder="Пошук тегу, напр. ponytail" title="Пошук по всіх тегах"></div>
+        <div class="b-tabs" id="bTabs" role="tablist"></div>
+        <div class="b-body" id="bBody"></div>
+      </section>
+    </section>
+
+    <section class="view" id="vLora" hidden>
+      <div class="b-head"><b>LoRA на ПК</b><input type="search" id="lSearch" placeholder="Пошук LoRA" title="Пошук серед LoRA за назвою, тригер-словами, базовою моделлю"></div>
+      <p class="hint" id="lInfo"></p>
+      <div class="lgrid" id="lGrid"></div>
+    </section>
+
+    <section class="view" id="vHist" hidden>
+      <div class="b-head"><b>Історія</b><button id="btnClear" title="Прибрати картинки зі списку на цій сторінці (на сервері вони лишаються 7 днів)">Очистити список</button></div>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty">Тут з'являться готові картинки</div>
+    </section>
+  </main>
 </div>
 
+<div class="offline" id="offline" hidden><div><b>Сервер зараз не доступний</b><span>Комп'ютер із Stable Diffusion вимкнений або немає зв'язку. Спробуй пізніше.</span></div></div>
 <div class="toast" id="toast">Готово</div>
 
 <script src="./zb-ui.js"></script>
 <script src="./sd-client.js"></script>
+<script src="./prompt-tools.js"></script>
 <script src="./tags-data.js"></script>
+<script src="./editor.js"></script>
 <script src="./builder.js"></script>
+<script src="./loras.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

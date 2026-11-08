@@ -1,99 +1,160 @@
-// Віддалений SD: інтерфейс. Стан у localStorage (префікс sd_): токен входу, параметри, промпти, список задач.
+// Віддалений SD: стан, генерація, прогрес, історія, вхід. Стан у localStorage (sd_state2): токен, налаштування, промпти, LoRA, список задач.
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var C = window.SDClient, LS = 'sd_';
-  var D = { mode: 'basic', ratio: '9:16', orient: 'v', long: 1344, seed: -1, upscale: 1.65, adFace: true, adHands: false,
-    prompt: '', neg: '', sideOff: false, builderMin: false };
-  var S = Object.assign({ token: '', jobs: [] }, D), timers = {}, registerMode = false;
+  var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
+  var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
+  var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST };
+  var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
-  function load() { try { var x = JSON.parse(localStorage.getItem(LS + 'state') || '{}'); Object.keys(x).forEach(function (k) { if (k in S) S[k] = x[k]; }); } catch (e) { /* не критично */ } }
-  function save() { try { localStorage.setItem(LS + 'state', JSON.stringify(Object.assign({}, S, { jobs: S.jobs.slice(-60) }))); } catch (e) { /* не критично */ } }
-  function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2600); }
+  function load() {
+    try { var x = JSON.parse(localStorage.getItem(LS) || '{}'); Object.keys(x).forEach(function (k) { if (k in S) S[k] = x[k]; }); } catch (e) { /* не критично */ }
+    if (!S.token) { try { var old = JSON.parse(localStorage.getItem('sd_state') || '{}'); if (old.token) S.token = old.token; } catch (e) { /* не критично */ } }
+  }
+  function save() { try { localStorage.setItem(LS, JSON.stringify(Object.assign({}, S, { jobs: S.jobs.slice(-60).map(function (j) { var c = Object.assign({}, j); delete c.src; delete c.loading; delete c.dl; return c; }) }))); } catch (e) { /* не критично */ } }
+  function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 3200); }
   function api(path, opt) {
     opt = opt || {}; opt.headers = Object.assign({ 'x-token': S.token, 'content-type': 'application/json' }, opt.headers || {});
     return fetch('/api/sd/' + path, opt).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Помилка ' + r.status); return j; }); });
   }
-  function ping() { api('ping').then(function (p) { setPc(C.pcText(p)); }, function () { setPc(C.pcText(null)); }); }
-  function setPc(o) { var el = $('pcState'); el.className = 'pc ' + o.cls; el.textContent = o.text; }
 
-  // ---------- параметри й рамка-превʼю
+  // ---------- сервер увімкнений / недоступний
+  function setOnline(p) {
+    var o = C.pcText(p), el = $('pcState'); el.className = 'pc ' + o.cls; el.textContent = o.text;
+    document.body.classList.toggle('offline', !p || !p.online); $('offline').hidden = !!(p && p.online);
+  }
+  function ping() { api('ping').then(setOnline, function () { setOnline(null); }); }
+
+  // ---------- розмір, апскейл, перемикачі
   function dims() { return C.sizeFor(S.ratio, S.orient, S.long); }
+  function capUpscale(notify) {
+    var d = dims(), max = C.maxUpscale(d.w, d.h), hint = $('upHint');
+    $('upscale').max = max;
+    if (S.upscale > max + 1e-9) { S.upscale = max; if (notify) toast('Апскейл зменшено до ' + max + '×, щоб довга сторона не перевищила ' + C.FINAL_MAX + ' px'); }
+    var atMax = max < 2 && S.upscale >= max - 1e-9;
+    hint.hidden = !atMax; hint.textContent = atMax ? 'Це максимум для такого розміру: довга сторона результату ' + C.FINAL_MAX + ' px. Більше не варто, зображення ламається.' : '';
+  }
   function syncForm() {
+    capUpscale(false);
     var d = dims(), f = C.finalSize(d.w, d.h, S.upscale);
     document.querySelectorAll('#ratios button').forEach(function (b) { b.classList.toggle('on', b.dataset.r === S.ratio); });
-    document.querySelectorAll('#longs button').forEach(function (b) { b.classList.toggle('on', +b.dataset.l === S.long); });
     $('btnOrient').textContent = S.orient === 'v' ? '⇄ Вертикально' : '⇄ Горизонтально'; $('btnOrient').disabled = S.ratio === '1:1';
+    $('long').value = S.long; $('longV').textContent = S.long + ' px';
     $('sizeInfo').textContent = d.w + '×' + d.h + (S.upscale > 1 ? ' → ' + f.w + '×' + f.h : '');
-    $('seed').value = S.seed;
+    $('steps').value = S.steps; $('stV').textContent = S.steps;
     $('upscale').value = S.upscale; $('upV').textContent = S.upscale > 1 ? S.upscale + '×' : 'вимкнено';
-    $('adFace').checked = S.adFace; $('adHands').checked = S.adHands;
-    $('prompt').value = S.prompt; $('neg').value = S.neg;
-    $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
-    $('builder').hidden = S.mode !== 'flex'; $('builder').classList.toggle('min', S.builderMin); $('bToggle').textContent = S.builderMin ? '▸' : '▾';
-    document.body.classList.toggle('side-off', S.sideOff); $('btnSide').textContent = S.sideOff ? 'Показати параметри' : 'Сховати параметри';
+    $('seed').value = S.seed; $('adOn').checked = S.adOn; $('adBtn').hidden = !S.adOn;
     $('preview').style.setProperty('--ar', (d.w / d.h).toFixed(4)); $('pvTag').textContent = (S.upscale > 1 ? f.w + '×' + f.h : d.w + '×' + d.h) + ' · ' + S.ratio;
-    renderPreview();
+  }
+  function syncLayout() {
+    if (S.mode !== 'flex') S.view = 'img';
+    $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
+    $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
+    document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); });
+    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist';
+    var tags = S.mode === 'flex' && S.view === 'tags';
+    $('pvWrap').hidden = tags; $('builder').hidden = !tags;
+  }
+
+  // ---------- прогрес і картинки
+  function fmtPct(x) { return Math.round(x * 100) + '%'; }
+  function bar(frac, label) {
+    var w = document.createElement('div'); w.className = 'pg';
+    var t = document.createElement('div'); t.className = 'pl'; t.textContent = label;
+    var b = document.createElement('div'); b.className = 'pbar' + (frac == null ? ' ind' : ''); var i = document.createElement('i'); if (frac != null) i.style.width = fmtPct(frac); b.appendChild(i);
+    w.appendChild(t); w.appendChild(b); return w;
+  }
+  function stage(j) {   // реальний етап задачі
+    if (j.status === 'error') return { text: j.error || 'Помилка' };
+    if (j.status === 'queued') return { text: j.text || 'У черзі…', frac: null };
+    if (j.status === 'running') {
+      var p = j.progress || 0;
+      if (p >= 0.999) return { text: 'Передача готової картинки на сервер…', frac: null };
+      if (p >= 0.98 && j.adOn) return { text: 'Доопрацювання ADetailer…', frac: null };
+      return { text: 'Генерація на сервері: ' + fmtPct(p), frac: p };
+    }
+    if (j.status === 'done' && j.loading) return { text: 'Завантаження в браузер' + (j.dl != null ? ': ' + fmtPct(j.dl) : '…'), frac: j.dl };
+    return null;
+  }
+  function imgUrl(j) { return j.src || '/api/sd/image?id=' + j.id; }
+  function fetchImage(j) {   // справжнє завантаження в браузер із прогресом за байтами
+    if (j.src || j.loading) return; j.loading = true; j.dl = null;
+    fetch('/api/sd/image?id=' + j.id).then(function (r) {
+      if (!r.ok) throw new Error('image'); var total = +r.headers.get('content-length') || 0, type = r.headers.get('content-type') || 'image/webp';
+      if (!r.body || !r.body.getReader) return r.blob();
+      var rd = r.body.getReader(), parts = [], got = 0;
+      return (function pump() { return rd.read().then(function (d) {
+        if (d.done) return new Blob(parts, { type: type });
+        parts.push(d.value); got += d.value.length; j.dl = total ? Math.min(1, got / total) : null; renderPreview(); return pump();
+      }); })();
+    }).then(function (b) { j.src = URL.createObjectURL(b); j.loading = false; renderAll(); }, function () { j.loading = false; j.live = false; renderAll(); });
   }
   function renderPreview() {
     var box = $('pvIn'), j = S.jobs[S.jobs.length - 1]; box.textContent = '';
-    if (j && j.status === 'done') {
-      var im = document.createElement('img'); im.src = '/api/sd/image?id=' + j.id; im.alt = j.prompt; im.title = 'Відкрити в повному розмірі';
+    if (!j) { box.textContent = 'Так виглядатиме рамка картинки'; return; }
+    var st = stage(j);
+    if (j.status === 'done' && j.live && !j.src && !j.loading) fetchImage(j);
+    if (j.status === 'done' && (j.src || !j.live)) {
+      var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.title = 'Відкрити в повному розмірі';
       im.addEventListener('click', function () { window.open(im.src, '_blank'); }); box.appendChild(im);
-    } else box.textContent = j ? (j.status === 'error' ? (j.error || 'Помилка') : (j.text || 'Чекаю…')) : 'Так виглядатиме рамка картинки';
+    } else if (st && j.status === 'error') box.textContent = st.text;
+    else if (st) box.appendChild(bar(st.frac, st.text));
   }
-
-  // ---------- список задач
-  function render() {
+  function renderHistory() {
     var g = $('grid'); g.textContent = ''; $('empty').hidden = S.jobs.length > 0;
     S.jobs.slice().reverse().forEach(function (j) {
       var card = document.createElement('div'); card.className = 'card' + (j.status === 'error' ? ' err' : '');
-      var fr = document.createElement('div'); fr.className = 'frame';
-      if (j.status === 'done') {
-        var im = document.createElement('img'); im.src = '/api/sd/image?id=' + j.id; im.alt = j.prompt; im.loading = 'lazy'; im.title = 'Відкрити в повному розмірі';
+      var fr = document.createElement('div'), st = stage(j); fr.className = 'frame';
+      if (j.status === 'done' && (j.src || !j.live)) {
+        var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.loading = 'lazy'; im.title = 'Відкрити в повному розмірі';
         im.addEventListener('click', function () { window.open(im.src, '_blank'); });
         im.addEventListener('error', function () { fr.textContent = 'Картинка вже видалена з сервера'; }); fr.appendChild(im);
-      } else fr.textContent = j.status === 'error' ? (j.error || 'Помилка') : (j.text || 'Чекаю…');
+      } else if (st && st.frac !== undefined) fr.appendChild(bar(st.frac, st.text)); else fr.textContent = st ? st.text : '';
       var cap = document.createElement('div'); cap.className = 'cap';
       var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = j.prompt; pr.title = j.prompt;
       var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + (j.seed >= 0 ? ' · seed ' + j.seed : '');
       cap.appendChild(pr); cap.appendChild(meta);
       var acts = document.createElement('div'); acts.className = 'acts';
       var btn = function (label, title, fn) { var b = document.createElement('button'); b.textContent = label; b.title = title; b.addEventListener('click', fn); acts.appendChild(b); };
-      if (j.status === 'done') btn('Завантажити', 'Зберегти картинку на комп’ютер', function () { var a = document.createElement('a'); a.href = '/api/sd/image?id=' + j.id; a.download = C.fileName(j.prompt, j.seed); a.click(); });
+      if (j.status === 'done') btn('Завантажити', 'Зберегти картинку на комп’ютер', function () { var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); a.click(); });
       btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
-        Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.seed >= 0 ? j.seed : -1, upscale: j.upscale || 1, adFace: !!j.adFace, adHands: !!j.adHands });
-        syncForm(); save(); SDBuilder.refresh(); toast('Параметри підставлено');
+        Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.seed >= 0 ? j.seed : -1, upscale: j.upscale || 1, adOn: !!j.adOn, adPrompt: j.adPrompt || '', adNeg: j.adNeg || '', loras: JSON.parse(JSON.stringify(j.loras || [])) });
+        S.tab = 'gen'; fillEditors(); syncForm(); syncLayout(); SDLoras.render(); save(); toast('Параметри підставлено');
       });
-      btn('×', 'Прибрати зі списку', function () { S.jobs = S.jobs.filter(function (x) { return x.id !== j.id; }); save(); render(); renderPreview(); });
+      btn('×', 'Прибрати зі списку', function () { S.jobs = S.jobs.filter(function (x) { return x.id !== j.id; }); save(); renderAll(); });
       cap.appendChild(acts); card.appendChild(fr); card.appendChild(cap); g.appendChild(card);
     });
   }
+  function renderAll() { renderPreview(); renderHistory(); }
+
   function poll(job) {
     if (timers[job.id]) return;
     timers[job.id] = setInterval(function () {
       api('status?id=' + job.id).then(function (st) {
-        job.status = st.status; job.text = C.queueText(st); job.error = st.error;
+        var was = job.status; job.status = st.status; job.text = C.queueText(st); job.error = st.error;
+        if (st.progress != null) job.progress = Math.max(job.progress || 0, st.progress);
         if (st.info && st.info.seed != null) job.seed = st.info.seed;
-        if (st.status === 'done' || st.status === 'error') { clearInterval(timers[job.id]); delete timers[job.id]; save(); }
-        render(); renderPreview();
+        if (st.status === 'done' || st.status === 'error') { clearInterval(timers[job.id]); delete timers[job.id]; if (st.status === 'done' && was !== 'done') job.live = true; save(); }
+        renderAll();
       }, function (e) {
-        if (/не знайдено/.test(e.message)) { job.status = 'error'; job.error = e.message; clearInterval(timers[job.id]); delete timers[job.id]; save(); render(); renderPreview(); }
+        if (/не знайдено/.test(e.message)) { job.status = 'error'; job.error = e.message; clearInterval(timers[job.id]); delete timers[job.id]; save(); renderAll(); }
       });
-    }, 3000);
+    }, 1500);
   }
   function go() {
-    var prompt = S.prompt.trim(); if (!prompt) return toast('Напиши промпт');
-    var d = dims(), body = { prompt: prompt, negative: S.neg, width: d.w, height: d.h, seed: S.seed, upscale: S.upscale, adFace: S.adFace, adHands: S.adHands };
+    var text = S.prompt.trim(); if (!text) return toast('Напиши промпт');
+    var d = dims(), full = PT.joinPrompt(text, S.loras);
+    var body = { prompt: full, negative: S.neg, width: d.w, height: d.h, steps: S.steps, seed: S.seed, upscale: S.upscale, adFace: S.adOn, adPrompt: S.adOn ? S.adPrompt : '', adNeg: S.adOn ? S.adNeg : '' };
     $('btnGo').disabled = true;
     api('submit', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
-      var job = { id: r.id, status: 'queued', text: 'У черзі…', prompt: prompt, neg: S.neg, w: d.w, h: d.h, seed: S.seed, upscale: S.upscale, adFace: S.adFace, adHands: S.adHands };
-      S.jobs.push(job); save(); render(); renderPreview(); poll(job);
+      var job = { id: r.id, status: 'queued', text: 'У черзі…', progress: 0, prompt: text, neg: S.neg, loras: JSON.parse(JSON.stringify(S.loras)), w: d.w, h: d.h, seed: S.seed, upscale: S.upscale, adOn: S.adOn, adPrompt: S.adPrompt, adNeg: S.adNeg };
+      S.jobs.push(job); save(); S.tab = 'gen'; if (S.view === 'tags') S.view = 'img'; syncLayout(); renderAll(); poll(job);
     }, function (e) { toast(e.message); }).then(function () { $('btnGo').disabled = false; });
   }
 
   // ---------- вхід і реєстрація
   function started() {
-    document.body.classList.add('authed'); $('gate').hidden = true; ping();
+    document.body.classList.add('authed'); $('gate').hidden = true; ping(); SDLoras.load();
     S.jobs.forEach(function (j) { if (j.status === 'queued' || j.status === 'running') poll(j); });
   }
   function checkToken() {
@@ -115,41 +176,57 @@
     }, function (x) { err.textContent = x.message; });
   }
 
-  // ---------- події
+  // ---------- поля промпта
+  function fillEditors() { edP.set(S.prompt); edN.set(S.neg); }
+  function insertText(t) {
+    var cur = PT.segments(S.prompt).length ? S.prompt.replace(/,\s*$/, '') + ', ' : '';
+    S.prompt = cur + t; edP.set(S.prompt); save(); if (window.SDBuilder) SDBuilder.refresh(); toast('Додано в промпт: ' + t);
+  }
+
   function bind() {
-    var rs = $('ratios'), ls = $('longs');
-    C.RATIOS.forEach(function (r) { var b = document.createElement('button'); b.textContent = r; b.dataset.r = r; b.title = 'Пропорції ' + r; b.addEventListener('click', function () { S.ratio = r; syncForm(); save(); }); rs.appendChild(b); });
-    C.LONG_SIDES.forEach(function (l) { var b = document.createElement('button'); b.textContent = l; b.dataset.l = l; b.title = 'Довга сторона ' + l + ' px'; b.addEventListener('click', function () { S.long = l; syncForm(); save(); }); ls.appendChild(b); });
+    var rs = $('ratios');
+    C.RATIOS.forEach(function (r) { var b = document.createElement('button'); b.textContent = r; b.dataset.r = r; b.title = 'Пропорції ' + r; b.addEventListener('click', function () { S.ratio = r; capUpscale(true); syncForm(); save(); }); rs.appendChild(b); });
+    $('long').min = C.LONG_MIN; $('long').max = C.LONG_MAX;
+    $('long').addEventListener('input', function () { S.long = +this.value; capUpscale(true); syncForm(); save(); });
+    $('btnOrient').addEventListener('click', function () { S.orient = S.orient === 'v' ? 'h' : 'v'; syncForm(); save(); });
+    $('steps').addEventListener('input', function () { S.steps = +this.value; syncForm(); save(); });
+    $('upscale').addEventListener('input', function () { S.upscale = +this.value; syncForm(); save(); });
+    $('seed').addEventListener('input', function () { var v = Number(this.value); if (isFinite(v)) { S.seed = Math.min(4294967295, Math.max(-1, Math.round(v))); save(); } });
     $('seedRand').addEventListener('click', function () { S.seed = -1; syncForm(); save(); });
     $('seedLast').addEventListener('click', function () {
       var j = S.jobs.slice().reverse().filter(function (x) { return x.seed >= 0; })[0];
       if (!j) return toast('Ще немає готової картинки з seed'); S.seed = j.seed; syncForm(); save(); toast('Seed ' + j.seed + ' зафіксовано');
     });
-    $('btnOrient').addEventListener('click', function () { S.orient = S.orient === 'v' ? 'h' : 'v'; syncForm(); save(); });
-    [['seed', -1, 4294967295], ['upscale', 1, 2]].forEach(function (a) {
-      $(a[0]).addEventListener('input', function () { var v = Number(this.value); if (!isFinite(v)) return; S[a[0]] = Math.min(a[2], Math.max(a[1], v)); syncForm(); save(); });
-    });
-    ['adFace', 'adHands'].forEach(function (k) { $(k).addEventListener('change', function () { S[k] = this.checked; save(); }); });
-    $('prompt').addEventListener('input', function () { S.prompt = this.value; save(); SDBuilder.refresh(); });
-    $('neg').addEventListener('input', function () { S.neg = this.value; save(); });
-    $('modeBasic').addEventListener('click', function () { S.mode = 'basic'; syncForm(); save(); });
-    $('modeFlex').addEventListener('click', function () { S.mode = 'flex'; syncForm(); save(); SDBuilder.refresh(); });
-    $('bToggle').addEventListener('click', function () { S.builderMin = !S.builderMin; syncForm(); save(); });
-    $('btnSide').addEventListener('click', function () { S.sideOff = !S.sideOff; syncForm(); save(); });
+    $('adOn').addEventListener('change', function () { S.adOn = this.checked; syncForm(); save(); });
+    $('adBtn').addEventListener('click', function () { $('adP').value = S.adPrompt; $('adN').value = S.adNeg; $('adDlg').showModal(); });
+    $('adP').addEventListener('input', function () { S.adPrompt = this.value; save(); });
+    $('adN').addEventListener('input', function () { S.adNeg = this.value; save(); });
+    $('adDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+    $('modeBasic').addEventListener('click', function () { S.mode = 'basic'; syncLayout(); save(); });
+    $('modeFlex').addEventListener('click', function () { S.mode = 'flex'; syncLayout(); save(); SDBuilder.refresh(); });
+    $('viewImg').addEventListener('click', function () { S.view = 'img'; syncLayout(); save(); });
+    $('viewTags').addEventListener('click', function () { S.view = 'tags'; syncLayout(); save(); SDBuilder.refresh(); });
+    document.querySelectorAll('#ctabs button').forEach(function (b) { b.addEventListener('click', function () { S.tab = b.dataset.tab; syncLayout(); save(); }); });
+    $('loraManage').addEventListener('click', function () { S.tab = 'lora'; syncLayout(); save(); });
     $('btnFull').addEventListener('click', function () {
       var p = $('preview'); if (document.fullscreenElement) return document.exitFullscreen();
-      if (p.requestFullscreen) p.requestFullscreen().catch(function () { document.body.classList.toggle('big'); }); else document.body.classList.toggle('big');
+      if (p.requestFullscreen) p.requestFullscreen().catch(function () { /* без повного екрана */ });
     });
     $('btnGo').addEventListener('click', go);
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
-    $('btnClear').addEventListener('click', function () { S.jobs = []; save(); render(); renderPreview(); });
-    $('btnClearPrompt').addEventListener('click', function () { S.prompt = ''; $('prompt').value = ''; save(); SDBuilder.refresh(); });
+    $('btnClear').addEventListener('click', function () { S.jobs = []; save(); renderAll(); });
+    $('btnClearPrompt').addEventListener('click', function () { S.prompt = ''; edP.set(''); save(); if (window.SDBuilder) SDBuilder.refresh(); });
     $('gateForm').addEventListener('submit', submitGate);
     $('gateSwitch').addEventListener('click', function () { setMode(!registerMode); });
   }
 
-  load(); bind(); syncForm(); render();
-  SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; $('prompt').value = t; save(); SDBuilder.refresh(); } });
+  load();
+  edP = PromptEditor.create({ ta: $('prompt'), mirror: $('mP'), bar: $('wP'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.prompt = t; save(); if (window.SDBuilder) SDBuilder.refresh(); } });
+  edN = PromptEditor.create({ ta: $('neg'), mirror: $('mN'), bar: $('wN'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.neg = t; save(); } });
+  bind(); fillEditors(); syncForm(); syncLayout(); renderAll();
+  SDLoras.init({ get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
+  SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); } });
   checkToken();
-  setInterval(function () { if (S.token) ping(); }, 20000);
+  setInterval(function () { if (S.token) ping(); }, 15000);
+  S.jobs.forEach(function (j) { delete j.loading; });
 })();

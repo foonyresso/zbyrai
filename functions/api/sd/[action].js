@@ -16,11 +16,14 @@ export async function onRequest({ request, env, params }) {
     if (action === 'login' && method === 'POST') return login(request, env, db);
     if (action === 'me' && method === 'GET') return me(request, db);
     if (action === 'submit' && method === 'POST') return submit(request, db);
+    if (action === 'loras' && method === 'GET') return loras(request, db);
+    if (action === 'loras-sync' && method === 'POST') return workerOnly(request, env) || lorasSync(request, db);
     if (action === 'admin-list' && method === 'GET') return adminOnly(request, env) || adminList(db);
     if (action === 'admin-set' && method === 'POST') return adminOnly(request, env) || adminSet(request, db);
     if (action === 'status' && method === 'GET') return status(url, db);
     if (action === 'image' && method === 'GET') return image(url, db);
     if (action === 'next' && method === 'POST') return workerOnly(request, env) || next(db);
+    if (action === 'progress' && method === 'POST') return workerOnly(request, env) || progress(request, db);
     if (action === 'result' && method === 'POST') return workerOnly(request, env) || result(request, db);
     return J({ error: 'Невідома дія' }, 404);
   } catch (e) {
@@ -145,7 +148,9 @@ async function status(url, db) {
     const q = await db.prepare("SELECT COUNT(*) n FROM jobs WHERE status='queued' AND created < ?").bind(r.created).first();
     position = (q ? q.n : 0) + 1;
   }
-  return J({ status: r.status, position, error: r.error || '', info: r.info ? JSON.parse(r.info) : null });
+  let prog = null;
+  if (r.status === 'running') { const pr = await db.prepare('SELECT v FROM meta WHERE k=?').bind('p:' + id).first(); prog = pr ? pr.v / 1000 : 0; }
+  return J({ status: r.status, position, progress: prog, error: r.error || '', info: r.info ? JSON.parse(r.info) : null });
 }
 
 async function image(url, db) {
@@ -166,11 +171,37 @@ async function next(db) {
 async function result(request, db) {
   let b; try { b = await request.json(); } catch { return J({ error: 'Некоректний запит' }, 400); }
   const id = String(b.id || ''), t = now();
+  await db.prepare('DELETE FROM meta WHERE k=?').bind('p:' + id).run();
   if (b.error) {
     await db.prepare("UPDATE jobs SET status='error', error=?, updated=? WHERE id=?").bind(String(b.error).slice(0, 300), t, id).run();
     return J({ ok: true });
   }
   if (!b.image || b.image.length > 1.5e6) return J({ error: 'Картинка порожня або завелика (макс. ~1 МБ)' }, 400);
   await db.prepare("UPDATE jobs SET status='done', image=?, mime=?, info=?, updated=? WHERE id=?").bind(b.image, b.mime === 'image/png' ? 'image/png' : 'image/webp', JSON.stringify(b.info || {}), t, id).run();
+  return J({ ok: true });
+}
+
+async function loras(request, db) {
+  if (!(await authed(request, db))) return J({ error: 'Потрібно увійти' }, 401);
+  const r = await db.prepare('SELECT data FROM sd_loras ORDER BY name').all();
+  return J({ loras: (r.results || []).map((x) => { try { return JSON.parse(x.data); } catch { return null; } }).filter(Boolean) });
+}
+
+// Воркер надсилає повний список LoRA з папки Forge; відсутні на ПК видаляються
+async function lorasSync(request, db) {
+  const b = await body(request);
+  if (!b || !Array.isArray(b.loras) || b.loras.length > 500) return J({ error: 'Некоректний список' }, 400);
+  const items = b.loras.filter((l) => l && typeof l.name === 'string' && l.name && l.name.length < 200).map((l) => [l.name, JSON.stringify(l)]).filter((x) => x[1].length < 90000);
+  const st = [db.prepare('DELETE FROM sd_loras')].concat(items.map((x) => db.prepare('INSERT OR REPLACE INTO sd_loras (name,data) VALUES (?,?)').bind(x[0], x[1])));
+  await db.batch(st);
+  return J({ ok: true, count: items.length });
+}
+
+// Воркер передає реальний прогрес генерації (0…1) із Forge; зберігається в meta як проміле
+async function progress(request, db) {
+  const b = await body(request);
+  if (!b || !/^[0-9a-f-]{36}$/.test(String(b.id))) return J({ error: 'Некоректний запит' }, 400);
+  const v = Math.round(Math.min(1, Math.max(0, Number(b.p) || 0)) * 1000);
+  await db.prepare('INSERT INTO meta (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('p:' + b.id, v).run();
   return J({ ok: true });
 }

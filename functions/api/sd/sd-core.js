@@ -1,5 +1,5 @@
 // Чиста логіка «Віддаленого SD» (без Cloudflare-API): перевірка кодів, обмеження параметрів. Тести: sd-remote/test/sd-core.test.js
-export const LIMITS = { minSide: 256, maxSide: 1536, maxFinal: 3072, maxSteps: 40, maxCfg: 15, maxPrompt: 2000, maxQueuePerUser: 3, keepDays: 7, jobTimeoutMs: 10 * 60 * 1000, onlineMs: 60 * 1000 };
+export const LIMITS = { minSide: 256, maxSide: 1536, maxFinal: 2800, maxSteps: 12, maxCfg: 15, maxPrompt: 2000, maxQueuePerUser: 3, keepDays: 7, jobTimeoutMs: 10 * 60 * 1000, onlineMs: 60 * 1000 };
 
 // ACCESS_CODES = "логін:пароль,логін2:пароль2". Повертає логін або null.
 export function userOf(codes, login, pass) {
@@ -19,18 +19,23 @@ const str = (v, max) => String(v == null ? '' : v).slice(0, max);
 export function cleanParams(p) {
   p = p || {};
   const snap = (v) => Math.round(num(v, 512, LIMITS.minSide, LIMITS.maxSide) / 8) * 8;
+  const width = snap(p.width), height = snap(p.height);
+  // апскейл не може дати довгу сторону більшу за maxFinal (крок 0.05)
+  const upMax = Math.max(1, Math.floor(LIMITS.maxFinal / Math.max(width, height) * 20) / 20);
   return {
     prompt: str(p.prompt, LIMITS.maxPrompt).trim(),
     negative: str(p.negative, LIMITS.maxPrompt).trim(),
-    width: snap(p.width), height: snap(p.height),
-    // 0 = взяти кроки й CFG із worker.json на ПК (залежать від моделі)
+    width, height,
+    // 0 = значення за замовчуванням із воркера на ПК (CFG, Shift, семплер там)
     steps: p.steps ? Math.round(num(p.steps, 0, 1, LIMITS.maxSteps)) : 0,
     cfg: p.cfg ? Math.round(num(p.cfg, 0, 1, LIMITS.maxCfg) * 2) / 2 : 0,
     seed: Math.round(num(p.seed, -1, -1, 4294967295)),
     sampler: str(p.sampler, 40).trim(),
     scheduler: str(p.scheduler, 40).trim(),
-    upscale: Math.round(num(p.upscale, 1, 1, 2) * 20) / 20,
-    adFace: !!p.adFace, adHands: !!p.adHands,
+    upscale: Math.min(upMax, Math.round(num(p.upscale, 1, 1, 2) * 20) / 20),
+    adFace: !!p.adFace,
+    adPrompt: str(p.adPrompt, 1000).trim(),
+    adNeg: str(p.adNeg, 1000).trim(),
   };
 }
 

@@ -21,3 +21,6 @@ CREATE TABLE IF NOT EXISTS users (
   fails INTEGER NOT NULL DEFAULT 0, locked INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, login TEXT NOT NULL, legacy INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL);
+
+-- Список LoRA з ПК (воркер оновлює): назва, метадані з Civitai/безпечних файлів, мініатюра
+CREATE TABLE IF NOT EXISTS sd_loras (name TEXT PRIMARY KEY, data TEXT NOT NULL);
