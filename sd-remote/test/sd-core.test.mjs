@@ -18,7 +18,7 @@ test('cleanParams: кроки й cfg необов\u2019язкові (0 = з во
   assert.equal(p.steps, LIMITS.maxSteps); assert.equal(p.cfg, LIMITS.maxCfg); assert.equal(p.seed, -1);
 });
 test('cleanParams: апскейл 1–2, ADetailer', () => {
-  assert.equal(cleanParams({ upscale: 5 }).upscale, 2); assert.equal(cleanParams({ upscale: 0 }).upscale, 1); assert.equal(cleanParams({ upscale: 1.34 }).upscale, 1.3);
+  assert.equal(cleanParams({ upscale: 5 }).upscale, 2); assert.equal(cleanParams({ upscale: 0 }).upscale, 1); assert.equal(cleanParams({ upscale: 1.65 }).upscale, 1.65); assert.equal(cleanParams({ upscale: 1.34 }).upscale, 1.35);
   const p = cleanParams({ adFace: 1, adHands: 0 }); assert.equal(p.adFace, true); assert.equal(p.adHands, false);
   assert.ok(cleanParams({ width: 9999, upscale: 2 }).width * 2 <= LIMITS.maxFinal);
 });

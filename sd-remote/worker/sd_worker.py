@@ -8,8 +8,18 @@
 import base64, io, json, os, sys, time, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-cfg = {"site": "https://zbyrai.pages.dev", "token": "", "forge": "http://127.0.0.1:7860", "poll": 4, "steps": 25, "cfg": 7,
-       "hr_upscaler": "Lanczos", "hr_denoise": 0.4, "ad_face_model": "face_yolov8n.pt", "ad_hand_model": "hand_yolov8n.pt"}
+cfg = {
+    "site": "https://zbyrai.pages.dev", "token": "", "forge": "http://127.0.0.1:7860", "poll": 4,
+    # налаштування генерації за замовчуванням (модель anima_turbo); кожне можна змінити в worker.json
+    "steps": 8, "cfg": 1.4, "shift": 3, "sampler": "Euler a", "scheduler": "Beta",
+    # Hires. fix (апскейл): множник приходить із сайту
+    "hr_upscaler": "RealESRGAN_x4plus_anime_6B.pth", "hr_steps": 8, "hr_cfg": 1.4, "hr_shift": 8, "hr_denoise": 0.4,
+    # ADetailer
+    "ad_face_model": "face_yolov8n.pt", "ad_hand_model": "hand_yolov8n.pt",
+    "ad": {"ad_confidence": 0.75, "ad_dilate_erode": 4, "ad_mask_blur": 8, "ad_denoising_strength": 0.27,
+           "ad_inpaint_only_masked": True, "ad_inpaint_only_masked_padding": 56,
+           "ad_use_inpaint_width_height": True, "ad_inpaint_width": 1024, "ad_inpaint_height": 1024},
+}
 try:
     with open(os.path.join(HERE, "worker.json"), encoding="utf-8") as f:
         cfg.update(json.load(f))
@@ -34,22 +44,21 @@ def call(url, payload=None, token=None, timeout=30):
 def adetailer_args(p):
     units = []
     if p.get("adFace"):
-        units.append({"ad_model": cfg["ad_face_model"], "ad_confidence": 0.3})
+        units.append(dict(cfg["ad"], ad_model=cfg["ad_face_model"]))
     if p.get("adHands"):
-        units.append({"ad_model": cfg["ad_hand_model"], "ad_confidence": 0.3})
+        units.append(dict(cfg["ad"], ad_model=cfg["ad_hand_model"]))
     return [True, False] + units if units else None
 
 
 def forge_body(p, with_ad=True):
     body = {"prompt": p["prompt"], "negative_prompt": p.get("negative", ""), "width": p["width"], "height": p["height"],
-            "steps": p.get("steps") or cfg["steps"], "cfg_scale": p.get("cfg") or cfg["cfg"], "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1}
-    if p.get("sampler"):
-        body["sampler_name"] = p["sampler"]
-    if p.get("scheduler"):
-        body["scheduler"] = p["scheduler"]
+            "steps": p.get("steps") or cfg["steps"], "cfg_scale": p.get("cfg") or cfg["cfg"], "distilled_cfg_scale": cfg["shift"],
+            "sampler_name": p.get("sampler") or cfg["sampler"], "scheduler": p.get("scheduler") or cfg["scheduler"],
+            "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1}
     if p.get("upscale", 1) > 1:  # апскейл = Hires. fix із потрібним множником
         body.update({"enable_hr": True, "hr_scale": p["upscale"], "hr_upscaler": cfg["hr_upscaler"],
-                     "denoising_strength": cfg["hr_denoise"], "hr_second_pass_steps": 0})
+                     "hr_second_pass_steps": cfg["hr_steps"], "hr_cfg": cfg["hr_cfg"], "hr_distilled_cfg": cfg["hr_shift"],
+                     "denoising_strength": cfg["hr_denoise"], "hr_additional_modules": ["Use same choices"]})
     ad = adetailer_args(p) if with_ad else None
     if ad:
         body["alwayson_scripts"] = {"ADetailer": {"args": ad}}

@@ -25,7 +25,7 @@
 - Оновити теги з Кубика промптів: `node tools/build-sd-tags.mjs` (перезаписує `tags-data.js`).
 
 ## Для апскейлу й ADetailer на ПК
-**Кроки й CFG** на сайті не показуються: їх задає `worker.json` на ПК (`steps`, `cfg`; для turbo-моделей, напр. `10` і `1.5`).
+**Кроки, CFG, семплер, Shift і параметри Hires/ADetailer** на сайті не показуються: за замовчуванням їх задає `sd_worker.py` (Steps 8, Euler a, Beta, CFG 1.4, Shift 3; Hires: RealESRGAN_x4plus_anime_6B, 8 кроків, CFG 1.4, Shift 8, denoise 0.4; ADetailer face 0.75/0.27). Будь-яке значення можна змінити в `worker.json`. На сайті крутяться лише розмір, апскейл, seed і ADetailer.
 Апскейл працює через Hires. fix у Forge (апскейлер за замовчуванням `Lanczos`, змінюється в `worker.json`: `hr_upscaler`, `hr_denoise`). ADetailer потребує встановленого розширення ADetailer у Forge Neo; назви моделей у `worker.json` (`ad_face_model`, `ad_hand_model`, типово `face_yolov8n.pt` і `hand_yolov8n.pt`). Якщо ADetailer не спрацює, воркер сам повторить генерацію без нього.
 
 ## Обмеження

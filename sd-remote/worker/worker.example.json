@@ -1,7 +1,5 @@
 {
   "site": "https://zbyrai.pages.dev",
   "token": "ТУТ_ТОЙ_САМИЙ_WORKER_TOKEN_ЩО_Й_У_CLOUDFLARE",
-  "forge": "http://127.0.0.1:7860",
-  "steps": 10,
-  "cfg": 1.5
+  "forge": "http://127.0.0.1:7860"
 }
