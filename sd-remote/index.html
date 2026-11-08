@@ -187,6 +187,8 @@
       <div class="b-head"><b>Картинка → промпт</b><span class="hint">Завантаж картинку нижче, скопіюй отриманий промпт (кнопка копіювання на тому сайті) і перенеси сюди.</span></div>
       <div class="i2p-bar">
         <label class="vf" title="Що робити, коли промпт готовий (його передає скрипт з vheer.com)">Коли промпт готовий: <select id="i2pMode"><option value="replace">замінити промпт</option><option value="append">додати до промпта</option><option value="none">лише показати</option></select></label>
+        <label class="chk" id="i2pAutoLbl" title="Скопіюй промпт кнопкою Copy на тому сайті й клацни будь-де на цій сторінці: промпт сам вставиться в поле (браузер один раз запитає дозвіл на буфер обміну)"><input type="checkbox" id="i2pAuto"> Автовставка з буфера</label>
+        <label class="chk" title="Темна тема для вбудованого сайту через CSS-фільтр (без розширень). Картинка-прев'ю на тому сайті при цьому теж інвертується, на результат це не впливає"><input type="checkbox" id="i2pDark"> Темна тема</label>
         <button id="i2pUndo" title="Повернути промпт, який був до автоматичної вставки" disabled>↶ Повернути попередній</button>
         <span class="hint" id="i2pStatus">Скрипт: перевіряю…</span>
       </div>
