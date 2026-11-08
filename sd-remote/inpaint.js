@@ -182,8 +182,9 @@
   }
 
   window.SDInp = {
-    open: enter, refresh: refresh, run: go, isBusy: function () { return sending || !!(cur && pendingFor(cur.id)); },
+    open: enter, refresh: refresh, run: go, isBusy: function () { return !host ? false : sending || !!(cur && pendingFor(cur.id)); },
     show: function () {
+      if (!host) return;
       recent(); strip(true); busy();
       if (!cur && host.state.inp.src) { var j = jobById(host.state.inp.src); if (j && j.status === 'done') { if (chain().indexOf(j.id) < 0) host.state.inp.chain = [j.id]; select(j, false); } }
     },
