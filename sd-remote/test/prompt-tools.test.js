@@ -17,10 +17,21 @@ test('setWeight: точна вага, 1.0 знімає дужки, межі 0.1�
   r = P.setWeight(r.text, r.start, r.end, 1); assert.equal(r.text, '1girl, long hair');
   assert.equal(P.setWeight('cat', 0, 3, 0).text, '(cat:0.1)'); assert.equal(P.setWeight('cat', 0, 3, 9).text, '(cat:5)');
 });
-test('setWeight: кілька тегів разом; LoRA не чіпається; порожнє виділення', () => {
+test('setWeight: кілька тегів — одна спільна група; LoRA окремо', () => {
   const t = 'a, b, <lora:x:0.5>, c'; const r = P.setWeight(t, 0, t.length, 1.2);
-  assert.equal(r.text, '(a:1.2), (b:1.2), <lora:x:0.5>, (c:1.2)');
+  assert.equal(r.text, '(a, b:1.2), <lora:x:0.5>, (c:1.2)');
   assert.equal(P.setWeight('a, b', 1, 1, 1.2), null); assert.equal(P.setWeight('<lora:x:1>', 0, 10, 1.2), null);
+});
+test('setWeight: кілька тегів збираються в одну групу, повторна зміна й розгрупування', () => {
+  const t = '1boy, elf, pointy ears, long ears, red dress';
+  let r = P.setWeight(t, t.indexOf('elf'), t.indexOf(', red'), 1.6);
+  assert.equal(r.text, '1boy, (elf, pointy ears, long ears:1.6), red dress');
+  r = P.setWeight(r.text, r.start, r.end, 0.8); assert.equal(r.text, '1boy, (elf, pointy ears, long ears:0.8), red dress');
+  r = P.setWeight(r.text, r.start, r.end, 1); assert.equal(r.text, '1boy, elf, pointy ears, long ears, red dress');
+});
+test('setWeight: окремі старі ваги переписуються спільною', () => {
+  const t = '(elf:1.6), (pointy ears:1.6), long ears'; const r = P.setWeight(t, 0, t.length, 1.3);
+  assert.equal(r.text, '(elf, pointy ears, long ears:1.3)');
 });
 test('selectionWeight: поточна вага першого тегу', () => {
   assert.equal(P.selectionWeight('(cat:1.7), dog', 0, 5), 1.7); assert.equal(P.selectionWeight('cat', 0, 3), 1); assert.equal(P.selectionWeight('<lora:x:1>', 0, 10), null);

@@ -6,7 +6,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var I = window.SDInpaint, V = window.SDViewer, PT = window.PromptTools;
   var host = null, st = null, cur = null, wrap = null, im = null, mk = null, ctx = null, w = 0, h = 0, tool = 'brush', size = 40, hist = [], infoT = 0;
-  var cmpOn = false, cmpPct = 50, cmpEl = null, cmpImg = null, handle = null, lblL = null, lblR = null, sig = '', notified = {}, cursor = null;
+  var sending = false, cmpOn = false, cmpPct = 50, cmpEl = null, cmpImg = null, handle = null, lblL = null, lblR = null, sig = '', notified = {}, cursor = null;
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   var chain = function () { return host.state.inp.chain; };
@@ -135,7 +135,7 @@
   }
   function busy() {   // стара картинка лишається, поверх неї індикатор
     var p = cur ? pendingFor(cur.id) : null, o = $('inpBusy');
-    o.hidden = !p; o.textContent = ''; $('inpGo').disabled = !!p;
+    o.hidden = !p; o.textContent = ''; host.updateGo();
     if (p) { var n = host.progressNode(p); if (n) o.appendChild(n); }
   }
   function recent() {
@@ -162,26 +162,27 @@
   }
 
   function go() {
+    if (sending) return;
     if (!cur || !mk) return host.toast('Спершу обери картинку (кнопка «Перемалювати» на картинці)');
     var d = ctx.getImageData(0, 0, w, h), b = I.maskBBox(d.data, w, h);
     if (!b) return host.toast('Зафарбуй ділянку для перемалювання');
     var z = I.inpaintSize(b, w, h), px = new Uint8ClampedArray(d.data); I.toBinaryMask(px);
     var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').putImageData(new ImageData(px, w, h), 0, 0);
-    var src = cur; $('inpGo').disabled = true;
+    var src = cur; sending = true; host.updateGo();
     c.toBlob(function (blob) {
       var fr = new FileReader();
       fr.onload = function () {
         var mask = String(fr.result).split(',')[1], S = host.state, text = $('inpPrompt').value.trim() || src.prompt || '', neg = $('inpNeg').value.trim() || S.neg;
         host.enqueue({ kind: 'inpaint', prompt: PT.joinPrompt(text, S.loras), negative: neg, steps: S.steps, seed: -1, srcId: src.id, mask: mask, denoise: S.inp.denoise, width: z.w, height: z.h, padding: z.padding, blur: 8 },
           { kind: 'inpaint', srcId: src.id, prompt: text, neg: neg, loras: JSON.parse(JSON.stringify(S.loras)), w: w, h: h, upscale: 1, adOn: false, denoise: S.inp.denoise, work: z.w + '×' + z.h }, { stay: true })
-          .then(function () { busy(); strip(true); }, function () { busy(); });
+          .then(function () { sending = false; busy(); strip(true); }, function () { sending = false; busy(); });
       };
       fr.readAsDataURL(blob);
     }, 'image/png');
   }
 
   window.SDInp = {
-    open: enter, refresh: refresh,
+    open: enter, refresh: refresh, run: go, isBusy: function () { return sending || !!(cur && pendingFor(cur.id)); },
     show: function () {
       recent(); strip(true); busy();
       if (!cur && host.state.inp.src) { var j = jobById(host.state.inp.src); if (j && j.status === 'done') { if (chain().indexOf(j.id) < 0) host.state.inp.chain = [j.id]; select(j, false); } }
@@ -192,12 +193,13 @@
       $('inpDn').addEventListener('input', function () { S.inp.denoise = +this.value; $('inpDnV').textContent = this.value; host.save(); });
       var mkEd = function (ta, mi, bar, key) { var e = window.PromptEditor.create({ ta: $(ta), mirror: $(mi), bar: $(bar), onInput: function (t) { S.inp[key] = t; host.save(); } }); e.set(S.inp[key]); $(ta).value = S.inp[key]; };
       mkEd('inpPrompt', 'mI', 'wI', 'prompt'); mkEd('inpNeg', 'mIN', 'wIN', 'neg');
+      $('inpPrompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
       if (window.SDAutocomplete) { SDAutocomplete.attach($('inpPrompt')); SDAutocomplete.attach($('inpNeg')); }
       cursor = el('div', 'brushcur'); cursor.hidden = true; $('inpStage').parentNode.appendChild(cursor);
       var stageBox = $('inpStage'); stageBox.addEventListener('pointermove', moveCursor); stageBox.addEventListener('pointerleave', hideCursor); stageBox.addEventListener('wheel', function (e) { setTimeout(function () { moveCursor(e); }, 0); }, { passive: true });
       document.querySelectorAll('#inpToolSeg button').forEach(function (b) { b.addEventListener('click', function () { pick(b.dataset.t); }); });
       $('inpBrush').addEventListener('input', function () { size = +this.value; });
-      $('inpUndo').addEventListener('click', undo); $('inpClear').addEventListener('click', clearMask); $('inpInvert').addEventListener('click', invert); $('inpGo').addEventListener('click', go);
+      $('inpUndo').addEventListener('click', undo); $('inpClear').addEventListener('click', clearMask); $('inpInvert').addEventListener('click', invert);
       $('inpCmp').addEventListener('click', function () { cmpOn = !cmpOn; if (cmpOn && !pair()) { cmpOn = false; return host.toast('Для порівняння потрібні щонайменше дві версії: перемалюй картинку хоча б раз'); } applyCompare(); strip(true); });
       document.addEventListener('keydown', function (e) { if (!$('vInp').hidden && (e.ctrlKey || e.metaKey) && (window.zbKey ? window.zbKey(e) : e.key) === 'z' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); undo(); } });
     },

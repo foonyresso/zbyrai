@@ -49,15 +49,26 @@
   // Поточна вага виділених тегів (перший) або null
   function selectionWeight(text, a, b) { var l = selected(text, a, b); return l.length ? l[0].w : null; }
 
-  // Виставити вагу w усім виділеним тегам. Повертає {text, start, end} (нове виділення) або null
+  // Виставити вагу w виділеним тегам. Суміжні теги об'єднуються в ОДНУ групу з однією вагою: «(a, b, c:1.4)»;
+  // стара вага окремих тегів чи групи замінюється; вага 1.0 розгруповує в прості теги; <lora:…> лишаються як є.
+  // Повертає {text, start, end} (нове виділення) або null
   function setWeight(text, a, b, w) {
-    var segs = selected(text, a, b);
-    if (!segs.length) return null;
-    var out = '', pos = 0, start = -1, end = 0;
-    segs.forEach(function (s) {
-      out += text.slice(pos, s.cs); if (start < 0) start = out.length;
-      out += weighted(s.tag, w); end = out.length; pos = s.ce;
+    if (!(b > a)) return null;
+    var all = segments(text).filter(function (s) { return s.cs < b && s.ce > a; });
+    if (!all.some(function (s) { return weightOf(text.slice(s.cs, s.ce)) != null; })) return null;
+    w = clamp(w, WMIN, WMAX);
+    var out = '', pos = 0, start = -1, end = 0, run = [];
+    function inner(t) { var p = parseTag(t); return p.kind === 'w' ? p.inner : t; }
+    function flush() {
+      if (!run.length) return;
+      var first = run[0], last = run[run.length - 1], tags = run.map(function (s) { return inner(text.slice(s.cs, s.ce)); }).join(', ');
+      out += text.slice(pos, first.cs); if (start < 0) start = out.length;
+      out += Math.abs(w - 1) < 1e-9 ? tags : '(' + tags + ':' + fmt(w) + ')'; end = out.length; pos = last.ce; run = [];
+    }
+    all.forEach(function (s) {
+      if (parseTag(text.slice(s.cs, s.ce)).kind === 'lora') { flush(); out += text.slice(pos, s.cs); if (start < 0) start = out.length; out += text.slice(s.cs, s.ce); end = out.length; pos = s.ce; } else run.push(s);
     });
+    flush();
     return { text: out + text.slice(pos), start: start, end: end };
   }
 

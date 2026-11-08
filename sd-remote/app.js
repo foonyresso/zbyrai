@@ -52,7 +52,7 @@
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
     $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
     document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); });
-    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show();
+    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show(); updateGo();
     var tags = S.mode === 'flex' && S.view === 'tags';
     $('pvWrap').hidden = tags; $('builder').hidden = !tags;
   }
@@ -173,13 +173,23 @@
       syncLayout(); renderAll(); poll(job);
     }, function (e) { toast(e.message); throw e; });
   }
+  var submitting = false;
+  // Кнопка внизу ліворуч одна: на вкладці «Перемалювання» перемальовує, на інших генерує
+  function updateGo() {
+    var inp = S.tab === 'inp', b = $('btnGo');
+    b.textContent = inp ? '🖌 Перемалювати' : '✨ Згенерувати';
+    b.title = inp ? 'Поставити перемалювання в чергу (Ctrl+Enter)' : 'Поставити задачу в чергу (Ctrl+Enter)';
+    b.disabled = submitting || (inp && !!window.SDInp && SDInp.isBusy());
+    $('btnClearPrompt').title = inp ? 'Очистити промпт перемалювання' : 'Очистити поле промпта';
+  }
   function go() {
+    if (S.tab === 'inp') return SDInp.run();
     var text = S.prompt.trim(); if (!text) return toast('Напиши промпт');
     var d = dims(), full = PT.joinPrompt(text, S.loras);
     var body = { prompt: full, negative: S.neg, width: d.w, height: d.h, steps: S.steps, seed: S.seed, upscale: S.upscale, adFace: S.adOn, adPrompt: S.adOn ? S.adPrompt : '', adNeg: S.adOn ? S.adNeg : '' };
-    $('btnGo').disabled = true;
+    submitting = true; updateGo();
     enqueue(body, { prompt: text, neg: S.neg, loras: JSON.parse(JSON.stringify(S.loras)), w: d.w, h: d.h, upscale: S.upscale, adOn: S.adOn, adPrompt: S.adPrompt, adNeg: S.adNeg })
-      .then(function () { $('btnGo').disabled = false; }, function () { $('btnGo').disabled = false; });
+      .then(function () { submitting = false; updateGo(); }, function () { submitting = false; updateGo(); });
   }
 
   // ---------- вхід і реєстрація
@@ -257,7 +267,7 @@
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
     $('btnClear').addEventListener('click', function () { S.jobs = []; save(); renderAll(); });
     $('negReset').addEventListener('click', function () { S.neg = NEG; edN.set(NEG); save(); toast('Негативний промпт скинуто до стандартного'); });
-    $('btnClearPrompt').addEventListener('click', function () { S.prompt = ''; edP.set(''); save(); if (window.SDBuilder) SDBuilder.refresh(); });
+    $('btnClearPrompt').addEventListener('click', function () { if (S.tab === 'inp') { $('inpPrompt').value = ''; $('inpPrompt').dispatchEvent(new Event('input', { bubbles: true })); return; } S.prompt = ''; edP.set(''); save(); if (window.SDBuilder) SDBuilder.refresh(); });
     $('gateForm').addEventListener('submit', submitGate);
     $('gateSwitch').addEventListener('click', function () { setMode(!registerMode); });
   }
@@ -271,7 +281,7 @@
   SDLoras.init({ state: S, get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
   SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },
     colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
-  SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
+  SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
   SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
   checkToken();
   setInterval(function () { if (S.token) ping(); }, 15000);
