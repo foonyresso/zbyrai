@@ -55,6 +55,7 @@
     top.appendChild(btn('100%', 'Справжній розмір', function () { st.actual(); }));
     top.appendChild(zoomLbl);
     top.appendChild(el('span', 'grow'));
+    if (o.onInpaint) top.appendChild(btn('🖌 Перемалювати', 'Зафарбувати ділянку цієї картинки й перемалювати її', function () { close(); o.onInpaint(); }));
     top.appendChild(btn('✎ Редагувати', 'Відкрити редактор: кадрування, малювання, текст, поворот, корекція, з відміною дій', function () {
       if (!window.SDImageEdit) return; SDImageEdit.open(img, { name: o.name, onSaved: o.onSaved, parent: root });
     }, 'ed-btn'));

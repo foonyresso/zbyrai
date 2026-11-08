@@ -1,5 +1,5 @@
 // Чиста логіка «Віддаленого SD» (без Cloudflare-API): перевірка кодів, обмеження параметрів. Тести: sd-remote/test/sd-core.test.js
-export const LIMITS = { minSide: 256, maxSide: 1536, maxFinal: 2800, maxSteps: 12, maxCfg: 15, maxPrompt: 2000, maxQueuePerUser: 3, keepDays: 7, maxImagesPerUser: 40, jobTimeoutMs: 10 * 60 * 1000, onlineMs: 60 * 1000 };
+export const LIMITS = { minSide: 256, maxSide: 1536, maxFinal: 2800, maxSteps: 12, maxMask: 700000, maxCfg: 15, maxPrompt: 2000, maxQueuePerUser: 3, keepDays: 7, maxImagesPerUser: 40, jobTimeoutMs: 10 * 60 * 1000, onlineMs: 60 * 1000 };
 
 // ACCESS_CODES = "логін:пароль,логін2:пароль2". Повертає логін або null.
 export function userOf(codes, login, pass) {
@@ -16,8 +16,23 @@ export function userOf(codes, login, pass) {
 const num = (v, def, lo, hi) => { v = Number(v); if (!Number.isFinite(v)) v = def; return Math.min(hi, Math.max(lo, v)); };
 const str = (v, max) => String(v == null ? '' : v).slice(0, max);
 
+// Перемалювання: посилання на вихідну картинку (srcId на сервері), чорно-біла маска (base64 PNG), денойз 0.05–1, розмір обробки кратний 64
+function cleanInpaint(p) {
+  const side = (v) => Math.min(1536, Math.max(512, Math.round(num(v, 1024, 512, 1536) / 64) * 64));
+  return {
+    kind: 'inpaint',
+    prompt: str(p.prompt, LIMITS.maxPrompt).trim(), negative: str(p.negative, LIMITS.maxPrompt).trim(),
+    steps: p.steps ? Math.round(num(p.steps, 0, 1, LIMITS.maxSteps)) : 0, seed: Math.round(num(p.seed, -1, -1, 4294967295)),
+    srcId: /^[0-9a-f-]{36}$/.test(String(p.srcId)) ? String(p.srcId) : '',
+    mask: /^[A-Za-z0-9+/=]+$/.test(String(p.mask)) && String(p.mask).length <= LIMITS.maxMask ? String(p.mask) : '',
+    denoise: Math.round(num(p.denoise, 0.5, 0.05, 1) * 20) / 20, width: side(p.width), height: side(p.height),
+    padding: Math.round(num(p.padding, 64, 0, 256) / 8) * 8, blur: Math.round(num(p.blur, 8, 0, 64)),
+  };
+}
+
 export function cleanParams(p) {
   p = p || {};
+  if (p.kind === 'inpaint') return cleanInpaint(p);
   const snap = (v) => Math.round(num(v, 512, LIMITS.minSide, LIMITS.maxSide) / 8) * 8;
   const width = snap(p.width), height = snap(p.height);
   // апскейл не може дати довгу сторону більшу за maxFinal (крок 0.05)

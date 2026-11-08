@@ -130,6 +130,11 @@ async function submit(request, db) {
   if (!b) return J({ error: 'Некоректний запит' }, 400);
   const p = cleanParams(b);
   if (!p.prompt) return J({ error: 'Напиши промпт' }, 400);
+  if (p.kind === 'inpaint') {   // вихідна картинка має бути твоєю й ще лежати на сервері
+    if (!p.mask || !p.srcId) return J({ error: 'Зафарбуй ділянку для перемалювання' }, 400);
+    const src = await db.prepare('SELECT user, image IS NOT NULL AS has FROM jobs WHERE id=?').bind(p.srcId).first();
+    if (!src || src.user !== user || !src.has) return J({ error: 'Вихідну картинку не знайдено: вона могла бути видалена з сервера (лишаються останні 40)' }, 400);
+  }
   const t = now();
   await db.prepare('DELETE FROM jobs WHERE created < ?').bind(t - LIMITS.keepDays * 864e5).run();
   const c = await db.prepare("SELECT COUNT(*) n FROM jobs WHERE user=? AND status IN ('queued','running')").bind(user).first();
