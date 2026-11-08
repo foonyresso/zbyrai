@@ -76,7 +76,7 @@
   function render() { renderActive(); renderManager(); }
   window.SDLoras = {
     DEFAULT_LIST: Object.keys(DEFAULTS).map(function (n) { return { name: n, w: DEFAULTS[n] }; }),
-    defaultWeight: defaultWeight, render: render,
+    defaultWeight: defaultWeight, render: render, names: function () { return known.map(function (k) { return k.name; }); },
     init: function (h) { host = h; $('lSearch').addEventListener('input', renderManager); render(); },
     load: function () { host.api('loras').then(function (r) { known = r.loras || []; render(); }, function () { /* без списку */ }); },
   };
