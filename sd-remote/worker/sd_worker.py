@@ -5,7 +5,7 @@
 
 Запуск (з папки Forge, venv-Python):  venv\\Scripts\\python.exe sd_worker.py
 Налаштування: змінні середовища SD_SITE, SD_TOKEN, SD_FORGE або файл worker.json поруч зі скриптом."""
-import base64, hashlib, io, json, os, re, sys, threading, time, urllib.request, urllib.error
+import base64, hashlib, io, json, os, re, shutil, sys, textwrap, threading, time, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 cfg = {
@@ -57,9 +57,14 @@ def log(msg, color=None, icon="· "):
     print("%s %s%s" % (paint(stamp(), "dim"), icon, paint(msg, color)), flush=True)
 
 
-def detail(label, value, color=None):
-    """Рядок-деталь під подією, вирівняний під текст."""
-    print("%s %s %s" % (" " * 22, paint(label.ljust(11), "dim"), paint(value, color)), flush=True)
+def detail(label, value, color=None, wrap=True):
+    """Рядок-деталь під подією: довгий текст переноситься за шириною вікна з відступом, а не на початок рядка."""
+    pad, lw = " " * 22, 13
+    width = max(40, shutil.get_terminal_size((120, 30)).columns - len(pad) - lw - 2)
+    lines = (textwrap.wrap(str(value), width=width, break_long_words=True, break_on_hyphens=False) if wrap else [str(value)]) or [""]
+    print("%s %s %s" % (pad, paint(label.ljust(lw), "dim"), paint(lines[0], color)), flush=True)
+    for extra in lines[1:]:
+        print("%s %s %s" % (pad, " " * lw, paint(extra, color)), flush=True)
 
 
 def short(t, n=110):
@@ -505,7 +510,7 @@ def job_start(job):
 
 def job_done(job, t0, img, mime, seed, infotext, saved, outdir):
     log("Готово за %d с  ·  seed %s" % (time.time() - t0, seed), "green", "✔ ")
-    detail("Файл", saved or "не знайдено (папка Forge: %s)" % (outdir or "невідома"), None if saved else "yellow")
+    detail("Файл", saved or "не знайдено (папка Forge: %s)" % (outdir or "невідома"), None if saved else "yellow", wrap=False)
     detail("На сайт", "%d КБ · %s" % (len(img) * 3 // 4 // 1024, mime.split("/")[-1].upper()))
     lines = [l for l in str(infotext).strip().splitlines() if l.strip()]
     if lines:
