@@ -93,8 +93,9 @@
   }
   function renderPreview() {
     var box = $('pvIn'), j = S.jobs[S.jobs.length - 1]; box.textContent = '';
-    if (!j) { box.textContent = 'Так виглядатиме рамка картинки'; return; }
+    if (!j) { $('btnSave').disabled = true; box.textContent = 'Так виглядатиме рамка картинки'; return; }
     var st = stage(j);
+    $('btnSave').disabled = !(j.status === 'done' && (j.src || !j.live));
     if (j.status === 'done' && j.live && !j.src && !j.loading) fetchImage(j);
     if (j.status === 'done' && (j.src || !j.live)) {
       var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.title = 'Відкрити: зум, редагування';
@@ -236,6 +237,7 @@
       var p = $('preview'); if (document.fullscreenElement) return document.exitFullscreen();
       if (p.requestFullscreen) p.requestFullscreen().catch(function () { /* без повного екрана */ });
     });
+    $('btnSave').addEventListener('click', function () { var j = S.jobs[S.jobs.length - 1]; if (!j || j.status !== 'done') return toast('Картинка ще не готова'); var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); document.body.appendChild(a); a.click(); a.remove(); });
     $('btnLog').addEventListener('click', function () { openLog(S.jobs[S.jobs.length - 1]); });
     $('logCopy').addEventListener('click', function () { var t = $('logPre').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Лог скопійовано'); }, function () { toast('Не вдалося скопіювати'); }); });
     $('logDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
