@@ -5,7 +5,7 @@
 
 Запуск (з папки Forge, venv-Python):  venv\\Scripts\\python.exe sd_worker.py
 Налаштування: змінні середовища SD_SITE, SD_TOKEN, SD_FORGE або файл worker.json поруч зі скриптом."""
-import base64, io, json, os, sys, time, urllib.request, urllib.error
+import base64, io, json, os, sys, threading, time, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 cfg = {
@@ -15,7 +15,7 @@ cfg = {
     # Hires. fix (апскейл): множник приходить із сайту
     "hr_upscaler": "RealESRGAN_x4plus_anime_6B.pth", "hr_steps": 8, "hr_cfg": 1.4, "hr_shift": 8, "hr_denoise": 0.4,
     # ADetailer
-    "ad_face_model": "face_yolov8n.pt", "ad_hand_model": "hand_yolov8n.pt",
+    "ad_face_model": "face_yolov8n.pt",
     "ad": {"ad_confidence": 0.75, "ad_dilate_erode": 4, "ad_mask_blur": 8, "ad_denoising_strength": 0.27,
            "ad_inpaint_only_masked": True, "ad_inpaint_only_masked_padding": 56,
            "ad_use_inpaint_width_height": True, "ad_inpaint_width": 1024, "ad_inpaint_height": 1024},
@@ -42,12 +42,10 @@ def call(url, payload=None, token=None, timeout=30):
 
 
 def adetailer_args(p):
-    units = []
-    if p.get("adFace"):
-        units.append(dict(cfg["ad"], ad_model=cfg["ad_face_model"]))
-    if p.get("adHands"):
-        units.append(dict(cfg["ad"], ad_model=cfg["ad_hand_model"]))
-    return [True, False] + units if units else None
+    if not p.get("adFace"):
+        return None
+    unit = dict(cfg["ad"], ad_model=cfg["ad_face_model"], ad_prompt=p.get("adPrompt", ""), ad_negative_prompt=p.get("adNeg", ""))
+    return [True, False, unit]
 
 
 def forge_body(p, with_ad=True):
@@ -80,7 +78,31 @@ def pack(png):
         return base64.b64encode(png).decode(), "image/png"
 
 
-def generate(p):
+def watch_progress(job_id, stop):
+    """Поки Forge малює, раз на ~1 с читає його справжній прогрес і передає на сайт (лише якщо змінився)."""
+    last = -1.0
+    while not stop.wait(1.0):
+        try:
+            d = call(cfg["forge"] + "/sdapi/v1/progress?skip_current_image=true", timeout=10)
+            p = max(last, float(d.get("progress") or 0))
+            if p - last >= 0.02:
+                call(cfg["site"] + "/api/sd/progress", {"id": job_id, "p": p}, cfg["token"], timeout=15)
+                last = p
+        except Exception:
+            pass
+
+
+def generate(p, job_id=None):
+    stop = threading.Event()
+    if job_id:
+        threading.Thread(target=watch_progress, args=(job_id, stop), daemon=True).start()
+    try:
+        return _generate(p)
+    finally:
+        stop.set()
+
+
+def _generate(p):
     try:
         r = call(cfg["forge"] + "/sdapi/v1/txt2img", forge_body(p), timeout=1800)
     except Exception as e:
@@ -97,11 +119,94 @@ def generate(p):
     return img, mime, seed
 
 
+def read_json(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def top_tags(meta, n=8):
+    """Найчастіші теги навчання зі службових полів LoRA (запасний варіант, коли немає тригер-слів)."""
+    try:
+        freq = json.loads(meta.get("ss_tag_frequency") or "{}")
+        total = {}
+        for d in freq.values():
+            for t, c in d.items():
+                total[t] = total.get(t, 0) + c
+        return [t for t, _ in sorted(total.items(), key=lambda x: -x[1])[:n]]
+    except Exception:
+        return []
+
+
+def lora_thumb(stem):
+    for ext in (".preview.png", ".preview.jpg", ".preview.jpeg", ".preview.webp", ".png", ".jpg", ".jpeg", ".webp"):
+        if os.path.isfile(stem + ext):
+            try:
+                from PIL import Image
+                im = Image.open(stem + ext).convert("RGB"); im.thumbnail((192, 192))
+                buf = io.BytesIO(); im.save(buf, "WEBP", quality=70)
+                return base64.b64encode(buf.getvalue()).decode()
+            except Exception:
+                return ""
+    return ""
+
+
+def as_list(v):
+    if isinstance(v, list):
+        return [str(x).strip() for x in v if str(x).strip()]
+    return [x.strip() for x in str(v or "").split(",") if x.strip()]
+
+
+def lora_info(it):
+    """Метадані LoRA: Civitai (.civitai.info), Forge (.json), службові поля safetensors, прев'ю поруч."""
+    stem = os.path.splitext(it.get("path") or "")[0]
+    meta = it.get("metadata") or {}
+    ci = read_json(stem + ".civitai.info") or {}
+    um = read_json(stem + ".json") or {}
+    model = ci.get("model") or {}
+    weight = um.get("preferred weight") or 0
+    try:
+        weight = float(weight)
+    except Exception:
+        weight = 0
+    return {
+        "name": it["name"], "title": model.get("name") or meta.get("ss_output_name") or it["name"],
+        "version": ci.get("name") or "", "base": ci.get("baseModel") or um.get("sd version") or meta.get("ss_base_model_version") or "",
+        "triggers": as_list(ci.get("trainedWords") or um.get("activation text")), "hints": top_tags(meta),
+        "weight": weight, "civitai": ("https://civitai.com/models/%s" % ci["modelId"]) if ci.get("modelId") else "",
+        "note": str(um.get("description") or um.get("notes") or "")[:400], "thumb": lora_thumb(stem),
+    }
+
+
+LORA_STATE = {"hash": None, "at": 0}
+
+
+def sync_loras(force=False):
+    """Раз на 5 хв (і на старті) надсилає список LoRA із папки Forge на сайт, якщо він змінився."""
+    if not force and time.time() - LORA_STATE["at"] < 300:
+        return
+    LORA_STATE["at"] = time.time()
+    try:
+        items = call(cfg["forge"] + "/sdapi/v1/loras", timeout=60)
+        data = sorted((lora_info(i) for i in items), key=lambda x: x["name"].lower())
+        h = hash(json.dumps(data, sort_keys=True))
+        if h != LORA_STATE["hash"]:
+            call(cfg["site"] + "/api/sd/loras-sync", {"loras": data}, cfg["token"], timeout=120)
+            LORA_STATE["hash"] = h
+            print("LoRA оновлено на сайті: %d шт." % len(data))
+    except Exception as e:
+        print("LoRA: не вдалося оновити список (%s)" % e)
+
+
 def main():
     if not cfg["token"]:
         sys.exit("Не задано токен: SD_TOKEN або worker.json {\"token\": \"...\"}")
     print(f"Воркер запущено. Сайт: {cfg['site']}  Forge: {cfg['forge']}  (Ctrl+C щоб зупинити)")
+    sync_loras(force=True)
     while True:
+        sync_loras()
         try:
             job = call(cfg["site"] + "/api/sd/next", {}, cfg["token"]).get("job")
         except urllib.error.HTTPError as e:
@@ -112,7 +217,7 @@ def main():
             time.sleep(cfg["poll"]); continue
         print("Задача", job["id"], "-", job["params"]["prompt"][:60])
         try:
-            img, mime, seed = generate(job["params"])
+            img, mime, seed = generate(job["params"], job["id"])
             out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed}}
         except Exception as e:
             print("  помилка генерації:", e)

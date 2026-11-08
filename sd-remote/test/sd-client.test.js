@@ -8,10 +8,14 @@ test('queueText: черга, генерація, готово', () => {
   assert.equal(C.queueText({ status: 'running' }), 'Генерується на ПК…');
   assert.equal(C.queueText({ status: 'done' }), 'Готово');
 });
-test('pcText: онлайн/офлайн', () => {
-  assert.equal(C.pcText({ online: true, queue: 0 }).cls, 'on');
+test('pcText: сервер увімкнений/вимкнений/недоступний', () => {
+  assert.equal(C.pcText({ online: true, queue: 0 }).text, 'Сервер увімкнений');
   assert.equal(C.pcText({ online: false, queue: 1 }).cls, 'off');
-  assert.equal(C.pcText(null).cls, '');
+  assert.equal(C.pcText(null).text, 'Сервер недоступний');
+});
+test('maxUpscale: фінальна довга сторона ≤ 2800', () => {
+  assert.equal(C.maxUpscale(768, 1344), 2); assert.equal(C.maxUpscale(1024, 1536), 1.8); assert.equal(C.maxUpscale(1536, 1536), 1.8);
+  for (let l = C.LONG_MIN; l <= C.LONG_MAX; l += C.LONG_STEP) assert.ok(l * C.maxUpscale(l, 100) <= C.FINAL_MAX + 1e-6);
 });
 test('fileName: безпечне ім’я з seed', () => {
   assert.equal(C.fileName('A cat / dog!', 42), 'a-cat-dog-42.webp');

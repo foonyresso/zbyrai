@@ -1,7 +1,9 @@
 // Чиста логіка «Віддаленого SD» без DOM: пропорції й розмір, складання промпта з тегів, пошук тегів, підписи. Тести: test/sd-client.test.js
 (function (root) {
   var RATIOS = ['1:1', '2:3', '3:4', '4:5', '5:7', '9:16', '9:21'];
-  var LONG_SIDES = [1024, 1216, 1344, 1536];
+  var LONG_MIN = 640, LONG_MAX = 1536, LONG_STEP = 64, FINAL_MAX = 2800;
+  // Найбільший апскейл, щоб довга сторона результату не перевищила FINAL_MAX (крок 0.05, не більше 2×)
+  function maxUpscale(w, h) { return Math.max(1, Math.min(2, Math.floor(FINAL_MAX / Math.max(w, h) * 20) / 20)); }
 
   // Розмір у пікселях за пропорцією: довга сторона = long, коротка рахується й округлюється до кратної 64 (як 768×1344 у типових налаштуваннях). orient: 'v' (вертикально) | 'h' (горизонтально)
   function sizeFor(ratio, orient, long) {
@@ -53,14 +55,14 @@
     return st.error || 'Помилка';
   }
   function pcText(ping) {
-    if (!ping) return { cls: '', text: 'ПК: немає зв’язку' };
-    if (!ping.online) return { cls: 'off', text: 'ПК вимкнений' + (ping.queue ? ' · черга ' + ping.queue : '') };
-    return { cls: 'on', text: 'ПК увімкнений' + (ping.queue ? ' · черга ' + ping.queue : '') };
+    if (!ping) return { cls: 'off', text: 'Сервер недоступний' };
+    if (!ping.online) return { cls: 'off', text: 'Сервер вимкнений' + (ping.queue ? ' · черга ' + ping.queue : '') };
+    return { cls: 'on', text: 'Сервер увімкнений' + (ping.queue ? ' · черга ' + ping.queue : '') };
   }
   function fileName(prompt, seed, ext) {
     var s = String(prompt || 'sd').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'sd';
     return s + (seed != null && seed >= 0 ? '-' + seed : '') + '.' + (ext || 'webp');
   }
-  var api = { RATIOS: RATIOS, LONG_SIDES: LONG_SIDES, sizeFor: sizeFor, finalSize: finalSize, tagText: tagText, norm: norm, splitTags: splitTags, hasTag: hasTag, toggleTag: toggleTag, countIn: countIn, searchTags: searchTags, queueText: queueText, pcText: pcText, fileName: fileName };
+  var api = { RATIOS: RATIOS, LONG_MIN: LONG_MIN, LONG_MAX: LONG_MAX, LONG_STEP: LONG_STEP, FINAL_MAX: FINAL_MAX, maxUpscale: maxUpscale, sizeFor: sizeFor, finalSize: finalSize, tagText: tagText, norm: norm, splitTags: splitTags, hasTag: hasTag, toggleTag: toggleTag, countIn: countIn, searchTags: searchTags, queueText: queueText, pcText: pcText, fileName: fileName };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SDClient = api;
 })(typeof window !== 'undefined' ? window : globalThis);
