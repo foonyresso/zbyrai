@@ -56,11 +56,12 @@ def forge_body(p, with_ad=True):
     body = {"prompt": p["prompt"], "negative_prompt": p.get("negative", ""), "width": p["width"], "height": p["height"],
             "steps": p.get("steps") or cfg["steps"], "cfg_scale": p.get("cfg") or cfg["cfg"], "distilled_cfg_scale": cfg["shift"],
             "sampler_name": p.get("sampler") or cfg["sampler"], "scheduler": p.get("scheduler") or cfg["scheduler"],
-            "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1, "save_images": bool(cfg["forge_save"])}
+            "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1, "save_images": bool(cfg["forge_save"]),
+            "hr_additional_modules": ["Use same choices"]}   # завжди: інакше Forge падає (NoneType) під час Hires fix
     if p.get("upscale", 1) > 1:  # апскейл = Hires. fix із потрібним множником
         body.update({"enable_hr": True, "hr_scale": p["upscale"], "hr_upscaler": cfg["hr_upscaler"],
                      "hr_second_pass_steps": cfg["hr_steps"], "hr_cfg": cfg["hr_cfg"], "hr_distilled_cfg": cfg["hr_shift"],
-                     "denoising_strength": cfg["hr_denoise"], "hr_additional_modules": ["Use same choices"]})
+                     "denoising_strength": cfg["hr_denoise"]})
     ad = adetailer_args(p) if with_ad else None
     if ad:
         body["alwayson_scripts"] = {"ADetailer": {"args": ad}}
