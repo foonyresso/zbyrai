@@ -16,8 +16,10 @@ cfg = {
     "hr_upscaler": "RealESRGAN_x4plus_anime_6B.pth", "hr_steps": 8, "hr_cfg": 1.4, "hr_shift": 8, "hr_denoise": 0.4,
     # ADetailer
     "ad_face_model": "face_yolov8n.pt",
-    # збереження копій на ПК: PNG із метаданими (як у Forge) у папці save_dir поруч зі скриптом
-    "save_png": True, "save_dir": "site_outputs",
+    # збереження на ПК: Forge сам кладе картинки у свої звичайні папки (Images/Text2Img/ДАТА) за своїми налаштуваннями
+    "forge_save": True,
+    # додаткова власна копія PNG із метаданами (параметри + запит сайту) у папці save_dir поруч зі скриптом; типово вимкнена
+    "save_png": False, "save_dir": "site_outputs",
     "ad": {"ad_confidence": 0.75, "ad_dilate_erode": 4, "ad_mask_blur": 8, "ad_denoising_strength": 0.27,
            "ad_inpaint_only_masked": True, "ad_inpaint_only_masked_padding": 56,
            "ad_use_inpaint_width_height": True, "ad_inpaint_width": 1024, "ad_inpaint_height": 1024},
@@ -54,7 +56,7 @@ def forge_body(p, with_ad=True):
     body = {"prompt": p["prompt"], "negative_prompt": p.get("negative", ""), "width": p["width"], "height": p["height"],
             "steps": p.get("steps") or cfg["steps"], "cfg_scale": p.get("cfg") or cfg["cfg"], "distilled_cfg_scale": cfg["shift"],
             "sampler_name": p.get("sampler") or cfg["sampler"], "scheduler": p.get("scheduler") or cfg["scheduler"],
-            "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1}
+            "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1, "save_images": bool(cfg["forge_save"])}
     if p.get("upscale", 1) > 1:  # апскейл = Hires. fix із потрібним множником
         body.update({"enable_hr": True, "hr_scale": p["upscale"], "hr_upscaler": cfg["hr_upscaler"],
                      "hr_second_pass_steps": cfg["hr_steps"], "hr_cfg": cfg["hr_cfg"], "hr_distilled_cfg": cfg["hr_shift"],
