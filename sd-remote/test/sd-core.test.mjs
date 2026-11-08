@@ -11,7 +11,8 @@ test('userOf: логін і пароль', () => {
   assert.equal(userOf('anya:abc', '', ''), null);
   assert.equal(userOf('', 'a', 'b'), null);
 });
-test('cleanParams: обмеження розміру, кроків, cfg', () => {
+test('cleanParams: кроки й cfg необов\u2019язкові (0 = з воркера), обмежуються', () => {
+  assert.equal(cleanParams({ prompt: 'a' }).steps, 0); assert.equal(cleanParams({ prompt: 'a' }).cfg, 0);
   const p = cleanParams({ prompt: ' cat ', width: 5000, height: 10, steps: 999, cfg: 99, seed: 'x' });
   assert.equal(p.prompt, 'cat'); assert.equal(p.width, LIMITS.maxSide); assert.equal(p.height, LIMITS.minSide);
   assert.equal(p.steps, LIMITS.maxSteps); assert.equal(p.cfg, LIMITS.maxCfg); assert.equal(p.seed, -1);
