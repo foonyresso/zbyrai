@@ -43,7 +43,7 @@
     $('sizeInfo').textContent = d.w + '×' + d.h + (S.upscale > 1 ? ' → ' + f.w + '×' + f.h : '');
     $('steps').value = S.steps; $('stV').textContent = S.steps;
     $('upscale').value = S.upscale; $('upV').textContent = S.upscale > 1 ? S.upscale + '×' : 'вимкнено';
-    $('seed').value = S.seed; $('adOnB').classList.toggle('on', S.adOn); $('adOff').classList.toggle('on', !S.adOn); $('adBtn').disabled = !S.adOn;
+    $('seed').value = S.seed; $('detOnB').classList.toggle('on', S.adOn); $('detOff').classList.toggle('on', !S.adOn); $('detBtn').disabled = !S.adOn;
     $('seedState').textContent = S.seed < 0 ? 'Seed: випадковий для кожної генерації' : '🔒 Seed зафіксовано: ' + S.seed + ' (кожна генерація буде схожою)'; $('seedState').classList.toggle('warn', S.seed >= 0);
     $('preview').style.setProperty('--ar', (d.w / d.h).toFixed(4)); $('pvTag').textContent = (S.upscale > 1 ? f.w + '×' + f.h : d.w + '×' + d.h) + ' · ' + S.ratio;
   }
@@ -244,12 +244,12 @@
       var j = S.jobs.slice().reverse().filter(function (x) { return x.seed >= 0; })[0];
       if (!j) return toast('Ще немає готової картинки з seed'); S.seed = j.seed; syncForm(); save(); toast('Seed ' + j.seed + ' зафіксовано');
     });
-    $('adOnB').addEventListener('click', function () { S.adOn = true; syncForm(); save(); });
-    $('adOff').addEventListener('click', function () { S.adOn = false; syncForm(); save(); });
-    $('adBtn').addEventListener('click', function () { $('adP').value = S.adPrompt; $('adN').value = S.adNeg; $('adDlg').showModal(); });
-    $('adP').addEventListener('input', function () { S.adPrompt = this.value; save(); });
-    $('adN').addEventListener('input', function () { S.adNeg = this.value; save(); });
-    $('adDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+    $('detOnB').addEventListener('click', function () { S.adOn = true; syncForm(); save(); });
+    $('detOff').addEventListener('click', function () { S.adOn = false; syncForm(); save(); });
+    $('detBtn').addEventListener('click', function () { $('detP').value = S.adPrompt; $('detN').value = S.adNeg; $('detDlg').showModal(); });
+    $('detP').addEventListener('input', function () { S.adPrompt = this.value; save(); });
+    $('detN').addEventListener('input', function () { S.adNeg = this.value; save(); });
+    $('detDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
     $('modeBasic').addEventListener('click', function () { S.mode = 'basic'; syncLayout(); save(); });
     $('modeFlex').addEventListener('click', function () { S.mode = 'flex'; syncLayout(); save(); SDBuilder.refresh(); });
     $('viewImg').addEventListener('click', function () { S.view = 'img'; syncLayout(); save(); });
