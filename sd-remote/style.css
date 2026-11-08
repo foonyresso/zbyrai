@@ -23,7 +23,7 @@ button.link { background: none; border: 0; color: var(--accent-hi); font-size: 1
 .field { display: flex; flex-direction: column; gap: 4px; color: var(--muted); } .field textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 .rng { display: flex; flex-direction: column; gap: 4px; color: var(--muted); } .rng input[type=number] { width: 100%; box-sizing: border-box; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .two button { padding: 5px 4px; font-size: 12px; }
-.chk { display: flex; align-items: center; gap: 8px; } .ad-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.chk { display: flex; align-items: center; gap: 8px; } .det-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
 .go { position: sticky; bottom: 0; display: flex; gap: 8px; padding: 8px 0 2px; background: linear-gradient(180deg, transparent, var(--bg, #09090c) 30%); } .go .btn-main { flex: 1; padding: 10px; font-size: 15px; }
 
 /* поле промпта з підсвіткою тегів */
@@ -116,7 +116,7 @@ dialog.help textarea { width: 100%; box-sizing: border-box; }
 .pal { display: flex; flex-direction: column; gap: 5px; margin: 2px 0 6px; }
 .pal .pr { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .pal .sw { width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); } .pal .sw.on { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
-.pal .px, .pal .padd { padding: 1px 7px; font-size: 12px; } .pal .px { width: 22px; height: 22px; padding: 0; line-height: 1; }
+.pal .px, .pal .ppls { padding: 1px 7px; font-size: 12px; } .pal .px { width: 22px; height: 22px; padding: 0; line-height: 1; }
 
 /* шаблони */
 .sh { margin: 8px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--accent); font-weight: 600; }
@@ -152,7 +152,7 @@ body.vw-open { overflow: hidden; }
 .pv-log { position: absolute; right: 46px; top: 8px; height: 30px; padding: 0 10px; font-size: 12px; opacity: .85; }
 .logpre { max-height: 60vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; background: #101015; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin: 8px 0; }
 dialog.help.wide { width: min(820px, 94vw); max-width: 94vw; }
-#adSeg button { padding: 6px 12px; } #adBtn:disabled { opacity: .45; }
+#detSeg button { padding: 6px 12px; } #detBtn:disabled { opacity: .45; }
 
 /* кнопки на превʼю: зберегти, лог, повний екран */
 .pv-bar { position: absolute; right: 8px; top: 8px; z-index: 3; display: flex; gap: 6px; }
@@ -204,7 +204,7 @@ dialog.help.wide { width: min(820px, 94vw); max-width: 94vw; }
 .ltitle { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 8px 7px; font-size: 12.5px; font-weight: 600; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.85)); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .lbase { position: absolute; left: 6px; top: 6px; font-size: 10.5px; padding: 1px 7px; border-radius: 99px; background: rgba(0,0,0,.65); color: #fff; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb18 { position: absolute; left: 6px; top: 28px; background: rgba(0,0,0,.65); padding: 1px 6px; border-radius: 99px; }
-.ladd { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 16px; border-radius: 50%; background: rgba(0,0,0,.65); } .ltile.on .ladd { background: var(--accent); color: #111; border-color: var(--accent); }
+.lplus { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 16px; border-radius: 50%; background: rgba(0,0,0,.65); } .ltile.on .lplus { background: var(--accent); color: #111; border-color: var(--accent); }
 dialog.lds { width: min(900px, 94vw); } .ldbody { display: grid; grid-template-columns: minmax(180px, 320px) 1fr; gap: 16px; } .ldimg { aspect-ratio: 2 / 3; background: #14141a; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--faint); } .ldimg img { width: 100%; height: 100%; object-fit: cover; }
 .ldinfo { display: flex; flex-direction: column; gap: 8px; min-width: 0; } .ldinfo h3 { margin: 0; } .ldinfo p { margin: 0; } .lnote2 { color: var(--muted); font-size: 13px; line-height: 1.45; }
 @media (max-width: 640px) { .ldbody { grid-template-columns: 1fr; } .lgrid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }

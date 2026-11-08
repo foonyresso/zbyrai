@@ -61,12 +61,12 @@
   <div class="ldbody" id="lDlgBody"></div>
 </dialog>
 
-<dialog id="adDlg" class="help">
+<dialog id="detDlg" class="help">
   <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
   <h2>ADetailer: теги</h2>
   <p class="hint">Окремі промпти лише для виправлення обличчя. Можна лишити порожніми.</p>
-  <div class="field"><span class="lbl">Позитивний промпт ADetailer</span><textarea id="adP" rows="3" maxlength="1000" placeholder="напр. detailed eyes, smile" title="Теги, які додаються під час перемальовування обличчя"></textarea></div>
-  <div class="field"><span class="lbl">Негативний промпт ADetailer</span><textarea id="adN" rows="3" maxlength="1000" title="Чого уникати під час перемальовування обличчя"></textarea></div>
+  <div class="field"><span class="lbl">Позитивний промпт ADetailer</span><textarea id="detP" rows="3" maxlength="1000" placeholder="напр. detailed eyes, smile" title="Теги, які додаються під час перемальовування обличчя"></textarea></div>
+  <div class="field"><span class="lbl">Негативний промпт ADetailer</span><textarea id="detN" rows="3" maxlength="1000" title="Чого уникати під час перемальовування обличчя"></textarea></div>
 </dialog>
 
 <div class="app" id="app">
@@ -111,9 +111,9 @@
 
     <section class="blk">
       <h2>ADetailer</h2>
-      <div class="ad-row"><div class="seg" id="adSeg" role="group" aria-label="ADetailer для обличчя">
-          <button id="adOff" title="ADetailer вимкнено">Вимкнено</button><button id="adOnB" title="ADetailer автоматично знаходить обличчя й перемальовує його чіткіше">Увімкнено</button></div>
-        <button id="adBtn" title="Окремі позитивні й негативні теги для ADetailer (лише для обличчя)">⚙ Теги</button></div>
+      <div class="det-row"><div class="seg" id="detSeg" role="group" aria-label="ADetailer для обличчя">
+          <button id="detOff" title="ADetailer вимкнено">Вимкнено</button><button id="detOnB" title="ADetailer автоматично знаходить обличчя й перемальовує його чіткіше">Увімкнено</button></div>
+        <button id="detBtn" title="Окремі позитивні й негативні теги для ADetailer (лише для обличчя)">⚙ Теги</button></div>
       <p class="hint">Виправляє лише обличчя.</p>
     </section>
 

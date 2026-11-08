@@ -30,7 +30,7 @@
       if (arr.length > 1) { var x = el('button', 'px', '×'); x.type = 'button'; x.title = 'Прибрати цю палітру'; x.addEventListener('click', function () { var a = arr.slice(); a.splice(i, 1); change(a); }); row.appendChild(x); }
       box.appendChild(row);
     });
-    var add = el('button', 'padd', '＋ колір'); add.type = 'button'; add.title = 'Додати ще одну палітру: кілька кольорів дають, наприклад, «red and blue» (різнокольорове волосся, очі, одяг)';
+    var add = el('button', 'ppls', '＋ колір'); add.type = 'button'; add.title = 'Додати ще одну палітру: кілька кольорів дають, наприклад, «red and blue» (різнокольорове волосся, очі, одяг)';
     add.addEventListener('click', function () { var a = arr.slice(); a.push(null); host.colors.set(p.id, a); renderPal(box, p); });
     box.appendChild(add);
   }
