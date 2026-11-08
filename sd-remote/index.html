@@ -131,8 +131,8 @@
       <button data-tab="gen" title="Картинка й теги">Генерація</button>
       <button data-tab="inp" title="Перемалювання: зафарбуй ділянку картинки й заміни її за своїм промптом">Перемалювання</button>
       <button data-tab="lora" title="Список LoRA з ПК власника, метадані, додавання у генерацію">LoRA</button>
-      <button data-tab="i2p" title="Завантаж картинку на вбудований сайт vheer.com і отримай її опис-промпт, який можна вставити в поле промпта">Картинка → промпт</button>
       <button data-tab="tpl" title="Шаблони: готові й власні набори налаштувань та промптів">Шаблони</button>
+      <button data-tab="links" title="Корисні посилання: сервіси для промптів, моделей і тегів; можна додати свої">Посилання</button>
       <button data-tab="hist" title="Усі згенеровані картинки">Історія</button>
     </nav>
 
@@ -183,50 +183,15 @@
       <div class="lgrid" id="lGrid"></div>
     </section>
 
-    <section class="view" id="vI2p" hidden>
-      <div class="b-head"><b>Картинка → промпт</b><span class="hint">Завантаж картинку нижче, скопіюй отриманий промпт (кнопка копіювання на тому сайті) і перенеси сюди.</span></div>
-      <div class="i2p-bar">
-        <label class="vf" title="Що робити, коли промпт готовий (його передає скрипт з vheer.com)">Коли промпт готовий: <select id="i2pMode"><option value="replace">замінити промпт</option><option value="append">додати до промпта</option><option value="none">лише показати</option></select></label>
-        <label class="chk" id="i2pAutoLbl" title="Скопіюй промпт кнопкою Copy на тому сайті й клацни будь-де на цій сторінці: промпт сам вставиться в поле (браузер один раз запитає дозвіл на буфер обміну)"><input type="checkbox" id="i2pAuto"> Автовставка з буфера</label>
-        <label class="chk" title="Груба темна тема CSS-фільтром (інвертує й картинки). НЕ вмикай, якщо вже маєш розширення темної теми, воно зробить краще"><input type="checkbox" id="i2pDark"> Тема-фільтр</label>
-        <button id="i2pUndo" title="Повернути промпт, який був до автоматичної вставки" disabled>↶ Повернути попередній</button>
-        <span class="hint" id="i2pStatus">Скрипт: перевіряю…</span>
-      </div>
-      <div class="i2p-bar">
-        <button id="i2pPaste" class="btn-main" title="Взяти промпт із буфера обміну й замінити ним промпт у полі зліва">⬇ З буфера → у промпт</button>
-        <button id="i2pAppend" title="Додати промпт із поля нижче (або з буфера) в кінець промпта">＋ Додати до промпта</button>
-        <a class="btnlink" id="i2pInstall" href="./userscript/vheer-i2p.user.js" target="_blank" rel="noopener" title="Відкриє скрипт для Tampermonkey/Violentmonkey: він сховає меню сайту, перефарбує його під тему й сам передасть промпт сюди">⭳ Встановити скрипт</a>
-        <button id="i2pOpen" title="Відкрити сайт у новому вікні, якщо тут він не працює">Відкрити в новому вікні ↗</button>
-      </div>
-      <details class="i2p-css" open>
-        <summary>Сховати меню сайту чистим CSS (Stylus або Dark Reader), без Tampermonkey</summary>
-        <p class="hint">Браузер не дозволяє нашому коду міняти чужий сайт в рамці, тому ховання блоків (<code>display:none</code>) має застосувати розширення прямо на vheer.com: <b>Stylus</b> (кнопка нижче ставить готовий стиль) або власний CSS для сайту в <b>Dark Reader</b> (Dev tools → Dynamic theme). Після цього в рамці лишаються лише вікно картинки й вікно промпта.</p>
-        <div class="i2p-bar">
-          <a class="btnlink" href="./userscript/vheer-i2p.user.css" target="_blank" rel="noopener" title="Відкриє стиль для розширення Stylus: воно запропонує його встановити">⭳ Встановити для Stylus</a>
-          <button id="i2pCopyCss" title="Скопіювати правила CSS (для будь-якого розширення зі своїм CSS)">Скопіювати CSS</button>
-          <button id="i2pCopyDr" title="Скопіювати готовий блок для Dark Reader: Dev tools → Dynamic theme, вставити в кінець і застосувати">Скопіювати для Dark Reader</button>
-        </div>
-        <pre id="i2pCssPre" class="logpre"></pre>
-      </details>
-      <div class="field"><span class="lbl">Або встав промпт сюди (Ctrl+V), якщо браузер не дає читати буфер</span>
-        <textarea id="i2pBox" rows="2" translate="no" spellcheck="false" placeholder="промпт із vheer.com" title="Сюди можна вставити скопійований промпт"></textarea>
-        <div class="i2p-bar"><button id="i2pReplace" title="Замінити промпт у полі зліва текстом звідси">Замінити промпт цим текстом</button></div></div>
-      <div class="i2p-view" id="i2pView"><iframe id="i2pFrame" name="zbyrai-i2p" class="i2p-frame" title="vheer.com — Image to Prompt" referrerpolicy="no-referrer" allow="clipboard-write" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"></iframe></div>
-      <div class="i2p-crop">
-        <label class="rng" title="Скільки пікселів згори вбудованої сторінки сховати (меню, шапка сайту)">Сховати зверху (меню сайту): <span id="i2pTopV"></span><input type="range" id="i2pTop" min="0" max="900" step="10" title="Зсув сторінки вгору, px"></label>
-        <label class="rng" title="Скільки пікселів зліва вбудованої сторінки сховати (бічна панель сайту)">Сховати зліва (панель сайту): <span id="i2pLeftV"></span><input type="range" id="i2pLeft" min="0" max="320" step="2" title="Зсув сторінки вліво, px"></label>
-        <label class="rng" title="Висота видимого вікна: менша висота ховає підвал сайту">Висота вікна: <span id="i2pHV"></span><input type="range" id="i2pH" min="300" max="1100" step="10" title="Висота вікна, px"></label>
-      </div>
-      <p class="hint">Підганяй повзунками, щоб лишився тільки інструмент без меню й підвалу сайту (налаштування запам'ятовуються). Якщо вікно порожнє або пише про відмову, сайт забороняє вбудовування: натисни «Відкрити в новому вікні».</p>
-      <div class="i2p-info">
-        <b>Що це за сайт</b>
-        <p><a href="https://vheer.com/app/image-to-prompt" target="_blank" rel="noopener">vheer.com → Image to Prompt</a> — сторонній онлайн-сервіс (не наш і не твого ПК): аналізує завантажену картинку й видає її текстовий опис-промпт англійською, який можна використати для генерації.</p>
-        <ul>
-          <li><b>Куди йдуть картинки.</b> Файл завантажується на сервери цього сервісу, а не на твій ПК чи наш сайт. Не завантажуй приватні чи чутливі зображення.</li>
-          <li><b>Умови, ліміти й вигляд промпта</b> визначає сам сервіс; вони можуть змінитись без попередження.</li>
-          <li><b>Автоматична передача промпта.</b> Браузер не дозволяє нам читати чужий сайт. Тому в твоєму браузері треба один раз поставити скрипт «⭳ Встановити скрипт» (потрібне розширення Tampermonkey або Violentmonkey): він працює лише всередині цієї вкладки, ховає меню й підвал сайту, перефарбовує його під нашу тему, сам натискає «Generate» після завантаження картинки й передає готовий промпт у поле. Без скрипта працює ручний варіант: скопіюй промпт на тому сайті й натисни «⬇ З буфера → у промпт».</li>
-          <li><b>Сторінка з'єднується з сервісом лише коли відкриваєш цю вкладку</b> і може не вбудовуватись, якщо він це заборонить.</li>
-        </ul>
+    <section class="view" id="vLinks" hidden>
+      <div class="b-head"><b>Корисні посилання</b><span class="hint">Відкриваються в новій вкладці. Свої посилання можна додавати й видаляти.</span></div>
+      <div class="llinks" id="lnList"></div>
+      <h3 class="sh">Додати своє</h3>
+      <div class="lnform">
+        <input type="text" id="lnTitle" maxlength="60" placeholder="Назва" title="Назва посилання">
+        <input type="url" id="lnUrl" placeholder="https://…" title="Адреса сайту (https://…)">
+        <input type="text" id="lnNote" maxlength="140" placeholder="Короткий опис (необов'язково)" title="Що це за сайт">
+        <button id="lnAdd" class="btn-main" title="Додати посилання до списку">Додати</button>
       </div>
     </section>
 
@@ -262,7 +227,7 @@
 <script src="./templates.js"></script>
 <script src="./tpl-ui.js"></script>
 <script src="./inpaint.js"></script>
-<script src="./i2p.js"></script>
+<script src="./links.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

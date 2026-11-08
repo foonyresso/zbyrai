@@ -212,13 +212,11 @@ dialog.lds { width: min(900px, 94vw); } .ldbody { display: grid; grid-template-c
 /* смуга прокрутки панелі не має зсувати ширину полів промпта, коли з'являється */
 .left, .center { scrollbar-gutter: stable; }
 
-/* картинка → промпт */
-.i2p-bar { display: flex; flex-wrap: wrap; gap: 8px; }
-.i2p-view { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background: #fff; }
-.i2p-frame { display: block; width: 100%; border: 0; }
-.i2p-crop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; } @media (max-width: 860px) { .i2p-crop { grid-template-columns: 1fr; } }
-.i2p-info { border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 14px; font-size: 13px; color: var(--muted); } .i2p-info p { margin: 6px 0; } .i2p-info ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; } .i2p-info a { color: var(--accent-hi); }
-.btnlink { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); text-decoration: none; font-size: 13px; background: color-mix(in srgb, var(--panel) 92%, transparent); } .btnlink:hover { border-color: var(--accent); }
-#i2pStatus.okk { color: #7fd69a; }
-.i2p-view.dk { background: #0b0b0f; } .i2p-frame.dk { filter: invert(.92) hue-rotate(180deg) contrast(.92); }   /* темна тема без розширень: фільтр на самій рамці */
-.i2p-css { border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 12px 10px; } .i2p-css summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 4px 0; } .i2p-css .logpre { max-height: 200px; margin: 8px 0 0; }
+
+/* корисні посилання */
+.llinks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.lnk-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 92%, transparent); color: var(--text); text-decoration: none; }
+.lnk-card:hover { border-color: var(--accent); } .lnk-card b { font-size: 14px; } .lnk-card .lm { color: var(--faint); font-size: 12px; overflow-wrap: anywhere; } .lnk-card .ln { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.lnk-card .lx { position: absolute; right: 8px; top: 8px; width: 24px; height: 24px; padding: 0; line-height: 1; z-index: 2; }
+.lnform { display: grid; grid-template-columns: 1fr 1.4fr 1.6fr auto; gap: 8px; align-items: center; } @media (max-width: 860px) { .lnform { grid-template-columns: 1fr; } }
+#lnList { display: flex; flex-direction: column; gap: 6px; } #lnList .sh { margin: 10px 0 2px; }
