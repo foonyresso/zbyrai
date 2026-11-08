@@ -17,6 +17,7 @@ export async function onRequest({ request, env, params }) {
     if (action === 'me' && method === 'GET') return me(request, db);
     if (action === 'submit' && method === 'POST') return submit(request, db);
     if (action === 'loras' && method === 'GET') return loras(request, db);
+    if (action === 'loras-refresh' && method === 'POST') return lorasRefresh(request, db);
     if (action === 'loras-sync' && method === 'POST') return workerOnly(request, env) || lorasSync(request, db);
     if (action === 'admin-list' && method === 'GET') return adminOnly(request, env) || adminList(db);
     if (action === 'admin-set' && method === 'POST') return adminOnly(request, env) || adminSet(request, db);
@@ -170,7 +171,9 @@ async function next(db) {
   await db.prepare("INSERT INTO meta (k,v) VALUES ('alive',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v WHERE meta.v < excluded.v - 20000").bind(t).run();
   await db.prepare("UPDATE jobs SET status='error', error='Таймаут: ПК не відповів', updated=? WHERE status='running' AND updated < ?").bind(t, t - LIMITS.jobTimeoutMs).run();
   const r = await db.prepare("UPDATE jobs SET status='running', updated=? WHERE id=(SELECT id FROM jobs WHERE status='queued' ORDER BY created LIMIT 1) RETURNING id, params").bind(t).first();
-  return J(r ? { job: { id: r.id, params: JSON.parse(r.params) } } : { job: null });
+  const rf = await db.prepare("SELECT v FROM meta WHERE k='lora_refresh'").first();   // користувач попросив оновити список LoRA
+  if (rf) await db.prepare("DELETE FROM meta WHERE k='lora_refresh'").run();
+  return J(Object.assign(r ? { job: { id: r.id, params: JSON.parse(r.params) } } : { job: null }, { refresh: !!rf }));
 }
 
 async function result(request, db) {
@@ -199,10 +202,11 @@ async function loras(request, db) {
 async function lorasSync(request, db) {
   const b = await body(request);
   if (!b || !Array.isArray(b.loras) || b.loras.length > 500) return J({ error: 'Некоректний список' }, 400);
-  const items = b.loras.filter((l) => l && typeof l.name === 'string' && l.name && l.name.length < 200).map((l) => [l.name, JSON.stringify(l)]).filter((x) => x[1].length < 90000);
+  const MAX = 90000, slim = (l) => { let j = JSON.stringify(l); if (j.length >= MAX && l.thumb) { j = JSON.stringify(Object.assign({}, l, { thumb: '' })); } if (j.length >= MAX) j = JSON.stringify({ name: l.name, title: l.title || l.name, base: l.base || '', folder: l.folder || '', tags: l.tags || [], triggers: l.triggers || [] }); return j; };
+  const items = b.loras.filter((l) => l && typeof l.name === 'string' && l.name && l.name.length < 200).map((l) => [l.name, slim(l)]);
   const st = [db.prepare('DELETE FROM sd_loras')].concat(items.map((x) => db.prepare('INSERT OR REPLACE INTO sd_loras (name,data) VALUES (?,?)').bind(x[0], x[1])));
   await db.batch(st);
-  return J({ ok: true, count: items.length });
+  return J({ ok: true, count: items.length, received: b.loras.length });
 }
 
 // Воркер передає реальний прогрес генерації (0…1) із Forge; зберігається в meta як проміле
@@ -222,4 +226,12 @@ function safeInfo(i) {
   let json = JSON.stringify(info);
   if (json.length > 20000) { delete info.request; json = JSON.stringify(info); }
   return json;
+}
+
+// Кнопка «Оновити список» на сайті: воркер побачить прапорець при наступному опитуванні й одразу перечитає LoRA
+async function lorasRefresh(request, db) {
+  if (!(await authed(request, db))) return J({ error: 'Потрібно увійти' }, 401);
+  await db.prepare("INSERT INTO meta (k,v) VALUES ('lora_refresh',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(now()).run();
+  const a = await db.prepare("SELECT v FROM meta WHERE k='alive'").first();
+  return J({ ok: true, online: !!a && now() - a.v < LIMITS.onlineMs });
 }

@@ -238,14 +238,23 @@ def top_tags(meta, n=8):
         return []
 
 
+def thumb_b64(im):
+    """WebP-мініатюра до ~60 КБ (base64): якщо більше, знижується якість."""
+    for q in (72, 60, 48, 36):
+        buf = io.BytesIO(); im.save(buf, "WEBP", quality=q)
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        if len(b64) < 60000:
+            break
+    return b64
+
+
 def lora_thumb(stem):
     for ext in (".preview.png", ".preview.jpg", ".preview.jpeg", ".preview.webp", ".png", ".jpg", ".jpeg", ".webp"):
         if os.path.isfile(stem + ext):
             try:
                 from PIL import Image
                 im = Image.open(stem + ext).convert("RGB"); im.thumbnail((400, 600))
-                buf = io.BytesIO(); im.save(buf, "WEBP", quality=72)
-                return base64.b64encode(buf.getvalue()).decode()
+                return thumb_b64(im)
             except Exception:
                 return ""
     return ""
@@ -326,8 +335,7 @@ def civ_thumb(url):
     try:
         from PIL import Image
         im = Image.open(io.BytesIO(civ_get(url, binary=True))).convert("RGB"); im.thumbnail((400, 600))
-        buf = io.BytesIO(); im.save(buf, "WEBP", quality=72)
-        return base64.b64encode(buf.getvalue()).decode()
+        return thumb_b64(im)
     except Exception:
         return ""
 
@@ -420,6 +428,10 @@ def sync_loras(force=False):
         return
     LORA_STATE["at"] = time.time()
     try:
+        try:   # Forge тримає список у пам'яті: просимо перечитати папку (інакше нові файли не видно)
+            call(cfg["forge"] + "/sdapi/v1/refresh-loras", {}, timeout=60)
+        except Exception:
+            pass
         items = call(cfg["forge"] + "/sdapi/v1/loras", timeout=60)
         try:   # спільна коренева папка LoRA: від неї рахуються підпапки-групи
             root = os.path.commonpath([os.path.dirname(i["path"]) for i in items if i.get("path")])
@@ -429,9 +441,9 @@ def sync_loras(force=False):
         ensure_civitai(items)
         h = hash(json.dumps(data, sort_keys=True))
         if h != LORA_STATE["hash"]:
-            call(cfg["site"] + "/api/sd/loras-sync", {"loras": data}, cfg["token"], timeout=120)
+            res = call(cfg["site"] + "/api/sd/loras-sync", {"loras": data}, cfg["token"], timeout=120)
             LORA_STATE["hash"] = h
-            print("LoRA оновлено на сайті: %d шт." % len(data))
+            print("LoRA на сайті: %s з %d (знайдено у Forge)" % (res.get("count"), len(data)))
     except Exception as e:
         print("LoRA: не вдалося оновити список (%s)" % e)
 
@@ -446,7 +458,11 @@ def main():
     while True:
         sync_loras()
         try:
-            job = call(cfg["site"] + "/api/sd/next", {}, cfg["token"]).get("job")
+            nx = call(cfg["site"] + "/api/sd/next", {}, cfg["token"])
+            job = nx.get("job")
+            if nx.get("refresh"):
+                print("Сайт попросив оновити список LoRA")
+                sync_loras(force=True)
         except urllib.error.HTTPError as e:
             print("Сайт відповів помилкою", e.code, "(перевір токен)"); time.sleep(15); continue
         except Exception as e:
