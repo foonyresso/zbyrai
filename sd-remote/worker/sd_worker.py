@@ -107,7 +107,43 @@ def generate(p, job_id=None):
         stop.set()
 
 
+def fetch_bytes(url, timeout=120):
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def inpaint_body(p, init_b64):
+    """img2img із маскою: лише зафарбована ділянка (Only masked), без ADetailer і апскейлу; інше як при генерації."""
+    return {"init_images": [init_b64], "mask": p["mask"], "mask_blur": p.get("blur", 8), "inpainting_fill": 1, "inpaint_full_res": True,
+            "inpaint_full_res_padding": p.get("padding", 64), "inpainting_mask_invert": 0, "resize_mode": 0, "denoising_strength": p.get("denoise", 0.5),
+            "prompt": p["prompt"], "negative_prompt": p.get("negative", ""), "width": p["width"], "height": p["height"],
+            "steps": p.get("steps") or cfg["steps"], "cfg_scale": p.get("cfg") or cfg["cfg"], "distilled_cfg_scale": cfg["shift"],
+            "sampler_name": p.get("sampler") or cfg["sampler"], "scheduler": p.get("scheduler") or cfg["scheduler"],
+            "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1, "save_images": bool(cfg["forge_save"])}
+
+
+def _inpaint(p):
+    try:
+        src = fetch_bytes(cfg["site"] + "/api/sd/image?id=" + p["srcId"])
+    except Exception:
+        raise RuntimeError("не вдалося завантажити вихідну картинку з сайту (її могло бути видалено)")
+    body = inpaint_body(p, base64.b64encode(src).decode())
+    r = call(cfg["forge"] + "/sdapi/v1/img2img", body, timeout=1800)
+    png = base64.b64decode(r["images"][0])
+    try:
+        info = json.loads(r.get("info", "{}"))
+    except Exception:
+        info = {}
+    texts = info.get("infotexts") or [""]
+    img, mime = pack(png)
+    light = dict(body, init_images=["<%d байт>" % len(src)], mask="<маска %d символів>" % len(p["mask"]))   # у лог без великих полів
+    return img, mime, info.get("seed", -1), str(texts[0])[:6000], light, png
+
+
 def _generate(p):
+    if p.get("kind") == "inpaint":
+        return _inpaint(p)
     body = forge_body(p)
     try:
         r = call(cfg["forge"] + "/sdapi/v1/txt2img", body, timeout=1800)
@@ -137,7 +173,7 @@ def save_copy(png, infotext, job, request):
         im = Image.open(io.BytesIO(png))
         meta = PngInfo()
         meta.add_text("parameters", im.info.get("parameters") or infotext)
-        meta.add_text("sd_site", json.dumps({"job": job["id"], "site_params": job["params"], "forge_request": request}, ensure_ascii=False))
+        meta.add_text("sd_site", json.dumps({"job": job["id"], "site_params": {k: v for k, v in job["params"].items() if k != "mask"}, "forge_request": request}, ensure_ascii=False))
         d = os.path.join(HERE, cfg["save_dir"], time.strftime("%Y-%m-%d"))
         os.makedirs(d, exist_ok=True)
         path = os.path.join(d, "%s_%s.png" % (time.strftime("%H%M%S"), job["id"][:8]))
@@ -187,6 +223,18 @@ def as_list(v):
     return [x.strip() for x in str(v or "").split(",") if x.strip()]
 
 
+ADULT_TAGS = {"nsfw", "sexy", "porn", "hentai", "explicit", "adult", "erotic", "lewd", "18+"}
+
+
+def lora_flags(ci, um):
+    """Теги, тип і позначка 18+ з метаданих Civitai/Forge."""
+    model = ci.get("model") or {}
+    tags = [str(t) for t in (model.get("tags") or ci.get("tags") or [])][:16]
+    lvl = ci.get("nsfwLevel") or model.get("nsfwLevel") or 0
+    adult = bool(model.get("nsfw") or ci.get("nsfw") or um.get("nsfw") or (isinstance(lvl, int) and lvl >= 4) or any(t.lower() in ADULT_TAGS for t in tags))
+    return tags, str(model.get("type") or ""), adult
+
+
 def lora_info(it):
     """Метадані LoRA: Civitai (.civitai.info), Forge (.json), службові поля safetensors, прев'ю поруч."""
     stem = os.path.splitext(it.get("path") or "")[0]
@@ -199,7 +247,9 @@ def lora_info(it):
         weight = float(weight)
     except Exception:
         weight = 0
+    tags, mtype, adult = lora_flags(ci, um)
     return {
+        "tags": tags, "type": mtype, "nsfw": adult,
         "name": it["name"], "title": model.get("name") or meta.get("ss_output_name") or it["name"],
         "version": ci.get("name") or "", "base": ci.get("baseModel") or um.get("sd version") or meta.get("ss_base_model_version") or "",
         "triggers": as_list(ci.get("trainedWords") or um.get("activation text")), "hints": top_tags(meta),

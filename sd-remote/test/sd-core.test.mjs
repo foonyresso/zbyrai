@@ -35,5 +35,12 @@ await (async () => {
     assert.equal(a.hash, b.hash); assert.notEqual(a.hash, c.hash); console.log('  ok   hashPassword: стабільний із сіллю');
   } catch (e) { failed++; console.log('  FAIL hashPassword', e.message); }
 })();
+test('cleanParams: перемалювання — межі, розмір кратний 64, перевірка маски й посилання', () => {
+  const id = '12345678-1234-1234-1234-123456789abc';
+  const p = cleanParams({ kind: 'inpaint', prompt: ' x ', srcId: id, mask: 'QUJD', denoise: 5, width: 100, height: 9999, padding: 70, steps: 99 });
+  assert.equal(p.kind, 'inpaint'); assert.equal(p.denoise, 1); assert.equal(p.width, 512); assert.equal(p.height, 1536); assert.equal(p.steps, LIMITS.maxSteps); assert.equal(p.padding % 8, 0);
+  assert.equal(cleanParams({ kind: 'inpaint', denoise: 0 }).denoise, 0.05); assert.equal(cleanParams({ kind: 'inpaint', srcId: 'x', mask: '<script>' }).srcId, ''); assert.equal(cleanParams({ kind: 'inpaint', mask: '<script>' }).mask, '');
+  assert.equal(cleanParams({ kind: 'inpaint', mask: 'A'.repeat(LIMITS.maxMask + 1) }).mask, '');
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

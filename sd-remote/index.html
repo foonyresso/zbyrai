@@ -124,13 +124,14 @@
   <main class="center" id="center">
     <nav class="ctabs" id="ctabs" role="tablist">
       <button data-tab="gen" title="Картинка й теги">Генерація</button>
+      <button data-tab="inp" title="Перемалювання: зафарбуй ділянку картинки й заміни її за своїм промптом">Перемалювання</button>
       <button data-tab="lora" title="Список LoRA з ПК власника, метадані, додавання у генерацію">LoRA</button>
       <button data-tab="tpl" title="Шаблони: готові й власні набори налаштувань та промптів">Шаблони</button>
       <button data-tab="hist" title="Усі згенеровані картинки">Історія</button>
     </nav>
 
     <section class="view" id="vGen">
-      <div class="preview-wrap" id="pvWrap"><div class="preview" id="preview"><div class="pv-in" id="pvIn"></div><span class="pv-tag" id="pvTag"></span><div class="pv-bar"><button id="btnSave" title="Зберегти картинку на комп'ютер (WebP)" disabled>⭳ Зберегти</button><button id="btnLog" title="Показати всі налаштування й теги останньої картинки (що саме надіслано)">Лог</button><button id="btnFull" title="Показати картинку на весь екран (Esc виходить)">⛶</button></div></div></div>
+      <div class="preview-wrap" id="pvWrap"><div class="preview" id="preview"><div class="pv-in" id="pvIn"></div><span class="pv-tag" id="pvTag"></span><div class="pv-bar"><button id="btnInp" title="Перемалювати частину цієї картинки: зафарбуй ділянку й заміни її" disabled>🖌 Перемалювати</button><button id="btnSave" title="Зберегти картинку на комп'ютер (WebP)" disabled>⭳ Зберегти</button><button id="btnLog" title="Показати всі налаштування й теги останньої картинки (що саме надіслано)">Лог</button><button id="btnFull" title="Показати картинку на весь екран (Esc виходить)">⛶</button></div></div></div>
       <section class="builder" id="builder" hidden aria-label="Групи тегів">
         <div class="b-head"><b>Теги</b><input type="search" id="bSearch" placeholder="Пошук тегу, напр. ponytail" title="Пошук по всіх тегах"></div>
         <div class="b-tabs" id="bTabs" role="tablist"></div>
@@ -138,8 +139,38 @@
       </section>
     </section>
 
+    <section class="view" id="vInp" hidden>
+      <div class="b-head"><b>Перемалювання</b><span class="hint" id="inpPick">Обери картинку нижче або натисни «Перемалювати» на готовій картинці.</span></div>
+      <div class="inptools">
+        <div class="seg" id="inpToolSeg" role="group" aria-label="Інструмент">
+          <button data-t="brush" class="on" title="Пензель: зафарбуй ділянку, яку треба перемалювати">🖌 Пензель</button>
+          <button data-t="erase" title="Гумка: прибрати частину зафарбованого">⌫ Гумка</button>
+          <button data-t="rect" title="Прямокутник: виділити ділянку прямокутником">▭ Прямокутник</button>
+          <button data-t="hand" title="Рука: пересувати картинку (зум колесом мишки)">✋ Рука</button></div>
+        <label class="vf" title="Розмір пензля й гумки">Розмір <input type="range" id="inpBrush" min="4" max="300" value="40"></label>
+        <button id="inpUndo" title="Скасувати останню дію з маскою (Ctrl+Z)">↶ Скасувати</button>
+        <button id="inpInvert" title="Інвертувати маску: перемалюється все, окрім зафарбованого">⇄ Інвертувати</button>
+        <button id="inpClear" title="Прибрати всю маску">Очистити маску</button>
+      </div>
+      <div class="inp-stage" id="inpStage"></div>
+      <p class="hint" id="inpInfo"></p>
+      <label class="rng" title="Наскільки сильно змінювати ділянку: 0.05 майже без змін, 1.0 повністю заново">Сила зміни (denoise) <span id="inpDnV"></span>
+        <input type="range" id="inpDn" min="0.05" max="1" step="0.05" title="Denoising strength від 0.05 до 1.0"></label>
+      <div class="field"><span class="lbl">Промпт для перемалювання (порожньо = промпт картинки; LoRA додаються)</span>
+        <div class="ed"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" rows="3" maxlength="2000" spellcheck="false" placeholder="напр. blue eyes, smile" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
+        <div class="wbar" id="wI" hidden></div></div>
+      <div class="field"><span class="lbl">Негативний промпт (порожньо = основний)</span>
+        <div class="ed"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" rows="2" maxlength="2000" spellcheck="false" title="Негативний промпт для перемалювання"></textarea></div>
+        <div class="wbar" id="wIN" hidden></div></div>
+      <p class="hint">Інші налаштування (кроки, CFG, семплер) як при генерації. ADetailer і апскейл тут не працюють.</p>
+      <div class="go2"><button class="btn-main" id="inpGo" title="Поставити перемалювання в чергу">🖌 Перемалювати</button></div>
+      <div class="b-head"><b>Остання історія</b></div>
+      <div class="inp-recent" id="inpRecent"></div>
+    </section>
+
     <section class="view" id="vLora" hidden>
-      <div class="b-head"><b>LoRA на ПК</b><input type="search" id="lSearch" placeholder="Пошук LoRA" title="Пошук серед LoRA за назвою, тригер-словами, базовою моделлю"></div>
+      <div class="b-head"><b>LoRA на ПК</b><label class="switch" title="Показувати LoRA з позначкою 18+ (типово приховані)"><input type="checkbox" id="lAdult"><span></span> Показувати 18+</label><input type="search" id="lSearch" placeholder="Пошук LoRA" title="Пошук серед LoRA за назвою, тригер-словами, базовою моделлю"></div>
+      <div class="chips lgroups" id="lGroups"></div>
       <p class="hint" id="lInfo"></p>
       <div class="lgrid" id="lGrid"></div>
     </section>
@@ -172,8 +203,10 @@
 <script src="./loras.js"></script>
 <script src="./viewer.js"></script>
 <script src="./image-edit.js"></script>
+<script src="./inpaint-core.js"></script>
 <script src="./templates.js"></script>
 <script src="./tpl-ui.js"></script>
+<script src="./inpaint.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
