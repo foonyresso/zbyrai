@@ -2,13 +2,13 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var C = window.SDClient, LS = 'sd_';
-  var S = { login: '', pass: '', params: { w: 512, h: 512, steps: 25, cfg: 7, seed: -1, neg: 'lowres, bad anatomy, blurry, watermark' }, jobs: [] };
+  var S = { token: '', params: { w: 512, h: 512, steps: 25, cfg: 7, seed: -1, neg: 'lowres, bad anatomy, blurry, watermark' }, jobs: [] };
   var timers = {};
-  function load() { try { var x = JSON.parse(localStorage.getItem(LS + 'state') || '{}'); S.login = x.login || ''; S.pass = x.pass || ''; Object.assign(S.params, x.params || {}); S.jobs = x.jobs || []; } catch (e) { /* не критично */ } }
-  function save() { try { localStorage.setItem(LS + 'state', JSON.stringify({ login: S.login, pass: S.pass, params: S.params, jobs: S.jobs.slice(-60) })); } catch (e) { /* не критично */ } }
+  function load() { try { var x = JSON.parse(localStorage.getItem(LS + 'state') || '{}'); S.token = x.token || ''; Object.assign(S.params, x.params || {}); S.jobs = x.jobs || []; } catch (e) { /* не критично */ } }
+  function save() { try { localStorage.setItem(LS + 'state', JSON.stringify({ token: S.token, params: S.params, jobs: S.jobs.slice(-60) })); } catch (e) { /* не критично */ } }
   function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2600); }
   function api(path, opt) {
-    opt = opt || {}; opt.headers = Object.assign({ 'x-login': encodeURIComponent(S.login), 'x-pass': encodeURIComponent(S.pass), 'content-type': 'application/json' }, opt.headers || {});
+    opt = opt || {}; opt.headers = Object.assign({ 'x-token': S.token, 'content-type': 'application/json' }, opt.headers || {});
     return fetch('/api/sd/' + path, opt).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Помилка ' + r.status); return j; }); });
   }
 
@@ -67,15 +67,31 @@
     }, function (e) { toast(e.message); }).then(function () { $('btnGo').disabled = false; });
   }
 
-  function enter(login, pass, silent) {
-    var old = [S.login, S.pass]; S.login = login; S.pass = pass;
-    return api('me').then(function () {
-      save(); document.body.classList.add('authed'); $('gate').hidden = true; ping();
-      S.jobs.forEach(function (j) { if (j.status === 'queued' || j.status === 'running') poll(j); });
-    }, function (e) { S.login = old[0]; S.pass = old[1]; if (!silent) $('gateErr').textContent = e.message; $('gate').hidden = false; });
+  var registerMode = false;
+  function started() {
+    document.body.classList.add('authed'); $('gate').hidden = true; ping();
+    S.jobs.forEach(function (j) { if (j.status === 'queued' || j.status === 'running') poll(j); });
   }
-  function logout() { S.login = ''; S.pass = ''; save(); location.reload(); }
-
+  function checkToken(silent) {
+    if (!S.token) { $('gate').hidden = false; return; }
+    api('me').then(started, function (e) {
+      if (/увійти/i.test(e.message)) { S.token = ''; save(); } if (!silent) $('gateErr').textContent = e.message; $('gate').hidden = false;
+    });
+  }
+  function setMode(reg) {
+    registerMode = reg; $('gateBtn').textContent = reg ? 'Подати заявку' : 'Увійти';
+    $('gateSwitch').textContent = reg ? 'Вже є акаунт? Увійти' : 'Немає акаунта? Подати заявку';
+    $('pass').autocomplete = reg ? 'new-password' : 'current-password'; $('gateErr').textContent = ''; $('gateErr').className = 'err';
+  }
+  function submitGate(e) {
+    e.preventDefault();
+    var body = JSON.stringify({ login: $('login').value.trim(), password: $('pass').value, hp: $('hp').value }), err = $('gateErr');
+    err.className = 'err'; err.textContent = '';
+    api(registerMode ? 'register' : 'login', { method: 'POST', body: body }).then(function (r) {
+      if (registerMode) { setMode(false); err.className = 'err ok'; err.textContent = 'Заявку подано. Коли власник відкриє доступ, увійди з цим логіном і паролем.'; return; }
+      S.token = r.token; save(); started();
+    }, function (x) { err.textContent = x.message; });
+  }
   function syncForm() {
     var p = S.params;
     $('w').value = p.w; $('h').value = p.h; $('steps').value = p.steps; $('cfg').value = p.cfg; $('seed').value = p.seed; $('neg').value = p.neg;
@@ -92,11 +108,12 @@
     $('neg').addEventListener('change', function () { S.params.neg = this.value; save(); });
     $('btnGo').addEventListener('click', go);
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
-    $('gateForm').addEventListener('submit', function (e) { e.preventDefault(); enter($('login').value.trim(), $('pass').value); });
+    $('gateForm').addEventListener('submit', submitGate);
+    $('gateSwitch').addEventListener('click', function () { setMode(!registerMode); });
     $('btnClear').addEventListener('click', function () { S.jobs = []; save(); render(); });
   }
 
   load(); bind(); syncForm(); render();
-  if (S.login && S.pass) enter(S.login, S.pass, true);
-  setInterval(function () { if (S.login) ping(); }, 20000);
+  checkToken(true);
+  setInterval(function () { if (S.token) ping(); }, 20000);
 })();

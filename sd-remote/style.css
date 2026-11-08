@@ -28,3 +28,6 @@
 .gate-box p { margin: 0; color: var(--muted); font-size: 13px; } .gate-box .err { color: #e8924a; min-height: 1.2em; }
 .gate-box input { box-sizing: border-box; width: 100%; }
 body:not(.authed) .stage, body:not(.authed) .top { visibility: hidden; }
+.gate-box .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.gate-box .link { background: none; border: 0; color: var(--accent-hi); font-size: 13px; padding: 4px; text-decoration: underline; }
+.gate-box .err.ok { color: #7fd69a; }

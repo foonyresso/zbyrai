@@ -3,17 +3,18 @@
 
 Приклад:
   python3 sd_generate.py --prompt "fantasy book cover, dragon over castle" --out covers/book1.webp --width 768 --height 1024
-Вхід: змінна середовища SD_KEY=логін:пароль (або SD_LOGIN + SD_PASSWORD). Сайт: SD_SITE (типово https://zbyrai.pages.dev).
+Вхід: змінна середовища SD_KEY=логін:пароль (акаунт, підтверджений в адмінці), або SD_LOGIN + SD_PASSWORD. Сайт: SD_SITE (типово https://zbyrai.pages.dev).
 Код виходу: 0 готово, 2 ПК вимкнений, 3 помилка входу/генерації, 4 таймаут."""
 import argparse, json, os, sys, time, urllib.request, urllib.error
 
 SITE = os.environ.get("SD_SITE", "https://zbyrai.pages.dev").rstrip("/")
 KEY = os.environ.get("SD_KEY") or (os.environ.get("SD_LOGIN", "") + ":" + os.environ.get("SD_PASSWORD", ""))
+TOKEN = ""
 
 
 def call(path, payload=None, raw=False):
     req = urllib.request.Request(SITE + "/api/sd/" + path, data=None if payload is None else json.dumps(payload).encode(),
-                                 headers={"x-api-key": KEY, "Content-Type": "application/json", "User-Agent": "zbyrai-sd-cli/1.0"})
+                                 headers={"x-token": TOKEN, "Content-Type": "application/json", "User-Agent": "zbyrai-sd-cli/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             return r.read() if raw else json.loads(r.read().decode())
@@ -35,6 +36,9 @@ def main():
     a = a.parse_args()
     if len(KEY) < 3:
         sys.exit("Не задано SD_KEY (логін:пароль)")
+    global TOKEN
+    login, _, password = KEY.partition(":")
+    TOKEN = call("login", {"login": login, "password": password})["token"]
     if not call("ping").get("online"):
         print("ПК із Stable Diffusion зараз вимкнений. Попроси користувача увімкнути ПК і воркер."); sys.exit(2)
     job = call("submit", {"prompt": a.prompt, "negative": a.negative, "width": a.width, "height": a.height,

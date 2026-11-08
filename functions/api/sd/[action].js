@@ -1,7 +1,7 @@
 // API «Віддаленого SD» на Cloudflare Pages Functions + D1.
-// Друг: submit/me/status/image/ping. Воркер на ПК (Bearer WORKER_TOKEN): next/result.
+// Друг: register/login/me/submit/status/image/ping. Адмін (x-admin): admin-list/admin-set. Воркер на ПК (Bearer WORKER_TOKEN): next/result.
 // Налаштування Cloudflare описані в sd-remote/README.md.
-import { LIMITS, userOf, cleanParams, b64ToBytes } from './sd-core.js';
+import { LIMITS, userOf, cleanParams, b64ToBytes, validLogin, validPass, hashPassword, randomToken } from './sd-core.js';
 
 const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 const now = () => Date.now();
@@ -12,8 +12,12 @@ export async function onRequest({ request, env, params }) {
   const url = new URL(request.url), action = params.action, method = request.method;
   try {
     if (action === 'ping' && method === 'GET') return ping(db);
-    if (action === 'me' && method === 'GET') return me(request, env);
-    if (action === 'submit' && method === 'POST') return submit(request, env, db);
+    if (action === 'register' && method === 'POST') return register(request, env, db);
+    if (action === 'login' && method === 'POST') return login(request, env, db);
+    if (action === 'me' && method === 'GET') return me(request, db);
+    if (action === 'submit' && method === 'POST') return submit(request, db);
+    if (action === 'admin-list' && method === 'GET') return adminOnly(request, env) || adminList(db);
+    if (action === 'admin-set' && method === 'POST') return adminOnly(request, env) || adminSet(request, db);
     if (action === 'status' && method === 'GET') return status(url, db);
     if (action === 'image' && method === 'GET') return image(url, db);
     if (action === 'next' && method === 'POST') return workerOnly(request, env) || next(db);
@@ -36,24 +40,92 @@ async function ping(db) {
   return J({ online: !!a && now() - a.v < LIMITS.onlineMs, queue: q ? q.n : 0 });
 }
 
-// Вхід: заголовки x-login + x-pass (сторінка) або x-api-key: логін:пароль (скрипти й нейронки)
-const authed = (request, env) => {
-  const h = (n) => request.headers.get(n) || '';
-  const key = h('x-api-key'), i = key.indexOf(':');
-  if (i > 0) return userOf(env.ACCESS_CODES, key.slice(0, i), key.slice(i + 1));
-  return userOf(env.ACCESS_CODES, decodeURIComponent(h('x-login')), decodeURIComponent(h('x-pass')));
-};
+const body = async (request) => { try { return await request.json(); } catch { return null; } };
 
-function me(request, env) {
-  const u = authed(request, env);
-  return u ? J({ user: u }) : J({ error: 'Невірний логін або пароль' }, 401);
+function adminOnly(request, env) {
+  const p = request.headers.get('x-admin') || '';
+  if (!env.ADMIN_PASSWORD || p !== env.ADMIN_PASSWORD) return J({ error: 'Невірний пароль адміна' }, 401);
+  return null;
 }
 
-async function submit(request, env, db) {
-  const user = authed(request, env);
-  if (!user) return J({ error: 'Невірний логін або пароль' }, 401);
-  let body; try { body = await request.json(); } catch { return J({ error: 'Некоректний запит' }, 400); }
-  const p = cleanParams(body);
+// Сесія: заголовок x-token → логін активного акаунта (або null)
+async function authed(request, db) {
+  const t = request.headers.get('x-token') || '';
+  if (!/^[0-9a-f]{32}$/.test(t)) return null;
+  const r = await db.prepare('SELECT s.login, s.legacy, s.created, u.status FROM sessions s LEFT JOIN users u ON u.login = s.login WHERE s.token=?').bind(t).first();
+  if (!r || now() - r.created > LIMITS.sessionDays * 864e5) return null;
+  return r.legacy || r.status === 'active' ? r.login : null;
+}
+
+async function me(request, db) {
+  const u = await authed(request, db);
+  return u ? J({ user: u }) : J({ error: 'Потрібно увійти' }, 401);
+}
+
+async function register(request, env, db) {
+  const b = await body(request);
+  if (!b) return J({ error: 'Некоректний запит' }, 400);
+  if (b.hp) return J({ ok: true }); // пастка для ботів: приховане поле заповнене
+  const login = String(b.login || '').trim().toLowerCase();
+  if (!validLogin(login)) return J({ error: 'Логін: 3–20 символів, латиниця, цифри або _' }, 400);
+  if (!validPass(b.password)) return J({ error: 'Пароль: від 8 символів' }, 400);
+  const legacy = String(env.ACCESS_CODES || '').split(',').some((x) => x.split(':')[0].trim().toLowerCase() === login);
+  const taken = await db.prepare('SELECT 1 x FROM users WHERE login=?').bind(login).first();
+  if (legacy || taken) return J({ error: 'Цей логін зайнятий' }, 409);
+  const n = await db.prepare("SELECT COUNT(*) n FROM users WHERE status='pending'").first();
+  if (n && n.n >= LIMITS.maxPending) return J({ error: 'Зараз заявки не приймаються, спробуй пізніше' }, 429);
+  const h = await hashPassword(b.password);
+  await db.prepare("INSERT INTO users (login,salt,hash,status,created) VALUES (?,?,?, 'pending', ?)").bind(login, h.salt, h.hash, now()).run();
+  return J({ ok: true });
+}
+
+async function login(request, env, db) {
+  const b = await body(request);
+  if (!b) return J({ error: 'Некоректний запит' }, 400);
+  const name = String(b.login || '').trim().toLowerCase(), t = now();
+  let legacy = 0;
+  if (userOf(env.ACCESS_CODES, b.login, b.password)) legacy = 1;
+  else {
+    const u = await db.prepare('SELECT * FROM users WHERE login=?').bind(name).first();
+    if (!u) return J({ error: 'Невірний логін або пароль' }, 401);
+    if (u.locked > t) return J({ error: 'Забагато спроб. Зачекай 15 хвилин' }, 429);
+    const h = await hashPassword(String(b.password || ''), u.salt);
+    if (h.hash !== u.hash) {
+      const f = u.fails + 1;
+      await db.prepare('UPDATE users SET fails=?, locked=? WHERE login=?').bind(f >= LIMITS.maxFails ? 0 : f, f >= LIMITS.maxFails ? t + LIMITS.lockMs : 0, name).run();
+      return J({ error: 'Невірний логін або пароль' }, 401);
+    }
+    if (u.status === 'pending') return J({ error: 'Заявку ще не підтверджено. Зачекай, поки власник відкриє доступ' }, 403);
+    if (u.status !== 'active') return J({ error: 'Доступ закрито' }, 403);
+    await db.prepare('UPDATE users SET fails=0 WHERE login=?').bind(name).run();
+  }
+  const token = randomToken(), who = legacy ? String(b.login).trim() : name;
+  await db.prepare('DELETE FROM sessions WHERE created < ?').bind(t - LIMITS.sessionDays * 864e5).run();
+  await db.prepare('INSERT INTO sessions (token,login,legacy,created) VALUES (?,?,?,?)').bind(token, who, legacy, t).run();
+  return J({ token, user: who });
+}
+
+async function adminList(db) {
+  const r = await db.prepare('SELECT login,status,created FROM users ORDER BY created DESC LIMIT 200').all();
+  return J({ users: r.results || [] });
+}
+
+async function adminSet(request, db) {
+  const b = await body(request);
+  const login = String(b && b.login || '').toLowerCase(), act = b && b.action;
+  if (!login || !['approve', 'block', 'delete'].includes(act)) return J({ error: 'Некоректний запит' }, 400);
+  if (act === 'delete') await db.prepare('DELETE FROM users WHERE login=?').bind(login).run();
+  else await db.prepare('UPDATE users SET status=? WHERE login=?').bind(act === 'approve' ? 'active' : 'blocked', login).run();
+  if (act !== 'approve') await db.prepare('DELETE FROM sessions WHERE login=?').bind(login).run();
+  return J({ ok: true });
+}
+
+async function submit(request, db) {
+  const user = await authed(request, db);
+  if (!user) return J({ error: 'Потрібно увійти' }, 401);
+  const b = await body(request);
+  if (!b) return J({ error: 'Некоректний запит' }, 400);
+  const p = cleanParams(b);
   if (!p.prompt) return J({ error: 'Напиши промпт' }, 400);
   const t = now();
   await db.prepare('DELETE FROM jobs WHERE created < ?').bind(t - LIMITS.keepDays * 864e5).run();

@@ -16,10 +16,12 @@
 <div class="gate" id="gate">
   <form class="gate-box" id="gateForm">
     <h1>Віддалений <span>SD</span></h1>
-    <p>Закрита сторінка. Введи логін і пароль.</p>
-    <input type="text" id="login" autocomplete="username" placeholder="Логін" title="Логін, виданий власником сайту" required>
-    <input type="password" id="pass" autocomplete="current-password" placeholder="Пароль" title="Пароль, виданий власником сайту" required>
-    <button class="btn-main" type="submit" title="Увійти">Увійти</button>
+    <p id="gateHint">Закрита сторінка. Увійди або подай заявку на доступ.</p>
+    <input type="text" id="login" autocomplete="username" placeholder="Логін (латиниця, цифри)" title="Логін: 3–20 символів, латиниця, цифри або _" required>
+    <input type="password" id="pass" autocomplete="current-password" placeholder="Пароль (від 8 символів)" title="Пароль від 8 символів" required>
+    <input type="text" id="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="btn-main" type="submit" id="gateBtn" title="Увійти">Увійти</button>
+    <button type="button" id="gateSwitch" class="link" title="Перемкнути між входом і заявкою на доступ">Немає акаунта? Подати заявку</button>
     <p class="err" id="gateErr"></p>
   </form>
 </div>

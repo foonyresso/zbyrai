@@ -13,3 +13,11 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE INDEX IF NOT EXISTS jobs_status ON jobs (status, created);
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v INTEGER);
+
+-- Акаунти друзів: реєстрація → статус pending → ти підтверджуєш в адмінці (active)
+CREATE TABLE IF NOT EXISTS users (
+  login TEXT PRIMARY KEY, salt TEXT NOT NULL, hash TEXT NOT NULL,
+  status TEXT NOT NULL,          -- pending | active | blocked
+  fails INTEGER NOT NULL DEFAULT 0, locked INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, login TEXT NOT NULL, legacy INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL);

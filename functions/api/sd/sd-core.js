@@ -32,3 +32,17 @@ export function cleanParams(p) {
 }
 
 export const b64ToBytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+
+// --- Акаунти: валідація, хеш пароля (PBKDF2), токени сесій
+export const validLogin = (l) => /^[a-z0-9_]{3,20}$/.test(String(l || ''));
+export const validPass = (p) => typeof p === 'string' && p.length >= 8 && p.length <= 100;
+const hex = (u8) => [...new Uint8Array(u8)].map((b) => b.toString(16).padStart(2, '0')).join('');
+const unhex = (h) => Uint8Array.from(h.match(/../g) || [], (x) => parseInt(x, 16));
+export const randomToken = () => hex(crypto.getRandomValues(new Uint8Array(16)));
+export async function hashPassword(pass, saltHex) {
+  const salt = saltHex ? unhex(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 50000, hash: 'SHA-256' }, key, 256);
+  return { salt: hex(salt), hash: hex(bits) };
+}
+Object.assign(LIMITS, { sessionDays: 30, maxPending: 20, maxFails: 8, lockMs: 15 * 60 * 1000 });
