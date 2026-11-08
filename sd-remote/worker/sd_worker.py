@@ -8,7 +8,7 @@
 import base64, io, json, os, sys, time, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-cfg = {"site": "https://zbyrai.pages.dev", "token": "", "forge": "http://127.0.0.1:7860", "poll": 4,
+cfg = {"site": "https://zbyrai.pages.dev", "token": "", "forge": "http://127.0.0.1:7860", "poll": 4, "steps": 25, "cfg": 7,
        "hr_upscaler": "Lanczos", "hr_denoise": 0.4, "ad_face_model": "face_yolov8n.pt", "ad_hand_model": "hand_yolov8n.pt"}
 try:
     with open(os.path.join(HERE, "worker.json"), encoding="utf-8") as f:
@@ -42,7 +42,7 @@ def adetailer_args(p):
 
 def forge_body(p, with_ad=True):
     body = {"prompt": p["prompt"], "negative_prompt": p.get("negative", ""), "width": p["width"], "height": p["height"],
-            "steps": p["steps"], "cfg_scale": p["cfg"], "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1}
+            "steps": p.get("steps") or cfg["steps"], "cfg_scale": p.get("cfg") or cfg["cfg"], "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1}
     if p.get("sampler"):
         body["sampler_name"] = p["sampler"]
     if p.get("scheduler"):

@@ -31,7 +31,7 @@ def main():
     a.add_argument("--prompt", required=True); a.add_argument("--out", required=True)
     a.add_argument("--negative", default="lowres, bad anatomy, blurry, watermark, text")
     a.add_argument("--width", type=int, default=768); a.add_argument("--height", type=int, default=1024)
-    a.add_argument("--steps", type=int, default=25); a.add_argument("--cfg", type=float, default=7)
+    a.add_argument("--steps", type=int, default=0); a.add_argument("--cfg", type=float, default=0)  # 0 = як налаштовано на ПК
     a.add_argument("--seed", type=int, default=-1); a.add_argument("--timeout", type=int, default=900)
     a = a.parse_args()
     if len(KEY) < 3:

@@ -23,8 +23,9 @@ export function cleanParams(p) {
     prompt: str(p.prompt, LIMITS.maxPrompt).trim(),
     negative: str(p.negative, LIMITS.maxPrompt).trim(),
     width: snap(p.width), height: snap(p.height),
-    steps: Math.round(num(p.steps, 25, 1, LIMITS.maxSteps)),
-    cfg: Math.round(num(p.cfg, 7, 1, LIMITS.maxCfg) * 2) / 2,
+    // 0 = взяти кроки й CFG із worker.json на ПК (залежать від моделі)
+    steps: p.steps ? Math.round(num(p.steps, 0, 1, LIMITS.maxSteps)) : 0,
+    cfg: p.cfg ? Math.round(num(p.cfg, 0, 1, LIMITS.maxCfg) * 2) / 2 : 0,
     seed: Math.round(num(p.seed, -1, -1, 4294967295)),
     sampler: str(p.sampler, 40).trim(),
     scheduler: str(p.scheduler, 40).trim(),

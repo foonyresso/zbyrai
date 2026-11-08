@@ -25,9 +25,10 @@
 - Оновити теги з Кубика промптів: `node tools/build-sd-tags.mjs` (перезаписує `tags-data.js`).
 
 ## Для апскейлу й ADetailer на ПК
+**Кроки й CFG** на сайті не показуються: їх задає `worker.json` на ПК (`steps`, `cfg`; для turbo-моделей, напр. `10` і `1.5`).
 Апскейл працює через Hires. fix у Forge (апскейлер за замовчуванням `Lanczos`, змінюється в `worker.json`: `hr_upscaler`, `hr_denoise`). ADetailer потребує встановленого розширення ADetailer у Forge Neo; назви моделей у `worker.json` (`ad_face_model`, `ad_hand_model`, типово `face_yolov8n.pt` і `hand_yolov8n.pt`). Якщо ADetailer не спрацює, воркер сам повторить генерацію без нього.
 
 ## Обмеження
-До 3 задач у черзі на людину, довга сторона до 1280 px (з апскейлом до 2560), до 40 кроків; картинки живуть 7 днів. Модель береться та, що зараз завантажена у Forge.
+До 3 задач у черзі на людину, довга сторона до 1280 px (з апскейлом до 2560); картинки живуть 7 днів. Модель береться та, що зараз завантажена у Forge.
 
 Тести: `node sd-remote/test/sd-client.test.js && node sd-remote/test/sd-core.test.mjs`

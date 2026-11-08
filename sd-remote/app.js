@@ -2,7 +2,7 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var C = window.SDClient, LS = 'sd_';
-  var D = { mode: 'basic', ratio: '2:3', orient: 'v', long: 1024, steps: 25, cfg: 7, seed: -1, upscale: 1, adFace: false, adHands: false,
+  var D = { mode: 'basic', ratio: '2:3', orient: 'v', long: 1024, seed: -1, upscale: 1, adFace: false, adHands: false,
     prompt: '', neg: 'lowres, bad anatomy, bad hands, blurry, watermark, text', sideOff: false, builderMin: false };
   var S = Object.assign({ token: '', jobs: [] }, D), timers = {}, registerMode = false;
 
@@ -24,7 +24,7 @@
     document.querySelectorAll('#longs button').forEach(function (b) { b.classList.toggle('on', +b.dataset.l === S.long); });
     $('btnOrient').textContent = S.orient === 'v' ? '⇄ Вертикально' : '⇄ Горизонтально'; $('btnOrient').disabled = S.ratio === '1:1';
     $('sizeInfo').textContent = d.w + '×' + d.h + (S.upscale > 1 ? ' → ' + f.w + '×' + f.h : '');
-    $('steps').value = S.steps; $('stV').textContent = S.steps; $('cfg').value = S.cfg; $('cfgV').textContent = S.cfg; $('seed').value = S.seed;
+    $('seed').value = S.seed;
     $('upscale').value = S.upscale; $('upV').textContent = S.upscale > 1 ? S.upscale + '×' : 'вимкнено';
     $('adFace').checked = S.adFace; $('adHands').checked = S.adHands;
     $('prompt').value = S.prompt; $('neg').value = S.neg;
@@ -55,13 +55,13 @@
       } else fr.textContent = j.status === 'error' ? (j.error || 'Помилка') : (j.text || 'Чекаю…');
       var cap = document.createElement('div'); cap.className = 'cap';
       var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = j.prompt; pr.title = j.prompt;
-      var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + ' · ' + j.steps + ' кр.' + (j.seed >= 0 ? ' · seed ' + j.seed : '');
+      var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + (j.seed >= 0 ? ' · seed ' + j.seed : '');
       cap.appendChild(pr); cap.appendChild(meta);
       var acts = document.createElement('div'); acts.className = 'acts';
       var btn = function (label, title, fn) { var b = document.createElement('button'); b.textContent = label; b.title = title; b.addEventListener('click', fn); acts.appendChild(b); };
       if (j.status === 'done') btn('Завантажити', 'Зберегти картинку на комп’ютер', function () { var a = document.createElement('a'); a.href = '/api/sd/image?id=' + j.id; a.download = C.fileName(j.prompt, j.seed); a.click(); });
       btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
-        Object.assign(S, { prompt: j.prompt, neg: j.neg, steps: j.steps, cfg: j.cfg, seed: j.seed >= 0 ? j.seed : -1, upscale: j.upscale || 1, adFace: !!j.adFace, adHands: !!j.adHands });
+        Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.seed >= 0 ? j.seed : -1, upscale: j.upscale || 1, adFace: !!j.adFace, adHands: !!j.adHands });
         syncForm(); save(); SDBuilder.refresh(); toast('Параметри підставлено');
       });
       btn('×', 'Прибрати зі списку', function () { S.jobs = S.jobs.filter(function (x) { return x.id !== j.id; }); save(); render(); renderPreview(); });
@@ -83,10 +83,10 @@
   }
   function go() {
     var prompt = S.prompt.trim(); if (!prompt) return toast('Напиши промпт');
-    var d = dims(), body = { prompt: prompt, negative: S.neg, width: d.w, height: d.h, steps: S.steps, cfg: S.cfg, seed: S.seed, upscale: S.upscale, adFace: S.adFace, adHands: S.adHands };
+    var d = dims(), body = { prompt: prompt, negative: S.neg, width: d.w, height: d.h, seed: S.seed, upscale: S.upscale, adFace: S.adFace, adHands: S.adHands };
     $('btnGo').disabled = true;
     api('submit', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
-      var job = { id: r.id, status: 'queued', text: 'У черзі…', prompt: prompt, neg: S.neg, w: d.w, h: d.h, steps: S.steps, cfg: S.cfg, seed: S.seed, upscale: S.upscale, adFace: S.adFace, adHands: S.adHands };
+      var job = { id: r.id, status: 'queued', text: 'У черзі…', prompt: prompt, neg: S.neg, w: d.w, h: d.h, seed: S.seed, upscale: S.upscale, adFace: S.adFace, adHands: S.adHands };
       S.jobs.push(job); save(); render(); renderPreview(); poll(job);
     }, function (e) { toast(e.message); }).then(function () { $('btnGo').disabled = false; });
   }
@@ -121,7 +121,7 @@
     C.RATIOS.forEach(function (r) { var b = document.createElement('button'); b.textContent = r; b.dataset.r = r; b.title = 'Пропорції ' + r; b.addEventListener('click', function () { S.ratio = r; syncForm(); save(); }); rs.appendChild(b); });
     C.LONG_SIDES.forEach(function (l) { var b = document.createElement('button'); b.textContent = l; b.dataset.l = l; b.title = 'Довга сторона ' + l + ' px'; b.addEventListener('click', function () { S.long = l; syncForm(); save(); }); ls.appendChild(b); });
     $('btnOrient').addEventListener('click', function () { S.orient = S.orient === 'v' ? 'h' : 'v'; syncForm(); save(); });
-    [['steps', 1, 40], ['cfg', 1, 15], ['seed', -1, 4294967295], ['upscale', 1, 2]].forEach(function (a) {
+    [['seed', -1, 4294967295], ['upscale', 1, 2]].forEach(function (a) {
       $(a[0]).addEventListener('input', function () { var v = Number(this.value); if (!isFinite(v)) return; S[a[0]] = Math.min(a[2], Math.max(a[1], v)); syncForm(); save(); });
     });
     ['adFace', 'adHands'].forEach(function (k) { $(k).addEventListener('change', function () { S[k] = this.checked; save(); }); });
