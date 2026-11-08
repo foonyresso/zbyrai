@@ -178,6 +178,9 @@ async function result(request, db) {
   }
   if (!b.image || b.image.length > 1.5e6) return J({ error: 'Картинка порожня або завелика (макс. ~1 МБ)' }, 400);
   await db.prepare("UPDATE jobs SET status='done', image=?, mime=?, info=?, updated=? WHERE id=?").bind(b.image, b.mime === 'image/png' ? 'image/png' : 'image/webp', JSON.stringify(b.info || {}), t, id).run();
+  // ліміт: у кожного користувача зберігається лише останні maxImagesPerUser картинок (старі стираються, щоб не розросталась база)
+  const j = await db.prepare('SELECT user FROM jobs WHERE id=?').bind(id).first();
+  if (j) await db.prepare('UPDATE jobs SET image=NULL WHERE user=? AND image IS NOT NULL AND id NOT IN (SELECT id FROM jobs WHERE user=? AND image IS NOT NULL ORDER BY updated DESC LIMIT ?)').bind(j.user, j.user, LIMITS.maxImagesPerUser).run();
   return J({ ok: true });
 }
 
