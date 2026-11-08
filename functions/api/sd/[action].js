@@ -217,7 +217,7 @@ async function progress(request, db) {
 // Лог генерації: seed, підсумок Forge (infotext) і запит воркера; обмежено за розміром
 function safeInfo(i) {
   i = i || {};
-  const info = { seed: Number.isFinite(+i.seed) ? +i.seed : -1, infotext: String(i.infotext || '').slice(0, 6000) };
+  const info = { seed: Number.isFinite(+i.seed) ? +i.seed : -1, infotext: String(i.infotext || '').slice(0, 6000), saved: String(i.saved || '').slice(0, 500) };
   if (i.request && typeof i.request === 'object') info.request = i.request;
   let json = JSON.stringify(info);
   if (json.length > 20000) { delete info.request; json = JSON.stringify(info); }

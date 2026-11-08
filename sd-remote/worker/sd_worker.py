@@ -183,6 +183,38 @@ def save_copy(png, infotext, job, request):
         print("  не вдалося зберегти копію:", e)
 
 
+def forge_outdir(inpaint=False):
+    """Папка, куди Forge зберігає результати (з його налаштувань)."""
+    try:
+        o = call(cfg["forge"] + "/sdapi/v1/options", timeout=20)
+        return o.get("outdir_img2img_samples" if inpaint else "outdir_txt2img_samples") or ""
+    except Exception:
+        return ""
+
+
+def find_saved(outdir, since):
+    """Найновіший файл у папці виводу Forge, створений не раніше since (щоб показати, де лежить результат)."""
+    if not outdir:
+        return ""
+    for base in (outdir, os.path.join(HERE, outdir)):
+        if not os.path.isdir(base):
+            continue
+        best, bt = "", 0
+        for root, dirs, files in os.walk(base):
+            if root[len(base):].count(os.sep) > 2:
+                dirs[:] = []
+                continue
+            for f in files:
+                if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                    pth = os.path.join(root, f)
+                    m = os.path.getmtime(pth)
+                    if m >= since - 2 and m > bt:
+                        best, bt = pth, m
+        if best:
+            return os.path.abspath(best)
+    return ""
+
+
 def read_json(path):
     try:
         with open(path, encoding="utf-8") as f:
@@ -282,6 +314,8 @@ def main():
     if not cfg["token"]:
         sys.exit("Не задано токен: SD_TOKEN або worker.json {\"token\": \"...\"}")
     print(f"Воркер запущено. Сайт: {cfg['site']}  Forge: {cfg['forge']}  (Ctrl+C щоб зупинити)")
+    d = forge_outdir()
+    print("Forge зберігає картинки в:", d or "(не вдалося дізнатися; перевір, що Forge запущений з --api)")
     sync_loras(force=True)
     while True:
         sync_loras()
@@ -294,10 +328,14 @@ def main():
         if not job:
             time.sleep(cfg["poll"]); continue
         print("Задача", job["id"], "-", job["params"]["prompt"][:60])
+        t0 = time.time()
         try:
             img, mime, seed, infotext, request, png = generate(job["params"], job["id"])
             save_copy(png, infotext, job, request)
-            out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed, "infotext": infotext, "request": request}}
+            outdir = forge_outdir(job["params"].get("kind") == "inpaint")
+            saved = find_saved(outdir, t0) if cfg["forge_save"] else ""
+            print("  Forge зберіг:", saved) if saved else print("  файл не знайдено; папка Forge:", outdir or "невідома")
+            out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed, "infotext": infotext, "request": request, "saved": saved or ("папка Forge: " + outdir)}}
         except Exception as e:
             print("  помилка генерації:", e)
             out = {"id": job["id"], "error": "Помилка генерації на ПК: " + str(e)[:200]}

@@ -4,7 +4,7 @@
   var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
   var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
   var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
-    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, loraMeta: {}, loraAdult: false, loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5 } };
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, loraMeta: {}, loraAdult: false, loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
   var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
   function load() {
@@ -140,12 +140,13 @@
     else o.push('ADetailer: ' + (j.adOn ? 'увімкнено' : 'вимкнено') + (j.adOn ? '\n  позитивний: ' + (j.adPrompt || '—') + '\n  негативний: ' + (j.adNeg || '—') : ''));
     o.push('LoRA: ' + ((j.loras || []).length ? j.loras.map(function (l) { return l.name + ' ' + l.w; }).join(', ') : 'немає'));
     var lg = j.log;
+    if (lg && lg.saved) o.push('\nФайл на ПК: ' + lg.saved);
     o.push('\n=== Підсумок Forge (infotext) ===\n' + (lg && lg.infotext ? lg.infotext : 'ще немає (з\u2019явиться, коли картинка готова; потрібна нова версія воркера)'));
     if (lg && lg.request) o.push('\n=== Запит воркера до Forge (JSON) ===\n' + JSON.stringify(lg.request, null, 1));
     return o.join('\n');
   }
   function openLog(j) { if (!j) return toast('Ще немає картинок'); $('logPre').textContent = logText(j); $('logDlg').showModal(); }
-  function renderAll() { renderPreview(); renderHistory(); }
+  function renderAll() { renderPreview(); renderHistory(); if (window.SDInp) SDInp.refresh(); }
 
   function poll(job) {
     if (timers[job.id]) return;
@@ -154,7 +155,7 @@
         var was = job.status; job.status = st.status; job.text = C.queueText(st); job.error = st.error;
         if (st.progress != null) job.progress = Math.max(job.progress || 0, st.progress);
         if (st.info && st.info.seed != null) job.seed = st.info.seed;
-        if (st.info && (st.info.infotext || st.info.request)) job.log = { infotext: st.info.infotext || '', request: st.info.request || null };
+        if (st.info && (st.info.infotext || st.info.request)) job.log = { infotext: st.info.infotext || '', request: st.info.request || null, saved: st.info.saved || '' };
         if (st.status === 'done' || st.status === 'error') { clearInterval(timers[job.id]); delete timers[job.id]; if (st.status === 'done' && was !== 'done') job.live = true; save(); }
         renderAll();
       }, function (e) {
@@ -163,11 +164,13 @@
     }, 1500);
   }
   // Поставити задачу в чергу (генерація чи перемалювання); fields — що показувати про неї в історії
-  function enqueue(body, fields) {
+  function enqueue(body, fields, opts) {
     return api('submit', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
       var shown = Object.assign({}, body); if (shown.mask) shown.mask = '<маска ' + shown.mask.length + ' символів>';
       var job = Object.assign({ id: r.id, status: 'queued', text: 'У черзі…', progress: 0, sent: shown, reqSeed: body.seed, seed: body.seed }, fields);
-      S.jobs.push(job); save(); S.tab = 'gen'; if (S.view === 'tags') S.view = 'img'; syncLayout(); renderAll(); poll(job);
+      S.jobs.push(job); save();
+      if (!(opts && opts.stay)) { S.tab = 'gen'; if (S.view === 'tags') S.view = 'img'; }   // перемалювання лишається на своїй вкладці
+      syncLayout(); renderAll(); poll(job);
     }, function (e) { toast(e.message); throw e; });
   }
   function go() {
@@ -263,12 +266,12 @@
   edP = PromptEditor.create({ ta: $('prompt'), mirror: $('mP'), bar: $('wP'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.prompt = t; save(); if (window.SDBuilder) SDBuilder.refresh(); } });
   edN = PromptEditor.create({ ta: $('neg'), mirror: $('mN'), bar: $('wN'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.neg = t; save(); } });
   SDAutocomplete.init({ names: SDLoras.names, weight: SDLoras.defaultWeight }); SDAutocomplete.attach($('prompt')); SDAutocomplete.attach($('neg')); 
-  S.inp = Object.assign({ src: '', prompt: '', neg: '', denoise: 0.5 }, S.inp || {});
+  S.inp = Object.assign({ src: '', prompt: '', neg: '', denoise: 0.5, chain: [] }, S.inp || {}); if (!Array.isArray(S.inp.chain)) S.inp.chain = [];
   bind(); fillEditors(); syncForm(); syncLayout(); renderAll();
   SDLoras.init({ state: S, get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
   SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },
     colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
-  SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue });
+  SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
   SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
   checkToken();
   setInterval(function () { if (S.token) ping(); }, 15000);
