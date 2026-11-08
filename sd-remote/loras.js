@@ -125,6 +125,7 @@
     DEFAULT_LIST: Object.keys(DEFAULTS).map(function (n) { return { name: n, w: DEFAULTS[n] }; }),
     defaultWeight: defaultWeight, render: render, names: function () { return known.map(function (k) { return k.name; }); },
     init: function (h) { host = h; $('lSearch').addEventListener('input', renderManager); $('lBy').addEventListener('change', function () { host.state.loraBy = this.value; host.state.loraGroup = ''; host.save(); renderManager(); }); $('lDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+      $('loraReset').addEventListener('click', function () { host.set(JSON.parse(JSON.stringify(window.SDLoras.DEFAULT_LIST))); render(); host.toast('Повернено типові LoRA'); });
       $('lRefresh').addEventListener('click', function () {
         host.api('loras-refresh', { method: 'POST', body: '{}' }).then(function (r) {
           host.toast(r.online ? 'Запит надіслано ПК: список оновиться за кілька секунд' : 'Сервер вимкнений: список оновиться, щойно ПК увімкнеться');
