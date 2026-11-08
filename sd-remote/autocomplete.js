@@ -2,7 +2,7 @@
 // Списки (data/*.txt, зібрані з CSV розширення Tag Autocomplete) вантажаться при першому наборі. Логіка: autocomplete-core.js.
 (function () {
   var A = window.SDAcCore, COLORS = { '0': '#7fb8e8', '1': '#f06a6a', '3': '#d98af0', '4': '#6fd69a', '5': '#f0b05a', '7': '#f0b05a', '8': '#6fd69a', q: '#f0b05a', lora: '#62c8ec' };
-  var loaded = {}, sets = { danbooru: true, e621: false }, merged = null, host = { names: function () { return []; }, weight: function () { return null; } };
+  var loaded = {}, sets = { danbooru: true, e621: true }, merged = null, host = { names: function () { return []; }, weight: function () { return null; } };
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function load(name) {   // повертає Promise; кожен список вантажиться один раз
@@ -62,6 +62,7 @@
   window.SDAutocomplete = {
     attach: attach,
     init: function (h) { host = h; },
-    setSets: function (s) { sets = Object.assign({ danbooru: true, e621: false }, s); merged = null; Object.keys(sets).forEach(function (k) { if (sets[k]) load(k); }); },
+    start: function () { Object.keys(sets).forEach(function (k) { load(k); }); },
+    setSets: function (s) { sets = Object.assign({ danbooru: true, e621: true }, s); merged = null; Object.keys(sets).forEach(function (k) { if (sets[k]) load(k); }); },
   };
 })();

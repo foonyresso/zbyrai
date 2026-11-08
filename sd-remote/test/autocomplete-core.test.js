@@ -23,6 +23,10 @@ test('apply: заміна фрагмента, кома, екранування �
   const mid = 'a, lon, b'; const f = A.fragment(mid, 6); assert.equal(A.apply(mid, f, 'long hair').text, 'a, long hair, b');
   assert.equal(A.tagText('tail_(animal)'), 'tail \\(animal\\)');
 });
+test('merge: без дублів, за популярністю', () => {
+  const m = A.merge([A.parse('a\t0\t10\t\nb\t0\t5\t'), A.parse('b\t0\t50\t\nc\t5\t7\t')]);
+  assert.deepEqual(m.map(e => e.t + e.n), ['b50', 'a10', 'c7']);
+});
 test('count: підпис кількості', () => { assert.equal(A.count(7077121), '7.1M'); assert.equal(A.count(4500), '5k'); assert.equal(A.count(9e9), ''); });
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

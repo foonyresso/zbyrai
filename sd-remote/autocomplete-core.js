@@ -10,7 +10,11 @@
     }
     return out;
   }
-  var merge = function (lists) { return [].concat.apply([], lists).sort(function (a, b) { return b.n - a.n; }); };
+  // Об'єднання списків: однакові теги лишаються один раз (з більшою кількістю), порядок за популярністю
+  function merge(lists) {
+    var seen = {}, all = [].concat.apply([], lists).sort(function (a, b) { return b.n - a.n; });
+    return all.filter(function (e) { if (seen[e.t]) return false; seen[e.t] = 1; return true; });
+  }
 
   // Фрагмент тегу, який пише користувач: від останньої коми/дужки/нового рядка до курсору. lora: true, якщо це «<lora:…»
   function fragment(text, caret) {
