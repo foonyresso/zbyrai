@@ -221,3 +221,4 @@ dialog.lds { width: min(900px, 94vw); } .ldbody { display: grid; grid-template-c
 .btnlink { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); text-decoration: none; font-size: 13px; background: color-mix(in srgb, var(--panel) 92%, transparent); } .btnlink:hover { border-color: var(--accent); }
 #i2pStatus.okk { color: #7fd69a; }
 .i2p-view.dk { background: #0b0b0f; } .i2p-frame.dk { filter: invert(.92) hue-rotate(180deg) contrast(.92); }   /* темна тема без розширень: фільтр на самій рамці */
+.i2p-css { border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 12px 10px; } .i2p-css summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 4px 0; } .i2p-css .logpre { max-height: 200px; margin: 8px 0 0; }

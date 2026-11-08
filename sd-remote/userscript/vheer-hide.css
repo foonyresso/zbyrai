@@ -1,0 +1,9 @@
+/* vheer.com Image to Prompt: лише вікно картинки й вікно промпта (без бічної панелі, шапки, банера й сповіщень) */
+[data-slot="sidebar-gap"],
+[data-slot="sidebar-container"],
+[data-slot="sidebar"],
+header,
+[data-sonner-toaster],
+div:has(> button[aria-label*="banner" i]) { display: none !important; }
+[data-slot="sidebar-inset"],
+main { margin: 0 !important; max-width: 100% !important; }
