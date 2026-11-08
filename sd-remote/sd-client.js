@@ -1,12 +1,12 @@
 // Чиста логіка «Віддаленого SD» без DOM: пропорції й розмір, складання промпта з тегів, пошук тегів, підписи. Тести: test/sd-client.test.js
 (function (root) {
   var RATIOS = ['1:1', '2:3', '3:4', '4:5', '5:7', '9:16', '9:21'];
-  var LONG_SIDES = [768, 1024, 1216];
+  var LONG_SIDES = [1024, 1216, 1344, 1536];
 
-  // Розмір у пікселях за пропорцією: довга сторона = long, коротка рахується, обидві кратні 8. orient: 'v' (вертикально) | 'h' (горизонтально)
+  // Розмір у пікселях за пропорцією: довга сторона = long, коротка рахується й округлюється до кратної 64 (як 768×1344 у типових налаштуваннях). orient: 'v' (вертикально) | 'h' (горизонтально)
   function sizeFor(ratio, orient, long) {
     var p = String(ratio).split(':').map(Number), a = p[0] || 1, b = p[1] || 1;
-    var lo = Math.min(a, b), hi = Math.max(a, b), short = Math.round(long * lo / hi / 8) * 8;
+    var lo = Math.min(a, b), hi = Math.max(a, b), short = Math.round(long * lo / hi / 64) * 64;
     return orient === 'h' ? { w: long, h: short } : { w: short, h: long };
   }
   function finalSize(w, h, upscale) { return { w: Math.round(w * upscale), h: Math.round(h * upscale) }; }

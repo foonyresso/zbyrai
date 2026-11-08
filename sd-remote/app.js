@@ -2,8 +2,8 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var C = window.SDClient, LS = 'sd_';
-  var D = { mode: 'basic', ratio: '2:3', orient: 'v', long: 1024, seed: -1, upscale: 1, adFace: false, adHands: false,
-    prompt: '', neg: 'lowres, bad anatomy, bad hands, blurry, watermark, text', sideOff: false, builderMin: false };
+  var D = { mode: 'basic', ratio: '9:16', orient: 'v', long: 1344, seed: -1, upscale: 1.65, adFace: true, adHands: false,
+    prompt: '', neg: '', sideOff: false, builderMin: false };
   var S = Object.assign({ token: '', jobs: [] }, D), timers = {}, registerMode = false;
 
   function load() { try { var x = JSON.parse(localStorage.getItem(LS + 'state') || '{}'); Object.keys(x).forEach(function (k) { if (k in S) S[k] = x[k]; }); } catch (e) { /* не критично */ } }
@@ -120,6 +120,11 @@
     var rs = $('ratios'), ls = $('longs');
     C.RATIOS.forEach(function (r) { var b = document.createElement('button'); b.textContent = r; b.dataset.r = r; b.title = 'Пропорції ' + r; b.addEventListener('click', function () { S.ratio = r; syncForm(); save(); }); rs.appendChild(b); });
     C.LONG_SIDES.forEach(function (l) { var b = document.createElement('button'); b.textContent = l; b.dataset.l = l; b.title = 'Довга сторона ' + l + ' px'; b.addEventListener('click', function () { S.long = l; syncForm(); save(); }); ls.appendChild(b); });
+    $('seedRand').addEventListener('click', function () { S.seed = -1; syncForm(); save(); });
+    $('seedLast').addEventListener('click', function () {
+      var j = S.jobs.slice().reverse().filter(function (x) { return x.seed >= 0; })[0];
+      if (!j) return toast('Ще немає готової картинки з seed'); S.seed = j.seed; syncForm(); save(); toast('Seed ' + j.seed + ' зафіксовано');
+    });
     $('btnOrient').addEventListener('click', function () { S.orient = S.orient === 'v' ? 'h' : 'v'; syncForm(); save(); });
     [['seed', -1, 4294967295], ['upscale', 1, 2]].forEach(function (a) {
       $(a[0]).addEventListener('input', function () { var v = Number(this.value); if (!isFinite(v)) return; S[a[0]] = Math.min(a[2], Math.max(a[1], v)); syncForm(); save(); });

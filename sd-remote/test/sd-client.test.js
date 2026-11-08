@@ -20,12 +20,13 @@ test('fileName: безпечне ім’я з seed', () => {
 const tree = [{ id: 'c', name: 'Волосся', subs: [{ id: 'c.s', name: 'Зачіска', params: [
   { id: 'len', label: 'Довжина', multi: false, groups: [['', [['Коротке', 'short_hair'], ['Довге', 'long_hair']]]] },
   { id: 'acc', label: 'Прикраси', multi: true, groups: [['', [['Бант', 'hair_bow'], ['Стрічка', 'hair_ribbon']]]] }] }] }];
-test('sizeFor: пропорції, орієнтація, кратність 8', () => {
+test('sizeFor: пропорції, орієнтація, кратність 64', () => {
   assert.deepEqual(C.sizeFor('1:1', 'v', 1024), { w: 1024, h: 1024 });
-  assert.deepEqual(C.sizeFor('2:3', 'v', 1024), { w: 680, h: 1024 });
-  assert.deepEqual(C.sizeFor('2:3', 'h', 1024), { w: 1024, h: 680 });
-  for (const r of C.RATIOS) for (const o of ['v', 'h']) { const s = C.sizeFor(r, o, 1216); assert.ok(s.w % 8 === 0 && s.h % 8 === 0 && Math.max(s.w, s.h) === 1216); }
-  assert.deepEqual(C.finalSize(680, 1024, 1.5), { w: 1020, h: 1536 });
+  assert.deepEqual(C.sizeFor('9:16', 'v', 1344), { w: 768, h: 1344 });
+  assert.deepEqual(C.sizeFor('2:3', 'v', 1024), { w: 704, h: 1024 });
+  assert.deepEqual(C.sizeFor('2:3', 'h', 1024), { w: 1024, h: 704 });
+  for (const r of C.RATIOS) for (const o of ['v', 'h']) { const s = C.sizeFor(r, o, 1216); assert.ok(s.w % 64 === 0 && s.h % 64 === 0 && Math.max(s.w, s.h) === 1216); }
+  assert.deepEqual(C.finalSize(704, 1024, 1.5), { w: 1056, h: 1536 });
 });
 test('toggleTag: додає в промпт і прибирає повторним кліком', () => {
   const len = tree[0].subs[0].params[0], acc = tree[0].subs[0].params[1];

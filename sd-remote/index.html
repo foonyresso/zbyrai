@@ -61,9 +61,10 @@
     <h2>Seed</h2>
     <label title="Число, що визначає результат; -1 = випадкове">Число
       <input type="number" id="seed" min="-1" step="1" title="Seed; -1 = випадкове"></label>
+    <div class="two"><button id="seedRand" title="Випадковий seed для кожної генерації (-1)">🎲 Випадковий</button><button id="seedLast" title="Підставити seed останньої картинки, щоб повторити її з іншими змінами">↺ З останньої</button></div>
     <h2>Апскейл</h2>
     <label title="Збільшення готової картинки з дорисуванням деталей (Hires. fix); 1× = вимкнено">Збільшення <span id="upV"></span>
-      <input type="range" id="upscale" min="1" max="2" step="0.1" title="Апскейл від 1.1× до 2×; 1× вимикає"></label>
+      <input type="range" id="upscale" min="1" max="2" step="0.05" title="Апскейл від 1.1× до 2×; 1× вимикає"></label>
     <h2>ADetailer</h2>
     <label class="chk" title="Автоматично знаходить обличчя й перемальовує його чіткіше"><input type="checkbox" id="adFace" title="ADetailer для обличчя"> Обличчя</label>
     <label class="chk" title="Автоматично знаходить руки й виправляє їх"><input type="checkbox" id="adHands" title="ADetailer для рук"> Руки</label>
