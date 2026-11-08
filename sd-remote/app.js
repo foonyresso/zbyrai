@@ -285,6 +285,7 @@
     colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
   SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
   SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
+  syncLayout();   // модулі вже готові: застосувати відкриту вкладку (LoRA, Перемалювання)
   checkToken();
   setInterval(function () { if (S.token) ping(); }, 15000);
   S.jobs.forEach(function (j) { delete j.loading; });

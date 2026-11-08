@@ -132,6 +132,6 @@
         }, function (e) { host.toast(e.message); });
       });
       render(); },
-    load: function () { host.api('loras').then(function (r) { known = r.loras || []; render(); }, function () { /* без списку */ }); },
+    load: function () { if (!host) return; host.api('loras').then(function (r) { known = r.loras || []; render(); }, function () { /* без списку */ }); },
   };
 })();
