@@ -32,40 +32,71 @@
   var fmt = function (w) { return String(+w.toFixed(2)); };
   var clamp = function (v, lo, hi) { return Math.min(hi, Math.max(lo, v)); };
 
-  // Нова вага одного тегу. action: число (дельта) або 'reset'. loraDefault(name) → типова вага LoRA або null
-  function reweight(tag, action, loraDefault) {
-    var p = parseTag(tag);
-    if (p.kind === 'lora') {
-      var def = loraDefault ? loraDefault(p.name) : null; if (def == null) def = 1;
-      var w = action === 'reset' ? def : clamp((p.w == null ? def : p.w) + action, -5, 5);
-      return '<lora:' + p.name + ':' + fmt(w) + '>';
-    }
-    var nw = action === 'reset' ? 1 : clamp((p.w == null ? 1 : p.w) + action, 0, 3);
-    return Math.abs(nw - 1) < 1e-9 ? p.inner : '(' + p.inner + ':' + fmt(nw) + ')';
+  var WMIN = 0.1, WMAX = 5;
+  // Задати точну вагу тегу (1.0 = без дужок). Теги <lora:…> не чіпає: їхня сила має власні повзунки
+  function weighted(tag, w) {
+    var p = parseTag(tag); if (p.kind === 'lora') return tag;
+    w = clamp(w, WMIN, WMAX);
+    return Math.abs(w - 1) < 1e-9 ? p.inner : '(' + p.inner + ':' + fmt(w) + ')';
   }
+  function weightOf(tag) { var p = parseTag(tag); return p.kind === 'lora' ? null : (p.w == null ? 1 : p.w); }
 
-  // Змінити вагу всіх тегів, яких торкається виділення [a,b). Повертає {text, start, end} (нове виділення) або null
-  function applyWeight(text, a, b, action, loraDefault) {
-    if (!(b > a)) return null;
-    var segs = segments(text).filter(function (s) { return s.cs < b && s.ce > a; });
+  // Теги, яких торкається виділення [a,b): {cs, ce, tag, w}; без LoRA
+  function selected(text, a, b) {
+    if (!(b > a)) return [];
+    return segments(text).filter(function (s) { return s.cs < b && s.ce > a; }).map(function (s) { var t = text.slice(s.cs, s.ce); return { cs: s.cs, ce: s.ce, tag: t, w: weightOf(t) }; }).filter(function (x) { return x.w != null; });
+  }
+  // Поточна вага виділених тегів (перший) або null
+  function selectionWeight(text, a, b) { var l = selected(text, a, b); return l.length ? l[0].w : null; }
+
+  // Виставити вагу w усім виділеним тегам. Повертає {text, start, end} (нове виділення) або null
+  function setWeight(text, a, b, w) {
+    var segs = selected(text, a, b);
     if (!segs.length) return null;
     var out = '', pos = 0, start = -1, end = 0;
     segs.forEach(function (s) {
       out += text.slice(pos, s.cs); if (start < 0) start = out.length;
-      out += reweight(text.slice(s.cs, s.ce), action, loraDefault); end = out.length; pos = s.ce;
+      out += weighted(s.tag, w); end = out.length; pos = s.ce;
     });
     return { text: out + text.slice(pos), start: start, end: end };
   }
 
+  // Кінець групи, що починається на open в позиції i (з урахуванням вкладених дужок і екранування); -1, якщо не закрита
+  function groupEnd(text, i, open, close) {
+    var depth = 0;
+    for (var k = i; k < text.length; k++) {
+      var c = text.charAt(k);
+      if (c === '\\') { k++; continue; }
+      if (c === open) depth++; else if (c === close && --depth === 0) return k;
+    }
+    return -1;
+  }
+  // Підсвітка без вкладених фонів: коми золоті, <lora:…> блакитні, решта як є
+  function plainHtml(t) {
+    var out = '', i = 0;
+    while (i < t.length) {
+      var c = t.charAt(i);
+      if (c === '\\') { out += esc(t.substr(i, 2)); i += 2; continue; }
+      if (c === ',') { out += '<span class="c">,</span>'; i++; continue; }
+      if (c === '<' && /^<[a-z]+:/i.test(t.slice(i, i + 12))) { var e = t.indexOf('>', i); if (e > 0) { out += '<span class="lora">' + esc(t.slice(i, e + 1)) + '</span>'; i = e + 1; continue; } }
+      out += esc(c); i++;
+    }
+    return out;
+  }
   // HTML для підсвітки: кожен символ тексту лишається на місці (без відступів), лише обгортки <span>
   function highlightHtml(text) {
-    var html = '', pos = 0;
-    segments(text).forEach(function (s, i) {
-      var tag = text.slice(s.cs, s.ce), p = parseTag(tag), cls = 't t' + (i % 2);
-      if (p.kind === 'lora') cls = 't lora'; else if (p.kind === 'w') cls += p.w > 1 ? ' up' : p.w < 1 ? ' down' : '';
-      html += esc(text.slice(pos, s.cs)) + '<span class="' + cls + '">' + esc(tag) + '</span>'; pos = s.ce;
-    });
-    return html + esc(text.slice(pos)) + (/\n$/.test(text) ? '​' : '');
+    var out = '', i = 0, n = text.length;
+    while (i < n) {
+      var c = text.charAt(i), e;
+      if (c === '(' || c === '[') {
+        e = groupEnd(text, i, c, c === '(' ? ')' : ']');
+        if (e > 0) { out += '<span class="' + (c === '(' ? 'grp' : 'grp2') + '">' + plainHtml(text.slice(i, e + 1)) + '</span>'; i = e + 1; continue; }
+      }
+      var j = i + 1;
+      while (j < n && text.charAt(j) !== '(' && text.charAt(j) !== '[') { if (text.charAt(j) === '\\') j++; j++; }
+      out += plainHtml(text.slice(i, Math.min(j, n))); i = Math.min(j, n);
+    }
+    return out + (/\n$/.test(text) ? '\u200b' : '');
   }
 
   // Рядок тегів LoRA для промпта: [{name, w}] → "<lora:name:0.2>, …"
@@ -74,6 +105,6 @@
   }
   function joinPrompt(text, list) { return [String(text || '').trim().replace(/,\s*$/, ''), loraTags(list)].filter(Boolean).join(', '); }
 
-  var api = { segments: segments, parseTag: parseTag, reweight: reweight, applyWeight: applyWeight, highlightHtml: highlightHtml, loraTags: loraTags, joinPrompt: joinPrompt };
+  var api = { WMIN: WMIN, WMAX: WMAX, segments: segments, parseTag: parseTag, setWeight: setWeight, selectionWeight: selectionWeight, highlightHtml: highlightHtml, loraTags: loraTags, joinPrompt: joinPrompt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.PromptTools = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -4,7 +4,7 @@
   var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
   var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
   var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
-    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST };
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {} };
   var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
   function load() {
@@ -51,7 +51,7 @@
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
     $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
     document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); });
-    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist';
+    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl';
     var tags = S.mode === 'flex' && S.view === 'tags';
     $('pvWrap').hidden = tags; $('builder').hidden = !tags;
   }
@@ -77,6 +77,7 @@
     return null;
   }
   function imgUrl(j) { return j.src || '/api/sd/image?id=' + j.id; }
+  function openView(j) { SDViewer.open({ url: imgUrl(j), name: C.fileName(j.prompt, j.seed) }); }
   function fetchImage(j) {   // справжнє завантаження в браузер із прогресом за байтами
     if (j.src || j.loading) return; j.loading = true; j.dl = null;
     fetch('/api/sd/image?id=' + j.id).then(function (r) {
@@ -95,8 +96,8 @@
     var st = stage(j);
     if (j.status === 'done' && j.live && !j.src && !j.loading) fetchImage(j);
     if (j.status === 'done' && (j.src || !j.live)) {
-      var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.title = 'Відкрити в повному розмірі';
-      im.addEventListener('click', function () { window.open(im.src, '_blank'); }); box.appendChild(im);
+      var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.title = 'Відкрити: зум, редагування';
+      im.addEventListener('click', function () { openView(j); }); box.appendChild(im);
     } else if (st && j.status === 'error') box.textContent = st.text;
     else if (st) box.appendChild(bar(st.frac, st.text));
   }
@@ -106,8 +107,8 @@
       var card = document.createElement('div'); card.className = 'card' + (j.status === 'error' ? ' err' : '');
       var fr = document.createElement('div'), st = stage(j); fr.className = 'frame';
       if (j.status === 'done' && (j.src || !j.live)) {
-        var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.loading = 'lazy'; im.title = 'Відкрити в повному розмірі';
-        im.addEventListener('click', function () { window.open(im.src, '_blank'); });
+        var im = document.createElement('img'); im.src = imgUrl(j); im.alt = j.prompt; im.loading = 'lazy'; im.title = 'Відкрити: зум, редагування';
+        im.addEventListener('click', function () { openView(j); });
         im.addEventListener('error', function () { fr.textContent = 'Картинка вже видалена з сервера'; }); fr.appendChild(im);
       } else if (st && st.frac !== undefined) fr.appendChild(bar(st.frac, st.text)); else fr.textContent = st ? st.text : '';
       var cap = document.createElement('div'); cap.className = 'cap';
@@ -183,6 +184,11 @@
     S.prompt = cur + t; edP.set(S.prompt); save(); if (window.SDBuilder) SDBuilder.refresh(); toast('Додано в промпт: ' + t);
   }
 
+  function applyTemplate(d) {
+    Object.keys(d).forEach(function (k) { S[k] = JSON.parse(JSON.stringify(d[k])); });
+    S.tab = 'gen'; fillEditors(); syncForm(); syncLayout(); SDLoras.render(); save();
+  }
+
   function bind() {
     var rs = $('ratios');
     C.RATIOS.forEach(function (r) { var b = document.createElement('button'); b.textContent = r; b.dataset.r = r; b.title = 'Пропорції ' + r; b.addEventListener('click', function () { S.ratio = r; capUpscale(true); syncForm(); save(); }); rs.appendChild(b); });
@@ -225,7 +231,9 @@
   edN = PromptEditor.create({ ta: $('neg'), mirror: $('mN'), bar: $('wN'), loraDefault: SDLoras.defaultWeight, onInput: function (t) { S.neg = t; save(); } });
   bind(); fillEditors(); syncForm(); syncLayout(); renderAll();
   SDLoras.init({ get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
-  SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); } });
+  SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },
+    colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
+  SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
   checkToken();
   setInterval(function () { if (S.token) ping(); }, 15000);
   S.jobs.forEach(function (j) { delete j.loading; });

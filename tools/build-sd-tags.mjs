@@ -30,6 +30,13 @@ function allOpts(sl) {
 const label = (tag) => { try { return uaLabel(tag) || tag; } catch (e) { return tag; } };
 const item = (x) => (Array.isArray(x) ? [String(x[0]), String(x[1])] : [label(x), String(x)]);
 
+// Групи, де можна вказати колір (на сайті з'являється палітра; колір вбудовується в обраний тег)
+const COLOR_PARAMS = new Set(['hairColor', 'hairDetail', 'eyeColor', 'eyeDetail', 'makeup', 'nails', 'outfit', 'pl_upper_body', 'pl_chest_wear', 'pl_lower_body', 'legwear',
+  'gloves', 'footwear', 'headwear', 'accessories', 'pl_hand_acc', 'weapon', 'background', 'pl_bg_color', 'pl_bg_plain', 'fgObjects', 'effects']);
+// Базові теги, до яких додається колір, коли в групі лише «різнокольорові» варіанти: колір + hair = «red hair»
+const BASES = { hairColor: 'hair', eyeColor: 'eyes', pl_bg_color: 'background' };
+const LABELS = { breasts: 'Розмір грудей' };
+
 function paramOf(id) {
   const sl = SLOTS[id];
   if (!sl || sl.text || adult.has(id)) return null;
@@ -43,7 +50,10 @@ function paramOf(id) {
   }
   groups = groups.map(([n, its]) => [n, its.filter((x) => x[1] && !/[<>{}]/.test(x[1]))]).filter((g) => g[1].length);
   if (!groups.length) return null;
-  return { id, label: sl.label || id, multi: sl.kind === 'multi', groups };
+  if (BASES[id]) groups.unshift(['Звичайний (колір бери на палітрі)', [[BASES[id], BASES[id]]]]);
+  const out = { id, label: LABELS[id] || sl.label || id, multi: sl.kind === 'multi', groups };
+  if (COLOR_PARAMS.has(id)) out.color = 1;
+  return out;
 }
 
 const cats = [];
