@@ -140,3 +140,4 @@ body.vw-open { overflow: hidden; }
 .cropbox { position: absolute; border: 2px dashed #fff; box-shadow: 0 0 0 9999px rgba(0,0,0,.55); pointer-events: none; }
 .vf { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); } .vf input[type=text] { width: 160px; } .vf input[type=range] { width: 110px; } .vf input[type=color] { width: 34px; height: 26px; padding: 0; }
 @media (max-width: 860px) { .vtitle { display: none; } .vtop button { padding: 5px 8px; } }
+.lrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
