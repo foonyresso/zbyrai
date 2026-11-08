@@ -188,7 +188,7 @@
       <div class="i2p-bar">
         <label class="vf" title="Що робити, коли промпт готовий (його передає скрипт з vheer.com)">Коли промпт готовий: <select id="i2pMode"><option value="replace">замінити промпт</option><option value="append">додати до промпта</option><option value="none">лише показати</option></select></label>
         <label class="chk" id="i2pAutoLbl" title="Скопіюй промпт кнопкою Copy на тому сайті й клацни будь-де на цій сторінці: промпт сам вставиться в поле (браузер один раз запитає дозвіл на буфер обміну)"><input type="checkbox" id="i2pAuto"> Автовставка з буфера</label>
-        <label class="chk" title="Темна тема для вбудованого сайту через CSS-фільтр (без розширень). Картинка-прев'ю на тому сайті при цьому теж інвертується, на результат це не впливає"><input type="checkbox" id="i2pDark"> Темна тема</label>
+        <label class="chk" title="Груба темна тема CSS-фільтром (інвертує й картинки). НЕ вмикай, якщо вже маєш розширення темної теми, воно зробить краще"><input type="checkbox" id="i2pDark"> Тема-фільтр</label>
         <button id="i2pUndo" title="Повернути промпт, який був до автоматичної вставки" disabled>↶ Повернути попередній</button>
         <span class="hint" id="i2pStatus">Скрипт: перевіряю…</span>
       </div>
@@ -198,6 +198,16 @@
         <a class="btnlink" id="i2pInstall" href="./userscript/vheer-i2p.user.js" target="_blank" rel="noopener" title="Відкриє скрипт для Tampermonkey/Violentmonkey: він сховає меню сайту, перефарбує його під тему й сам передасть промпт сюди">⭳ Встановити скрипт</a>
         <button id="i2pOpen" title="Відкрити сайт у новому вікні, якщо тут він не працює">Відкрити в новому вікні ↗</button>
       </div>
+      <details class="i2p-css" open>
+        <summary>Сховати меню сайту чистим CSS (Stylus або Dark Reader), без Tampermonkey</summary>
+        <p class="hint">Браузер не дозволяє нашому коду міняти чужий сайт в рамці, тому ховання блоків (<code>display:none</code>) має застосувати розширення прямо на vheer.com: <b>Stylus</b> (кнопка нижче ставить готовий стиль) або власний CSS для сайту в <b>Dark Reader</b> (Dev tools → Dynamic theme). Після цього в рамці лишаються лише вікно картинки й вікно промпта.</p>
+        <div class="i2p-bar">
+          <a class="btnlink" href="./userscript/vheer-i2p.user.css" target="_blank" rel="noopener" title="Відкриє стиль для розширення Stylus: воно запропонує його встановити">⭳ Встановити для Stylus</a>
+          <button id="i2pCopyCss" title="Скопіювати правила CSS (для будь-якого розширення зі своїм CSS)">Скопіювати CSS</button>
+          <button id="i2pCopyDr" title="Скопіювати готовий блок для Dark Reader: Dev tools → Dynamic theme, вставити в кінець і застосувати">Скопіювати для Dark Reader</button>
+        </div>
+        <pre id="i2pCssPre" class="logpre"></pre>
+      </details>
       <div class="field"><span class="lbl">Або встав промпт сюди (Ctrl+V), якщо браузер не дає читати буфер</span>
         <textarea id="i2pBox" rows="2" translate="no" spellcheck="false" placeholder="промпт із vheer.com" title="Сюди можна вставити скопійований промпт"></textarea>
         <div class="i2p-bar"><button id="i2pReplace" title="Замінити промпт у полі зліва текстом звідси">Замінити промпт цим текстом</button></div></div>

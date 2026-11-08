@@ -36,6 +36,7 @@
     document.querySelectorAll('#i2pTop,#i2pLeft').forEach(function (e) { e.disabled = ready; e.parentNode.style.opacity = ready ? .45 : 1; }); $('i2pH').value = c.h; $('i2pHV').textContent = c.h + ' px';
   }
   // Автовставка з буфера (без розширень): після «Copy» на vheer.com достатньо клацнути будь-де на нашій сторінці
+  function copy(text, ok) { (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { host.toast(ok); }, function () { host.toast('Не вдалося скопіювати: виділи й скопіюй вручну'); }); }
   var lastClip = null, busyClip = false;
   function applyMode(t, how) { var mode = host.state.i2p.mode || 'replace'; $('i2pBox').value = t; if (mode === 'none') host.toast('Промпт з буфера у полі нижче'); else { put(t, mode === 'append', true); host.toast(how + (mode === 'append' ? ': додано до промпта' : ': вставлено в промпт')); } }
   function peekClipboard(baseline) {
@@ -52,12 +53,18 @@
   function onUserReturn() { var inTab = !$('vI2p').hidden; if (inTab && host.state.i2p.auto && !ready) setTimeout(function () { peekClipboard(false); }, 60); }
   window.SDI2p = {
     init: function (h) {
-      host = h; var sv = host.state.i2p || {}; if (sv.top === 0 && sv.h === 720 && sv.left === undefined) sv = {};   // старі типові значення замінюються новими
-      host.state.i2p = Object.assign({ top: 93, left: 48, h: 860, mode: 'replace' }, sv); crop();
+      host = h; var sv = host.state.i2p || {};
+      if (sv.v !== 2) sv = { mode: sv.mode, auto: sv.auto };   // старі типові значення (обрізання 93/48, фільтр теми) скидаються
+      host.state.i2p = Object.assign({ v: 2, top: 0, left: 0, h: 860, mode: 'replace', auto: true, dark: false }, sv); crop();
       var clipOk = !!(navigator.clipboard && navigator.clipboard.readText); $('i2pAuto').checked = host.state.i2p.auto !== false && clipOk; host.state.i2p.auto = $('i2pAuto').checked; if (!clipOk) { $('i2pAuto').disabled = true; $('i2pAutoLbl').title = 'Цей браузер не дозволяє читати буфер обміну: користуйся кнопкою вставки або скриптом'; }
       $('i2pAuto').addEventListener('change', function () { host.state.i2p.auto = this.checked; host.save(); if (this.checked) peekClipboard(true); });
       window.addEventListener('focus', onUserReturn); document.addEventListener('pointerdown', onUserReturn);
-      $('i2pDark').checked = host.state.i2p.dark !== false; host.state.i2p.dark = $('i2pDark').checked; $('i2pDark').addEventListener('change', function () { host.state.i2p.dark = this.checked; host.save(); crop(); }); crop();
+      $('i2pDark').checked = host.state.i2p.dark === true; host.state.i2p.dark = $('i2pDark').checked; $('i2pDark').addEventListener('change', function () { host.state.i2p.dark = this.checked; host.save(); crop(); }); crop();
+      fetch('./userscript/vheer-hide.css').then(function (r) { return r.ok ? r.text() : ''; }).then(function (css) {
+        $('i2pCssPre').textContent = css.trim(); css = css.trim();
+        $('i2pCopyCss').addEventListener('click', function () { copy(css, 'CSS скопійовано'); });
+        $('i2pCopyDr').addEventListener('click', function () { copy('================================\n\nvheer.com\n\nCSS\n' + css.replace(/^\/\*[\s\S]*?\*\/\s*/, '') + '\n', 'Блок для Dark Reader скопійовано'); });
+      }, function () { /* без CSS */ });
       $('i2pMode').value = host.state.i2p.mode; $('i2pMode').addEventListener('change', function () { host.state.i2p.mode = this.value; host.save(); });
       $('i2pUndo').addEventListener('click', function () { if (prev != null) { host.setPrompt(prev); prev = null; this.disabled = true; host.toast('Повернено попередній промпт'); } });
       $('i2pLeft').addEventListener('input', function () { host.state.i2p.left = +this.value; crop(); host.save(); });

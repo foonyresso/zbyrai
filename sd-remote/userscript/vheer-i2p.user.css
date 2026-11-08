@@ -1,0 +1,25 @@
+/* ==UserStyle==
+@name        Vheer → Zbyrai: лише вікна картинки й промпта
+@namespace   https://zbyrai.pages.dev/
+@version     1.0.0
+@description Ховає (display:none) бічну панель, шапку, банер і сповіщення на vheer.com/app/image-to-prompt, лишаючи вікно картинки й вікно промпта. Для Stylus.
+@license     MIT
+==/UserStyle== */
+@-moz-document url-prefix("https://vheer.com/app/image-to-prompt") {
+  [data-slot="sidebar-gap"],
+
+  [data-slot="sidebar-container"],
+
+  [data-slot="sidebar"],
+
+  header,
+
+  [data-sonner-toaster],
+
+  div:has(> button[aria-label*="banner" i]) { display: none !important; }
+
+  [data-slot="sidebar-inset"],
+
+  main { margin: 0 !important; max-width: 100% !important; }
+
+}
