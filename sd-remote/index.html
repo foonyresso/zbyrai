@@ -84,10 +84,10 @@
 
     <section class="blk">
       <div class="field"><span class="lbl">Промпт</span>
-        <div class="ed" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" rows="4" maxlength="2000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
+        <div class="ed" translate="no" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="4" maxlength="2000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
         <div class="wbar" id="wP" hidden></div></div>
             <div class="field"><span class="lbl lrow">Негативний промпт <button type="button" class="link" id="negReset" title="Повернути стандартний негативний промпт">↺ скинути</button></span>
-        <div class="ed" id="edN"><pre id="mN" aria-hidden="true"></pre><textarea id="neg" rows="3" maxlength="2000" spellcheck="false" title="Негативний промпт: чого уникати"></textarea></div>
+        <div class="ed" translate="no" id="edN"><pre id="mN" aria-hidden="true"></pre><textarea id="neg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="2000" spellcheck="false" title="Негативний промпт: чого уникати"></textarea></div>
         <div class="wbar" id="wN" hidden></div></div>
     </section>
 
@@ -164,10 +164,10 @@
       <label class="rng" title="Наскільки сильно змінювати ділянку: 0.05 майже без змін, 1.0 повністю заново">Сила зміни (denoise) <span id="inpDnV"></span>
         <input type="range" id="inpDn" min="0.05" max="1" step="0.05" title="Denoising strength від 0.05 до 1.0"></label>
       <div class="field"><span class="lbl">Промпт для перемалювання (порожньо = промпт картинки; LoRA додаються)</span>
-        <div class="ed"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" rows="3" maxlength="2000" spellcheck="false" placeholder="напр. blue eyes, smile" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
+        <div class="ed" translate="no"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="2000" spellcheck="false" placeholder="напр. blue eyes, smile" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
         <div class="wbar" id="wI" hidden></div></div>
       <div class="field"><span class="lbl">Негативний промпт (порожньо = основний)</span>
-        <div class="ed"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" rows="2" maxlength="2000" spellcheck="false" title="Негативний промпт для перемалювання"></textarea></div>
+        <div class="ed" translate="no"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="2" maxlength="2000" spellcheck="false" title="Негативний промпт для перемалювання"></textarea></div>
         <div class="wbar" id="wIN" hidden></div></div>
       <p class="hint">Запуск: кнопка «Перемалювати» ліворуч внизу (на цій вкладці вона перемальовує, на «Генерації» генерує). Інші налаштування (кроки, CFG, семплер) як при генерації; ADetailer і апскейл тут не працюють.</p>
 
