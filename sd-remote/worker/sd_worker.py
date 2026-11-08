@@ -489,6 +489,7 @@ def sync_loras(force=False):
 def job_start(job):
     """Блок «Нова задача»: тип, промпт, LoRA, розмір, кроки, апскейл, ADetailer."""
     prm = job["params"]; inp = prm.get("kind") == "inpaint"
+    print(paint("─" * max(40, min(110, shutil.get_terminal_size((100, 30)).columns - 1)), "dim"), flush=True)   # розділювач між задачами
     log("Нова задача #%s  ·  %s" % (job["id"][:8], "перемалювання" if inp else "генерація"), "cyan", "▶ ")
     detail("Промпт", short(prm["prompt"], 120))
     loras = re.findall(r"<lora:([^:>]+):(-?[\d.]+)>", prm["prompt"])
@@ -527,6 +528,7 @@ def main():
     detail("Налаштування", "кроки %s · CFG %s · %s/%s · Shift %s  ·  Hires: %s, %s кр., denoise %s" % (cfg["steps"], cfg["cfg"], cfg["sampler"], cfg["scheduler"], cfg["shift"], cfg["hr_upscaler"], cfg["hr_steps"], cfg["hr_denoise"]))
     detail("Civitai", "ввімкнено (метадані LoRA)" if cfg.get("civitai") else "вимкнено")
     sync_loras(force=True)
+    print()
     down, last, next_idle = False, None, time.time() + 300
     while True:
         sync_loras()
@@ -565,7 +567,7 @@ def main():
         for attempt in range(3):
             try:
                 call(cfg["site"] + "/api/sd/result", out, cfg["token"], timeout=60)
-                log("Результат передано на сайт", "green", "↑ "); last = stamp(); next_idle = time.time() + 300; break
+                log("Результат передано на сайт", "green", "↑ "); print(); last = stamp(); next_idle = time.time() + 300; break
             except Exception as e:
                 log("Не вдалося віддати результат (спроба %d/3): %s" % (attempt + 1, short(e, 100)), "red", "✖ "); time.sleep(5)
 
