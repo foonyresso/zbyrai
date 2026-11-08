@@ -2,7 +2,7 @@
 // а ручне редагування промпта підсвічує теги, що вже в тексті. Дані: tags-data.js (node tools/build-sd-tags.mjs).
 (function () {
   var C = window.SDClient, TREE = window.SD_TAGS || [], $ = function (id) { return document.getElementById(id); };
-  var host = { get: function () { return ''; }, set: function () {} };
+  var host = { get: function () { return ''; }, set: function () {}, colors: { get: function () { return [null]; }, set: function () {} } };
   var cat = 0, chips = [];   // chips: {el, tag}
   try { cat = Math.min(TREE.length - 1, Math.max(0, +localStorage.getItem('sd_bcat') || 0)); } catch (e) { /* не критично */ }
 
@@ -11,14 +11,34 @@
   function chip(param, it) {
     var b = el('button', 'chip tg', String(it[1]).replace(/_/g, ' '));
     b.type = 'button'; b.title = it[0] && it[0] !== it[1] ? it[0] : 'Додати в промпт';
-    b.addEventListener('click', function () { host.set(C.toggleTag(host.get(), param, it[1])); });
+    b.addEventListener('click', function () { host.set(C.toggleTag(host.get(), param, it[1], host.colors.get(param.id))); });
     chips.push({ el: b, tag: it[1] });
     return b;
+  }
+  // Палітра: кілька «ліній» кольорів (+ додає ще одну); вибраний колір вбудовується в обрані теги цієї групи
+  function renderPal(box, p) {
+    box.textContent = '';
+    var arr = host.colors.get(p.id).slice(), cols = C.colorsFor(p);
+    function change(a) { host.colors.set(p.id, a); host.set(C.recolor(host.get(), p, a)); renderPal(box, p); }
+    arr.forEach(function (cur, i) {
+      var row = el('div', 'pr');
+      cols.forEach(function (c) {
+        var b = el('button', 'sw' + (cur === c[0] ? ' on' : '')); b.type = 'button'; b.style.background = c[2]; b.title = c[0] + ' · ' + c[1];
+        b.addEventListener('click', function () { var a = arr.slice(); a[i] = cur === c[0] ? null : c[0]; change(a); });
+        row.appendChild(b);
+      });
+      if (arr.length > 1) { var x = el('button', 'px', '×'); x.type = 'button'; x.title = 'Прибрати цю палітру'; x.addEventListener('click', function () { var a = arr.slice(); a.splice(i, 1); change(a); }); row.appendChild(x); }
+      box.appendChild(row);
+    });
+    var add = el('button', 'padd', '＋ колір'); add.type = 'button'; add.title = 'Додати ще одну палітру: кілька кольорів дають, наприклад, «red and blue» (різнокольорове волосся, очі, одяг)';
+    add.addEventListener('click', function () { var a = arr.slice(); a.push(null); host.colors.set(p.id, a); renderPal(box, p); });
+    box.appendChild(add);
   }
   function paramBlock(p) {
     var box = el('div', 'param');
     var h = el('h4', null, p.label); h.appendChild(el('small', null, p.multi ? ' · кілька' : ' · один'));
     box.appendChild(h);
+    if (p.color) { var pal = el('div', 'pal'); renderPal(pal, p); box.appendChild(pal); }
     p.groups.forEach(function (g) {
       if (g[0]) box.appendChild(el('div', 'gname', g[0]));
       var row = el('div', 'chips');
@@ -59,15 +79,15 @@
   // підсвітити теги, що є в промпті, і показати лічильники
   var catTags = null;
   function refresh() {
-    var text = host.get(), have = {};
-    C.splitTags(text).forEach(function (x) { have[C.norm(x)] = 1; });
-    chips.forEach(function (c) { c.el.classList.toggle('on', !!have[C.norm(c.tag)]); });
+    var text = host.get(), have = {}, list = C.splitTags(text);
+    list.forEach(function (x) { have[C.norm(x)] = 1; });
+    chips.forEach(function (c) { c.el.classList.toggle('on', !!have[C.norm(c.tag)] || C.findEntry(list, c.tag) >= 0); });
     document.querySelectorAll('#bBody summary[data-sub]').forEach(function (sm) {
       var n = sm.parentNode.querySelectorAll('.chip.on').length; sm.lastChild.textContent = n ? ' ' + n : '';
     });
     if (!catTags) catTags = TREE.map(function (c) { var o = []; c.subs.forEach(function (s) { s.params.forEach(function (p) { p.groups.forEach(function (g) { g[1].forEach(function (it) { o.push(C.norm(it[1])); }); }); }); }); return o; });
     document.querySelectorAll('#bTabs .tab').forEach(function (t) {
-      var n = catTags[+t.dataset.i].filter(function (k) { return have[k]; }).length; t.lastChild.textContent = n ? ' ' + n : '';
+      var n = catTags[+t.dataset.i].filter(function (k) { return have[k] || C.findEntry(list, k) >= 0; }).length; t.lastChild.textContent = n ? ' ' + n : '';
     });
   }
 

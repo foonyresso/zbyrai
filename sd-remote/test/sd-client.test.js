@@ -55,5 +55,28 @@ test('searchTags: за тегом і за підказкою', () => {
   assert.equal(C.searchTags(tree, 'довг')[0].tag, 'long_hair');
   assert.deepEqual(C.searchTags(tree, 'а'), []);
 });
+const hairColor = { id: 'hairColor', color: 1, multi: false, groups: [['', [['', 'hair'], ['', 'multicolored_hair']]]] };
+const dress = { id: 'outfit', color: 1, multi: true, groups: [['', [['', 'dress'], ['', 'skirt']]]] };
+test('кольори: тег із кольором, кілька кольорів через and', () => {
+  assert.equal(C.toggleTag('1girl', hairColor, 'hair', ['red']), '1girl, red hair');
+  assert.equal(C.toggleTag('', hairColor, 'multicolored_hair', ['red', 'blue']), 'red and blue multicolored hair');
+  assert.equal(C.toggleTag('', dress, 'dress', []), 'dress');
+});
+test('кольори: пошук запису з кольором, вимкнення, перефарбування', () => {
+  const t = 'x, red and blue multicolored hair, dress';
+  assert.equal(C.findEntry(C.splitTags(t), 'multicolored_hair'), 1); assert.equal(C.findEntry(C.splitTags(t), 'dress'), 2); assert.equal(C.findEntry(C.splitTags(t), 'skirt'), -1);
+  assert.equal(C.toggleTag(t, hairColor, 'multicolored_hair', ['green']), 'x, dress');
+  assert.equal(C.recolor(t, hairColor, ['green']), 'x, green multicolored hair, dress');
+  assert.equal(C.recolor(t, hairColor, []), 'x, multicolored hair, dress');
+  assert.equal(C.recolor('red hair', hairColor, ['blue']), 'blue hair');
+});
+test('кольори: у групі «один варіант» колірний запис замінюється; блонд лише для волосся', () => {
+  assert.equal(C.toggleTag('red multicolored hair', hairColor, 'hair', ['blue']), 'blue hair');
+  assert.ok(C.colorsFor({ id: 'hairColor' }).some(c => c[0] === 'blonde')); assert.ok(!C.colorsFor({ id: 'outfit' }).some(c => c[0] === 'blonde'));
+});
+test('searchTags: за назвою групи («розмір грудей»)', () => {
+  const tr = [{ id: 'b', name: 'Тіло', subs: [{ id: 'b.t', name: 'Торс', params: [{ id: 'breasts', label: 'Розмір грудей', multi: false, groups: [['', [['', 'small_breasts'], ['', 'huge_breasts']]]] }] }] }];
+  assert.equal(C.searchTags(tr, 'розмір груд').length, 2); assert.equal(C.searchTags(tr, 'huge')[0].tag, 'huge_breasts');
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

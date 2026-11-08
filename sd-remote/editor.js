@@ -1,34 +1,44 @@
-// Поле промпта з підсвіткою тегів і кнопками ваги для виділеного тексту.
-// Підсвітка: «дзеркало» <pre> під прозорим <textarea> (однаковий шрифт, без відступів у span-ах). Логіка ваги: prompt-tools.js.
+// Поле промпта з підсвіткою тегів і повзунком ваги для виділеного тексту.
+// Підсвітка: «дзеркало» <pre> під прозорим <textarea> (однаковий шрифт, без відступів у span-ах). Логіка: prompt-tools.js.
+// Повзунок спливає під полем поверх інших блоків (position: absolute), тому розміри меню не змінюються й теги не затуляються.
 (function () {
   var P = window.PromptTools;
-  var STEPS = [['−100%', -1], ['−50%', -0.5], ['−10%', -0.1], ['Норма', 'reset'], ['+10%', 0.1], ['+50%', 0.5], ['+100%', 1]];
 
-  // o: {ta, mirror, bar, onInput(text), loraDefault(name)}
+  // o: {ta, mirror, bar, onInput(text)}
   function create(o) {
-    var ta = o.ta;
+    var ta = o.ta, bar = o.bar, rng, num, val;
     function fit() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 2 + 'px'; }
     function paint() { o.mirror.innerHTML = P.highlightHtml(ta.value); fit(); }
-    function updateBar() { o.bar.hidden = !(ta.selectionEnd > ta.selectionStart); }
-    function apply(d) {
-      var r = P.applyWeight(ta.value, ta.selectionStart, ta.selectionEnd, d, o.loraDefault);
-      if (!r) return;
-      ta.value = r.text; ta.setSelectionRange(r.start, r.end); paint(); o.onInput(ta.value); updateBar();
+    function show() {
+      var w = P.selectionWeight(ta.value, ta.selectionStart, ta.selectionEnd);
+      if (w == null) { bar.hidden = true; return; }
+      bar.hidden = false; rng.value = w; num.value = w;
     }
-    o.bar.textContent = '';
-    var lbl = document.createElement('span'); lbl.className = 'wl'; lbl.textContent = 'Вага виділеного:'; o.bar.appendChild(lbl);
-    STEPS.forEach(function (s) {
-      var b = document.createElement('button'); b.type = 'button'; b.textContent = s[0];
-      b.title = s[1] === 'reset' ? 'Повернути вагу 1.0 (для LoRA: типову силу)' : 'Змінити вагу виділених тегів на ' + (s[1] > 0 ? '+' : '') + s[1].toFixed(1).replace('.', ',');
-      b.addEventListener('pointerdown', function (e) { e.preventDefault(); });   // не губити виділення
-      b.addEventListener('click', function () { apply(s[1]); });
-      o.bar.appendChild(b);
-    });
-    ta.addEventListener('input', function () { paint(); o.onInput(ta.value); updateBar(); });
-    ['select', 'keyup', 'mouseup', 'touchend', 'focus'].forEach(function (ev) { ta.addEventListener(ev, function () { setTimeout(updateBar, 0); }); });
-    document.addEventListener('selectionchange', function () { if (document.activeElement === ta) updateBar(); });
+    function apply(w) {
+      var r = P.setWeight(ta.value, ta.selectionStart, ta.selectionEnd, w);
+      if (!r) return;
+      ta.value = r.text; ta.setSelectionRange(r.start, r.end); paint(); o.onInput(ta.value);
+      rng.value = w; num.value = w;
+    }
+    bar.textContent = '';
+    var lbl = document.createElement('span'); lbl.className = 'wl'; lbl.textContent = 'Вага виділеного';
+    rng = document.createElement('input'); rng.type = 'range'; rng.min = P.WMIN; rng.max = P.WMAX; rng.step = 0.05; rng.title = 'Вага виділених тегів від ' + P.WMIN + ' до ' + P.WMAX + ' (1.0 = звичайна)';
+    num = document.createElement('input'); num.type = 'number'; num.min = P.WMIN; num.max = P.WMAX; num.step = 0.05; num.title = 'Вага виділених тегів';
+    var reset = document.createElement('button'); reset.type = 'button'; reset.textContent = '1.0'; reset.title = 'Скинути вагу до звичайної (без дужок)';
+    [lbl, rng, num, reset].forEach(function (e) { bar.appendChild(e); });
+    function clampW(v) { v = Number(v); return isFinite(v) ? Math.min(P.WMAX, Math.max(P.WMIN, Math.round(v * 100) / 100)) : null; }
+    rng.addEventListener('input', function () { apply(clampW(rng.value)); });
+    num.addEventListener('change', function () { var v = clampW(num.value); if (v != null) apply(v); });
+    reset.addEventListener('click', function () { apply(1); });
+
+    ta.addEventListener('input', function () { paint(); o.onInput(ta.value); show(); });
+    ['select', 'keyup', 'mouseup', 'touchend', 'focus'].forEach(function (ev) { ta.addEventListener(ev, function () { setTimeout(show, 0); }); });
+    document.addEventListener('selectionchange', function () { if (document.activeElement === ta) show(); });
+    // ховати, коли фокус пішов кудись, крім повзунка
+    function away(e) { var t = e.relatedTarget; if (!t || (t !== ta && !bar.contains(t))) bar.hidden = true; }
+    ta.addEventListener('blur', away); bar.addEventListener('focusout', away);
     window.addEventListener('resize', fit);
-    return { set: function (v) { ta.value = v; paint(); updateBar(); }, paint: paint };
+    return { set: function (v) { ta.value = v; paint(); bar.hidden = true; }, paint: paint };
   }
   window.PromptEditor = { create: create };
 })();
