@@ -91,7 +91,7 @@
   function select(j, compare) {
     var keep = mk ? (function () { var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(mk, 0, 0); return c; })() : null;
     cur = j; host.state.inp.src = j.id; host.save(); hist = []; cmpOn = !!compare;
-    var box0 = $('inpStage'); box0.textContent = ''; st = null;
+    var box0 = $('inpStage'); box0.textContent = ''; st = null; $('inpDrop').hidden = true;
     var pr = cmpOn ? pair() : null, img = new Image(); img.draggable = false;
     img.onload = function () {
       img.onload = null;   // подальші зміни src не мають будувати сцену заново
@@ -108,7 +108,7 @@
       if (first) { size = Math.max(8, Math.round(Math.max(w, h) / 40)); $('inpBrush').max = Math.max(200, size * 4); $('inpBrush').value = size; }
       applyCompare(); pick(tool); info(); strip(true); busy();
     };
-    img.onerror = function () { host.toast('Не вдалося відкрити картинку (її могло бути видалено з сервера)'); };
+    img.onerror = function () { $('inpDrop').hidden = false; host.toast('Не вдалося відкрити картинку (її могло бути видалено з сервера)'); };
     var u0 = host.imgUrl(pr ? pr.after : j); img.dataset.u = u0; img.src = u0; $('inpPick').textContent = 'Картинка: ' + (j.prompt || '').slice(0, 70);
   }
 
@@ -161,6 +161,50 @@
     if (!$('vInp').hidden) { strip(false); busy(); }
   }
 
+  // ---- Власна картинка: будь-який формат, який відкриває браузер → зменшення до 2560 px по довшій стороні → WebP (запасний JPEG) → на сервер
+  var MAXSIDE = 2560, MAXB64 = 1400000;
+  function viaImg(file) {
+    return new Promise(function (res, rej) { var u = URL.createObjectURL(file), im = new Image(); im.onload = function () { URL.revokeObjectURL(u); res(im); }; im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('format')); }; im.src = u; });
+  }
+  function loadBitmap(file) {   // createImageBitmap враховує поворот із EXIF; інакше звичайний <img>
+    return window.createImageBitmap ? createImageBitmap(file, { imageOrientation: 'from-image' }).catch(function () { return viaImg(file); }) : viaImg(file);
+  }
+  function canWebp() { try { return document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0; } catch (e) { return false; } }
+  function encode(src, w, h) {   // якість знижується, доки файл не влізе в ліміт сервера
+    var c = document.createElement('canvas'); c.width = w; c.height = h; var x = c.getContext('2d'), webp = canWebp(), type = webp ? 'image/webp' : 'image/jpeg', qs = [0.92, 0.85, 0.78, 0.7, 0.6, 0.5];
+    if (!webp) { x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); }
+    x.imageSmoothingQuality = 'high'; x.drawImage(src, 0, 0, w, h);
+    function tryQ(i) { return new Promise(function (res) { c.toBlob(res, type, qs[i]); }).then(function (b) { if (!b) throw new Error('encode'); return (b.size * 4 / 3 < MAXB64 || i === qs.length - 1) ? b : tryQ(i + 1); }); }
+    return tryQ(0);
+  }
+  function shrink(src, w, h, tries) {
+    return encode(src, w, h).then(function (b) {
+      if (b.size * 4 / 3 < MAXB64) return { blob: b, w: w, h: h };
+      if (tries >= 4) throw new Error('Не вдалося стиснути картинку до ~1 МБ: вибери меншу');
+      return shrink(src, Math.round(w * 0.85), Math.round(h * 0.85), tries + 1);
+    });
+  }
+  function toB64(blob) { return new Promise(function (res, rej) { var fr = new FileReader(); fr.onload = function () { res(String(fr.result).split(',')[1]); }; fr.onerror = rej; fr.readAsDataURL(blob); }); }
+  function uploadFile(file) {
+    if (!file) return;
+    if (!/^image\//.test(file.type || '') && !/\.(jpe?g|png|webp|gif|bmp|avif|heic|heif|tiff?)$/i.test(file.name || '')) return host.toast('Це не схоже на зображення');
+    $('inpInfo').textContent = 'Обробка зображення…';
+    loadBitmap(file).then(function (bmp) {
+      var w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight, f = I.fitSize(w0, h0, MAXSIDE);
+      return shrink(bmp, f.w, f.h, 0).then(function (r) { return { blob: r.blob, w: r.w, h: r.h, from: w0 + '×' + h0 }; });
+    }).then(function (r) {
+      $('inpInfo').textContent = 'Завантаження на сервер…';
+      return toB64(r.blob).then(function (b64) { return host.api('upload', { method: 'POST', body: JSON.stringify({ image: b64, w: r.w, h: r.h, name: file.name || '' }) }); }).then(function (res) { return { res: res, r: r }; });
+    }).then(function (o) {
+      var job = { id: o.res.id, status: 'done', kind: 'upload', prompt: (file.name || 'своя картинка').replace(/\.[^.]+$/, ''), neg: '', w: o.r.w, h: o.r.h, seed: -1, upscale: 1, loras: [], adOn: false, src: URL.createObjectURL(o.r.blob) };
+      host.addUpload(job); enter(job);
+      host.toast('Завантажено: ' + o.r.from + (o.r.from !== o.r.w + '×' + o.r.h ? ' → ' + o.r.w + '×' + o.r.h : '') + ', WebP ' + Math.round(o.r.blob.size / 1024) + ' КБ');
+    }).catch(function (e) {
+      $('inpInfo').textContent = '';
+      host.toast(e && e.message === 'format' ? 'Браузер не зміг відкрити цей формат (напр. HEIC): збережи як JPG чи PNG' : (e && e.message) || 'Не вдалося завантажити');
+    });
+  }
+
   function go() {
     if (sending) return;
     if (!cur || !mk) return host.toast('Спершу обери картинку (кнопка «Перемалювати» на картинці)');
@@ -201,6 +245,16 @@
       document.querySelectorAll('#inpToolSeg button').forEach(function (b) { b.addEventListener('click', function () { pick(b.dataset.t); }); });
       $('inpBrush').addEventListener('input', function () { size = +this.value; });
       $('inpUndo').addEventListener('click', undo); $('inpClear').addEventListener('click', clearMask); $('inpInvert').addEventListener('click', invert);
+      var fileIn = $('inpFile'), box1 = $('inpBox');
+      $('inpUpload').addEventListener('click', function () { fileIn.click(); }); $('inpDrop').addEventListener('click', function () { fileIn.click(); });
+      fileIn.addEventListener('change', function () { var f = fileIn.files && fileIn.files[0]; fileIn.value = ''; uploadFile(f); });
+      ['dragenter', 'dragover'].forEach(function (ev) { box1.addEventListener(ev, function (e) { if (e.dataTransfer && [].indexOf.call(e.dataTransfer.types || [], 'Files') >= 0) { e.preventDefault(); box1.classList.add('over'); } }); });
+      ['dragleave', 'drop'].forEach(function (ev) { box1.addEventListener(ev, function () { box1.classList.remove('over'); }); });
+      box1.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) { e.preventDefault(); uploadFile(f); } });
+      document.addEventListener('paste', function (e) {   // Ctrl+V зі скриншота, коли відкрита вкладка перемалювання
+        if ($('vInp').hidden || /^(TEXTAREA|INPUT)$/.test((document.activeElement || {}).tagName || '')) return;
+        var f = e.clipboardData && e.clipboardData.files && e.clipboardData.files[0]; if (f && /^image\//.test(f.type)) { e.preventDefault(); uploadFile(f); }
+      });
       $('inpCmp').addEventListener('click', function () { cmpOn = !cmpOn; if (cmpOn && !pair()) { cmpOn = false; return host.toast('Для порівняння потрібні щонайменше дві версії: перемалюй картинку хоча б раз'); } applyCompare(); strip(true); });
       document.addEventListener('keydown', function (e) { if (!$('vInp').hidden && (e.ctrlKey || e.metaKey) && (window.zbKey ? window.zbKey(e) : e.key) === 'z' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); undo(); } });
     },

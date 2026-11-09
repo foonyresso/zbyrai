@@ -157,9 +157,12 @@
         <button id="inpUndo" title="Скасувати останню дію з маскою (Ctrl+Z)">↶ Скасувати</button>
         <button id="inpInvert" title="Інвертувати маску: перемалюється все, окрім зафарбованого">⇄ Інвертувати</button>
         <button id="inpClear" title="Прибрати всю маску">Очистити маску</button>
+        <button id="inpUpload" title="Завантажити своє зображення (будь-який формат, який відкриває браузер): воно стиснеться до WebP і зменшиться до 2560 px по довшій стороні">⭳ Своє зображення</button>
+        <input type="file" id="inpFile" accept="image/*" hidden>
         <button id="inpCmp" title="Порівняти з попередньою версією: повзунок «до / після»">◐ Порівняти</button>
       </div>
-      <div class="inp-stage-box"><div class="inp-stage" id="inpStage"></div><div class="inp-busy" id="inpBusy" hidden></div></div>
+      <div class="inp-stage-box" id="inpBox"><div class="inp-stage" id="inpStage"></div>
+        <div class="inp-drop" id="inpDrop"><div><b>Перетягни сюди своє зображення</b><span>або натисни, щоб вибрати файл, або встав зі скриншота (Ctrl+V)</span><span class="lm">Будь-який формат, який відкриває браузер: JPG, PNG, WebP, GIF, AVIF… Сайт сам перетворить на WebP і зменшить до 2560 px по довшій стороні.</span></div></div><div class="inp-busy" id="inpBusy" hidden></div></div>
       <div class="vers" id="inpVers" hidden></div>
       <p class="hint" id="inpInfo"></p>
       <label class="rng" title="Наскільки сильно змінювати ділянку: 0.05 майже без змін, 1.0 повністю заново">Сила зміни (denoise) <span id="inpDnV"></span>
