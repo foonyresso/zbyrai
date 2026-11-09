@@ -42,5 +42,12 @@ test('cleanParams: перемалювання — межі, розмір кра�
   assert.equal(cleanParams({ kind: 'inpaint', denoise: 0 }).denoise, 0.05); assert.equal(cleanParams({ kind: 'inpaint', srcId: 'x', mask: '<script>' }).srcId, ''); assert.equal(cleanParams({ kind: 'inpaint', mask: '<script>' }).mask, '');
   assert.equal(cleanParams({ kind: 'inpaint', mask: 'A'.repeat(LIMITS.maxMask + 1) }).mask, '');
 });
+test('cleanParams: довгі промпти (шаблони на 200–300 тегів) і виправлення обличчя', () => {
+  const long = Array.from({ length: 300 }, (_, i) => 'tag number ' + i).join(', ');   // ~4 тис. символів
+  assert.ok(cleanParams({ prompt: long }).prompt.length > 3500); assert.equal(cleanParams({ prompt: 'x'.repeat(9000) }).prompt.length, LIMITS.maxPrompt);
+  assert.equal(cleanParams({ prompt: 'x', negative: 'n'.repeat(5000) }).negative.length, LIMITS.maxNegative);
+  const f = cleanParams({ kind: 'facefix', prompt: ' a ', srcId: '12345678-1234-1234-1234-123456789abc', adPrompt: 'eyes', steps: 99 });
+  assert.equal(f.kind, 'facefix'); assert.equal(f.steps, LIMITS.maxSteps); assert.equal(f.adPrompt, 'eyes'); assert.equal(cleanParams({ kind: 'facefix', srcId: 'bad' }).srcId, '');
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

@@ -16,5 +16,15 @@ test('sanitize: межі, невідомі значення, сміття від
 test('вбудовані шаблони проходять sanitize без втрат ключових полів', () => {
   T.BUILTIN.forEach(b => { const s = T.sanitize(b.data); assert.equal(s.ratio, b.data.ratio); assert.equal(s.prompt, b.data.prompt); assert.ok(T.summary(s).length > 0); });
 });
+test('нові шаблони: ≥100 унікальних тегів, формат блоків, без заборонених тегів', () => {
+  const bad = /masterpiece|best quality|high quality|absurdres|highres|newest|year \d|watermark|signature|artist|_/;
+  const big = T.BUILTIN.filter(b => b.id.startsWith('x-')); assert.ok(big.length >= 8);
+  big.forEach(b => {
+    const p = b.data.prompt, tags = p.split(/[,\n]+/).map(x => x.trim()).filter(Boolean);
+    assert.ok(tags.length >= 100, b.id + ' тегів ' + tags.length); assert.equal(new Set(tags).size, tags.length, b.id + ' дублі');
+    assert.equal(p, p.toLowerCase()); assert.ok(!bad.test(p), b.id + ' заборонений тег'); assert.equal(p.split('\n\n').length, 6, b.id + ' блоки');
+    assert.ok(p.split('\n\n').every(x => x.trim().endsWith(',')), b.id + ' кома в кінці блоку'); assert.equal(T.sanitize(b.data).prompt, p);
+  });
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);
