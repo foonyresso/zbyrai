@@ -88,6 +88,7 @@
   }
 
   // ---- вибір версії: стара картинка лишається, маска зберігається (зручно повторити ту саму ділянку)
+  function inpLoras() { var I0 = host.state.inp; if (!Array.isArray(I0.loras)) I0.loras = JSON.parse(JSON.stringify(host.state.loras)); return I0.loras; }
   var pendMask = null;
   function paintMargins(m) {   // маска на нових смугах + невеликий захльост на край оригіналу
     var k = w / m.W, ov = Math.round(m.ov * k), l = Math.round(m.l * k), t = Math.round(m.t * k), r = Math.round(m.r * k), b = Math.round(m.b * k);
@@ -241,8 +242,8 @@
     if (!cur) return host.toast('Спершу обери картинку (кнопка «Перемалювати» на картинці або своє зображення)');
     var S = host.state, src = cur, text = $('inpPrompt').value.trim() || src.prompt || '', neg = $('inpNeg').value.trim() || S.neg;
     sending = true; host.updateGo(); $('faceFix').disabled = true;
-    host.enqueue({ kind: 'facefix', prompt: PT.joinPrompt(text, S.loras), negative: neg, steps: S.steps, seed: -1, srcId: src.id, adPrompt: S.adPrompt, adNeg: S.adNeg },
-      { kind: 'facefix', srcId: src.id, prompt: text, neg: neg, loras: JSON.parse(JSON.stringify(S.loras)), w: src.w, h: src.h, upscale: 1, adOn: true, adPrompt: S.adPrompt, adNeg: S.adNeg }, { stay: true })
+    host.enqueue({ kind: 'facefix', prompt: PT.joinPrompt(text, inpLoras()), negative: neg, steps: S.steps, seed: -1, srcId: src.id, adPrompt: S.adPrompt, adNeg: S.adNeg },
+      { kind: 'facefix', srcId: src.id, prompt: text, neg: neg, loras: JSON.parse(JSON.stringify(inpLoras())), w: src.w, h: src.h, upscale: 1, adOn: true, adPrompt: S.adPrompt, adNeg: S.adNeg }, { stay: true })
       .then(function () { sending = false; busy(); strip(true); }, function () { sending = false; busy(); });
   }
 
@@ -258,8 +259,8 @@
       var fr = new FileReader();
       fr.onload = function () {
         var mask = String(fr.result).split(',')[1], S = host.state, text = $('inpPrompt').value.trim() || src.prompt || '', neg = $('inpNeg').value.trim() || S.neg;
-        host.enqueue({ kind: 'inpaint', prompt: PT.joinPrompt(text, S.loras), negative: neg, steps: S.steps, seed: -1, srcId: src.id, mask: mask, denoise: S.inp.denoise, width: z.w, height: z.h, padding: z.padding, blur: 8 },
-          { kind: 'inpaint', srcId: src.id, prompt: text, neg: neg, loras: JSON.parse(JSON.stringify(S.loras)), w: w, h: h, upscale: 1, adOn: false, denoise: S.inp.denoise, work: z.w + '×' + z.h }, { stay: true })
+        host.enqueue({ kind: 'inpaint', prompt: PT.joinPrompt(text, inpLoras()), negative: neg, steps: S.steps, seed: -1, srcId: src.id, mask: mask, denoise: S.inp.denoise, width: z.w, height: z.h, padding: z.padding, blur: 8 },
+          { kind: 'inpaint', srcId: src.id, prompt: text, neg: neg, loras: JSON.parse(JSON.stringify(inpLoras())), w: w, h: h, upscale: 1, adOn: false, denoise: S.inp.denoise, work: z.w + '×' + z.h }, { stay: true })
           .then(function () { sending = false; busy(); strip(true); }, function () { sending = false; busy(); });
       };
       fr.readAsDataURL(blob);
