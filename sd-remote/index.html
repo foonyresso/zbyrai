@@ -69,9 +69,24 @@
   <div class="field"><span class="lbl">Негативний промпт ADetailer</span><textarea id="detN" rows="3" maxlength="1000" title="Чого уникати під час перемальовування обличчя"></textarea></div>
 </dialog>
 
+<dialog id="outDlg" class="help">
+  <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
+  <h2>Розширити полотно</h2>
+  <p class="hint">На скільки пікселів додати зі сторін. Нова смуга заповниться краєм картинки, зафарбується маскою й перемалюється. Ставте «Силу змін» ~0.9–1.</p>
+  <div class="out-grid">
+    <label>Зверху <input type="number" id="outT" min="0" max="1024" step="64" value="0"></label>
+    <label>Зліва <input type="number" id="outL" min="0" max="1024" step="64" value="0"></label>
+    <label>Справа <input type="number" id="outR" min="0" max="1024" step="64" value="256"></label>
+    <label>Знизу <input type="number" id="outB" min="0" max="1024" step="64" value="0"></label>
+  </div>
+  <div class="out-pre"><button type="button" data-o="all">З усіх боків +256</button><button type="button" data-o="h">Ліворуч і праворуч +256</button><button type="button" data-o="v">Зверху і знизу +256</button><button type="button" data-o="zero">Скинути</button></div>
+  <p class="hint" id="outInfo"></p>
+  <button type="button" class="go" id="outGo">Створити полотно й зафарбувати маску</button>
+</dialog>
+
 <div class="app" id="app">
   <aside class="left" id="left" aria-label="Налаштування генерації">
-    <div class="mode-row">
+    <div class="mode-row gen-only">
       <div class="seg" id="modes" role="group" aria-label="Режим">
         <button id="modeBasic" title="Базовий режим: промпт, пропорції, апскейл, ADetailer, LoRA">Базовий</button>
         <button id="modeFlex" title="Гнучкий режим: те саме плюс групи готових тегів">Гнучкий</button>
@@ -83,26 +98,42 @@
     </div>
 
     <section class="blk">
+      <div class="gen-only">
       <div class="field"><span class="lbl">Промпт</span>
-        <div class="ed" translate="no" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="4" maxlength="2000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
+        <div class="ed" translate="no" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="4" maxlength="6000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
         <div class="wbar" id="wP" hidden></div></div>
             <div class="field"><span class="lbl lrow">Негативний промпт <button type="button" class="link" id="negReset" title="Повернути стандартний негативний промпт">↺ скинути</button></span>
         <div class="ed" translate="no" id="edN"><pre id="mN" aria-hidden="true"></pre><textarea id="neg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="2000" spellcheck="false" title="Негативний промпт: чого уникати"></textarea></div>
         <div class="wbar" id="wN" hidden></div></div>
+      </div>
+    <div class="inp-only">
+      <div class="field"><span class="lbl">Промпт перемалювання</span>
+        <div class="ed" translate="no"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="6000" spellcheck="false" placeholder="Порожньо: береться промпт із вкладки «Генерація» (LoRA додаються)" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
+        <div class="wbar" id="wI" hidden></div></div>
+      <div class="field"><span class="lbl">Негативний промпт перемалювання</span>
+        <div class="ed" translate="no"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="2" maxlength="2000" spellcheck="false" placeholder="Порожньо: береться негативний із вкладки «Генерація»" title="Негативний промпт для перемалювання"></textarea></div>
+        <div class="wbar" id="wIN" hidden></div></div>
+    </div>
     </section>
 
     <section class="blk">
-      <h2>Пропорції</h2>
+      <h2><span class="gen-only">Пропорції</span><span class="inp-only">Параметри</span></h2>
+      <div class="gen-only">
       <div class="chips" id="ratios"></div>
       <button id="btnOrient" title="Перемкнути вертикальну й горизонтальну орієнтацію">⇄ Вертикально</button>
       <label class="rng" title="Довга сторона картинки до апскейлу, кратна 64">Розмір (довга сторона) <span id="longV"></span>
         <input type="range" id="long" step="64" title="Довга сторона в пікселях, крок 64"></label>
       <p class="hint" id="sizeInfo"></p>
+      </div>
       <label class="rng" title="Скільки кроків робить модель (2–12)">Кроки <span id="stV"></span>
         <input type="range" id="steps" min="2" max="12" step="1" title="Кількість кроків (2–12)"></label>
+      <div class="gen-only">
       <label class="rng" title="Збільшення готової картинки з дорисуванням деталей (Hires. fix); 1× = вимкнено">Апскейл <span id="upV"></span>
         <input type="range" id="upscale" min="1" max="2" step="0.05" title="Апскейл до 2×; обмежений довгою стороною 2800 px"></label>
       <p class="hint warn" id="upHint" hidden></p>
+      </div>
+      <label class="rng inp-only" title="Наскільки сильно змінювати зафарбовану ділянку: 0.05 майже без змін, 1.0 повністю заново">Сила зміни (denoise) <span id="inpDnV"></span>
+        <input type="range" id="inpDn" min="0.05" max="1" step="0.05" title="Denoising strength від 0.05 до 1.0"></label>
       <label class="rng" title="Число, що визначає результат; -1 = випадкове">Seed
         <input type="number" id="seed" min="-1" step="1" title="Seed; -1 = випадкове"></label>
       <p class="hint" id="seedState"></p>
@@ -111,10 +142,13 @@
 
     <section class="blk">
       <h2>ADetailer</h2>
-      <div class="det-row"><div class="seg" id="detSeg" role="group" aria-label="ADetailer для обличчя">
+      <div class="det-row inp-only"><button id="faceFix" class="btn-main" title="Прогнати ADetailer по вибраній картинці: виправити лише обличчя (нова версія з'явиться в мініатюрах)">✨ Виправити лице</button>
+        <button id="detBtn2" title="Окремі позитивні й негативні теги для ADetailer (лише для обличчя)">⚙ Теги</button></div>
+      <div class="det-row gen-only"><div class="seg" id="detSeg" role="group" aria-label="ADetailer для обличчя">
           <button id="detOff" title="ADetailer вимкнено">Вимкнено</button><button id="detOnB" title="ADetailer автоматично знаходить обличчя й перемальовує його чіткіше">Увімкнено</button></div>
         <button id="detBtn" title="Окремі позитивні й негативні теги для ADetailer (лише для обличчя)">⚙ Теги</button></div>
-      <p class="hint">Виправляє лише обличчя.</p>
+      <p class="hint gen-only">Виправляє лише обличчя.</p>
+      <p class="hint inp-only">Перемальовує лише обличчя на вибраній картинці.</p>
     </section>
 
     <section class="blk">
@@ -157,6 +191,7 @@
         <button id="inpUndo" title="Скасувати останню дію з маскою (Ctrl+Z)">↶ Скасувати</button>
         <button id="inpInvert" title="Інвертувати маску: перемалюється все, окрім зафарбованого">⇄ Інвертувати</button>
         <button id="inpClear" title="Прибрати всю маску">Очистити маску</button>
+        <button id="inpOut" title="Розширити полотно: додати порожні смуги зі сторін і дозамалювати їх (outpainting)">⤢ Розширити</button>
         <button id="inpUpload" title="Завантажити своє зображення (будь-який формат, який відкриває браузер): воно стиснеться до WebP і зменшиться до 2560 px по довшій стороні">⭳ Своє зображення</button>
         <input type="file" id="inpFile" accept="image/*" hidden>
         <button id="inpCmp" title="Порівняти з попередньою версією: повзунок «до / після»">◐ Порівняти</button>
@@ -165,15 +200,6 @@
         <div class="inp-drop" id="inpDrop"><div><b>Перетягни сюди своє зображення</b><span>або натисни, щоб вибрати файл, або встав зі скриншота (Ctrl+V)</span><span class="lm">Будь-який формат, який відкриває браузер: JPG, PNG, WebP, GIF, AVIF… Сайт сам перетворить на WebP і зменшить до 2560 px по довшій стороні.</span></div></div><div class="inp-busy" id="inpBusy" hidden></div></div>
       <div class="vers" id="inpVers" hidden></div>
       <p class="hint" id="inpInfo"></p>
-      <label class="rng" title="Наскільки сильно змінювати ділянку: 0.05 майже без змін, 1.0 повністю заново">Сила зміни (denoise) <span id="inpDnV"></span>
-        <input type="range" id="inpDn" min="0.05" max="1" step="0.05" title="Denoising strength від 0.05 до 1.0"></label>
-      <div class="field"><span class="lbl">Промпт для перемалювання (порожньо = промпт картинки; LoRA додаються)</span>
-        <div class="ed" translate="no"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="2000" spellcheck="false" placeholder="напр. blue eyes, smile" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
-        <div class="wbar" id="wI" hidden></div></div>
-      <div class="field"><span class="lbl">Негативний промпт (порожньо = основний)</span>
-        <div class="ed" translate="no"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="2" maxlength="2000" spellcheck="false" title="Негативний промпт для перемалювання"></textarea></div>
-        <div class="wbar" id="wIN" hidden></div></div>
-      <p class="hint">Запуск: кнопка «Перемалювати» ліворуч внизу (на цій вкладці вона перемальовує, на «Генерації» генерує). Інші налаштування (кроки, CFG, семплер) як при генерації; ADetailer і апскейл тут не працюють.</p>
 
       <div class="b-head"><b>Обрати іншу картинку</b></div>
       <div class="inp-recent" id="inpRecent"></div>

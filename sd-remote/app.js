@@ -50,6 +50,7 @@
   }
   var lastTab = '';
   function syncLayout() {
+    document.body.classList.toggle('inp-mode', S.tab === 'inp');   // ліве меню міняється під вкладку «Перемалювання»
     if (S.mode !== 'flex') S.view = 'img';
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
     $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
@@ -119,14 +120,14 @@
       } else if (st && st.frac !== undefined) fr.appendChild(bar(st.frac, st.text)); else fr.textContent = st ? st.text : '';
       var cap = document.createElement('div'); cap.className = 'cap';
       var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = j.prompt; pr.title = j.prompt;
-      var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + (j.seed >= 0 ? ' · seed ' + j.seed : '') + (j.kind === 'inpaint' ? ' · перемалювання ' + (j.denoise || '') : '') + (j.kind === 'upload' ? ' · своя картинка' : '');
+      var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + (j.seed >= 0 ? ' · seed ' + j.seed : '') + (j.kind === 'inpaint' ? ' · перемалювання ' + (j.denoise || '') : '') + (j.kind === 'upload' ? ' · своя картинка' : '') + (j.kind === 'facefix' ? ' · виправлення обличчя' : '');
       cap.appendChild(pr); cap.appendChild(meta);
       var acts = document.createElement('div'); acts.className = 'acts';
       var btn = function (label, title, fn) { var b = document.createElement('button'); b.textContent = label; b.title = title; b.addEventListener('click', fn); acts.appendChild(b); };
       if (j.status === 'done') btn('Завантажити', 'Зберегти картинку на комп’ютер', function () { var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); a.click(); });
       if (j.status === 'done') btn('Перемалювати', 'Зафарбувати ділянку цієї картинки й перемалювати', function () { SDInp.open(j); });
       if (j.kind !== 'upload') btn('Лог', 'Усі налаштування й теги цієї картинки', function () { openLog(j); });
-      if (j.kind !== 'inpaint' && j.kind !== 'upload') btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
+      if (j.kind !== 'inpaint' && j.kind !== 'upload' && j.kind !== 'facefix') btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
         Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.reqSeed != null ? j.reqSeed : -1, upscale: j.upscale || 1, adOn: !!j.adOn, adPrompt: j.adPrompt || '', adNeg: j.adNeg || '', loras: JSON.parse(JSON.stringify(j.loras || [])) });
         S.tab = 'gen'; fillEditors(); syncForm(); syncLayout(); SDLoras.render(); save(); toast('Параметри підставлено');
       });
@@ -140,7 +141,8 @@
     o.push('Негативний промпт:\n' + (s.negative != null ? s.negative : j.neg || '—'));
     o.push('Розмір: ' + (s.width || j.w) + '×' + (s.height || j.h) + '  ·  Кроки: ' + (s.steps || '—') + '  ·  Апскейл: ' + ((s.upscale || j.upscale || 1) > 1 ? (s.upscale || j.upscale) + '×' : 'вимкнено'));
     o.push('Seed (запит): ' + ((j.reqSeed != null ? j.reqSeed : s.seed) < 0 || (j.reqSeed == null && s.seed == null) ? '-1 (випадковий)' : (j.reqSeed != null ? j.reqSeed : s.seed)) + (j.seed >= 0 ? '  ·  Seed (результат): ' + j.seed : ''));
-    if (j.kind === 'inpaint') o.push('Перемалювання: сила зміни ' + (j.denoise || '—') + ', обробка ' + (j.work || '—') + ' (авто), вихідна картинка ' + (j.srcId || '—') + '\nADetailer і апскейл не застосовуються');
+    if (j.kind === 'facefix') o.push('Виправлення обличчя (лише ADetailer), вихідна картинка ' + (j.srcId || '—') + '\nПозитивний ADetailer: ' + (j.adPrompt || '—') + '\nНегативний ADetailer: ' + (j.adNeg || '—'));
+    else if (j.kind === 'inpaint') o.push('Перемалювання: сила зміни ' + (j.denoise || '—') + ', обробка ' + (j.work || '—') + ' (авто), вихідна картинка ' + (j.srcId || '—') + '\nADetailer і апскейл не застосовуються');
     else o.push('ADetailer: ' + (j.adOn ? 'увімкнено' : 'вимкнено') + (j.adOn ? '\n  позитивний: ' + (j.adPrompt || '—') + '\n  негативний: ' + (j.adNeg || '—') : ''));
     o.push('LoRA: ' + ((j.loras || []).length ? j.loras.map(function (l) { return l.name + ' ' + l.w; }).join(', ') : 'немає'));
     var lg = j.log;
@@ -248,7 +250,8 @@
     });
     $('detOnB').addEventListener('click', function () { S.adOn = true; syncForm(); save(); });
     $('detOff').addEventListener('click', function () { S.adOn = false; syncForm(); save(); });
-    $('detBtn').addEventListener('click', function () { $('detP').value = S.adPrompt; $('detN').value = S.adNeg; $('detDlg').showModal(); });
+    function openDet() { $('detP').value = S.adPrompt; $('detN').value = S.adNeg; $('detDlg').showModal(); }
+    $('detBtn').addEventListener('click', openDet); $('detBtn2').addEventListener('click', openDet);
     $('detP').addEventListener('input', function () { S.adPrompt = this.value; save(); });
     $('detN').addEventListener('input', function () { S.adNeg = this.value; save(); });
     $('detDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });

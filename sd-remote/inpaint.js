@@ -13,7 +13,7 @@
   var jobById = function (id) { return host.jobs().filter(function (x) { return x.id === id; })[0]; };
   function versions() { return chain().map(jobById).filter(function (j) { return j && j.status === 'done'; }); }
   function setSrc(node, url) { if (node.dataset.u !== url) { node.dataset.u = url; node.src = url; } }   // не перезавантажувати те саме
-  function pendingFor(id) { return host.jobs().filter(function (j) { return j.kind === 'inpaint' && j.srcId === id && (j.status === 'queued' || j.status === 'running'); })[0]; }
+  function pendingFor(id) { return host.jobs().filter(function (j) { return (j.kind === 'inpaint' || j.kind === 'facefix') && j.srcId === id && (j.status === 'queued' || j.status === 'running'); })[0]; }
 
   // ---- маска
   function snap() { var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(mk, 0, 0); hist.push(c); if (hist.length > 10) hist.shift(); }
@@ -88,6 +88,13 @@
   }
 
   // ---- вибір версії: стара картинка лишається, маска зберігається (зручно повторити ту саму ділянку)
+  var pendMask = null;
+  function paintMargins(m) {   // маска на нових смугах + невеликий захльост на край оригіналу
+    var k = w / m.W, ov = Math.round(m.ov * k), l = Math.round(m.l * k), t = Math.round(m.t * k), r = Math.round(m.r * k), b = Math.round(m.b * k);
+    ctx.fillStyle = '#ff3b6b'; ctx.globalCompositeOperation = 'source-over';
+    if (t) ctx.fillRect(0, 0, w, t + ov); if (b) ctx.fillRect(0, h - b - ov, w, b + ov);
+    if (l) ctx.fillRect(0, 0, l + ov, h); if (r) ctx.fillRect(w - r - ov, 0, r + ov, h);
+  }
   function select(j, compare) {
     var keep = mk ? (function () { var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(mk, 0, 0); return c; })() : null;
     cur = j; host.state.inp.src = j.id; host.save(); hist = []; cmpOn = !!compare;
@@ -99,6 +106,7 @@
       cmpEl = el('div', 'cmpl'); cmpImg = el('img', 'cmpimg'); cmpImg.draggable = false; cmpEl.appendChild(cmpImg); wrap.appendChild(cmpEl);
       mk = document.createElement('canvas'); mk.width = w; mk.height = h; mk.className = 'inpmask'; ctx = mk.getContext('2d'); wrap.appendChild(mk);
       if (keep && keep.width === w && keep.height === h) ctx.drawImage(keep, 0, 0);
+      if (pendMask && cur && cur.id === pendMask.id) { paintMargins(pendMask); pendMask = null; var S0 = host.state.inp; S0.denoise = Math.max(S0.denoise, 0.9); $('inpDn').value = S0.denoise; $('inpDnV').textContent = S0.denoise; host.save(); host.toast('Полотно розширено, нові смуги зафарбовано. Додай опис у промпт (якщо треба) і натисни «Згенерувати»'); }
       lblL = el('span', 'cmpt l', 'ДО'); lblR = el('span', 'cmpt r', 'ПІСЛЯ'); handle = el('div', 'cmph'); handle.title = 'Тягни, щоб порівняти «до» і «після»';
       handle.addEventListener('pointerdown', function (e) { e.stopPropagation(); handle.setPointerCapture(e.pointerId); handle.dragging = true; });
       handle.addEventListener('pointermove', function (e) { if (!handle.dragging) return; var r = wrap.getBoundingClientRect(); cmpPct = Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)); setClip(); });
@@ -115,7 +123,7 @@
   // вхід ззовні («Перемалювати» на картинці): продовжує ланцюжок версій або починає новий
   function enter(j) {
     var ch = chain();
-    if (ch.indexOf(j.id) < 0) { if (j.kind === 'inpaint' && ch.indexOf(j.srcId) >= 0) ch.push(j.id); else host.state.inp.chain = [j.id]; }
+    if (ch.indexOf(j.id) < 0) { if ((j.kind === 'inpaint' || j.kind === 'facefix') && ch.indexOf(j.srcId) >= 0) ch.push(j.id); else host.state.inp.chain = [j.id]; }
     if (chain().length > 30) host.state.inp.chain = chain().slice(-30);
     cur = j; host.state.inp.src = j.id; host.save(); host.setTab('inp'); select(j, false); recent();
   }
@@ -135,7 +143,7 @@
   }
   function busy() {   // стара картинка лишається, поверх неї індикатор
     var p = cur ? pendingFor(cur.id) : null, o = $('inpBusy');
-    o.hidden = !p; o.textContent = ''; host.updateGo();
+    o.hidden = !p; o.textContent = ''; host.updateGo(); $('faceFix').disabled = !cur || !!p || sending;
     if (p) { var n = host.progressNode(p); if (n) o.appendChild(n); }
   }
   function recent() {
@@ -151,12 +159,12 @@
   function refresh() {
     if (!host) return;
     host.jobs().forEach(function (j) {
-      if (j.kind !== 'inpaint' || chain().indexOf(j.srcId) < 0 || notified[j.id]) return;
+      if ((j.kind !== 'inpaint' && j.kind !== 'facefix') || chain().indexOf(j.srcId) < 0 || notified[j.id]) return;
       if (j.status === 'done') {
         notified[j.id] = 1; if (chain().indexOf(j.id) < 0) { chain().push(j.id); host.save(); }
         if (cur && cur.id === j.srcId && !$('vInp').hidden) { setTimeout(function () { select(j, true); }, 50); host.toast('Готово: нова версія. Повзунок показує «до / після».'); }   // автоматично показати результат поруч зі старою
         else if (cur && cur.id === j.srcId) { cur = j; host.state.inp.src = j.id; }
-      } else if (j.status === 'error') { notified[j.id] = 1; host.toast('Перемалювання не вдалося: ' + (j.error || 'помилка')); }
+      } else if (j.status === 'error') { notified[j.id] = 1; host.toast((j.kind === 'facefix' ? 'Виправлення обличчя не вдалося: ' : 'Перемалювання не вдалося: ') + (j.error || 'помилка')); }
     });
     if (!$('vInp').hidden) { strip(false); busy(); }
   }
@@ -185,8 +193,9 @@
     });
   }
   function toB64(blob) { return new Promise(function (res, rej) { var fr = new FileReader(); fr.onload = function () { res(String(fr.result).split(',')[1]); }; fr.onerror = rej; fr.readAsDataURL(blob); }); }
-  function uploadFile(file) {
+  function uploadFile(file, opt) {
     if (!file) return;
+    opt = opt || {};
     if (!/^image\//.test(file.type || '') && !/\.(jpe?g|png|webp|gif|bmp|avif|heic|heif|tiff?)$/i.test(file.name || '')) return host.toast('Це не схоже на зображення');
     $('inpInfo').textContent = 'Обробка зображення…';
     loadBitmap(file).then(function (bmp) {
@@ -196,13 +205,45 @@
       $('inpInfo').textContent = 'Завантаження на сервер…';
       return toB64(r.blob).then(function (b64) { return host.api('upload', { method: 'POST', body: JSON.stringify({ image: b64, w: r.w, h: r.h, name: file.name || '' }) }); }).then(function (res) { return { res: res, r: r }; });
     }).then(function (o) {
-      var job = { id: o.res.id, status: 'done', kind: 'upload', prompt: (file.name || 'своя картинка').replace(/\.[^.]+$/, ''), neg: '', w: o.r.w, h: o.r.h, seed: -1, upscale: 1, loras: [], adOn: false, src: URL.createObjectURL(o.r.blob) };
-      host.addUpload(job); enter(job);
+      var job = { id: o.res.id, status: 'done', kind: 'upload', prompt: opt.prompt != null ? opt.prompt : (file.name || 'своя картинка').replace(/\.[^.]+$/, ''), neg: '', w: o.r.w, h: o.r.h, seed: -1, upscale: 1, loras: [], adOn: false, src: URL.createObjectURL(o.r.blob) };
+      host.addUpload(job); if (opt.mask) pendMask = { id: job.id, l: opt.mask.l, t: opt.mask.t, r: opt.mask.r, b: opt.mask.b, ov: opt.mask.ov, W: opt.mask.W }; enter(job);
       host.toast('Завантажено: ' + o.r.from + (o.r.from !== o.r.w + '×' + o.r.h ? ' → ' + o.r.w + '×' + o.r.h : '') + ', WebP ' + Math.round(o.r.blob.size / 1024) + ' КБ');
     }).catch(function (e) {
       $('inpInfo').textContent = '';
       host.toast(e && e.message === 'format' ? 'Браузер не зміг відкрити цей формат (напр. HEIC): збережи як JPG чи PNG' : (e && e.message) || 'Не вдалося завантажити');
     });
+  }
+
+  // Виправити лише обличчя: ADetailer по вибраній картинці без перемальовування маскою
+  function outInfo() {
+    var v = function (id) { return Math.max(0, Math.min(1024, +$(id).value || 0)); };
+    var W = w + v('outL') + v('outR'), H = h + v('outT') + v('outB');
+    $('outInfo').textContent = 'Новий розмір: ' + W + '×' + H + (Math.max(W, H) > 2560 ? ' (стиснеться до 2560 по довгій стороні)' : '');
+  }
+  function outpaint() {
+    if (!cur || !im) return host.toast('Спершу обери картинку');
+    var v = function (id) { return Math.max(0, Math.min(1024, Math.round((+$(id).value || 0) / 8) * 8)); };
+    var l = v('outL'), t = v('outT'), r = v('outR'), b = v('outB');
+    if (!l && !t && !r && !b) return host.toast('Вкажи, на скільки розширити');
+    var W = w + l + r, H = h + t + b, c = document.createElement('canvas'); c.width = W; c.height = H; var x = c.getContext('2d');
+    x.imageSmoothingEnabled = false; x.drawImage(im, l, t);   // край розтягується в нові смуги, щоб було від чого відштовхуватись
+    if (l) x.drawImage(im, 0, 0, 1, h, 0, t, l, h); if (r) x.drawImage(im, w - 1, 0, 1, h, l + w, t, r, h);
+    if (t) x.drawImage(c, 0, t, W, 1, 0, 0, W, t); if (b) x.drawImage(c, 0, t + h - 1, W, 1, 0, t + h, W, b);
+    $('outDlg').close();
+    c.toBlob(function (blob) {
+      if (!blob) return host.toast('Не вдалося створити полотно');
+      uploadFile(new File([blob], 'outpaint.png', { type: 'image/png' }), { prompt: cur.prompt || '', mask: { l: l, t: t, r: r, b: b, ov: 16, W: W } });
+    }, 'image/png');
+  }
+
+  function faceFix() {
+    if (sending) return;
+    if (!cur) return host.toast('Спершу обери картинку (кнопка «Перемалювати» на картинці або своє зображення)');
+    var S = host.state, src = cur, text = $('inpPrompt').value.trim() || src.prompt || '', neg = $('inpNeg').value.trim() || S.neg;
+    sending = true; host.updateGo(); $('faceFix').disabled = true;
+    host.enqueue({ kind: 'facefix', prompt: PT.joinPrompt(text, S.loras), negative: neg, steps: S.steps, seed: -1, srcId: src.id, adPrompt: S.adPrompt, adNeg: S.adNeg },
+      { kind: 'facefix', srcId: src.id, prompt: text, neg: neg, loras: JSON.parse(JSON.stringify(S.loras)), w: src.w, h: src.h, upscale: 1, adOn: true, adPrompt: S.adPrompt, adNeg: S.adNeg }, { stay: true })
+      .then(function () { sending = false; busy(); strip(true); }, function () { sending = false; busy(); });
   }
 
   function go() {
@@ -244,6 +285,13 @@
       var stageBox = $('inpStage'); stageBox.addEventListener('pointermove', moveCursor); stageBox.addEventListener('pointerleave', hideCursor); stageBox.addEventListener('wheel', function (e) { setTimeout(function () { moveCursor(e); }, 0); }, { passive: true });
       document.querySelectorAll('#inpToolSeg button').forEach(function (b) { b.addEventListener('click', function () { pick(b.dataset.t); }); });
       $('inpBrush').addEventListener('input', function () { size = +this.value; });
+      $('faceFix').addEventListener('click', faceFix);
+      $('inpOut').addEventListener('click', function () { if (!cur) return host.toast('Спершу обери картинку'); outInfo(); $('outDlg').showModal(); });
+      ['outL', 'outT', 'outR', 'outB'].forEach(function (id) { $(id).addEventListener('input', outInfo); });
+      document.querySelectorAll('.out-pre button').forEach(function (bt) { bt.addEventListener('click', function () {
+        var o = bt.dataset.o, a = { all: [1, 1, 1, 1], h: [0, 1, 1, 0], v: [1, 0, 0, 1], zero: [0, 0, 0, 0] }[o];
+        ['outT', 'outL', 'outR', 'outB'].forEach(function (id, i) { $(id).value = a[i] * 256; }); outInfo(); }); });
+      $('outGo').addEventListener('click', outpaint);
       $('inpUndo').addEventListener('click', undo); $('inpClear').addEventListener('click', clearMask); $('inpInvert').addEventListener('click', invert);
       var fileIn = $('inpFile'), box1 = $('inpBox');
       $('inpUpload').addEventListener('click', function () { fileIn.click(); }); $('inpDrop').addEventListener('click', function () { fileIn.click(); });

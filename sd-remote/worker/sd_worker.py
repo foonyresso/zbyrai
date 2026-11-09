@@ -163,6 +163,33 @@ def inpaint_body(p, init_b64):
             "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1, "save_images": bool(cfg["forge_save"])}
 
 
+def _facefix(p):
+    """Лише ADetailer по готовій картинці: img2img із вимкненою основною обробкою (skip img2img), далі виправлення обличчя."""
+    try:
+        src = fetch_bytes(cfg["site"] + "/api/sd/image?id=" + p["srcId"])
+    except Exception:
+        raise RuntimeError("не вдалося завантажити вихідну картинку з сайту (її могло бути видалено)")
+    try:
+        from PIL import Image
+        w, h = Image.open(io.BytesIO(src)).size
+    except Exception:
+        w, h = 1024, 1024
+    unit = dict(cfg["ad"], ad_model=cfg["ad_face_model"], ad_prompt=p.get("adPrompt", ""), ad_negative_prompt=p.get("adNeg", ""))
+    body = {"init_images": [base64.b64encode(src).decode()], "resize_mode": 0, "denoising_strength": 0.01, "prompt": p["prompt"], "negative_prompt": p.get("negative", ""),
+            "width": w, "height": h, "steps": p.get("steps") or cfg["steps"], "cfg_scale": cfg["cfg"], "distilled_cfg_scale": cfg["shift"],
+            "sampler_name": cfg["sampler"], "scheduler": cfg["scheduler"], "seed": p.get("seed", -1), "batch_size": 1, "n_iter": 1,
+            "save_images": bool(cfg["forge_save"]), "alwayson_scripts": {"ADetailer": {"args": [True, True, unit]}}}
+    r = call(cfg["forge"] + "/sdapi/v1/img2img", body, timeout=1800)
+    png = base64.b64decode(r["images"][0])
+    try:
+        info = json.loads(r.get("info", "{}"))
+    except Exception:
+        info = {}
+    texts = info.get("infotexts") or [""]
+    img, mime = pack(png)
+    return img, mime, info.get("seed", -1), str(texts[0])[:6000], dict(body, init_images=["<%d байт>" % len(src)]), png
+
+
 def _inpaint(p):
     try:
         src = fetch_bytes(cfg["site"] + "/api/sd/image?id=" + p["srcId"])
@@ -184,6 +211,8 @@ def _inpaint(p):
 def _generate(p):
     if p.get("kind") == "inpaint":
         return _inpaint(p)
+    if p.get("kind") == "facefix":
+        return _facefix(p)
     body = forge_body(p)
     try:
         r = call(cfg["forge"] + "/sdapi/v1/txt2img", body, timeout=1800)
@@ -488,9 +517,9 @@ def sync_loras(force=False):
 
 def job_start(job):
     """Блок «Нова задача»: тип, промпт, LoRA, розмір, кроки, апскейл, ADetailer."""
-    prm = job["params"]; inp = prm.get("kind") == "inpaint"
+    prm = job["params"]; inp = prm.get("kind") == "inpaint"; ff = prm.get("kind") == "facefix"
     print(paint("─" * max(40, min(110, shutil.get_terminal_size((100, 30)).columns - 1)), "dim"), flush=True)   # розділювач між задачами
-    log("Нова задача #%s  ·  %s" % (job["id"][:8], "перемалювання" if inp else "генерація"), "cyan", "▶ ")
+    log("Нова задача #%s  ·  %s" % (job["id"][:8], "перемалювання" if inp else "виправлення обличчя" if ff else "генерація"), "cyan", "▶ ")
     detail("Промпт", short(prm["prompt"], 120))
     loras = re.findall(r"<lora:([^:>]+):(-?[\d.]+)>", prm["prompt"])
     if loras:
@@ -499,7 +528,9 @@ def job_start(job):
         detail("Негатив", short(prm["negative"], 80), "dim")
     steps = prm.get("steps") or cfg["steps"]
     base = "кроки %s · CFG %s · %s/%s · Shift %s" % (steps, prm.get("cfg") or cfg["cfg"], prm.get("sampler") or cfg["sampler"], prm.get("scheduler") or cfg["scheduler"], cfg["shift"])
-    if inp:
+    if ff:
+        detail("ADetailer", "лише обличчя" + (" · +" + short(prm["adPrompt"], 40) if prm.get("adPrompt") else ""))
+    elif inp:
         detail("Інпейнт", "сила зміни %s · обробка %d×%d · відступ %s · розмиття %s" % (prm.get("denoise"), prm["width"], prm["height"], prm.get("padding"), prm.get("blur")))
     else:
         up = prm.get("upscale", 1) or 1
@@ -557,7 +588,7 @@ def main():
         try:
             img, mime, seed, infotext, request, png = generate(job["params"], job["id"])
             save_copy(png, infotext, job, request)
-            outdir = forge_outdir(job["params"].get("kind") == "inpaint")
+            outdir = forge_outdir(job["params"].get("kind") in ("inpaint", "facefix"))
             saved = find_saved(outdir, t0) if cfg["forge_save"] else ""
             job_done(job, t0, img, mime, seed, infotext, saved, outdir)
             out = {"id": job["id"], "image": img, "mime": mime, "info": {"seed": seed, "infotext": infotext, "request": request, "saved": saved or ("папка Forge: " + outdir)}}
