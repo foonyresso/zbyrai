@@ -16,6 +16,7 @@ export async function onRequest({ request, env, params }) {
     if (action === 'login' && method === 'POST') return login(request, env, db);
     if (action === 'me' && method === 'GET') return me(request, db);
     if (action === 'submit' && method === 'POST') return submit(request, db);
+    if (action === 'upload' && method === 'POST') return upload(request, db);
     if (action === 'loras' && method === 'GET') return loras(request, db);
     if (action === 'loras-refresh' && method === 'POST') return lorasRefresh(request, db);
     if (action === 'loras-sync' && method === 'POST') return workerOnly(request, env) || lorasSync(request, db);
@@ -186,9 +187,8 @@ async function result(request, db) {
   }
   if (!b.image || b.image.length > 1.5e6) return J({ error: 'Картинка порожня або завелика (макс. ~1 МБ)' }, 400);
   await db.prepare("UPDATE jobs SET status='done', image=?, mime=?, info=?, updated=? WHERE id=?").bind(b.image, b.mime === 'image/png' ? 'image/png' : 'image/webp', safeInfo(b.info), t, id).run();
-  // ліміт: у кожного користувача зберігається лише останні maxImagesPerUser картинок (старі стираються, щоб не розросталась база)
   const j = await db.prepare('SELECT user FROM jobs WHERE id=?').bind(id).first();
-  if (j) await db.prepare('UPDATE jobs SET image=NULL WHERE user=? AND image IS NOT NULL AND id NOT IN (SELECT id FROM jobs WHERE user=? AND image IS NOT NULL ORDER BY updated DESC LIMIT ?)').bind(j.user, j.user, LIMITS.maxImagesPerUser).run();
+  if (j) await pruneImages(db, j.user);
   return J({ ok: true });
 }
 
@@ -234,4 +234,33 @@ async function lorasRefresh(request, db) {
   await db.prepare("INSERT INTO meta (k,v) VALUES ('lora_refresh',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(now()).run();
   const a = await db.prepare("SELECT v FROM meta WHERE k='alive'").first();
   return J({ ok: true, online: !!a && now() - a.v < LIMITS.onlineMs });
+}
+
+// Ліміт: у кожного користувача зберігається лише останні maxImagesPerUser картинок (старі стираються, щоб не розросталась база)
+async function pruneImages(db, user) {
+  await db.prepare('UPDATE jobs SET image=NULL WHERE user=? AND image IS NOT NULL AND id NOT IN (SELECT id FROM jobs WHERE user=? AND image IS NOT NULL ORDER BY updated DESC LIMIT ?)').bind(user, user, LIMITS.maxImagesPerUser).run();
+}
+
+// Власна картинка користувача для перемалювання: браузер уже зменшив її й стиснув у WebP (або JPEG/PNG); зберігається як звичайна готова картинка
+function sniffMime(b64) {
+  let h; try { h = atob(b64.slice(0, 24)); } catch { return ''; }
+  if (h.slice(0, 4) === 'RIFF' && h.slice(8, 12) === 'WEBP') return 'image/webp';
+  if (h.charCodeAt(0) === 0x89 && h.slice(1, 4) === 'PNG') return 'image/png';
+  if (h.charCodeAt(0) === 0xff && h.charCodeAt(1) === 0xd8 && h.charCodeAt(2) === 0xff) return 'image/jpeg';
+  return '';
+}
+async function upload(request, db) {
+  const user = await authed(request, db);
+  if (!user) return J({ error: 'Потрібно увійти' }, 401);
+  const b = await body(request), img = String((b && b.image) || '');
+  if (!/^[A-Za-z0-9+/=]+$/.test(img) || img.length < 100) return J({ error: 'Картинка пошкоджена' }, 400);
+  if (img.length > LIMITS.maxUpload) return J({ error: 'Картинка завелика навіть після стиснення (до ~1 МБ)' }, 413);
+  const mime = sniffMime(img);
+  if (!mime) return J({ error: 'Підтримуються WebP, PNG і JPEG (сайт сам перетворює картинки)' }, 400);
+  const dim = (v) => Math.min(8192, Math.max(16, Math.round(Number(v) || 0)));
+  const id = crypto.randomUUID(), t = now(), name = String((b && b.name) || '').slice(0, 80);
+  await db.prepare("INSERT INTO jobs (id,user,status,params,image,mime,info,created,updated) VALUES (?,?,'done',?,?,?,?,?,?)")
+    .bind(id, user, JSON.stringify({ kind: 'upload', width: dim(b.w), height: dim(b.h), name }), img, mime, JSON.stringify({ seed: -1 }), t, t).run();
+  await pruneImages(db, user);
+  return J({ id });
 }

@@ -220,3 +220,8 @@ dialog.lds { width: min(900px, 94vw); } .ldbody { display: grid; grid-template-c
 .lnk-card .lx { position: absolute; right: 8px; top: 8px; width: 24px; height: 24px; padding: 0; line-height: 1; z-index: 2; }
 .lnform { display: grid; grid-template-columns: 1fr 1.4fr 1.6fr auto; gap: 8px; align-items: center; } @media (max-width: 860px) { .lnform { grid-template-columns: 1fr; } }
 #lnList { display: flex; flex-direction: column; gap: 6px; } #lnList .sh { margin: 10px 0 2px; }
+
+/* завантаження власної картинки */
+.inp-drop { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; cursor: pointer; border: 2px dashed var(--line); border-radius: var(--r-md); background: rgba(11,11,15,.72); color: var(--muted); }
+.inp-drop > div { display: flex; flex-direction: column; gap: 8px; max-width: 460px; } .inp-drop b { color: var(--text); font-size: 16px; } .inp-drop:hover, .inp-stage-box.over .inp-drop { border-color: var(--accent); color: var(--accent-hi); }
+.inp-stage-box.over { outline: 2px dashed var(--accent); outline-offset: -4px; } .inp-drop[hidden] { display: none; }

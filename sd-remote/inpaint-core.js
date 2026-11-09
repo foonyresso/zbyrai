@@ -28,6 +28,12 @@
     return data;
   }
 
-  var api = { PAD: PAD, maskBBox: maskBBox, inpaintSize: inpaintSize, toBinaryMask: toBinaryMask };
+  // Зменшення картинки так, щоб довга сторона не перевищувала max (пропорції зберігаються; менші не збільшуються)
+  function fitSize(w, h, max) {
+    var long = Math.max(w, h); if (long <= max) return { w: Math.round(w), h: Math.round(h), scaled: false };
+    var k = max / long; return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)), scaled: true };
+  }
+
+  var api = { fitSize: fitSize, PAD: PAD, maskBBox: maskBBox, inpaintSize: inpaintSize, toBinaryMask: toBinaryMask };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SDInpaint = api;
 })(typeof window !== 'undefined' ? window : globalThis);

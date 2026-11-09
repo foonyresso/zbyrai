@@ -20,5 +20,9 @@ test('inpaintSize: 1024 для малої ділянки, 1344, 1536 для ве
 test('toBinaryMask: біле/чорне без напівтонів', () => {
   const d = new Uint8ClampedArray([255, 0, 0, 200, 255, 0, 0, 40]); I.toBinaryMask(d); assert.deepEqual([...d], [255, 255, 255, 255, 0, 0, 0, 255]);
 });
+test('fitSize: довга сторона ≤ max, пропорції, малі не збільшуються', () => {
+  assert.deepEqual(I.fitSize(5000, 2500, 2560), { w: 2560, h: 1280, scaled: true }); assert.deepEqual(I.fitSize(2000, 4000, 2560), { w: 1280, h: 2560, scaled: true });
+  assert.deepEqual(I.fitSize(1000, 700, 2560), { w: 1000, h: 700, scaled: false }); assert.equal(I.fitSize(100000, 1, 2560).h, 1);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено');
 process.exit(failed ? 1 : 0);

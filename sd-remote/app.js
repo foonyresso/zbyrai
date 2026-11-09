@@ -81,6 +81,7 @@
     return null;
   }
   function imgUrl(j) { return j.src || '/api/sd/image?id=' + j.id; }
+  function lastJob() { for (var i = S.jobs.length - 1; i >= 0; i--) if (S.jobs[i].kind !== 'upload') return S.jobs[i]; return null; }   // завантажені картинки не показуються як «остання генерація»
   function openView(j) { SDViewer.open({ url: imgUrl(j), name: C.fileName(j.prompt, j.seed), onInpaint: function () { SDInp.open(j); } }); }
   function fetchImage(j) {   // справжнє завантаження в браузер із прогресом за байтами
     if (j.src || j.loading) return; j.loading = true; j.dl = null;
@@ -95,7 +96,7 @@
     }).then(function (b) { j.src = URL.createObjectURL(b); j.loading = false; renderAll(); }, function () { j.loading = false; j.live = false; renderAll(); });
   }
   function renderPreview() {
-    var box = $('pvIn'), j = S.jobs[S.jobs.length - 1]; box.textContent = '';
+    var box = $('pvIn'), j = lastJob(); box.textContent = '';
     if (!j) { $('btnSave').disabled = $('btnInp').disabled = true; box.textContent = 'Так виглядатиме рамка картинки'; return; }
     var st = stage(j);
     $('btnSave').disabled = $('btnInp').disabled = !(j.status === 'done' && (j.src || !j.live));
@@ -118,14 +119,14 @@
       } else if (st && st.frac !== undefined) fr.appendChild(bar(st.frac, st.text)); else fr.textContent = st ? st.text : '';
       var cap = document.createElement('div'); cap.className = 'cap';
       var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = j.prompt; pr.title = j.prompt;
-      var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + (j.seed >= 0 ? ' · seed ' + j.seed : '') + (j.kind === 'inpaint' ? ' · перемалювання ' + (j.denoise || '') : '');
+      var meta = document.createElement('span'); meta.textContent = j.w + '×' + j.h + (j.upscale > 1 ? ' ×' + j.upscale : '') + (j.seed >= 0 ? ' · seed ' + j.seed : '') + (j.kind === 'inpaint' ? ' · перемалювання ' + (j.denoise || '') : '') + (j.kind === 'upload' ? ' · своя картинка' : '');
       cap.appendChild(pr); cap.appendChild(meta);
       var acts = document.createElement('div'); acts.className = 'acts';
       var btn = function (label, title, fn) { var b = document.createElement('button'); b.textContent = label; b.title = title; b.addEventListener('click', fn); acts.appendChild(b); };
       if (j.status === 'done') btn('Завантажити', 'Зберегти картинку на комп’ютер', function () { var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); a.click(); });
       if (j.status === 'done') btn('Перемалювати', 'Зафарбувати ділянку цієї картинки й перемалювати', function () { SDInp.open(j); });
-      btn('Лог', 'Усі налаштування й теги цієї картинки', function () { openLog(j); });
-      if (j.kind !== 'inpaint') btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
+      if (j.kind !== 'upload') btn('Лог', 'Усі налаштування й теги цієї картинки', function () { openLog(j); });
+      if (j.kind !== 'inpaint' && j.kind !== 'upload') btn('Ще раз', 'Підставити промпт і параметри цієї картинки', function () {
         Object.assign(S, { prompt: j.prompt, neg: j.neg, seed: j.reqSeed != null ? j.reqSeed : -1, upscale: j.upscale || 1, adOn: !!j.adOn, adPrompt: j.adPrompt || '', adNeg: j.adNeg || '', loras: JSON.parse(JSON.stringify(j.loras || [])) });
         S.tab = 'gen'; fillEditors(); syncForm(); syncLayout(); SDLoras.render(); save(); toast('Параметри підставлено');
       });
@@ -261,9 +262,9 @@
       var p = $('preview'); if (document.fullscreenElement) return document.exitFullscreen();
       if (p.requestFullscreen) p.requestFullscreen().catch(function () { /* без повного екрана */ });
     });
-    $('btnInp').addEventListener('click', function () { var j = S.jobs[S.jobs.length - 1]; if (j && j.status === 'done') SDInp.open(j); });
-    $('btnSave').addEventListener('click', function () { var j = S.jobs[S.jobs.length - 1]; if (!j || j.status !== 'done') return toast('Картинка ще не готова'); var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); document.body.appendChild(a); a.click(); a.remove(); });
-    $('btnLog').addEventListener('click', function () { openLog(S.jobs[S.jobs.length - 1]); });
+    $('btnInp').addEventListener('click', function () { var j = lastJob(); if (j && j.status === 'done') SDInp.open(j); });
+    $('btnSave').addEventListener('click', function () { var j = lastJob(); if (!j || j.status !== 'done') return toast('Картинка ще не готова'); var a = document.createElement('a'); a.href = imgUrl(j); a.download = C.fileName(j.prompt, j.seed); document.body.appendChild(a); a.click(); a.remove(); });
+    $('btnLog').addEventListener('click', function () { openLog(lastJob()); });
     $('logCopy').addEventListener('click', function () { var t = $('logPre').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Лог скопійовано'); }, function () { toast('Не вдалося скопіювати'); }); });
     $('logDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
     $('btnGo').addEventListener('click', go);
@@ -284,7 +285,7 @@
   SDLoras.init({ toast: toast, state: S, get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
   SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },
     colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
-  SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
+  SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, api: api, addUpload: function (j) { S.jobs.push(j); save(); renderAll(); }, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
   SDLinks.init({ state: S, save: save, toast: toast });
   SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
   syncLayout();   // модулі вже готові: застосувати відкриту вкладку (LoRA, Перемалювання)
