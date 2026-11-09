@@ -108,7 +108,7 @@
       </div>
     <div class="inp-only">
       <div class="field"><span class="lbl">Промпт перемалювання</span>
-        <div class="ed" translate="no"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="6000" spellcheck="false" placeholder="Порожньо: береться промпт із вкладки «Генерація» (LoRA додаються)" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
+        <div class="ed" translate="no"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="6000" spellcheck="false" placeholder="Порожньо: береться промпт із вкладки «Генерація» (LoRA — лише зі списку нижче, окремого від генерації)" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
         <div class="wbar" id="wI" hidden></div></div>
       <div class="field"><span class="lbl">Негативний промпт перемалювання</span>
         <div class="ed" translate="no"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="2" maxlength="2000" spellcheck="false" placeholder="Порожньо: береться негативний із вкладки «Генерація»" title="Негативний промпт для перемалювання"></textarea></div>
@@ -152,7 +152,7 @@
     </section>
 
     <section class="blk">
-      <h2>LoRA <button class="link" id="loraReset" title="Повернути типовий набір LoRA з типовою силою: Epistail 0.2, UTV 0.15, PFT_ASH 0.3">↺ типові</button> <button class="link" id="loraManage" title="Відкрити вкладку LoRA: список, метадані, додавання">керувати</button></h2>
+      <h2>LoRA <span class="hint" id="loraWho"></span> <button class="link" id="loraReset" title="Повернути типовий набір LoRA з типовою силою: Epistail 0.2, UTV 0.15, PFT_ASH 0.3">↺ типові</button> <button class="link" id="loraManage" title="Відкрити вкладку LoRA: список, метадані, додавання">керувати</button></h2>
       <div id="loraActive" class="lactive"></div>
     </section>
 

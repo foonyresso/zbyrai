@@ -48,8 +48,14 @@
     $('seedState').textContent = S.seed < 0 ? 'Seed: випадковий для кожної генерації' : '🔒 Seed зафіксовано: ' + S.seed + ' (кожна генерація буде схожою)'; $('seedState').classList.toggle('warn', S.seed >= 0);
     $('preview').style.setProperty('--ar', (d.w / d.h).toFixed(4)); $('pvTag').textContent = (S.upscale > 1 ? f.w + '×' + f.h : d.w + '×' + d.h) + ' · ' + S.ratio;
   }
-  var lastTab = '';
+  var lastTab = '', loraCtx = 'gen';
+  function loraList() {   // окремі набори LoRA: для генерації (S.loras) і для перемалювання (S.inp.loras)
+    if (loraCtx === 'inp') { if (!Array.isArray(S.inp.loras)) S.inp.loras = JSON.parse(JSON.stringify(S.loras)); return S.inp.loras; }
+    return S.loras;
+  }
   function syncLayout() {
+    if (S.tab === 'inp' || S.tab === 'gen') { if (loraCtx !== S.tab) { loraCtx = S.tab; if (window.SDLoras) SDLoras.render(); } }
+    if ($('loraWho')) $('loraWho').textContent = loraCtx === 'inp' ? '(для перемалювання)' : '(для генерації)';
     document.body.classList.toggle('inp-mode', S.tab === 'inp');   // ліве меню міняється під вкладку «Перемалювання»
     if (S.mode !== 'flex') S.view = 'img';
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
@@ -285,7 +291,7 @@
   SDAutocomplete.init({ names: SDLoras.names, weight: SDLoras.defaultWeight }); SDAutocomplete.attach($('prompt')); SDAutocomplete.attach($('neg')); 
   S.inp = Object.assign({ src: '', prompt: '', neg: '', denoise: 0.5, chain: [] }, S.inp || {}); if (!Array.isArray(S.inp.chain)) S.inp.chain = [];
   bind(); fillEditors(); syncForm(); syncLayout(); renderAll();
-  SDLoras.init({ toast: toast, state: S, get: function () { return S.loras; }, set: function (l) { S.loras = l; save(); }, save: save, insert: insertText, api: api });
+  SDLoras.init({ toast: toast, state: S, get: loraList, set: function (l) { if (loraCtx === 'inp') S.inp.loras = l; else S.loras = l; save(); }, save: save, insert: insertText, api: api });
   SDBuilder.init({ get: function () { return S.prompt; }, set: function (t) { S.prompt = t; edP.set(t); save(); SDBuilder.refresh(); },
     colors: { get: function (id) { var a = S.colors[id]; return a && a.length ? a : [null]; }, set: function (id, a) { S.colors[id] = a; save(); } } });
   SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, api: api, addUpload: function (j) { S.jobs.push(j); save(); renderAll(); }, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
