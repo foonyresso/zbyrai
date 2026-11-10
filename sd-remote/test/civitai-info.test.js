@@ -25,6 +25,13 @@ test('details і modelIdOf', () => {
   const o = Object.fromEntries(d); assert.equal(o['Автор'], 'bob'); assert.equal(o['Розмір файлу'], '50 МБ'); assert.equal(o['Статус'], 'Опубліковано'); assert.equal(o['Завантажень'], '7');
   assert.equal(C.modelIdOf('https://civitai.com/models/123?x=1'), '123'); assert.equal(C.modelIdOf(''), '');
 });
+test('id з назви файлу й позначка hasPositivePrompt', () => {
+  const g = C.gallery({ images: [{ url: 'https://image.civitai.com/k/u/original=true/147533994.jpeg', hasPositivePrompt: true }, { url: 'https://image.civitai.com/k/u/x.jpeg', hasPositivePrompt: false }, { url: 'https://image.civitai.com/k/u/y.jpeg' }] });
+  assert.equal(g[0].id, 147533994); assert.equal(g[0].hasPrompt, true); assert.equal(g[1].hasPrompt, false); assert.equal(g[2].hasPrompt, undefined);
+});
+test('sized: original=true замінюється на width', () => {
+  assert.equal(C.sized('https://image.civitai.com/k/u/original=true/1.jpeg', 450), 'https://image.civitai.com/k/u/width=450/1.jpeg'); assert.equal(C.sized('https://image.civitai.com/k/u/width=100/1.jpeg', 1280), 'https://image.civitai.com/k/u/width=1280/1.jpeg');
+});
 test('snapRatio: найближча пропорція', () => {
   assert.equal(C.snapRatio(1024, 1024), 1); assert.equal(C.snapRatio(832, 1216), 2 / 3); assert.equal(C.snapRatio(1344, 768), 16 / 9); assert.equal(C.snapRatio(768, 1344), 9 / 16); assert.equal(C.snapRatio(0, 0), 2 / 3);
 });
