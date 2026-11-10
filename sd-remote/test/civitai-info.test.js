@@ -12,6 +12,12 @@ test('ліцензія: старий рядок і заборони', () => {
   assert.equal(n[0].ok, false); assert.match(n[0].text, /Треба вказувати/); assert.equal(by(n).image, false); assert.equal(by(n).merge, false);
   assert.deepEqual(C.licenseItems(null), []);
 });
+test('кожен пункт ліцензії має пояснення (обидва стани)', () => {
+  [{ allowNoCredit: true, allowCommercialUse: ['Image', 'RentCivit', 'Rent', 'Sell'], allowDerivatives: true, allowDifferentLicense: true }, { allowNoCredit: false, allowCommercialUse: 'None', allowDerivatives: false, allowDifferentLicense: false }].forEach(m => {
+    const l = C.licenseItems(m); assert.equal(l.length, 7); l.forEach(i => assert.ok(i.hint && i.hint.length > 60, i.key));
+  });
+  assert.notEqual(C.licenseItems({ allowNoCredit: true })[0].hint, C.licenseItems({ allowNoCredit: false })[0].hint);
+});
 test('pickVersion: за id, за назвою, перша', () => {
   const m = { modelVersions: [{ id: 5, name: 'v2' }, { id: 4, name: 'v1' }] };
   assert.equal(C.pickVersion(m, 4).name, 'v1'); assert.equal(C.pickVersion(m, null, 'v2').id, 5); assert.equal(C.pickVersion(m).id, 5); assert.equal(C.pickVersion({}), null);
