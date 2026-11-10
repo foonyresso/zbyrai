@@ -4,11 +4,12 @@
   var C = window.SDClient, PT = window.PromptTools, LS = 'sd_state2';
   var NEG = 'bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\nbad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),';
   var D = { mode: 'basic', view: 'img', tab: 'gen', ratio: '9:16', orient: 'v', long: 1344, steps: 8, seed: -1, upscale: 1.65,
-    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, links: [], loraMeta: {}, loraBy: 'category', loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
+    adOn: true, adPrompt: '', adNeg: '', prompt: '', neg: NEG, loras: window.SDLoras.DEFAULT_LIST, templates: [], colors: {}, links: [], loraMeta: {}, loraBy: 'folder', loraByV: 0, loraGroup: '', inp: { src: '', prompt: '', neg: '', denoise: 0.5, chain: [] } };
   var S = Object.assign({ token: '', jobs: [] }, JSON.parse(JSON.stringify(D))), timers = {}, registerMode = false, edP, edN;
 
   function load() {
     try { var x = JSON.parse(localStorage.getItem(LS) || '{}'); Object.keys(x).forEach(function (k) { if (k in S) S[k] = x[k]; }); } catch (e) { /* не критично */ }
+    if (S.loraByV !== 2) { S.loraBy = 'folder'; S.loraGroup = ''; S.loraByV = 2; }   // типове групування LoRA — за папками (раз для старих збережень)
     if (['gen', 'inp', 'lora', 'tpl', 'hist', 'links'].indexOf(S.tab) < 0) S.tab = 'gen';   // напр. прибрана вкладка зі старого збереження
     if (!S.token) { try { var old = JSON.parse(localStorage.getItem('sd_state') || '{}'); if (old.token) S.token = old.token; } catch (e) { /* не критично */ } }
   }
