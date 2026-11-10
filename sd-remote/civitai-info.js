@@ -86,8 +86,17 @@
     if (!cache[id]) cache[id] = fetch('https://civitai.com/api/v1/models/' + id).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).catch(function (e) { delete cache[id]; throw e; });
     return cache[id];
   }
+  // Галерея спільноти: роботи людей, які генерують на цій версії (GET /api/v1/images). Повертає {items, next}
+  function fetchImages(versionId, cursor) {
+    var u = 'https://civitai.com/api/v1/images?modelVersionId=' + encodeURIComponent(String(versionId).replace(/\D/g, '')) + '&limit=48&sort=' + encodeURIComponent('Most Reactions') + '&period=AllTime' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
+    return fetch(u).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
+      var raw = (d.items || []).filter(function (i) { return i && /^https:\/\//.test(i.url || '') && String(i.type || 'image') === 'image'; }), g = gallery({ images: raw });
+      g.forEach(function (x, n) { x.user = raw[n].username || ''; });
+      return { items: g, next: (d.metadata && d.metadata.nextCursor) || '' };
+    });
+  }
   function modelIdOf(url) { var m = /\/models\/(\d+)/.exec(String(url || '')); return m ? m[1] : ''; }
 
-  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, modelIdOf: modelIdOf, commercial: commercial, sized: sized };
+  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, modelIdOf: modelIdOf, commercial: commercial, sized: sized };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else window.CivitaiInfo = api;
 })();

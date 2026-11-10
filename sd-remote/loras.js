@@ -75,8 +75,18 @@
     if (g.prompt) { var p = el('div', 'lbigp'), b = el('button', 'lcopy', '⧉ Копіювати промпт'); b.type = 'button'; b.addEventListener('click', function (e) { e.stopPropagation(); copyText(g.prompt, b); }); p.appendChild(b); p.appendChild(el('span', null, g.prompt.slice(0, 600))); o.appendChild(p); }
     o.addEventListener('click', function () { o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
   }
+  function dragScroll(box) {   // потягнув мишкою — прокручується; простий клік (без руху) відкриває картинку
+    var sx = 0, sl = 0, down = false, moved = false;
+    box.addEventListener('pointerdown', function (e) { if (e.button !== 0 || e.target.closest('.lcopy')) return; down = true; moved = false; sx = e.clientX; sl = box.scrollLeft; });
+    box.addEventListener('pointermove', function (e) { if (!down) return; var dx = e.clientX - sx; if (Math.abs(dx) > 5) { moved = true; box.classList.add('drag'); } if (moved) box.scrollLeft = sl - dx; });
+    var end = function () { down = false; box.classList.remove('drag'); };
+    box.addEventListener('pointerup', end); box.addEventListener('pointerleave', end); box.addEventListener('pointercancel', end);
+    box.addEventListener('click', function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+    box.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  }
   function galTile(g) {
-    var t = el('div', 'lgi'), im = el('img'); im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g); }); t.appendChild(im);
+    var t = el('div', 'lgi'), im = el('img'); im.draggable = false; im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g); }); t.appendChild(im);
+    if (g.user) t.appendChild(el('span', 'lgu', g.user));
     if (g.prompt) { var b = el('button', 'lcopy', '⧉'); b.type = 'button'; b.title = 'Копіювати промпт цієї картинки'; b.addEventListener('click', function (e) { e.stopPropagation(); copyText(g.prompt, b); }); t.appendChild(b); }
     return t;
   }
@@ -91,7 +101,8 @@
     var im0 = thumbUrl(k); if (im0) { var i0 = el('img'); i0.src = im0; i0.alt = ''; strip.appendChild(i0); } else strip.appendChild(el('p', 'lm', mid ? 'Завантаження картинок автора…' : 'Немає картинок'));
     desc.appendChild(el('p', 'lm', mid ? 'Завантаження опису з Civitai…' : (k.note || 'Опису немає (LoRA не знайдено на Civitai).')));
     vOv.appendChild(strip); vOv.appendChild(desc); left.appendChild(vOv); left.appendChild(vGa);
-    function tab(g) { bOv.classList.toggle('on', !g); bGa.classList.toggle('on', g); vOv.hidden = g; vGa.hidden = !g; }
+    function tab(g) { bOv.classList.toggle('on', !g); bGa.classList.toggle('on', g); vOv.hidden = g; vGa.hidden = !g; if (g && loadGal) loadGal(); }
+    var loadGal = null; dragScroll(strip);
     bOv.addEventListener('click', function () { tab(false); }); bGa.addEventListener('click', function () { tab(true); });
     // --- права частина
     var r = el('div', 'ld-right'); r.appendChild(el('h3', null, k.title || k.name));
@@ -133,7 +144,17 @@
       CI.details(model, ver).forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); });
       strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
       gal.slice(0, 8).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); });
-      vGa.textContent = ''; gal.forEach(function (g) { vGa.appendChild(galTile(g)); }); bGa.textContent = 'Галерея (' + gal.length + ')';
+      var vid = ver && ver.id, cursor = '', loading = false, more = el('button', 'btn-main ld-more', 'Показати ще'); more.type = 'button'; more.hidden = true; var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg');
+      vGa.textContent = ''; vGa.appendChild(gbox); vGa.appendChild(gmsg); vGa.appendChild(more);
+      function pull() {
+        if (loading || !vid) return; loading = true; more.hidden = true; gmsg.textContent = 'Завантаження робіт спільноти…';
+        CI.fetchImages(vid, cursor).then(function (r) {
+          if (box._tok !== token) return; loading = false; r.items.forEach(function (g) { gbox.appendChild(galTile(g)); }); cursor = r.next; more.hidden = !cursor;
+          gmsg.textContent = gbox.children.length ? '' : 'Спільнота ще не додала робіт (або вони 18+ і Civitai їх не віддає).';
+        }, function () { if (box._tok !== token) return; loading = false; gmsg.textContent = 'Не вдалося завантажити галерею з Civitai.'; more.hidden = false; });
+      }
+      more.addEventListener('click', pull); loadGal = function () { loadGal = null; pull(); };
+      bGa.textContent = 'Галерея';
       desc.textContent = '';
       var html = (ver && ver.description ? ver.description : '') + (model.description || '');
       if (html.trim()) { var dv = el('div', 'ld-html'); if (ver && ver.description) { var vh = el('div'); vh.appendChild(CI.safeHtml(ver.description)); dv.appendChild(vh); } if (model.description) dv.appendChild(CI.safeHtml(model.description)); desc.appendChild(dv); }
