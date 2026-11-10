@@ -11,4 +11,9 @@ test('межі по блоках сумуються в діапазон зага
 test('текст про картинку, без старих режимів і чужих меж', () => {
   A.VARIANTS.forEach(v => { const t = A.build(v); assert.match(t, /LOOK at the input image/); assert.ok(!/PROFILE|SCENE MODE|200-300|150-250/.test(t), v.id); assert.ok(t.includes('BLOCK 6 - LIGHTING AND COLORS') && t.includes('Output only the final tag blocks')); });
 });
+test('формати: 3 шт., без меж кількості тегів і без завдання, з правилами блоків', () => {
+  assert.deepEqual(A.FORMATS.map(f => f.id), ['f-tags', 'f-lang', 'f-mix']);
+  A.FORMATS.forEach(f => { assert.ok(!/\d+-\d+ tags|Total \d|LOOK at the input image/.test(f.text), f.id + ' без лімітів/завдання'); assert.ok(f.text.includes('STRUCTURE:') && f.text.includes('6. Lighting and colors')); assert.ok(f.text.includes('masterpiece')); });
+  assert.match(A.FORMATS[2].text, /sentence\(s\), then one line of tags/); assert.match(A.FORMATS[1].text, /NATURAL LANGUAGE ONLY/); assert.match(A.FORMATS[0].text, /TAGS ONLY/);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);
