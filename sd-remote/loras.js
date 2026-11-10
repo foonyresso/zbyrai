@@ -2,7 +2,7 @@
 // Дані приходять від воркера (/api/sd/loras). Активні LoRA зберігає app.js (host.get/set).
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var DEFAULTS = { 'Epistail_0.1': 0.2, 'UTV_v0.1': 0.15, 'PFT_ASH_0.1': 0.3 };
+  var DEFAULTS = { 'Epistail_0.1': 0.6, 'PFT_ASH_0.1': 0.5 };
   var host = null, known = [];
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -23,7 +23,8 @@
     if (!l.length) box.appendChild(el('p', 'hint', 'LoRA не додано. Відкрий «керувати» й додай потрібні.'));
     l.forEach(function (it) {
       var k = find(it.name), b = el('div', 'lblk');
-      var h = el('div', 'lh'); var n = el('b', null, (k && k.title) || it.name); n.title = it.name + (k && k.base ? ' · ' + k.base : '');
+      var h = el('div', 'lh'); var n = el('button', 'lname', (k && k.title) || it.name); n.type = 'button'; n.title = 'Відкрити інформацію про LoRA · ' + it.name + (k && k.base ? ' · ' + k.base : '');
+      n.addEventListener('click', function () { if (k) openDetail(k); else host.toast('Цієї LoRA немає у списку з ПК (список оновлюється кнопкою «Оновити» у вкладці LoRA)'); });
       var x = el('button', 'x', '×'); x.title = 'Прибрати цю LoRA з генерації'; x.addEventListener('click', function () { toggle(it.name); });
       h.appendChild(n); h.appendChild(x); b.appendChild(h);
       var row = el('div', 'lr'), rng = el('input'), num = el('input');

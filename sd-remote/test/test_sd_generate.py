@@ -11,7 +11,7 @@ def req(*argv):
 class Cli(unittest.TestCase):
     def test_defaults_match_site(self):
         r = req()
-        self.assertEqual(r["prompt"], "<lora:Epistail_0.1:0.2>, <lora:UTV_v0.1:0.15>, <lora:PFT_ASH_0.1:0.3>, 1girl, solo")   # LoRA спочатку, без зайвої коми
+        self.assertEqual(r["prompt"], "<lora:Epistail_0.1:0.6>, <lora:PFT_ASH_0.1:0.5>, 1girl, solo")   # LoRA спочатку, без зайвої коми
         self.assertEqual(r["negative"], sdg.NEG_DEFAULT); self.assertEqual((r["width"], r["height"]), (768, 1344))
         self.assertEqual(r["upscale"], 1.65); self.assertTrue(r["adFace"]); self.assertEqual(r["seed"], -1)
 
