@@ -34,13 +34,18 @@
     return vs[0] || null;
   }
 
+  function uuidOf(url) { var m = /^https:\/\/image\.civitai\.com\/[^/]+\/([^/]+)\//.exec(String(url || '')); return m ? m[1] : ''; }
+  function metaOf(m) {
+    m = m || {}; var pr = m.prompt || m.Prompt, ng = m.negativePrompt || m['Negative prompt'];
+    return { prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof ng === 'string' ? ng.trim() : '', info: ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter(function (k) { return m[k] != null && m[k] !== ''; }).map(function (k) { return k + ': ' + m[k]; }).join(' · ') };
+  }
   function sized(url, w) { return String(url).replace(/\/width=\d+/, '/width=' + w).replace(/^(https:\/\/image\.civitai\.com\/[^/]+\/[^/]+\/)(?!width=)([^/]+)$/, '$1width=' + w + '/$2'); }
 
   // Картинки версії (їх завантажив автор): мініатюра, велика, промпт (якщо автор його залишив)
   function gallery(version) {
     return ((version && version.images) || []).filter(function (i) { return i && /^https:\/\//.test(i.url || '') && String(i.type || 'image') === 'image'; }).map(function (i) {
       var m = i.meta || {}; var pr = m.prompt || m.Prompt;
-      return { thumb: sized(i.url, 450), big: sized(i.url, 1280), w: i.width || 0, h: i.height || 0, prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '',
+      return { id: +i.id || 0, uuid: uuidOf(i.url), thumb: sized(i.url, 450), big: sized(i.url, 1280), w: i.width || 0, h: i.height || 0, prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '',
         info: ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter(function (k) { return m[k] != null && m[k] !== ''; }).map(function (k) { return k + ': ' + m[k]; }).join(' · ') };
     });
   }
@@ -96,6 +101,24 @@
       return { items: g, next: (d.metadata && d.metadata.nextCursor) || '' };
     });
   }
+  // Промпт картинки, якщо його немає у списку: той самий запит, що робить сторінка картинки на Civitai (image.getGenerationData)
+  function fetchGenMeta(id) {
+    var u = 'https://civitai.com/api/trpc/image.getGenerationData?input=' + encodeURIComponent(JSON.stringify({ json: { id: +id } }));
+    return fetch(u).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
+      var j = d && d.result && d.result.data && d.result.data.json; return metaOf(j && j.meta);
+    });
+  }
+  // Картинки автора з версії не мають id і часто промпта: шукаємо ті самі (за uuid у адресі) серед робіт цього користувача на цій версії
+  function enrichByUser(items, versionId, username) {
+    if (!username || !versionId || !items.some(function (g) { return !g.id || !g.prompt; })) return Promise.resolve(items);
+    var u = 'https://civitai.com/api/v1/images?modelVersionId=' + encodeURIComponent(String(versionId).replace(/\D/g, '')) + '&username=' + encodeURIComponent(username) + '&limit=100&sort=' + encodeURIComponent('Most Reactions') + '&period=AllTime';
+    return fetch(u).then(function (r) { return r.ok ? r.json() : { items: [] }; }).then(function (d) {
+      var by = {}; (d.items || []).forEach(function (x) { by[uuidOf(x.url)] = x; });
+      items.forEach(function (g) { var x = by[g.uuid]; if (!x) return; if (!g.id) g.id = +x.id || 0; if (!g.prompt) { var m = metaOf(x.meta); g.prompt = m.prompt; g.neg = g.neg || m.neg; g.info = g.info || m.info; } });
+      return items;
+    }, function () { return items; });
+  }
+
   // Найближча «стандартна» пропорція (ширина/висота) — щоб плитки різних картинок рівно лягали в колонки
   var RATIOS = [9 / 21, 9 / 16, 2 / 3, 3 / 4, 4 / 5, 1, 5 / 4, 4 / 3, 3 / 2, 16 / 9];
   function snapRatio(w, h) {
@@ -106,6 +129,6 @@
   }
   function modelIdOf(url) { var m = /\/models\/(\d+)/.exec(String(url || '')); return m ? m[1] : ''; }
 
-  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
+  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, fetchGenMeta: fetchGenMeta, enrichByUser: enrichByUser, uuidOf: uuidOf, metaOf: metaOf, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else window.CivitaiInfo = api;
 })();

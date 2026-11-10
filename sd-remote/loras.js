@@ -76,16 +76,26 @@
     var r1 = document.createElementNS(SVGNS, 'rect'); r1.setAttribute('x', '9'); r1.setAttribute('y', '9'); r1.setAttribute('width', '12'); r1.setAttribute('height', '12'); r1.setAttribute('rx', '2');
     var p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', 'M5 15V5a2 2 0 0 1 2-2h10'); s.appendChild(r1); s.appendChild(p); return s;
   }
-  function copyBtn(g, label) {   // іконка є завжди; якщо автор не залишив промпт — вона приглушена й каже про це
-    var b = el('button', 'lcopy' + (g.prompt ? '' : ' nop')); b.type = 'button'; b.appendChild(copyIcon()); if (label) b.appendChild(el('span', null, ' ' + label));
-    b.title = g.prompt ? 'Копіювати промпт цієї картинки' : 'Автор не залишив промпт до цієї картинки';
+  var genQ = [], genRun = 0;   // черга запитів «промпт за id картинки» (по 3 одночасно)
+  function genPump() {
+    while (genRun < 3 && genQ.length) {
+      var g = genQ.shift(); genRun++;
+      (function (g) { window.CivitaiInfo.fetchGenMeta(g.id).then(function (m) { if (m.prompt) { g.prompt = m.prompt; g.neg = g.neg || m.neg; g.info = g.info || m.info; } }, function () { /* без промпта */ }).then(function () { g.resolved = true; genRun--; (g.subs || []).forEach(function (f) { f(); }); genPump(); }); })(g);
+    }
+  }
+  function resolvePrompt(g) { if (g.prompt || g.resolved || !g.id || g.queued) return; g.queued = true; genQ.push(g); genPump(); }
+  function copyBtn(g, label) {   // іконки немає, якщо промпта справді нема; якщо його ще шукаємо — з'явиться, коли знайдеться
+    var b = el('button', 'lcopy'); b.type = 'button'; b.appendChild(copyIcon()); if (label) b.appendChild(el('span', null, ' ' + label));
+    b.title = 'Копіювати промпт цієї картинки';
+    var sync = function () { b.hidden = !g.prompt; }; sync(); (g.subs = g.subs || []).push(sync);
     b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    b.addEventListener('click', function (e) { e.stopPropagation(); if (!g.prompt) return host.toast('До цієї картинки промпт не додано'); copyText(g.prompt, b); });
+    b.addEventListener('click', function (e) { e.stopPropagation(); if (g.prompt) copyText(g.prompt, b); });
     return b;
   }
   function bigView(g) {
     var o = el('div', 'lbigv'), im = el('img'); im.src = g.big; im.alt = ''; im.referrerPolicy = 'no-referrer'; o.appendChild(im);
-    var p = el('div', 'lbigp'); p.appendChild(copyBtn(g, 'Копіювати промпт')); p.appendChild(el('span', null, g.prompt ? g.prompt.slice(0, 600) : 'Промпт не додано автором картинки.')); o.appendChild(p);
+    var p = el('div', 'lbigp'), txt = el('span', 'lbigt'); p.appendChild(copyBtn(g, 'Копіювати промпт')); p.appendChild(txt); o.appendChild(p);
+    var upd = function () { txt.textContent = g.prompt ? g.prompt.slice(0, 600) : (g.id && !g.resolved ? 'Шукаю промпт…' : ''); p.hidden = !g.prompt && (!g.id || g.resolved); }; upd(); g.subs.push(upd); resolvePrompt(g);
     o.addEventListener('click', function () { o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
   }
   function dragScroll(box) {   // потягнув мишкою — прокручується; простий клік (без руху) відкриває картинку
@@ -101,7 +111,9 @@
     var t = el('div', 'lgi'), im = el('img'); im.draggable = false; im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g); }); t.appendChild(im);
     if (snap) t.style.aspectRatio = String(window.CivitaiInfo.snapRatio(g.w, g.h));
     if (g.user) t.appendChild(el('span', 'lgu', g.user));
-    t.appendChild(copyBtn(g)); return t;
+    t.appendChild(copyBtn(g));
+    if (!g.prompt && g.id) { if (window.IntersectionObserver) { var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); resolvePrompt(g); } }, { rootMargin: '200px' }); io.observe(t); } else resolvePrompt(g); }
+    return t;
   }
   // карусель: плавне гортання по одній картинці, стрілки по боках, автопрокрутка (паузa при наведенні й перетягуванні)
   function carousel(strip, alive) {
@@ -172,7 +184,10 @@
       det.textContent = ''; det.appendChild(el('h4', null, 'Деталі'));
       CI.details(model, ver).forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); });
       strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
-      gal.slice(0, 12).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); }); if (gal.length > 1) carousel(strip, alive);
+      var sg = gal.slice(0, 12);
+      (CI.enrichByUser ? CI.enrichByUser(sg, ver && ver.id, model.creator && model.creator.username) : Promise.resolve(sg)).then(function () {
+        if (box._tok !== token) return; strip.textContent = ''; sg.forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); }); if (sg.length > 1) carousel(strip, alive);
+      });
       var vid = ver && ver.id, cursor = '', loading = false, more = el('button', 'btn-main ld-more', 'Показати ще'); more.type = 'button'; more.hidden = true;
       var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg'), all = [], cols = [], hs = [], zoom = 220, gen = 0;
       try { zoom = Math.max(100, Math.min(480, +localStorage.getItem('sd_galzoom') || 220)); } catch (e) { /* не критично */ }

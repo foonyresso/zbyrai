@@ -255,3 +255,5 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .lgu { position: absolute; left: 6px; bottom: 6px; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: rgba(0,0,0,.65); color: #ddd; }
 
 .ld-zoom { flex-wrap: wrap; } .ld-zoom select { width: auto; }
+
+.lcopy[hidden] { display: none !important; } .lbigp[hidden] { display: none; }
