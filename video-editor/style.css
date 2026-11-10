@@ -1,0 +1,66 @@
+/* Відео редактор і конвертер: перегляд зверху, таймлайн знизу, меню іконками зліва (UI-кіт, theme.css). */
+:root { --accent: #ff6f91; --accent-hi: #ff9db3; --accent-glow: rgba(255, 111, 145, .15); }
+.btn-main, a.btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); color: var(--gold-ink); border-color: #d6bb82; font-weight: 700; }
+.btn-copy { background: transparent; border-color: var(--gold-lo); color: var(--gold-hi); font-weight: 600; }
+.btn-copy:hover { background: var(--gold-glow); border-color: var(--gold); }
+a.btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: var(--r-sm); border: 1px solid; text-decoration: none; cursor: pointer; }
+[hidden] { display: none !important; }
+.stage { --stage-bg: #0c0c10; background: var(--stage-bg); }
+.stage.over::after { content: ""; position: absolute; inset: 8px; border: 2px dashed var(--accent); border-radius: 14px; pointer-events: none; z-index: 8; }
+
+/* перегляд */
+.viewwrap { position: absolute; left: 84px; top: 56px; right: 12px; bottom: 306px; display: flex; align-items: center; justify-content: center; }
+.viewbox { position: relative; background: #000; box-shadow: 0 8px 40px rgba(0, 0, 0, .6); overflow: hidden; }
+.viewbox video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; background: #000; }
+.viewbox.audio { background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
+.viewbox.audio video { opacity: 0; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; color: var(--faint); }
+.empty .drop { padding: 36px 44px; border: 2px dashed var(--line); border-radius: 16px; line-height: 1.6; } .empty small { color: var(--faint); }
+.busy { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(9, 9, 12, .82); z-index: 5; color: var(--muted); }
+.meter { width: min(320px, 70%); height: 8px; border-radius: 99px; background: var(--panel-3); overflow: hidden; } .meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.meter.ind i { width: 35% !important; animation: slide 1.1s linear infinite; } @keyframes slide { from { margin-left: -35%; } to { margin-left: 100%; } }
+
+/* рамка кадрування */
+.cropLayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; display: none; } .cropLayer.on { display: block; }
+.cropbox { position: absolute; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .58); outline: 2px solid var(--accent); touch-action: none; }
+.cropLayer.live .cropbox { pointer-events: auto; cursor: move; }
+.cropbox .h { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; background: var(--accent); border: 2px solid #000; border-radius: 3px; display: none; box-sizing: border-box; }
+.cropLayer.live .h { display: block; }
+.h-nw { left: 0; top: 0; cursor: nwse-resize; } .h-n { left: 50%; top: 0; cursor: ns-resize; } .h-ne { left: 100%; top: 0; cursor: nesw-resize; }
+.h-e { left: 100%; top: 50%; cursor: ew-resize; } .h-se { left: 100%; top: 100%; cursor: nwse-resize; } .h-s { left: 50%; top: 100%; cursor: ns-resize; }
+.h-sw { left: 0; top: 100%; cursor: nesw-resize; } .h-w { left: 0; top: 50%; cursor: ew-resize; }
+
+/* таймлайн */
+.tl { position: absolute; left: 84px; right: 12px; bottom: 92px; height: 204px; display: flex; flex-direction: column; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; z-index: 2; }
+.tl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line-soft); }
+.tl-bar button { padding: 5px 10px; font-size: 12.5px; }
+.tl-bar .btn-play { min-width: 40px; background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.tl-bar .tlabel { font: 12.5px var(--ff-mono); color: var(--muted); min-width: 110px; }
+.tl-bar .sep { width: 1px; height: 20px; background: var(--line); } .tl-bar .grow { flex: 1; }
+.zoom { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); } .zoom input { width: 110px; }
+#tlc { flex: 1; width: 100%; min-height: 0; display: block; touch-action: none; }
+
+/* меню */
+.drawer label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); } .drawer label.chk { flex-direction: row; align-items: center; gap: 8px; }
+.drawer .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.drawer .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .drawer .three button { padding: 6px 4px; font-size: 12px; }
+.ctls { display: flex; flex-direction: column; gap: 10px; } .ctls.off { opacity: .45; pointer-events: none; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; } .chips button { padding: 4px 9px; font-size: 12px; }
+.chips button.on, .three button.on, .seg button.on, .rail button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; } .seg button { border: 0; border-radius: 0; background: none; padding: 6px 12px; }
+.seg.wide { display: grid; grid-template-columns: repeat(4, 1fr); }
+.hint { color: var(--faint); font-size: 12.5px; margin: 0; }
+.bar .hint { max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* вікно експорту */
+.job { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(9, 9, 12, .7); }
+.card-job { width: min(460px, calc(100% - 32px)); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px; box-shadow: var(--shadow-2); display: flex; flex-direction: column; gap: 12px; }
+.card-job h3 { margin: 0; } .card-job .meter { width: 100%; }
+.card-job .prev video, .card-job .prev img, .card-job .prev audio { max-width: 100%; max-height: 200px; display: block; margin: 0 auto; border-radius: 8px; }
+.card-job .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.zb-panel .viewwrap, .zb-panel .tl { left: 424px; }
+@media (max-width: 760px) {
+  .viewwrap { left: 8px; top: 120px; bottom: 306px; } .tl { left: 8px; right: 8px; } .zb-panel .viewwrap, .zb-panel .tl { left: 8px; }
+  .rail { flex-direction: row; top: 56px; } .drawer { top: 130px; left: 10px; }
+}
