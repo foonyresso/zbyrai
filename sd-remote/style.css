@@ -264,3 +264,7 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .lbig-side { flex: 0 0 380px; max-width: 40vw; max-height: 88vh; align-self: center; overflow: auto; background: #17171d; border: 1px solid #2a2a33; border-radius: 10px; padding: 14px; cursor: default; color: #ddd; font-size: 13px; }
 .lbig-side h4 { margin: 12px 0 4px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); } .lbig-side p { margin: 0 0 6px; } .lb-h { display: flex; align-items: center; justify-content: space-between; } .lb-h .lcopy { position: static; } .lb-t { white-space: pre-wrap; overflow-wrap: anywhere; color: #ccc; max-height: 30vh; overflow: auto; } .lb-stats { font-size: 14px; letter-spacing: .02em; }
 @media (max-width: 800px) { .lbigv { flex-direction: column !important; overflow: auto; } .lbig-side { flex: 0 0 auto; max-width: 100%; width: 100%; max-height: none; } .lbigv .lbig-img img { max-height: 55vh; } }
+
+/* інформаційна панель впритул до картинки, напівпрозора */
+.lbigv { gap: 8px !important; } .lbig-img { flex: 0 1 auto !important; position: relative; } .lbig-img .car-btn { z-index: 3; } .lbigv .lbig-img img { max-width: min(62vw, 100%); }
+.lbig-side { background: rgba(23,23,29,.72) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(255,255,255,.12) !important; }

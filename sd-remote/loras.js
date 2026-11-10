@@ -94,8 +94,9 @@
     b.addEventListener('click', function (e) { e.stopPropagation(); resolvePrompt(g, function () { copyText(g.prompt, b); }); });
     return b;
   }
-  function bigView(g) {
-    var o = el('div', 'lbigv'), imgBox = el('div', 'lbig-img'), im = el('img'); im.src = g.big; im.alt = ''; im.referrerPolicy = 'no-referrer'; imgBox.appendChild(im); o.appendChild(imgBox);
+  function bigView(g0, list) {
+    list = list || [g0]; var idx = Math.max(0, list.indexOf(g0)), g = g0, off = null;
+    var o = el('div', 'lbigv'), imgBox = el('div', 'lbig-img'), im = el('img'); im.alt = ''; im.referrerPolicy = 'no-referrer'; imgBox.appendChild(im); o.appendChild(imgBox);
     var side = el('div', 'lbig-side'); o.appendChild(side); side.addEventListener('click', function (e) { e.stopPropagation(); });
     function chips(arr, cls) { var d = el('div', 'chips'); arr.forEach(function (t) { d.appendChild(el('span', 'chip ' + (cls || ''), t)); }); return d; }
     function block(title, text, copy) {
@@ -116,9 +117,24 @@
       if (f.tags.length) { side.appendChild(el('h4', null, 'Теги')); side.appendChild(chips(f.tags)); }
       if (!f.prompt && !f.resources.length) side.appendChild(el('p', 'lm', 'Автор не залишив даних генерації.'));
     }
-    fill(); g.subs = g.subs || []; g.subs.push(fill);
-    if (g.id && !g.full && window.CivitaiInfo) { window.CivitaiInfo.fetchImageMeta(g.id).then(function (m) { g.full = m; if (m.prompt && !g.prompt) { g.prompt = m.prompt; g.neg = g.neg || m.neg; } g.resolved = true; fire(g); }, function (e) { side.textContent = ''; side.appendChild(el('p', 'lm', e && /nokey|503/.test(e.message) ? 'Дані генерації недоступні: адмін ще не додав ключ Civitai на сервері.' : 'Не вдалося отримати дані генерації з Civitai.')); if (g.id) { var a = el('a', 'lnk', 'Відкрити на Civitai ↗'); a.href = 'https://civitai.com/images/' + g.id; a.target = '_blank'; a.rel = 'noopener'; side.appendChild(a); } }); }
-    o.addEventListener('click', function () { var i = g.subs.indexOf(fill); if (i >= 0) g.subs.splice(i, 1); o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
+    var prev = el('button', 'car-btn l', '‹'), next = el('button', 'car-btn r', '›'); prev.type = next.type = 'button'; prev.title = 'Попередня (←)'; next.title = 'Наступна (→)';
+    imgBox.appendChild(prev); imgBox.appendChild(next);
+    function load() {
+      if (off) off(); g = list[idx]; im.src = g.big; g.subs = g.subs || []; g.subs.push(fill); off = function () { var i = g.subs.indexOf(fill); if (i >= 0) g.subs.splice(i, 1); };
+      prev.hidden = idx <= 0; next.hidden = idx >= list.length - 1; fill();
+      if (g.id && !g.full && window.CivitaiInfo) {
+        var cur = g; window.CivitaiInfo.fetchImageMeta(cur.id).then(function (m) { cur.full = m; if (m.prompt && !cur.prompt) { cur.prompt = m.prompt; cur.neg = cur.neg || m.neg; } cur.resolved = true; fire(cur); }, function (e) {
+          if (cur !== g) return; side.textContent = ''; side.appendChild(el('p', 'lm', e && /nokey|503/.test(e.message) ? 'Дані генерації недоступні: адмін ще не додав ключ Civitai на сервері.' : 'Не вдалося отримати дані генерації з Civitai.'));
+          var a = el('a', 'lnk', 'Відкрити на Civitai ↗'); a.href = 'https://civitai.com/images/' + cur.id; a.target = '_blank'; a.rel = 'noopener'; side.appendChild(a);
+        });
+      }
+    }
+    function go(d) { var n = idx + d; if (n < 0 || n >= list.length) return; idx = n; load(); }
+    function close() { if (off) off(); document.removeEventListener('keydown', key, true); o.remove(); }
+    function key(e) { if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); go(-1); } else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); go(1); } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } }
+    prev.addEventListener('click', function (e) { e.stopPropagation(); go(-1); }); next.addEventListener('click', function (e) { e.stopPropagation(); go(1); });
+    document.addEventListener('keydown', key, true); o.addEventListener('click', close);
+    ($('lDlg').open ? $('lDlg') : document.body).appendChild(o); load();
   }
   function dragScroll(box) {   // потягнув мишкою — прокручується; простий клік (без руху) відкриває картинку
     var sx = 0, sl = 0, down = false, moved = false;
@@ -129,8 +145,8 @@
     box.addEventListener('click', function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
     box.addEventListener('dragstart', function (e) { e.preventDefault(); });
   }
-  function galTile(g, snap) {
-    var t = el('div', 'lgi'), im = el('img'); im.draggable = false; im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g); }); t.appendChild(im);
+  function galTile(g, snap, list) {
+    var t = el('div', 'lgi'), im = el('img'); im.draggable = false; im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g, list && list()); }); t.appendChild(im);
     if (snap) t.style.aspectRatio = String(window.CivitaiInfo.snapRatio(g.w, g.h));
     if (g.user) t.appendChild(el('span', 'lgu', g.user));
     t.appendChild(copyBtn(g));
@@ -207,7 +223,7 @@
       CI.details(model, ver).forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); });
       if (mtags.length) { det.appendChild(el('h4', null, 'Теги')); var tgs = el('div', 'chips'); mtags.forEach(function (t) { tgs.appendChild(el('span', 'chip', t)); }); det.appendChild(tgs); }
       strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
-      gal.slice(0, 12).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); }); if (gal.length > 1) carousel(strip, alive);
+      var sg = gal.slice(0, 12); sg.forEach(function (g) { var t = galTile(g, false, function () { return sg; }); t.classList.add('ld-st'); strip.appendChild(t); }); if (gal.length > 1) carousel(strip, alive);
       var vid = ver && ver.id, cursor = '', ended = false, loading = false, more = el('div', 'ld-sentinel');
       var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg'), all = [], cols = [], hs = [], zoom = 220, gen = 0;
       try { zoom = Math.max(100, Math.min(480, +localStorage.getItem('sd_galzoom') || 220)); } catch (e) { /* не критично */ }
@@ -219,7 +235,7 @@
       zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
       function place(g) {   // у найкоротшу колонку; висота плитки ∝ 1/пропорція
         var m = 0, i; for (i = 1; i < hs.length; i++) if (hs[i] < hs[m] - 0.001) m = i;
-        cols[m].appendChild(galTile(g, true)); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
+        cols[m].appendChild(galTile(g, true, function () { return all; })); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
       }
       function layout() {
         var w = gbox.clientWidth || vGa.clientWidth || 800, n = Math.max(1, Math.floor((w + 8) / (zoom + 8))); gbox.textContent = ''; cols = []; hs = [];
