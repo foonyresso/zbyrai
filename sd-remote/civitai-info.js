@@ -89,28 +89,31 @@
   // GET /api/v1/models/{id}: публічний, CORS дозволений; результат кешується до перезавантаження сторінки
   function fetchModel(id) {
     id = String(id || '').replace(/\D/g, ''); if (!id) return Promise.reject(new Error('no-id'));
-    if (!cache[id]) cache[id] = get('https://civitai.com/api/v1/models/' + id).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).catch(function (e) { delete cache[id]; throw e; });
+    if (!cache[id]) cache[id] = call('model', { id: id }).catch(function (e) { delete cache[id]; throw e; });
     return cache[id];
   }
   // Галерея спільноти: роботи людей, які генерують на цій версії (GET /api/v1/images). Повертає {items, next}
   function fetchImages(versionId, cursor, opt) {
     opt = opt || {};
-    var u = 'https://civitai.com/api/v1/images?modelVersionId=' + encodeURIComponent(String(versionId).replace(/\D/g, '')) + '&limit=48&sort=' + encodeURIComponent(opt.sort || 'Most Reactions') + '&period=' + encodeURIComponent(opt.period || 'AllTime') + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
-    return get(u).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
+    var q = { modelVersionId: String(versionId).replace(/\D/g, ''), limit: 48, sort: opt.sort || 'Most Reactions', period: opt.period || 'AllTime' }; if (cursor) q.cursor = cursor;
+    return call('images', q).then(function (d) {
       var raw = (d.items || []).filter(function (i) { return i && /^https:\/\//.test(i.url || '') && String(i.type || 'image') === 'image'; }), g = gallery({ images: raw });
       g.forEach(function (x, n) { x.user = raw[n].username || ''; });
       return { items: g, next: (d.metadata && d.metadata.nextCursor) || '' };
     });
   }
-  // API-ключ Civitai (необов'язковий): без нього публічний API приховує промпти (meta завжди null). Зберігається лише в браузері.
-  function getKey() { try { return localStorage.getItem('sd_civkey') || ''; } catch (e) { return ''; } }
-  function setKey(k) { try { if (k) localStorage.setItem('sd_civkey', k); else localStorage.removeItem('sd_civkey'); } catch (e) { /* не критично */ } }
-  function get(u) { var k = getKey(); return fetch(u, k ? { headers: { Authorization: 'Bearer ' + k } } : undefined); }
-  // Промпт однієї картинки за її id (потрібен ключ): повертає {prompt, neg, info}
+  // Транспорт: сайт задає функцію (kind, params) → проксі на нашому сервері (ключ Civitai лежить там, 18+ дозволено). Без неї — прямі запити без ключа.
+  var transport = null;
+  function setTransport(fn) { transport = fn; }
+  function direct(kind, q) {
+    var u = kind === 'model' ? 'https://civitai.com/api/v1/models/' + q.id : 'https://civitai.com/api/v1/images?' + Object.keys(q).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).join('&');
+    return fetch(u).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function call(kind, q) { return transport ? transport(kind, q) : direct(kind, q); }
+  // Промпт однієї картинки за id (лише через проксі з ключем): {prompt, neg, info}
   function fetchImageMeta(id) {
-    return get('https://civitai.com/api/v1/images?imageId=' + encodeURIComponent(String(id).replace(/\D/g, '')) + '&limit=1').then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
-      return metaOf(d.items && d.items[0] && d.items[0].meta);
-    });
+    if (!transport) return Promise.reject(new Error('no-transport'));
+    return call('meta', { id: String(id).replace(/\D/g, '') }).then(function (m) { return { prompt: m.prompt || '', neg: m.neg || '', info: m.info || '' }; });
   }
 
   // Найближча «стандартна» пропорція (ширина/висота) — щоб плитки різних картинок рівно лягали в колонки
@@ -123,6 +126,6 @@
   }
   function modelIdOf(url) { var m = /\/models\/(\d+)/.exec(String(url || '')); return m ? m[1] : ''; }
 
-  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, fetchImageMeta: fetchImageMeta, getKey: getKey, setKey: setKey, uuidOf: uuidOf, idOf: idOf, metaOf: metaOf, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
+  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, fetchImageMeta: fetchImageMeta, setTransport: setTransport, uuidOf: uuidOf, idOf: idOf, metaOf: metaOf, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else window.CivitaiInfo = api;
 })();

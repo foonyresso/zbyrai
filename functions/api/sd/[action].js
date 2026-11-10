@@ -17,6 +17,7 @@ export async function onRequest({ request, env, params }) {
     if (action === 'me' && method === 'GET') return me(request, db);
     if (action === 'submit' && method === 'POST') return submit(request, db);
     if (action === 'upload' && method === 'POST') return upload(request, db);
+    if (action === 'civ' && method === 'GET') return civ(request, env, db, url);
     if (action === 'loras' && method === 'GET') return loras(request, db);
     if (action === 'loras-refresh' && method === 'POST') return lorasRefresh(request, db);
     if (action === 'loras-sync' && method === 'POST') return workerOnly(request, env) || lorasSync(request, db);
@@ -268,4 +269,38 @@ async function upload(request, db) {
     .bind(id, user, JSON.stringify({ kind: 'upload', width: dim(b.w), height: dim(b.h), name }), img, mime, JSON.stringify({ seed: -1 }), t, t).run();
   await pruneImages(db, user);
   return J({ id });
+}
+
+// Проксі до Civitai з ключем із секрету CIVITAI_KEY (ключ ніколи не йде в браузер). Лише для залогінених.
+// kind=model&id= → /api/v1/models/{id}; kind=images&… → /api/v1/images (із 18+, якщо є ключ); kind=meta&id= → промпт картинки.
+async function civ(request, env, db, url) {
+  if (!(await authed(request, db))) return J({ error: 'Потрібно увійти' }, 401);
+  const key = env.CIVITAI_KEY || '', q = url.searchParams, kind = q.get('kind') || '';
+  const headers = key ? { authorization: 'Bearer ' + key } : {};
+  const digits = (v) => String(v || '').replace(/\D/g, '').slice(0, 12);
+  const pass = async (u) => {
+    const r = await fetch(u, { headers }); const t = await r.text();
+    return new Response(t, { status: r.status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, max-age=300' } });
+  };
+  if (kind === 'model') { const id = digits(q.get('id')); return id ? pass('https://civitai.com/api/v1/models/' + id) : J({ error: 'Немає id' }, 400); }
+  if (kind === 'images') {
+    const u = new URL('https://civitai.com/api/v1/images');
+    const sorts = ['Most Reactions', 'Most Comments', 'Newest'], periods = ['AllTime', 'Year', 'Month', 'Week', 'Day'];
+    const vid = digits(q.get('modelVersionId')); if (!vid) return J({ error: 'Немає modelVersionId' }, 400);
+    u.searchParams.set('modelVersionId', vid); u.searchParams.set('limit', String(Math.min(100, Math.max(1, +q.get('limit') || 48))));
+    u.searchParams.set('sort', sorts.includes(q.get('sort')) ? q.get('sort') : sorts[0]); u.searchParams.set('period', periods.includes(q.get('period')) ? q.get('period') : periods[0]);
+    const c = q.get('cursor'); if (c && c.length < 200) u.searchParams.set('cursor', c);
+    if (key) u.searchParams.set('browsingLevel', '31');   // усі рівні, включно з 18+: для стилів
+    return pass(u.toString());
+  }
+  if (kind === 'meta') {
+    const id = +digits(q.get('id')); if (!id) return J({ error: 'Немає id' }, 400);
+    if (!key) return J({ error: 'nokey' }, 503);
+    const r = await fetch('https://civitai.com/api/trpc/image.getGenerationData?input=' + encodeURIComponent(JSON.stringify({ json: { id } })), { headers });
+    if (!r.ok) return J({ error: 'Civitai ' + r.status }, 502);
+    const d = await r.json().catch(() => null), m = (d && d.result && d.result.data && d.result.data.json && d.result.data.json.meta) || {};
+    const info = ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter((k) => m[k] != null && m[k] !== '').map((k) => k + ': ' + m[k]).join(' · ');
+    return J({ prompt: typeof m.prompt === 'string' ? m.prompt.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '', info });
+  }
+  return J({ error: 'Невідомий вид' }, 400);
 }
