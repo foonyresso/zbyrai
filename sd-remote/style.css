@@ -276,4 +276,4 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .lblk .lh .lname { flex: 1; min-width: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent-hi); text-decoration: underline; text-underline-offset: 2px; } .lblk .lh .lname:hover { color: var(--accent); }
 
 .rbtn { width: 22px; height: 22px; padding: 0; line-height: 1; flex: 0 0 auto; font-size: 13px; }
-.lbl.lrow { margin-bottom: 8px; } .lbl.lrow .rbtn { margin-top: -3px; }
+.lbl.lrow { margin-bottom: 6px; align-items: center; }
