@@ -46,7 +46,7 @@
   function gallery(version) {
     return ((version && version.images) || []).filter(function (i) { return i && /^https:\/\//.test(i.url || '') && String(i.type || 'image') === 'image'; }).map(function (i) {
       var m = i.meta || {}; var pr = m.prompt || m.Prompt;
-      return { id: +i.id || idOf(i.url), hasPrompt: i.hasPositivePrompt === undefined ? undefined : !!i.hasPositivePrompt, uuid: uuidOf(i.url), thumb: sized(i.url, 450), big: sized(i.url, 1280), w: i.width || 0, h: i.height || 0, prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '',
+      return { stats: i.stats || null, id: +i.id || idOf(i.url), hasPrompt: i.hasPositivePrompt === undefined ? undefined : !!i.hasPositivePrompt, uuid: uuidOf(i.url), thumb: sized(i.url, 450), big: sized(i.url, 1280), w: i.width || 0, h: i.height || 0, prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '',
         info: ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter(function (k) { return m[k] != null && m[k] !== ''; }).map(function (k) { return k + ': ' + m[k]; }).join(' · ') };
     });
   }
@@ -113,7 +113,7 @@
   // Промпт однієї картинки за id (лише через проксі з ключем): {prompt, neg, info}
   function fetchImageMeta(id) {
     if (!transport) return Promise.reject(new Error('no-transport'));
-    return call('meta', { id: String(id).replace(/\D/g, '') }).then(function (m) { return { prompt: m.prompt || '', neg: m.neg || '', info: m.info || '' }; });
+    return call('meta', { id: String(id).replace(/\D/g, '') }).then(function (m) { return { prompt: m.prompt || '', neg: m.neg || '', info: m.info || '', extra: m.extra || {}, resources: m.resources || [], tags: m.tags || [] }; });
   }
 
   // Найближча «стандартна» пропорція (ширина/висота) — щоб плитки різних картинок рівно лягали в колонки
