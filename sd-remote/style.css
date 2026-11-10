@@ -270,3 +270,5 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .lbig-side { background: rgba(23,23,29,.72) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(255,255,255,.12) !important; }
 
 .lbigv .lb-nav { position: static; transform: none; flex: 0 0 auto; align-self: center; margin: 0; } .lbig-img .car-btn { display: none; }
+
+.lblk .lname { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: inherit; cursor: pointer; text-align: left; } .lblk .lname:hover { color: var(--accent); text-decoration: underline; }

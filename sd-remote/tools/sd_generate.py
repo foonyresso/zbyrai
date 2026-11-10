@@ -20,7 +20,7 @@ TOKEN = ""
 # Ті самі значення за замовчуванням, що й на сайті (sd-remote/app.js)
 NEG_DEFAULT = ("bad quality, worst quality, low quality, lowres, score_1, score_2, jpeg artifacts, logo, watermark,\n"
                "bad anatomy, bad hands, fewer fingers, missing fingers,\nflat color, 2d, anime, monochrome,\n(abs, muscular),")
-LORAS_DEFAULT = [("Epistail_0.1", 0.2), ("UTV_v0.1", 0.15), ("PFT_ASH_0.1", 0.3)]
+LORAS_DEFAULT = [("Epistail_0.1", 0.6), ("PFT_ASH_0.1", 0.5)]
 RATIOS = ["1:1", "2:3", "3:4", "4:5", "5:7", "9:16", "9:21"]
 
 
