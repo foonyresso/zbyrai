@@ -37,7 +37,7 @@
 mechanics/               механіки окремо (rng, atlas-map, trade, building, settlers, threats, needs, schedule, combat, spawner, pathgrid): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
 settlement-sim/          Симуляція поселення (20 жителів, день і ніч, бої): див. settlement-sim.md; спрайти кодом (px, biped, buildings…), layout.js, routine/social/defend.js
 zakladyny/               гра «Закладини»: комбінує механіки; zk-game.js (доба), zk-save.js, zk-render.js, zk-panels.js, app.js
-index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
+index.html, assets/      головна сторінка (хаб) і її стилі/скрипт; на ній є картка «Віддалений SD» (посилання на sd-remote/, вхід лишається обов’язковим)
 shared/ui/               UI-кіт: zb-ui.css + zb-ui.js (верхня панель, іконки-меню, панелі, довідка «i»); копії в інструментах на кіті (atlas2, tessera)
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
 tools/                   sync-theme.mjs, ui-rules.test.js, build-world-themes.mjs (теми вимірів із палітр lore), build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
