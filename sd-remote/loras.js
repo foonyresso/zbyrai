@@ -168,7 +168,24 @@
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!reduce) timer = setInterval(function () { if (!alive()) { clearInterval(timer); return; } if (!hover && !strip.classList.contains('drag') && !document.querySelector('.lbigv')) step(1); }, 4000);
   }
+  // підказка-пояснення біля пункту (власна, бо блок праворуч прокручується й обрізав би звичайну)
+  var tipEl = null;
+  function tipHide() { if (tipEl) { tipEl.remove(); tipEl = null; } }
+  function tipShow(target, it) {
+    tipHide(); var d = $('lDlg'); if (!d.open) return;
+    tipEl = el('div', 'ld-tipbox ' + (it.ok ? 'ok' : 'no')); tipEl.appendChild(el('b', null, it.text)); tipEl.appendChild(el('p', null, it.hint)); d.appendChild(tipEl);
+    var r = target.getBoundingClientRect(), w = Math.min(360, window.innerWidth - 24), h = tipEl.offsetHeight, left = r.left - w - 12;
+    if (left < 12) { left = Math.max(12, Math.min(r.left, window.innerWidth - w - 12)); }
+    var top = left < r.left - w ? r.top : r.bottom + 8; if (top + h > window.innerHeight - 12) top = Math.max(12, window.innerHeight - h - 12);
+    tipEl.style.width = w + 'px'; tipEl.style.left = left + 'px'; tipEl.style.top = top + 'px';
+  }
+  function tip(node, it) {
+    node.addEventListener('mouseenter', function () { tipShow(node, it); }); node.addEventListener('mouseleave', tipHide);
+    node.addEventListener('focus', function () { tipShow(node, it); }); node.addEventListener('blur', tipHide);
+    node.addEventListener('click', function (e) { e.stopPropagation(); if (tipEl) tipHide(); else tipShow(node, it); });
+  }
   function openDetail(k) {
+    tipHide();
     var d = $('lDlg'), box = $('lDlgBody'); box.textContent = '';
     var on = activeIdx(k.name) >= 0, CI = window.CivitaiInfo, mid = CI ? CI.modelIdOf(k.civitai) : '', token = {};
     box._tok = token;
@@ -217,7 +234,8 @@
       if (box._tok !== token) return;   // вікно вже показує іншу LoRA
       var ver = CI.pickVersion(model, k.versionId, k.version), gal = CI.gallery(ver);
       lic.textContent = ''; lic.appendChild(el('h4', null, 'Ліцензія'));
-      CI.licenseItems(model).forEach(function (it) { var p = el('p', 'ld-li ' + (it.ok ? 'ok' : 'no')); p.appendChild(el('span', 'ld-mark', it.ok ? '✓' : '✕')); p.appendChild(el('span', null, it.text)); lic.appendChild(p); });
+      lic.appendChild(el('p', 'lm ld-small', 'Наведи курсор (або торкнись) на пункт: з\u2019явиться пояснення, що це означає. Для картинок для себе на своєму ПК важливі перші пункти; решта — для тих, хто робить сервіси чи моделі.'));
+      CI.licenseItems(model).forEach(function (it) { var p = el('p', 'ld-li ' + (it.ok ? 'ok' : 'no')); p.tabIndex = 0; p.appendChild(el('span', 'ld-mark', it.ok ? '✓' : '✕')); p.appendChild(el('span', null, it.text)); tip(p, it); lic.appendChild(p); });
       lic.appendChild(el('p', 'lm ld-small', 'Дані з Civitai: перед комерційним використанням перевір сторінку моделі.'));
       det.textContent = ''; det.appendChild(el('h4', null, 'Деталі'));
       var mtags = (model.tags || []).map(function (t) { return typeof t === 'string' ? t : t.name; }).filter(Boolean).slice(0, 20);
