@@ -280,6 +280,8 @@
     $('btnGo').addEventListener('click', go);
     $('prompt').addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); go(); } });
     $('btnClear').addEventListener('click', function () { S.jobs = []; save(); renderAll(); });
+    $('stepsReset').addEventListener('click', function () { S.steps = D.steps; syncForm(); save(); toast('Кроки: ' + D.steps); });
+    $('inpNegReset').addEventListener('click', function () { var t = $('inpNeg'); t.value = ''; t.dispatchEvent(new Event('input', { bubbles: true })); toast('Негативний перемалювання очищено: береться із «Генерація»'); });
     $('negReset').addEventListener('click', function () { S.neg = NEG; edN.set(NEG); save(); toast('Негативний промпт скинуто до стандартного'); });
     $('btnClearPrompt').addEventListener('click', function () { if (S.tab === 'inp') { $('inpPrompt').value = ''; $('inpPrompt').dispatchEvent(new Event('input', { bubbles: true })); return; } S.prompt = ''; edP.set(''); save(); if (window.SDBuilder) SDBuilder.refresh(); });
     $('gateForm').addEventListener('submit', submitGate);

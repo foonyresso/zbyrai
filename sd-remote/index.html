@@ -102,7 +102,7 @@
       <div class="field"><span class="lbl">Промпт</span>
         <div class="ed" translate="no" id="edP"><pre id="mP" aria-hidden="true"></pre><textarea id="prompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="4" maxlength="6000" spellcheck="false" placeholder="1girl, long hair, forest, golden hour" title="Опис картинки (англійською, теги через кому); Ctrl+Enter запускає генерацію"></textarea></div>
         <div class="wbar" id="wP" hidden></div></div>
-            <div class="field"><span class="lbl lrow">Негативний промпт <button type="button" class="link" id="negReset" title="Повернути стандартний негативний промпт">↺ скинути</button></span>
+            <div class="field"><span class="lbl lrow">Негативний промпт <button type="button" class="x rbtn" id="negReset" title="Повернути стандартний негативний промпт">↺</button></span>
         <div class="ed" translate="no" id="edN"><pre id="mN" aria-hidden="true"></pre><textarea id="neg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="2000" spellcheck="false" title="Негативний промпт: чого уникати"></textarea></div>
         <div class="wbar" id="wN" hidden></div></div>
       </div>
@@ -110,7 +110,7 @@
       <div class="field"><span class="lbl">Промпт перемалювання</span>
         <div class="ed" translate="no"><pre id="mI" aria-hidden="true"></pre><textarea id="inpPrompt" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="3" maxlength="6000" spellcheck="false" placeholder="Порожньо: береться промпт із вкладки «Генерація» (LoRA — лише зі списку нижче, окремого від генерації)" title="Що має з'явитися на зафарбованій ділянці"></textarea></div>
         <div class="wbar" id="wI" hidden></div></div>
-      <div class="field"><span class="lbl">Негативний промпт перемалювання</span>
+      <div class="field"><span class="lbl lrow">Негативний промпт перемалювання <button type="button" class="x rbtn" id="inpNegReset" title="Очистити: тоді береться негативний із вкладки «Генерація»">↺</button></span>
         <div class="ed" translate="no"><pre id="mIN" aria-hidden="true"></pre><textarea id="inpNeg" translate="no" autocomplete="off" autocapitalize="off" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" rows="2" maxlength="2000" spellcheck="false" placeholder="Порожньо: береться негативний із вкладки «Генерація»" title="Негативний промпт для перемалювання"></textarea></div>
         <div class="wbar" id="wIN" hidden></div></div>
     </div>
@@ -125,7 +125,7 @@
         <input type="range" id="long" step="64" title="Довга сторона в пікселях, крок 64"></label>
       <p class="hint" id="sizeInfo"></p>
       </div>
-      <label class="rng" title="Скільки кроків робить модель (2–12)">Кроки <span id="stV"></span>
+      <label class="rng" title="Скільки кроків робить модель (2–12)"><span class="lrow"><span>Кроки <span id="stV"></span></span><button type="button" class="x rbtn" id="stepsReset" title="Повернути стандартні кроки (8)">↺</button></span>
         <input type="range" id="steps" min="2" max="12" step="1" title="Кількість кроків (2–12)"></label>
       <div class="gen-only">
       <label class="rng" title="Збільшення готової картинки з дорисуванням деталей (Hires. fix); 1× = вимкнено">Апскейл <span id="upV"></span>
