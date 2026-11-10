@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Відео редактор і конвертер</title>
+<meta name="description" content="Відео редактор і конвертер у браузері: розрізання й видалення частин, обрізка країв, кроп і пропорції, швидкість, гучність, експорт у MP4, WebM, GIF чи MP3. Відео нікуди не вантажиться, безкоштовно.">
+<link rel="canonical" href="https://zbyrai.pages.dev/video-editor/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Відео редактор і конвертер: розрізати, обрізати, пришвидшити, експортувати">
+<meta property="og:description" content="Мінімальний відео редактор і конвертер: таймлайн, кроп, швидкість, гучність, MP4, WebM, GIF, MP3. Усе локально в браузері.">
+<meta property="og:url" content="https://zbyrai.pages.dev/video-editor/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Crect x=%274%27 y=%279%27 width=%2718%27 height=%2714%27 rx=%273%27 fill=%27none%27 stroke=%27%23ff6f91%27 stroke-width=%272%27/%3E%3Cpath d=%27M22 14l6-3v10l-6-3z%27 fill=%27none%27 stroke=%27%23ff6f91%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Відео редактор <span>і конвертер</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+</header>
+
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Відео редактор і конвертер</h2>
+  <h3>Що це</h3><p>Мінімальний відео редактор і водночас конвертер. Відкриваєш відео чи аудіо, ріжеш на частини, видаляєш зайве, кадруєш, міняєш швидкість і гучність та забираєш результат у MP4, WebM, GIF або MP3. Усе робиться у твоєму браузері (ffmpeg.wasm), відео нікуди не вантажиться.</p>
+  <h3>Для чого</h3><p>Прибрати початок і кінець, вирізати зайвий шматок, зробити вертикальне відео з горизонтального, прискорити нудне місце, зробити з відео GIF чи витягти звук у MP3, стиснути важкий файл.</p>
+  <h3>Як користуватися</h3>
+  <ol>
+    <li><b>Відкрий відео</b> кнопкою внизу або перетягни файл на екран.</li>
+    <li><b>Таймлайн.</b> Клік по частині виділяє її й ставить курсор. Протягни по таймлайну, щоб виділити будь-який діапазон; краї виділення можна посунути. Лінійка зверху: клік чи протяг переміщує курсор. Колесо гортає, Ctrl+колесо масштабує.</li>
+    <li><b>Розрізати</b> (S) ділить частину в місці курсора. <b>Видалити виділене</b> (Delete) прибирає виділений діапазон, решта зсувається. «Обрізати початок/кінець» видаляє все до або після курсора, «Лишити виділене» відкидає все інше.</li>
+    <li><b>Меню зліва.</b> «Частина»: швидкість і гучність виділеного. «Кадр»: пропорції (готові або довільно) й рамка кадрування, яку тягнеш на відео. «Звук»: загальна гучність. «Експорт»: формат, якість і розмір.</li>
+    <li><b>Експортувати</b> збирає результат; потім з'являється кнопка «Завантажити».</li>
+  </ol>
+  <p>Перший експорт чи відкриття незвичного формату (MKV, AVI…) завантажує рушій ffmpeg (≈32 МБ, один раз). Потрібна адреса через http(s), не відкриття файлу з диска. Великі відео обробляються довго, бо все рахується у браузері: для 4K краще брати менший розмір або коротший шматок.</p>
+  <p>Клавіші: Пробіл грає/пауза, S розрізати, Delete видалити виділене, Ctrl+Z / Ctrl+Shift+Z скасувати й повторити, ←/→ кадр назад і вперед.</p>
+</dialog>
+
+<main class="stage" id="work">
+  <div class="viewwrap" id="viewwrap">
+    <div class="viewbox" id="viewbox" hidden>
+      <video id="vid" playsinline preload="auto"></video>
+      <div class="cropLayer" id="cropLayer"></div>
+    </div>
+    <div class="empty" id="empty">
+      <div class="drop">Перетягни сюди відео чи аудіо<br><small>MP4, MOV, WebM, MKV, AVI, MP3, WAV… файл лишається на твоєму комп'ютері</small></div>
+      <button class="btn-main" id="btnOpen2" title="Вибрати відео чи аудіофайл з комп'ютера">＋ Відкрити відео</button>
+    </div>
+    <div class="busy" id="busy" hidden><div id="busyTxt">Готую…</div><div class="meter"><i id="busyBar"></i></div></div>
+  </div>
+
+  <section class="tl" id="tl" hidden>
+    <div class="tl-bar">
+      <button id="btnStart" title="Курсор на початок (Home)">⏮</button>
+      <button id="btnPlay" class="btn-play" title="Грати або пауза (Пробіл)">▶</button>
+      <span class="tlabel" id="timeLbl" title="Позиція курсора / довжина результату після правок">0:00.0 / 0:00.0</span>
+      <span class="sep"></span>
+      <button id="btnSplit" title="Розрізати частину в місці курсора (S)">✂ Розрізати</button>
+      <button id="btnDel" title="Видалити виділену частину чи діапазон, наступне зсувається (Delete)">Видалити виділене</button>
+      <button id="btnTrimL" title="Обрізати початок: видалити все до курсора">Обрізати початок</button>
+      <button id="btnTrimR" title="Обрізати кінець: видалити все після курсора">Обрізати кінець</button>
+      <button id="btnKeep" title="Лишити лише виділене, решту видалити">Лишити виділене</button>
+      <span class="sep"></span>
+      <button id="btnUndo" title="Скасувати (Ctrl+Z)">↶</button>
+      <button id="btnRedo" title="Повторити (Ctrl+Shift+Z)">↷</button>
+      <span class="grow"></span>
+      <label class="zoom" title="Масштаб таймлайна">Масштаб <input type="range" id="zoomR" min="0" max="100" step="1" value="0" title="Масштаб таймлайна"></label>
+      <button id="btnFit" title="Показати весь таймлайн">Все</button>
+    </div>
+    <canvas id="tlc" title="Таймлайн: клік виділяє частину, протяг виділяє діапазон, лінійка зверху переміщує курсор"></canvas>
+  </section>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="clip" title="Швидкість і гучність виділеної частини"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-3M10 3h4"/></svg><span>Частина</span></button>
+    <button data-panel="crop" title="Кадрування й пропорції"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg><span>Кадр</span></button>
+    <button data-panel="audio" title="Загальна гучність і вимкнення звуку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span>Звук</span></button>
+    <button data-panel="export" title="Формат, якість і розмір результату"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg><span>Експорт</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" data-store="ve_panel" data-default="clip" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="clip">
+      <h2>Частина</h2>
+      <p class="hint" id="selInfo">Виділи частину на таймлайні: клікни по ній або протягни діапазон.</p>
+      <div class="ctls" id="selCtls">
+        <label title="Швидкість відтворення виділеного: менше 1 уповільнює, більше 1 прискорює">Швидкість <span id="speedV">×1</span></label>
+        <div class="chips" id="speedChips"></div>
+        <label title="Своя швидкість від 0,1 до 8">Своя швидкість
+          <input type="number" id="speedNum" min="0.1" max="8" step="0.05" value="1" title="Швидкість від 0,1 до 8 (1 = звичайна)"></label>
+        <label title="Гучність виділеного: 0 = без звуку, 100% = як в оригіналі, до 200%">Гучність <span id="volV">100%</span>
+          <input type="range" id="volR" min="0" max="200" step="5" value="100" title="Гучність виділеної частини від 0 до 200%"></label>
+        <div class="chips"><button id="volMute" title="Вимкнути звук у виділеному">Без звуку</button><button id="vol100" title="Повернути оригінальну гучність виділеному">100%</button></div>
+        <button id="btnResetSel" title="Повернути виділеному звичайну швидкість і гучність">Скинути швидкість і гучність</button>
+      </div>
+    </section>
+    <section data-panel="crop">
+      <h2>Кадрування</h2>
+      <p class="hint">Обери пропорцію й посунь рамку на відео. Ручки на краях міняють розмір. «Довільно» дозволяє тягнути вільно.</p>
+      <div class="chips" id="ratioChips"></div>
+      <div class="two" id="customRatio" hidden>
+        <label title="Ширина пропорції">Ширина <input type="number" id="ca" min="1" max="100" step="1" value="5" title="Перше число пропорції, наприклад 5 у 5:4"></label>
+        <label title="Висота пропорції">Висота <input type="number" id="cb" min="1" max="100" step="1" value="4" title="Друге число пропорції, наприклад 4 у 5:4"></label>
+      </div>
+      <h2>Рамка, px оригіналу</h2>
+      <div class="two">
+        <label title="Відступ рамки зліва">X <input type="number" id="cx" min="0" step="2" title="Відступ рамки від лівого краю кадру, px"></label>
+        <label title="Відступ рамки зверху">Y <input type="number" id="cy" min="0" step="2" title="Відступ рамки від верхнього краю кадру, px"></label>
+        <label title="Ширина рамки">Ширина <input type="number" id="cw" min="16" step="2" title="Ширина рамки, px"></label>
+        <label title="Висота рамки">Висота <input type="number" id="ch" min="16" step="2" title="Висота рамки, px"></label>
+      </div>
+      <button id="btnCropReset" title="Прибрати кадрування: повернути весь кадр">Весь кадр</button>
+      <p class="hint" id="cropInfo"></p>
+    </section>
+    <section data-panel="audio">
+      <h2>Загальна гучність</h2>
+      <label title="Гучність усього результату, множиться на гучність кожної частини">Гучність <span id="masterV">100%</span>
+        <input type="range" id="masterR" min="0" max="200" step="5" value="100" title="Загальна гучність від 0 до 200%"></label>
+      <label class="chk" title="У результаті не буде звукової доріжки (файл менший)"><input type="checkbox" id="muteChk" title="Прибрати звук з результату"> Прибрати звук у результаті</label>
+      <p class="hint">Гучність окремої ділянки: виділи її на таймлайні й задай у меню «Частина». Понад 100% підсилює звук, при перегляді тут вона може бути відчутно гучнішою.</p>
+    </section>
+    <section data-panel="export">
+      <h2>Формат</h2>
+      <div class="seg wide" id="fmtSeg" role="group" aria-label="Формат результату"></div>
+      <p class="hint" id="fmtNote"></p>
+      <div id="qualBox">
+        <h2>Якість</h2>
+        <div class="three" id="qualChips"></div>
+      </div>
+      <div id="sizeBox">
+        <h2>Розмір</h2>
+        <div class="chips" id="sizeChips"></div>
+        <label title="Ширина результату в пікселях; висота підлаштується за пропорціями кадру. Порожньо = за пресетом вище">Своя ширина, px
+          <input type="number" id="sizeW" min="16" max="7680" step="2" placeholder="напр. 640" title="Своя ширина результату в пікселях"></label>
+      </div>
+      <label id="fpsBox" title="Кадрів на секунду в GIF: більше = плавніше, але файл важчий">Кадрів/с (GIF)
+        <input type="number" id="fps" min="1" max="30" step="1" value="12" title="Кадрів на секунду для GIF (1–30)"></label>
+      <div id="kbpsBox"><h2>Бітрейт MP3</h2><div class="three" id="kbpsChips"></div></div>
+      <label title="Ім'я файлу результату без розширення">Ім'я файлу <input type="text" id="nameIn" maxlength="80" title="Ім'я файлу результату без розширення"></label>
+      <p class="hint" id="sumLbl"></p>
+      <button class="btn-main" id="btnExport2" title="Зібрати результат у вибраному форматі">Експортувати</button>
+    </section>
+  </aside>
+
+  <div class="bar">
+    <button class="btn-main" id="btnOpen" title="Вибрати відео чи аудіофайл з комп'ютера">＋ Відкрити відео</button>
+    <input type="file" id="fileIn" accept="video/*,audio/*,.mkv,.avi,.mov,.flv,.wmv,.ts,.m4v,.3gp,.ogv,.opus" hidden>
+    <button class="btn-copy" id="btnExport" title="Зібрати результат у вибраному форматі (налаштування в меню «Експорт»)" disabled>Експортувати</button>
+    <button id="btnClear" title="Закрити відео й почати з чистого" disabled>Закрити відео</button>
+    <span class="hint" id="fileInfo">Файл не відкрито</span>
+  </div>
+
+  <div class="job" id="job" hidden>
+    <div class="card-job">
+      <h3 id="jobTitle">Експорт</h3>
+      <p id="jobTxt" class="hint"></p>
+      <div class="meter"><i id="jobBar"></i></div>
+      <div id="jobPrev" class="prev"></div>
+      <div class="row">
+        <a class="btn btn-main" id="jobDl" href="#" download hidden title="Зберегти готовий файл на комп'ютер">Завантажити</a>
+        <button id="jobCancel" title="Зупинити експорт">Скасувати</button>
+        <button id="jobClose" hidden title="Закрити це вікно (файл можна завантажити, поки не змінено правки)">Закрити</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">Готово</div>
+
+<script src="./zb-ui.js"></script>
+<script src="./ve-core.js"></script>
+<script src="./ve-engine.js"></script>
+<script src="./ve-player.js"></script>
+<script src="./ve-thumbs.js"></script>
+<script src="./ve-timeline.js"></script>
+<script src="./ve-crop.js"></script>
+<script src="./ve-panels.js"></script>
+<script src="./ve-export.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
