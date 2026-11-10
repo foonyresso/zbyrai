@@ -118,10 +118,10 @@
       if (!f.prompt && !f.resources.length) side.appendChild(el('p', 'lm', 'Автор не залишив даних генерації.'));
     }
     var prev = el('button', 'car-btn l', '‹'), next = el('button', 'car-btn r', '›'); prev.type = next.type = 'button'; prev.title = 'Попередня (←)'; next.title = 'Наступна (→)';
-    imgBox.appendChild(prev); imgBox.appendChild(next);
+    prev.classList.add('lb-nav'); next.classList.add('lb-nav'); o.insertBefore(prev, imgBox); o.insertBefore(next, side);   // стрілки поза картинкою: ліворуч і праворуч від неї
     function load() {
       if (off) off(); g = list[idx]; im.src = g.big; g.subs = g.subs || []; g.subs.push(fill); off = function () { var i = g.subs.indexOf(fill); if (i >= 0) g.subs.splice(i, 1); };
-      prev.hidden = idx <= 0; next.hidden = idx >= list.length - 1; fill();
+      prev.style.visibility = idx <= 0 ? 'hidden' : 'visible'; next.style.visibility = idx >= list.length - 1 ? 'hidden' : 'visible'; fill();
       if (g.id && !g.full && window.CivitaiInfo) {
         var cur = g; window.CivitaiInfo.fetchImageMeta(cur.id).then(function (m) { cur.full = m; if (m.prompt && !cur.prompt) { cur.prompt = m.prompt; cur.neg = cur.neg || m.neg; } cur.resolved = true; fire(cur); }, function (e) {
           if (cur !== g) return; side.textContent = ''; side.appendChild(el('p', 'lm', e && /nokey|503/.test(e.message) ? 'Дані генерації недоступні: адмін ще не додав ключ Civitai на сервері.' : 'Не вдалося отримати дані генерації з Civitai.'));
