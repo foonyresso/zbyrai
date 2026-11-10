@@ -81,7 +81,7 @@
     if (g.prompt) return then && then();
     var CI = window.CivitaiInfo; if (!g.id) { g.resolved = true; g.hasPrompt = false; fire(g); return then && then(); }
     CI.fetchImageMeta(g.id).then(function (m) {
-      if (m.prompt) { g.prompt = m.prompt; g.neg = g.neg || m.neg; g.info = g.info || m.info; } else { g.hasPrompt = false; host.toast('До цієї картинки промпт не додано'); }
+      g.full = m; if (m.prompt) { g.prompt = m.prompt; g.neg = g.neg || m.neg; g.info = g.info || m.info; } else { g.hasPrompt = false; host.toast('До цієї картинки промпт не додано'); }
       g.resolved = true; fire(g); if (then) then();
     }, function (e) { host.toast(e && /nokey|503/.test(e.message) ? 'Адмін ще не додав ключ Civitai на сервері' : 'Не вдалося отримати промпт з Civitai'); });
   }
@@ -95,10 +95,30 @@
     return b;
   }
   function bigView(g) {
-    var o = el('div', 'lbigv'), im = el('img'); im.src = g.big; im.alt = ''; im.referrerPolicy = 'no-referrer'; o.appendChild(im);
-    var p = el('div', 'lbigp'), txt = el('span', 'lbigt'); p.appendChild(copyBtn(g, 'Копіювати промпт')); p.appendChild(txt); o.appendChild(p);
-    var upd = function () { txt.textContent = g.prompt ? g.prompt.slice(0, 600) : 'Натисни іконку, щоб отримати й скопіювати промпт'; p.hidden = !wantsIcon(g); }; upd(); g.subs.push(upd);
-    o.addEventListener('click', function () { o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
+    var o = el('div', 'lbigv'), imgBox = el('div', 'lbig-img'), im = el('img'); im.src = g.big; im.alt = ''; im.referrerPolicy = 'no-referrer'; imgBox.appendChild(im); o.appendChild(imgBox);
+    var side = el('div', 'lbig-side'); o.appendChild(side); side.addEventListener('click', function (e) { e.stopPropagation(); });
+    function chips(arr, cls) { var d = el('div', 'chips'); arr.forEach(function (t) { d.appendChild(el('span', 'chip ' + (cls || ''), t)); }); return d; }
+    function block(title, text, copy) {
+      var h = el('div', 'lb-h'); h.appendChild(el('h4', null, title)); if (copy) { var b = el('button', 'lcopy lb-c'); b.type = 'button'; b.appendChild(copyIcon()); b.title = 'Копіювати'; b.addEventListener('click', function () { copyText(text, b); }); h.appendChild(b); }
+      side.appendChild(h); side.appendChild(el('p', 'lb-t', text));
+    }
+    function fill() {
+      side.textContent = ''; var f = g.full, st = g.stats;
+      if (st) { var sp = el('p', 'lb-stats'); sp.textContent = '👍 ' + (st.likeCount || 0) + '   ❤ ' + (st.heartCount || 0) + '   😂 ' + (st.laughCount || 0) + '   😢 ' + (st.cryCount || 0) + '   💬 ' + (st.commentCount || 0); side.appendChild(sp); }
+      if (g.id) { var a = el('a', 'lnk', 'Відкрити на Civitai (коментарі, ремікс) ↗'); a.href = 'https://civitai.com/images/' + g.id; a.target = '_blank'; a.rel = 'noopener'; side.appendChild(a); }
+      if (!f) { side.appendChild(el('p', 'lm', g.id ? 'Завантаження даних генерації…' : 'Даних генерації немає.')); return; }
+      if (f.resources.length) {
+        side.appendChild(el('h4', null, 'Використані ресурси'));
+        f.resources.forEach(function (r) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, r.name + (r.version ? ' · ' + r.version : ''))); p.appendChild(el('b', null, (r.type === 'LORA' ? 'LoRA' : r.type) + (r.strength != null ? ' ' + r.strength : ''))); side.appendChild(p); });
+      }
+      if (f.prompt) block('Промпт', f.prompt, true); if (f.neg) block('Негативний промпт', f.neg, true);
+      var ex = Object.keys(f.extra || {}); if (ex.length) { side.appendChild(el('h4', null, 'Інші параметри')); side.appendChild(chips(ex.map(function (k) { return k + ': ' + f.extra[k]; }), 'tg')); }
+      if (f.tags.length) { side.appendChild(el('h4', null, 'Теги')); side.appendChild(chips(f.tags)); }
+      if (!f.prompt && !f.resources.length) side.appendChild(el('p', 'lm', 'Автор не залишив даних генерації.'));
+    }
+    fill(); g.subs = g.subs || []; g.subs.push(fill);
+    if (g.id && !g.full && window.CivitaiInfo) { window.CivitaiInfo.fetchImageMeta(g.id).then(function (m) { g.full = m; if (m.prompt && !g.prompt) { g.prompt = m.prompt; g.neg = g.neg || m.neg; } g.resolved = true; fire(g); }, function (e) { side.textContent = ''; side.appendChild(el('p', 'lm', e && /nokey|503/.test(e.message) ? 'Дані генерації недоступні: адмін ще не додав ключ Civitai на сервері.' : 'Не вдалося отримати дані генерації з Civitai.')); if (g.id) { var a = el('a', 'lnk', 'Відкрити на Civitai ↗'); a.href = 'https://civitai.com/images/' + g.id; a.target = '_blank'; a.rel = 'noopener'; side.appendChild(a); } }); }
+    o.addEventListener('click', function () { var i = g.subs.indexOf(fill); if (i >= 0) g.subs.splice(i, 1); o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
   }
   function dragScroll(box) {   // потягнув мишкою — прокручується; простий клік (без руху) відкриває картинку
     var sx = 0, sl = 0, down = false, moved = false;
@@ -183,7 +203,9 @@
       CI.licenseItems(model).forEach(function (it) { var p = el('p', 'ld-li ' + (it.ok ? 'ok' : 'no')); p.appendChild(el('span', 'ld-mark', it.ok ? '✓' : '✕')); p.appendChild(el('span', null, it.text)); lic.appendChild(p); });
       lic.appendChild(el('p', 'lm ld-small', 'Дані з Civitai: перед комерційним використанням перевір сторінку моделі.'));
       det.textContent = ''; det.appendChild(el('h4', null, 'Деталі'));
+      var mtags = (model.tags || []).map(function (t) { return typeof t === 'string' ? t : t.name; }).filter(Boolean).slice(0, 20);
       CI.details(model, ver).forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); });
+      if (mtags.length) { det.appendChild(el('h4', null, 'Теги')); var tgs = el('div', 'chips'); mtags.forEach(function (t) { tgs.appendChild(el('span', 'chip', t)); }); det.appendChild(tgs); }
       strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
       gal.slice(0, 12).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); }); if (gal.length > 1) carousel(strip, alive);
       var vid = ver && ver.id, cursor = '', ended = false, loading = false, more = el('div', 'ld-sentinel');
