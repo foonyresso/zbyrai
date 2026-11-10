@@ -274,3 +274,5 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .lblk .lname { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: inherit; cursor: pointer; text-align: left; } .lblk .lname:hover { color: var(--accent); text-decoration: underline; }
 
 .lblk .lh .lname { flex: 1; min-width: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent-hi); text-decoration: underline; text-underline-offset: 2px; } .lblk .lh .lname:hover { color: var(--accent); }
+
+.rbtn { width: 22px; height: 22px; padding: 0; line-height: 1; flex: 0 0 auto; font-size: 13px; }
