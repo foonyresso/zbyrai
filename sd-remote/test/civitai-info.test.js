@@ -25,4 +25,7 @@ test('details і modelIdOf', () => {
   const o = Object.fromEntries(d); assert.equal(o['Автор'], 'bob'); assert.equal(o['Розмір файлу'], '50 МБ'); assert.equal(o['Статус'], 'Опубліковано'); assert.equal(o['Завантажень'], '7');
   assert.equal(C.modelIdOf('https://civitai.com/models/123?x=1'), '123'); assert.equal(C.modelIdOf(''), '');
 });
+test('snapRatio: найближча пропорція', () => {
+  assert.equal(C.snapRatio(1024, 1024), 1); assert.equal(C.snapRatio(832, 1216), 2 / 3); assert.equal(C.snapRatio(1344, 768), 16 / 9); assert.equal(C.snapRatio(768, 1344), 9 / 16); assert.equal(C.snapRatio(0, 0), 2 / 3);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);

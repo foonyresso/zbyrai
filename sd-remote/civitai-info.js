@@ -39,8 +39,8 @@
   // Картинки версії (їх завантажив автор): мініатюра, велика, промпт (якщо автор його залишив)
   function gallery(version) {
     return ((version && version.images) || []).filter(function (i) { return i && /^https:\/\//.test(i.url || '') && String(i.type || 'image') === 'image'; }).map(function (i) {
-      var m = i.meta || {};
-      return { thumb: sized(i.url, 450), big: sized(i.url, 1280), w: i.width || 0, h: i.height || 0, prompt: typeof m.prompt === 'string' ? m.prompt.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '',
+      var m = i.meta || {}; var pr = m.prompt || m.Prompt;
+      return { thumb: sized(i.url, 450), big: sized(i.url, 1280), w: i.width || 0, h: i.height || 0, prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof m.negativePrompt === 'string' ? m.negativePrompt.trim() : '',
         info: ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter(function (k) { return m[k] != null && m[k] !== ''; }).map(function (k) { return k + ': ' + m[k]; }).join(' · ') };
     });
   }
@@ -87,16 +87,25 @@
     return cache[id];
   }
   // Галерея спільноти: роботи людей, які генерують на цій версії (GET /api/v1/images). Повертає {items, next}
-  function fetchImages(versionId, cursor) {
-    var u = 'https://civitai.com/api/v1/images?modelVersionId=' + encodeURIComponent(String(versionId).replace(/\D/g, '')) + '&limit=48&sort=' + encodeURIComponent('Most Reactions') + '&period=AllTime' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
+  function fetchImages(versionId, cursor, opt) {
+    opt = opt || {};
+    var u = 'https://civitai.com/api/v1/images?modelVersionId=' + encodeURIComponent(String(versionId).replace(/\D/g, '')) + '&limit=48&sort=' + encodeURIComponent(opt.sort || 'Most Reactions') + '&period=' + encodeURIComponent(opt.period || 'AllTime') + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
     return fetch(u).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
       var raw = (d.items || []).filter(function (i) { return i && /^https:\/\//.test(i.url || '') && String(i.type || 'image') === 'image'; }), g = gallery({ images: raw });
       g.forEach(function (x, n) { x.user = raw[n].username || ''; });
       return { items: g, next: (d.metadata && d.metadata.nextCursor) || '' };
     });
   }
+  // Найближча «стандартна» пропорція (ширина/висота) — щоб плитки різних картинок рівно лягали в колонки
+  var RATIOS = [9 / 21, 9 / 16, 2 / 3, 3 / 4, 4 / 5, 1, 5 / 4, 4 / 3, 3 / 2, 16 / 9];
+  function snapRatio(w, h) {
+    if (!(w > 0 && h > 0)) return 2 / 3;
+    var r = w / h, best = RATIOS[0];
+    RATIOS.forEach(function (x) { if (Math.abs(Math.log(x / r)) < Math.abs(Math.log(best / r))) best = x; });
+    return best;
+  }
   function modelIdOf(url) { var m = /\/models\/(\d+)/.exec(String(url || '')); return m ? m[1] : ''; }
 
-  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, modelIdOf: modelIdOf, commercial: commercial, sized: sized };
+  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else window.CivitaiInfo = api;
 })();

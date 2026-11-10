@@ -66,13 +66,26 @@
   // деталі LoRA: майже на весь екран. Ліворуч (3/4): вкладки «Огляд» (картинки автора + опис) і «Галерея»; праворуч (1/4): ліцензія й деталі.
   // Дані з Civitai браузер бере напряму (CivitaiInfo.fetchModel); якщо недоступні — лишається локальна інформація.
   function copyText(t, btn) {
-    var done = function () { var o = btn.textContent; btn.textContent = '✓'; setTimeout(function () { btn.textContent = o; }, 1200); };
+    var done = function () { btn.classList.add('ok'); host.toast('Промпт скопійовано'); setTimeout(function () { btn.classList.remove('ok'); }, 1200); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { host.toast('Не вдалося скопіювати'); });
     else { var ta = el('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { host.toast('Не вдалося скопіювати'); } ta.remove(); }
   }
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function copyIcon() {
+    var s = document.createElementNS(SVGNS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', '16'); s.setAttribute('height', '16'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
+    var r1 = document.createElementNS(SVGNS, 'rect'); r1.setAttribute('x', '9'); r1.setAttribute('y', '9'); r1.setAttribute('width', '12'); r1.setAttribute('height', '12'); r1.setAttribute('rx', '2');
+    var p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', 'M5 15V5a2 2 0 0 1 2-2h10'); s.appendChild(r1); s.appendChild(p); return s;
+  }
+  function copyBtn(g, label) {   // іконка є завжди; якщо автор не залишив промпт — вона приглушена й каже про це
+    var b = el('button', 'lcopy' + (g.prompt ? '' : ' nop')); b.type = 'button'; b.appendChild(copyIcon()); if (label) b.appendChild(el('span', null, ' ' + label));
+    b.title = g.prompt ? 'Копіювати промпт цієї картинки' : 'Автор не залишив промпт до цієї картинки';
+    b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    b.addEventListener('click', function (e) { e.stopPropagation(); if (!g.prompt) return host.toast('До цієї картинки промпт не додано'); copyText(g.prompt, b); });
+    return b;
+  }
   function bigView(g) {
     var o = el('div', 'lbigv'), im = el('img'); im.src = g.big; im.alt = ''; im.referrerPolicy = 'no-referrer'; o.appendChild(im);
-    if (g.prompt) { var p = el('div', 'lbigp'), b = el('button', 'lcopy', '⧉ Копіювати промпт'); b.type = 'button'; b.addEventListener('click', function (e) { e.stopPropagation(); copyText(g.prompt, b); }); p.appendChild(b); p.appendChild(el('span', null, g.prompt.slice(0, 600))); o.appendChild(p); }
+    var p = el('div', 'lbigp'); p.appendChild(copyBtn(g, 'Копіювати промпт')); p.appendChild(el('span', null, g.prompt ? g.prompt.slice(0, 600) : 'Промпт не додано автором картинки.')); o.appendChild(p);
     o.addEventListener('click', function () { o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
   }
   function dragScroll(box) {   // потягнув мишкою — прокручується; простий клік (без руху) відкриває картинку
@@ -84,11 +97,26 @@
     box.addEventListener('click', function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
     box.addEventListener('dragstart', function (e) { e.preventDefault(); });
   }
-  function galTile(g) {
+  function galTile(g, snap) {
     var t = el('div', 'lgi'), im = el('img'); im.draggable = false; im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g); }); t.appendChild(im);
+    if (snap) t.style.aspectRatio = String(window.CivitaiInfo.snapRatio(g.w, g.h));
     if (g.user) t.appendChild(el('span', 'lgu', g.user));
-    if (g.prompt) { var b = el('button', 'lcopy', '⧉'); b.type = 'button'; b.title = 'Копіювати промпт цієї картинки'; b.addEventListener('click', function (e) { e.stopPropagation(); copyText(g.prompt, b); }); t.appendChild(b); }
-    return t;
+    t.appendChild(copyBtn(g)); return t;
+  }
+  // карусель: плавне гортання по одній картинці, стрілки по боках, автопрокрутка (паузa при наведенні й перетягуванні)
+  function carousel(strip, alive) {
+    var wrap = el('div', 'ld-car'), prev = el('button', 'car-btn l', '‹'), next = el('button', 'car-btn r', '›'), timer = null, hover = false;
+    prev.type = next.type = 'button'; prev.title = 'Попередня'; next.title = 'Наступна'; strip.parentNode.insertBefore(wrap, strip); wrap.appendChild(strip); wrap.appendChild(prev); wrap.appendChild(next);
+    function step(dir) {
+      var tiles = strip.querySelectorAll('.lgi'); if (!tiles.length) return; var cur = strip.scrollLeft, i = 0, atEnd = cur + strip.clientWidth >= strip.scrollWidth - 4;
+      for (i = 0; i < tiles.length; i++) if (tiles[i].offsetLeft - strip.offsetLeft >= cur + 4) break;
+      var to = dir > 0 ? (atEnd ? 0 : i) : Math.max(0, i - 2);   // вперед: на наступну (з кінця — на початок); назад: на попередню
+      var tgt = tiles[Math.min(to, tiles.length - 1)]; strip.scrollTo({ left: dir > 0 && atEnd ? 0 : tgt.offsetLeft - strip.offsetLeft, behavior: 'smooth' });
+    }
+    prev.addEventListener('click', function () { step(-1); }); next.addEventListener('click', function () { step(1); });
+    wrap.addEventListener('pointerenter', function () { hover = true; }); wrap.addEventListener('pointerleave', function () { hover = false; });
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) timer = setInterval(function () { if (!alive()) { clearInterval(timer); return; } if (!hover && !strip.classList.contains('drag') && !document.querySelector('.lbigv')) step(1); }, 4000);
   }
   function openDetail(k) {
     var d = $('lDlg'), box = $('lDlgBody'); box.textContent = '';
@@ -103,6 +131,7 @@
     vOv.appendChild(strip); vOv.appendChild(desc); left.appendChild(vOv); left.appendChild(vGa);
     function tab(g) { bOv.classList.toggle('on', !g); bGa.classList.toggle('on', g); vOv.hidden = g; vGa.hidden = !g; if (g && loadGal) loadGal(); }
     var loadGal = null; dragScroll(strip);
+    var alive = function () { return box._tok === token && $('lDlg').open; };
     bOv.addEventListener('click', function () { tab(false); }); bGa.addEventListener('click', function () { tab(true); });
     // --- права частина
     var r = el('div', 'ld-right'); r.appendChild(el('h3', null, k.title || k.name));
@@ -143,15 +172,34 @@
       det.textContent = ''; det.appendChild(el('h4', null, 'Деталі'));
       CI.details(model, ver).forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); });
       strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
-      gal.slice(0, 8).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); });
-      var vid = ver && ver.id, cursor = '', loading = false, more = el('button', 'btn-main ld-more', 'Показати ще'); more.type = 'button'; more.hidden = true; var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg');
-      vGa.textContent = ''; vGa.appendChild(gbox); vGa.appendChild(gmsg); vGa.appendChild(more);
+      gal.slice(0, 12).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); }); if (gal.length > 1) carousel(strip, alive);
+      var vid = ver && ver.id, cursor = '', loading = false, more = el('button', 'btn-main ld-more', 'Показати ще'); more.type = 'button'; more.hidden = true;
+      var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg'), all = [], cols = [], hs = [], zoom = 220, gen = 0;
+      try { zoom = Math.max(100, Math.min(480, +localStorage.getItem('sd_galzoom') || 220)); } catch (e) { /* не критично */ }
+      var zbar = el('div', 'ld-zoom'), zr = el('input'); zr.type = 'range'; zr.min = 100; zr.max = 480; zr.step = 10; zr.value = zoom; zr.title = 'Розмір плиток';
+      var sel = function (title, opts) { var s = el('select'); s.title = title; opts.forEach(function (o) { var x = el('option', null, o[1]); x.value = o[0]; s.appendChild(x); }); return s; };
+      var sSort = sel('Сортування', [['Most Reactions', 'За реакціями'], ['Most Comments', 'За коментарями'], ['Newest', 'Спочатку нові']]), sPer = sel('Період', [['AllTime', 'За весь час'], ['Year', 'За рік'], ['Month', 'За місяць'], ['Week', 'За тиждень'], ['Day', 'За день']]);
+      function refilter() { gen++; all = []; cursor = ''; loading = false; gbox.textContent = ''; cols = []; hs = []; gmsg.textContent = ''; more.hidden = true; pull(); }
+      sSort.addEventListener('change', function () { sPer.disabled = sSort.value === 'Newest'; refilter(); }); sPer.addEventListener('change', refilter);
+      zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
+      function place(g) {   // у найкоротшу колонку; висота плитки ∝ 1/пропорція
+        var m = 0, i; for (i = 1; i < hs.length; i++) if (hs[i] < hs[m] - 0.001) m = i;
+        cols[m].appendChild(galTile(g, true)); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
+      }
+      function layout() {
+        var w = gbox.clientWidth || vGa.clientWidth || 800, n = Math.max(1, Math.floor((w + 8) / (zoom + 8))); gbox.textContent = ''; cols = []; hs = [];
+        for (var i = 0; i < n; i++) { var c = el('div', 'ld-col'); cols.push(c); hs.push(0); gbox.appendChild(c); }
+        all.forEach(place);
+      }
+      zr.addEventListener('input', function () { zoom = +zr.value; try { localStorage.setItem('sd_galzoom', String(zoom)); } catch (e) { /* не критично */ } layout(); });
+      if (window.ResizeObserver) { var ro = new ResizeObserver(function () { if (!vGa.hidden && gbox.clientWidth && Math.max(1, Math.floor((gbox.clientWidth + 8) / (zoom + 8))) !== cols.length) layout(); }); ro.observe(vGa); }
+      vGa.textContent = ''; vGa.appendChild(zbar); vGa.appendChild(gbox); vGa.appendChild(gmsg); vGa.appendChild(more);
       function pull() {
-        if (loading || !vid) return; loading = true; more.hidden = true; gmsg.textContent = 'Завантаження робіт спільноти…';
-        CI.fetchImages(vid, cursor).then(function (r) {
-          if (box._tok !== token) return; loading = false; r.items.forEach(function (g) { gbox.appendChild(galTile(g)); }); cursor = r.next; more.hidden = !cursor;
-          gmsg.textContent = gbox.children.length ? '' : 'Спільнота ще не додала робіт (або вони 18+ і Civitai їх не віддає).';
-        }, function () { if (box._tok !== token) return; loading = false; gmsg.textContent = 'Не вдалося завантажити галерею з Civitai.'; more.hidden = false; });
+        if (loading || !vid) return; loading = true; more.hidden = true; gmsg.textContent = 'Завантаження робіт спільноти…'; var my = gen;
+        CI.fetchImages(vid, cursor, { sort: sSort.value, period: sPer.value }).then(function (r) {
+          if (box._tok !== token || my !== gen) return; loading = false; if (!cols.length) layout(); r.items.forEach(function (g) { all.push(g); place(g); }); cursor = r.next; more.hidden = !cursor;
+          gmsg.textContent = all.length ? '' : 'Спільнота ще не додала робіт (або вони 18+ і Civitai їх не віддає).';
+        }, function () { if (box._tok !== token || my !== gen) return; loading = false; gmsg.textContent = 'Не вдалося завантажити галерею з Civitai.'; more.hidden = false; });
       }
       more.addEventListener('click', pull); loadGal = function () { loadGal = null; pull(); };
       bGa.textContent = 'Галерея';
