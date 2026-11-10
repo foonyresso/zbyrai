@@ -80,7 +80,12 @@
     <button data-panel="crop" title="Кадрування й пропорції"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg><span>Кадр</span></button>
     <button data-panel="audio" title="Загальна гучність і вимкнення звуку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span>Звук</span></button>
     <button data-panel="export" title="Формат, якість і розмір результату"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg><span>Експорт</span></button>
+    <span class="rsep" aria-hidden="true"></span>
+    <button id="btnOpen" title="Вибрати відео чи аудіофайл з комп'ютера"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg><span>Відкрити</span></button>
+    <button id="btnClear" title="Закрити відео й почати з чистого" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Закрити</span></button>
+    <input type="file" id="fileIn" accept="video/*,audio/*,.mkv,.avi,.mov,.flv,.wmv,.ts,.m4v,.3gp,.ogv,.opus" hidden>
   </nav>
+  <div class="fileinfo zb-chip" id="fileInfo" title="Відкритий файл: ім'я, тривалість, розмір кадру й вага">Файл не відкрито</div>
   <aside class="drawer" id="drawer" data-store="ve_panel" data-default="clip" hidden>
     <button class="x" id="drawerX" title="Закрити меню">×</button>
     <section data-panel="clip">
@@ -144,14 +149,6 @@
       <button class="btn-main" id="btnExport2" title="Зібрати результат у вибраному форматі">Експортувати</button>
     </section>
   </aside>
-
-  <div class="bar">
-    <button class="btn-main" id="btnOpen" title="Вибрати відео чи аудіофайл з комп'ютера">＋ Відкрити відео</button>
-    <input type="file" id="fileIn" accept="video/*,audio/*,.mkv,.avi,.mov,.flv,.wmv,.ts,.m4v,.3gp,.ogv,.opus" hidden>
-    <button class="btn-copy" id="btnExport" title="Зібрати результат у вибраному форматі (налаштування в меню «Експорт»)" disabled>Експортувати</button>
-    <button id="btnClear" title="Закрити відео й почати з чистого" disabled>Закрити відео</button>
-    <span class="hint" id="fileInfo">Файл не відкрито</span>
-  </div>
 
   <div class="job" id="job" hidden>
     <div class="card-job">

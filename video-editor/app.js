@@ -77,7 +77,7 @@
     $('btnPlay').disabled = !any; $('btnStart').disabled = !any; $('btnSplit').disabled = !any; $('btnDel').disabled = !any;
     $('btnTrimL').disabled = !any; $('btnTrimR').disabled = !any; $('btnKeep').disabled = !S.sel;
     $('btnUndo').disabled = hi <= 0; $('btnRedo').disabled = hi >= hist.length - 1;
-    $('btnExport').disabled = !any; $('btnClear').disabled = !has;
+    $('btnClear').disabled = !has;
   }
   function refresh() {
     tl.set({ segs: S.segs, t: player.time, sel: S.sel, thumbs: thumbs });

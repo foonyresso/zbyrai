@@ -38,7 +38,7 @@
         if (!cancelled) show({ title: 'Не вдалося', txt: e.message || String(e), err: true });
       } finally { running = false; ctx.refreshExport(); }
     }
-    $('btnExport').addEventListener('click', run); $('btnExport2').addEventListener('click', run);
+    $('btnExport2').addEventListener('click', run);
     $('jobCancel').addEventListener('click', function () { cancelled = true; VEEngine.cancel(); $('job').hidden = true; ctx.toast('Експорт скасовано'); });
     $('jobClose').addEventListener('click', function () { $('job').hidden = true; clearResult(); });
   }

@@ -113,7 +113,7 @@
         if (f === 'gif' && dur > 20) sum += '. Довгий GIF вийде дуже важким: краще до 15 с.';
       }
       $('sumLbl').textContent = sum;
-      $('btnExport').textContent = 'Експортувати ' + F[f].label;
+      $('btnExport2').textContent = 'Експортувати ' + F[f].label;
     };
     $('sizeW').addEventListener('change', function () { var v = Math.round(+this.value); if (!(v >= 16)) return; if (opt.fmt === 'gif') opt.gifW = v; else opt.size = { mode: 'w', value: v }; save(); ctx.refreshExport(); });
     $('fps').addEventListener('change', function () { opt.fps = C.clamp(Math.round(+this.value) || 12, 1, 30); save(); ctx.refreshExport(); });

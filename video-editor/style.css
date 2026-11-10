@@ -9,7 +9,7 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; padd
 .stage.over::after { content: ""; position: absolute; inset: 8px; border: 2px dashed var(--accent); border-radius: 14px; pointer-events: none; z-index: 8; }
 
 /* перегляд */
-.viewwrap { position: absolute; left: 84px; top: 56px; right: 12px; bottom: 306px; display: flex; align-items: center; justify-content: center; }
+.viewwrap { position: absolute; left: 84px; top: 56px; right: 12px; bottom: 216px; display: flex; align-items: center; justify-content: center; }
 .viewbox { position: relative; background: #000; box-shadow: 0 8px 40px rgba(0, 0, 0, .6); overflow: hidden; }
 .viewbox video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; background: #000; }
 .viewbox.audio { background: repeating-conic-gradient(#15151a 0 25%, #1a1a20 0 50%) 0 0 / 20px 20px; }
@@ -31,7 +31,7 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; padd
 .h-sw { left: 0; top: 100%; cursor: nesw-resize; } .h-w { left: 0; top: 50%; cursor: ew-resize; }
 
 /* таймлайн */
-.tl { position: absolute; left: 84px; right: 12px; bottom: 92px; height: 204px; display: flex; flex-direction: column; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; z-index: 2; }
+.tl { position: absolute; left: 0; right: 0; bottom: 0; height: 204px; display: flex; flex-direction: column; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 0; border-top: 1px solid var(--line); border-radius: 0; overflow: hidden; z-index: 2; }
 .tl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line-soft); }
 .tl-bar button { padding: 5px 10px; font-size: 12.5px; }
 .tl-bar .btn-play { min-width: 40px; background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
@@ -50,7 +50,6 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; padd
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; } .seg button { border: 0; border-radius: 0; background: none; padding: 6px 12px; }
 .seg.wide { display: grid; grid-template-columns: repeat(4, 1fr); }
 .hint { color: var(--faint); font-size: 12.5px; margin: 0; }
-.bar .hint { max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* вікно експорту */
 .job { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(9, 9, 12, .7); }
@@ -59,8 +58,12 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; padd
 .card-job .prev video, .card-job .prev img, .card-job .prev audio { max-width: 100%; max-height: 200px; display: block; margin: 0 auto; border-radius: 8px; }
 .card-job .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
-.zb-panel .viewwrap, .zb-panel .tl { left: 424px; }
+.zb-panel .viewwrap { left: 424px; }
+.drawer { max-height: calc(100vh - 66px - 216px) !important; }
+.rail .rsep { height: 1px; background: var(--line); margin: 2px 6px; }
+.rail button:disabled { opacity: .4; }
+.fileinfo { position: absolute; right: 12px; top: 10px; z-index: 6; max-width: min(46vw, 520px); padding: 6px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 760px) {
-  .viewwrap { left: 8px; top: 120px; bottom: 306px; } .tl { left: 8px; right: 8px; } .zb-panel .viewwrap, .zb-panel .tl { left: 8px; }
+  .viewwrap { left: 8px; top: 120px; bottom: 216px; } .zb-panel .viewwrap { left: 8px; } .fileinfo { top: auto; bottom: 214px; right: 8px; }
   .rail { flex-direction: row; top: 56px; } .drawer { top: 130px; left: 10px; }
 }
