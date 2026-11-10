@@ -166,6 +166,7 @@
       <button data-tab="inp" title="Перемалювання: зафарбуй ділянку картинки й заміни її за своїм промптом">Перемалювання</button>
       <button data-tab="lora" title="Список LoRA з ПК власника, метадані, додавання у генерацію">LoRA</button>
       <button data-tab="tpl" title="Шаблони: готові й власні набори налаштувань та промптів">Шаблони</button>
+      <button data-tab="ai" title="Готові інструкції для нейромереж: надсилаєш їй картинку з цим текстом і отримуєш промпт із тегів">Інструкції ШІ</button>
       <button data-tab="links" title="Корисні посилання: сервіси для промптів, моделей і тегів; можна додати свої">Посилання</button>
       <button data-tab="hist" title="Усі згенеровані картинки">Історія</button>
     </nav>
@@ -212,6 +213,10 @@
       <div class="lgrid" id="lGrid"></div>
     </section>
 
+    <section class="view" id="vAi" hidden>
+      <div class="b-head"><b>Інструкції для ШІ</b><span class="hint">Скопіюй інструкцію, встав її в нейромережу (системний промпт або перше повідомлення) і надішли їй картинку: у відповідь буде промпт із тегів для генерації.</span></div>
+      <div class="ailist" id="aiList"></div>
+    </section>
     <section class="view" id="vLinks" hidden>
       <div class="b-head"><b>Корисні посилання</b><span class="hint">Відкриваються в новій вкладці. Свої посилання можна додавати й видаляти.</span></div>
       <div class="llinks" id="lnList"></div>
@@ -258,6 +263,7 @@
 <script src="./tpl-ui.js"></script>
 <script src="./inpaint.js"></script>
 <script src="./links.js"></script>
+<script src="./ai-prompts.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
