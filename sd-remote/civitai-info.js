@@ -57,9 +57,13 @@
 
   function idOf(url) { var m = /\/(\d{5,})\.\w+$/.exec(String(url || '')); return m ? +m[1] : 0; }
   function uuidOf(url) { var m = /^https:\/\/image\.civitai\.com\/[^/]+\/([^/]+)\//.exec(String(url || '')); return m ? m[1] : ''; }
+  // Промпт без LoRA/LyCORIS-тегів (<lora:назва:сила>): копіюємо лише теги й речення, свої LoRA додаються окремо
+  function cleanPrompt(t) {
+    return String(t || '').replace(/<(?:lora|lyco|hypernet):[^>]*>/gi, '').replace(/[ \t]{2,}/g, ' ').replace(/(,\s*){2,}/g, ', ').replace(/^[\s,]+/, '').replace(/\s+,/g, ',').trim();
+  }
   function metaOf(m) {
     m = m || {}; var pr = m.prompt || m.Prompt, ng = m.negativePrompt || m['Negative prompt'];
-    return { prompt: typeof pr === 'string' ? pr.trim() : '', neg: typeof ng === 'string' ? ng.trim() : '', info: ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter(function (k) { return m[k] != null && m[k] !== ''; }).map(function (k) { return k + ': ' + m[k]; }).join(' · ') };
+    return { prompt: typeof pr === 'string' ? cleanPrompt(pr) : '', neg: typeof ng === 'string' ? ng.trim() : '', info: ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter(function (k) { return m[k] != null && m[k] !== ''; }).map(function (k) { return k + ': ' + m[k]; }).join(' · ') };
   }
   function sized(url, w) { return String(url).replace(/\/(width=\d+|original=true)\//, '/width=' + w + '/').replace(/^(https:\/\/image\.civitai\.com\/[^/]+\/[^/]+\/)(?!width=)([^/]+)$/, '$1width=' + w + '/$2'); }
 
@@ -134,7 +138,7 @@
   // Промпт однієї картинки за id (лише через проксі з ключем): {prompt, neg, info}
   function fetchImageMeta(id) {
     if (!transport) return Promise.reject(new Error('no-transport'));
-    return call('meta', { id: String(id).replace(/\D/g, '') }).then(function (m) { return { prompt: m.prompt || '', neg: m.neg || '', info: m.info || '', extra: m.extra || {}, resources: m.resources || [], tags: m.tags || [] }; });
+    return call('meta', { id: String(id).replace(/\D/g, '') }).then(function (m) { return { prompt: cleanPrompt(m.prompt), neg: m.neg || '', info: m.info || '', extra: m.extra || {}, resources: m.resources || [], tags: m.tags || [] }; });
   }
 
   // Найближча «стандартна» пропорція (ширина/висота) — щоб плитки різних картинок рівно лягали в колонки
@@ -147,6 +151,6 @@
   }
   function modelIdOf(url) { var m = /\/models\/(\d+)/.exec(String(url || '')); return m ? m[1] : ''; }
 
-  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, fetchImageMeta: fetchImageMeta, setTransport: setTransport, uuidOf: uuidOf, idOf: idOf, metaOf: metaOf, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
+  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, fetchImageMeta: fetchImageMeta, setTransport: setTransport, uuidOf: uuidOf, idOf: idOf, metaOf: metaOf, cleanPrompt: cleanPrompt, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else window.CivitaiInfo = api;
 })();

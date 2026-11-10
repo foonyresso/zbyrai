@@ -18,6 +18,11 @@ test('кожен пункт ліцензії має пояснення (обид
   });
   assert.notEqual(C.licenseItems({ allowNoCredit: true })[0].hint, C.licenseItems({ allowNoCredit: false })[0].hint);
 });
+test('cleanPrompt: прибирає LoRA-теги й зайві коми', () => {
+  assert.equal(C.cleanPrompt('masterpiece, <lora:abc_1:0.6>, 1girl, <lora:x:1>,solo'), 'masterpiece, 1girl, solo');
+  assert.equal(C.cleanPrompt('<lora:a:1>, <lyco:b:0.5> 1girl,  smile'), '1girl, smile'); assert.equal(C.cleanPrompt('She has red hair. <lora:q:1>'), 'She has red hair.'); assert.equal(C.cleanPrompt(null), '');
+  assert.equal(C.metaOf({ prompt: 'a, <lora:z:1>, b' }).prompt, 'a, b');
+});
 test('pickVersion: за id, за назвою, перша', () => {
   const m = { modelVersions: [{ id: 5, name: 'v2' }, { id: 4, name: 'v1' }] };
   assert.equal(C.pickVersion(m, 4).name, 'v1'); assert.equal(C.pickVersion(m, null, 'v2').id, 5); assert.equal(C.pickVersion(m).id, 5); assert.equal(C.pickVersion({}), null);
