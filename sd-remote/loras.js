@@ -76,20 +76,14 @@
     var r1 = document.createElementNS(SVGNS, 'rect'); r1.setAttribute('x', '9'); r1.setAttribute('y', '9'); r1.setAttribute('width', '12'); r1.setAttribute('height', '12'); r1.setAttribute('rx', '2');
     var p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', 'M5 15V5a2 2 0 0 1 2-2h10'); s.appendChild(r1); s.appendChild(p); return s;
   }
-  function askKey() {
-    var CI = window.CivitaiInfo, cur = CI.getKey();
-    var v = window.prompt('Civitai не віддає промпти без API-ключа. Створи безкоштовний ключ: civitai.com → Account settings → API Keys → Add API key, і встав сюди. Ключ зберігається лише в цьому браузері.' + (cur ? '\n(Зараз ключ задано; порожнє значення — видалити.)' : ''), cur ? '' : '');
-    if (v === null) return false; CI.setKey(v.trim()); host.toast(v.trim() ? 'Ключ збережено' : 'Ключ видалено'); return !!v.trim();
-  }
   function wantsIcon(g) { return !!g.prompt || g.hasPrompt === true || (g.hasPrompt === undefined && !g.resolved); }
   function resolvePrompt(g, then) {   // добирає промпт за id (потрібен ключ Civitai)
     if (g.prompt) return then && then();
     var CI = window.CivitaiInfo; if (!g.id) { g.resolved = true; g.hasPrompt = false; fire(g); return then && then(); }
-    if (!CI.getKey() && !askKey()) return;
     CI.fetchImageMeta(g.id).then(function (m) {
       if (m.prompt) { g.prompt = m.prompt; g.neg = g.neg || m.neg; g.info = g.info || m.info; } else { g.hasPrompt = false; host.toast('До цієї картинки промпт не додано'); }
       g.resolved = true; fire(g); if (then) then();
-    }, function () { host.toast('Не вдалося отримати промпт (перевір ключ Civitai)'); });
+    }, function (e) { host.toast(e && /nokey|503/.test(e.message) ? 'Адмін ще не додав ключ Civitai на сервері' : 'Не вдалося отримати промпт з Civitai'); });
   }
   function fire(g) { (g.subs || []).forEach(function (f) { f(); }); }
   function copyBtn(g, label) {   // іконка лише там, де промпт є (або, судячи з позначки Civitai, має бути)
@@ -200,7 +194,7 @@
       var sSort = sel('Сортування', [['Most Reactions', 'За реакціями'], ['Most Comments', 'За коментарями'], ['Newest', 'Спочатку нові']]), sPer = sel('Період', [['AllTime', 'За весь час'], ['Year', 'За рік'], ['Month', 'За місяць'], ['Week', 'За тиждень'], ['Day', 'За день']]);
       function refilter() { gen++; ended = false; all = []; cursor = ''; loading = false; gbox.textContent = ''; cols = []; hs = []; gmsg.textContent = ''; pull(); }
       sSort.addEventListener('change', function () { sPer.disabled = sSort.value === 'Newest'; refilter(); }); sPer.addEventListener('change', refilter);
-      var kb = el('button', 'link', '🔑 Ключ Civitai'); kb.type = 'button'; kb.title = 'Потрібен, щоб Civitai віддавав промпти картинок'; kb.addEventListener('click', function () { if (askKey()) refilter(); }); zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(kb); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
+      zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
       function place(g) {   // у найкоротшу колонку; висота плитки ∝ 1/пропорція
         var m = 0, i; for (i = 1; i < hs.length; i++) if (hs[i] < hs[m] - 0.001) m = i;
         cols[m].appendChild(galTile(g, true)); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
@@ -270,7 +264,7 @@
   window.SDLoras = {
     DEFAULT_LIST: Object.keys(DEFAULTS).map(function (n) { return { name: n, w: DEFAULTS[n] }; }),
     defaultWeight: defaultWeight, render: render, names: function () { return known.map(function (k) { return k.name; }); },
-    init: function (h) { host = h; $('lSearch').addEventListener('input', renderManager); $('lBy').addEventListener('change', function () { host.state.loraBy = this.value; host.state.loraGroup = ''; host.save(); renderManager(); }); $('lDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+    init: function (h) { host = h; if (window.CivitaiInfo) CivitaiInfo.setTransport(function (kind, q) { return host.api('civ?' + new URLSearchParams(Object.assign({ kind: kind }, q)).toString()); }); $('lSearch').addEventListener('input', renderManager); $('lBy').addEventListener('change', function () { host.state.loraBy = this.value; host.state.loraGroup = ''; host.save(); renderManager(); }); $('lDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });
       $('loraReset').addEventListener('click', function () { host.set(JSON.parse(JSON.stringify(window.SDLoras.DEFAULT_LIST))); render(); host.toast('Повернено типові LoRA'); });
       $('lRefresh').addEventListener('click', function () {
         host.api('loras-refresh', { method: 'POST', body: '{}' }).then(function (r) {
