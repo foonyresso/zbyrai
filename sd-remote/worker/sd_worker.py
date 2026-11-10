@@ -392,7 +392,7 @@ def civ_parse(ver, model):
     vm = ver.get("model") or {}
     tags = [t if isinstance(t, str) else str(t.get("name", "")) for t in (model.get("tags") or [])]
     img = next((i for i in (ver.get("images") or []) if i.get("url") and str(i.get("type", "image")) == "image"), None)
-    return {"modelId": ver.get("modelId") or model.get("id"), "title": vm.get("name") or model.get("name") or "", "version": ver.get("name") or "",
+    return {"modelId": ver.get("modelId") or model.get("id"), "versionId": ver.get("id"), "title": vm.get("name") or model.get("name") or "", "version": ver.get("name") or "",
             "base": ver.get("baseModel") or "", "triggers": [str(x) for x in (ver.get("trainedWords") or []) if str(x).strip()], "tags": [t for t in tags if t][:20],
             "type": vm.get("type") or model.get("type") or "", "nsfw": bool(vm.get("nsfw") or model.get("nsfw")),
             "image": re.sub(r"/width=\d+", "/width=450", img["url"]) if img else "", "note": strip_html(model.get("description"))[:400]}
@@ -481,6 +481,7 @@ def lora_info(it, root=""):
         "name": it["name"], "title": model.get("name") or cv.get("title") or meta.get("ss_output_name") or it["name"],
         "version": ci.get("name") or cv.get("version") or "", "base": ci.get("baseModel") or cv.get("base") or um.get("sd version") or meta.get("ss_base_model_version") or "",
         "triggers": as_list(ci.get("trainedWords") or um.get("activation text") or cv.get("triggers")), "hints": top_tags(meta),
+        "versionId": ci.get("id") or cv.get("versionId") or 0,
         "weight": weight, "civitai": ("https://civitai.com/models/%s" % (ci.get("modelId") or cv.get("modelId"))) if (ci.get("modelId") or cv.get("modelId")) else "",
         "note": str(um.get("description") or um.get("notes") or cv.get("note") or "")[:400], "thumb": lora_thumb(stem) or cv.get("thumb", ""),
     }

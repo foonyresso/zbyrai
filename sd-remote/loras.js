@@ -63,20 +63,47 @@
   function allGroups() { var g = {}; known.forEach(function (k) { g[groupOf(k)] = 1; }); return Object.keys(g).sort(); }
   function thumbUrl(k) { return k.thumb ? 'data:image/webp;base64,' + k.thumb : ''; }
 
-  // деталі LoRA у вікні: більша картинка, метадані, тригер-слова, група, посилання
+  // деталі LoRA: майже на весь екран. Ліворуч (3/4): вкладки «Огляд» (картинки автора + опис) і «Галерея»; праворуч (1/4): ліцензія й деталі.
+  // Дані з Civitai браузер бере напряму (CivitaiInfo.fetchModel); якщо недоступні — лишається локальна інформація.
+  function copyText(t, btn) {
+    var done = function () { var o = btn.textContent; btn.textContent = '✓'; setTimeout(function () { btn.textContent = o; }, 1200); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { host.toast('Не вдалося скопіювати'); });
+    else { var ta = el('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { host.toast('Не вдалося скопіювати'); } ta.remove(); }
+  }
+  function bigView(g) {
+    var o = el('div', 'lbigv'), im = el('img'); im.src = g.big; im.alt = ''; im.referrerPolicy = 'no-referrer'; o.appendChild(im);
+    if (g.prompt) { var p = el('div', 'lbigp'), b = el('button', 'lcopy', '⧉ Копіювати промпт'); b.type = 'button'; b.addEventListener('click', function (e) { e.stopPropagation(); copyText(g.prompt, b); }); p.appendChild(b); p.appendChild(el('span', null, g.prompt.slice(0, 600))); o.appendChild(p); }
+    o.addEventListener('click', function () { o.remove(); }); ($('lDlg').open ? $('lDlg') : document.body).appendChild(o);
+  }
+  function galTile(g) {
+    var t = el('div', 'lgi'), im = el('img'); im.src = g.thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('click', function () { bigView(g); }); t.appendChild(im);
+    if (g.prompt) { var b = el('button', 'lcopy', '⧉'); b.type = 'button'; b.title = 'Копіювати промпт цієї картинки'; b.addEventListener('click', function (e) { e.stopPropagation(); copyText(g.prompt, b); }); t.appendChild(b); }
+    return t;
+  }
   function openDetail(k) {
     var d = $('lDlg'), box = $('lDlgBody'); box.textContent = '';
-    var on = activeIdx(k.name) >= 0, im = thumbUrl(k);
-    var left = el('div', 'ldimg'); if (im) { var i = el('img'); i.src = im; i.alt = k.title || k.name; left.appendChild(i); } else left.textContent = 'без прев\u2019ю'; box.appendChild(left);
-    var r = el('div', 'ldinfo'); r.appendChild(el('h3', null, k.title || k.name));
-    var mt = [k.version, k.base, k.type].filter(Boolean).join(' · '); if (mt) r.appendChild(el('p', 'lm', mt));
+    var on = activeIdx(k.name) >= 0, CI = window.CivitaiInfo, mid = CI ? CI.modelIdOf(k.civitai) : '', token = {};
+    box._tok = token;
+    // --- ліва частина
+    var left = el('div', 'ld-left'), tabs = el('div', 'ld-tabs'), bOv = el('button', 'on', 'Огляд'), bGa = el('button', null, 'Галерея'); bOv.type = bGa.type = 'button';
+    tabs.appendChild(bOv); tabs.appendChild(bGa); left.appendChild(tabs);
+    var vOv = el('div', 'ld-ov'), strip = el('div', 'ld-strip'), desc = el('div', 'ld-desc'), vGa = el('div', 'ld-gal'); vGa.hidden = true;
+    var im0 = thumbUrl(k); if (im0) { var i0 = el('img'); i0.src = im0; i0.alt = ''; strip.appendChild(i0); } else strip.appendChild(el('p', 'lm', mid ? 'Завантаження картинок автора…' : 'Немає картинок'));
+    desc.appendChild(el('p', 'lm', mid ? 'Завантаження опису з Civitai…' : (k.note || 'Опису немає (LoRA не знайдено на Civitai).')));
+    vOv.appendChild(strip); vOv.appendChild(desc); left.appendChild(vOv); left.appendChild(vGa);
+    function tab(g) { bOv.classList.toggle('on', !g); bGa.classList.toggle('on', g); vOv.hidden = g; vGa.hidden = !g; }
+    bOv.addEventListener('click', function () { tab(false); }); bGa.addEventListener('click', function () { tab(true); });
+    // --- права частина
+    var r = el('div', 'ld-right'); r.appendChild(el('h3', null, k.title || k.name));
     r.appendChild(el('p', 'lm', '<lora:' + k.name + '>' + (k.folder ? '  ·  папка: ' + k.folder : '')));
-    if (k.nsfw) r.appendChild(el('p', 'lm', '18+')); if (k.note) r.appendChild(el('p', 'lnote2', k.note));
+    var acts = el('div', 'acts'), add = el('button', on ? 'on' : 'btn-main', on ? '✓ Додано (прибрати)' : 'Додати до активного набору'); add.type = 'button'; add.addEventListener('click', function () { toggle(k.name); openDetail(k); });
+    acts.appendChild(add); if (k.civitai) { var a2 = el('a', 'lnk', 'Civitai ↗'); a2.href = k.civitai; a2.target = '_blank'; a2.rel = 'noopener'; acts.appendChild(a2); } r.appendChild(acts);
     var tr = k.triggers && k.triggers.length ? k.triggers : [], hints = !tr.length && k.hints ? k.hints : [];
     if (tr.length || hints.length) {
       r.appendChild(el('p', 'lm', tr.length ? 'Тригер-слова (натисни, щоб додати в промпт):' : 'Часті теги навчання:'));
       var row = el('div', 'chips'); (tr.length ? tr : hints).forEach(function (w) { var ch = el('button', 'chip tg', w); ch.type = 'button'; ch.addEventListener('click', function () { host.insert(w); }); row.appendChild(ch); }); r.appendChild(row);
     }
+    var lic = el('div', 'ld-lic'); r.appendChild(lic); var det = el('div', 'ld-det'); r.appendChild(det);
     var cfg = el('div', 'lcfg'), gs = el('select'); gs.title = 'Група цієї LoRA';
     var opts = allGroups(); if (opts.indexOf(groupOf(k)) < 0) opts.push(groupOf(k));
     opts.concat(['＋ Нова група…']).forEach(function (n) { var o = el('option', null, n); o.value = n; if (n === groupOf(k)) o.selected = true; gs.appendChild(o); });
@@ -85,10 +112,38 @@
       meta(k.name).group = v === autoGroup(k) ? undefined : v; host.save(); renderManager(); openDetail(k);
     });
     cfg.appendChild(el('span', 'lm', 'Група:')); cfg.appendChild(gs); r.appendChild(cfg);
-    var acts = el('div', 'acts'), add = el('button', on ? 'on' : 'btn-main', on ? '✓ Додано (прибрати)' : 'Додати в генерацію'); add.addEventListener('click', function () { toggle(k.name); openDetail(k); });
-    acts.appendChild(add);
-    if (k.civitai) { var a2 = el('a', 'lnk', 'Civitai ↗'); a2.href = k.civitai; a2.target = '_blank'; a2.rel = 'noopener'; acts.appendChild(a2); }
-    r.appendChild(acts); box.appendChild(r); if (!d.open) d.showModal();
+    function localDet() {
+      var rows = [['Тип', k.type], ['База', k.base], ['Версія', k.version], ['18+', k.nsfw ? 'так' : '']].filter(function (x) { return x[1]; });
+      if (rows.length) { det.appendChild(el('h4', null, 'Деталі')); rows.forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); }); }
+    }
+    localDet();
+    if (!mid) lic.appendChild(el('p', 'lm', 'Ліцензія невідома: цієї LoRA не знайдено на Civitai (або воркер ще не знайшов її).'));
+    box.appendChild(left); box.appendChild(r);
+    if (!d.open) d.showModal();
+    // --- дані з Civitai
+    if (!mid || !CI) return;
+    lic.appendChild(el('p', 'lm', 'Завантаження ліцензії…'));
+    CI.fetchModel(mid).then(function (model) {
+      if (box._tok !== token) return;   // вікно вже показує іншу LoRA
+      var ver = CI.pickVersion(model, k.versionId, k.version), gal = CI.gallery(ver);
+      lic.textContent = ''; lic.appendChild(el('h4', null, 'Ліцензія'));
+      CI.licenseItems(model).forEach(function (it) { var p = el('p', 'ld-li ' + (it.ok ? 'ok' : 'no')); p.appendChild(el('span', 'ld-mark', it.ok ? '✓' : '✕')); p.appendChild(el('span', null, it.text)); lic.appendChild(p); });
+      lic.appendChild(el('p', 'lm ld-small', 'Дані з Civitai: перед комерційним використанням перевір сторінку моделі.'));
+      det.textContent = ''; det.appendChild(el('h4', null, 'Деталі'));
+      CI.details(model, ver).forEach(function (x) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, x[0])); p.appendChild(el('b', null, x[1])); det.appendChild(p); });
+      strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
+      gal.slice(0, 8).forEach(function (g) { var t = galTile(g); t.classList.add('ld-st'); strip.appendChild(t); });
+      vGa.textContent = ''; gal.forEach(function (g) { vGa.appendChild(galTile(g)); }); bGa.textContent = 'Галерея (' + gal.length + ')';
+      desc.textContent = '';
+      var html = (ver && ver.description ? ver.description : '') + (model.description || '');
+      if (html.trim()) { var dv = el('div', 'ld-html'); if (ver && ver.description) { var vh = el('div'); vh.appendChild(CI.safeHtml(ver.description)); dv.appendChild(vh); } if (model.description) dv.appendChild(CI.safeHtml(model.description)); desc.appendChild(dv); }
+      else desc.appendChild(el('p', 'lm', 'Автор не залишив опису.'));
+      if (model.tags && model.tags.length) { var tg = el('div', 'chips'); model.tags.slice(0, 20).forEach(function (t) { tg.appendChild(el('span', 'chip', typeof t === 'string' ? t : t.name)); }); desc.appendChild(tg); }
+    }, function () {
+      if (box._tok !== token) return;
+      lic.textContent = ''; lic.appendChild(el('p', 'lm', 'Не вдалося отримати дані з Civitai (немає зв’язку або сайт їх не віддає). Відкрий «Civitai ↗».'));
+      desc.textContent = ''; desc.appendChild(el('p', 'lm', k.note || 'Опис недоступний.'));
+    });
   }
 
   // галерея: щільні плитки з великою картинкою, як на Civitai
