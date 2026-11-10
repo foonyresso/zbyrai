@@ -1,0 +1,38 @@
+/* Аудіо редактор: розмітка поверх спільної теми (theme.css) і UI-кіту. Таймлайн на всю ширину, меню іконками зліва. */
+:root { --accent: #58c4b0; --accent-hi: #8fe0d0; --accent-glow: rgba(88, 196, 176, .14); --stage-bg: #101016; }
+.btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); color: var(--gold-ink); border-color: #d6bb82; font-weight: 700; }
+.btn-main:hover, .drawer .btn-main { color: var(--gold-ink); }
+.drawer .btn-main { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #b4914f); border-color: #d6bb82; }
+.bar { flex-wrap: nowrap; white-space: nowrap; }
+.bar button { padding: 7px 12px; }
+.top { flex-wrap: wrap; }
+
+.tl { position: absolute; left: 82px; right: 12px; top: 74px; bottom: 76px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.zb-panel .tl { left: 428px; }
+@media (max-width: 760px) { .tl, .zb-panel .tl { left: 12px; top: 120px; } .rail { top: auto; bottom: 70px; flex-direction: row; } }
+#cv { flex: 1; min-height: 160px; width: 100%; display: block; border: 1px solid var(--line); border-radius: var(--r-md); background: rgba(0, 0, 0, .25); cursor: crosshair; touch-action: none; }
+#tlScroll { width: 100%; flex: none; }
+.info { position: absolute; right: 10px; top: 36px; z-index: 2; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
+.info b { color: var(--text); font-weight: 600; }
+.empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--faint); pointer-events: none; }
+.empty[hidden] { display: none; }
+.stage.over { outline: 2px dashed var(--accent); outline-offset: -8px; }
+
+.drawer .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.drawer .two button { padding: 7px 6px; font-size: 12.5px; }
+.drawer .val { color: var(--accent-hi); font-weight: 600; margin-left: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: none; padding: 6px 12px; }
+.seg.wide { display: grid; grid-template-columns: repeat(5, 1fr); }
+.seg.wide button { padding: 6px 2px; font-size: 12.5px; }
+.seg.wide button.on { background: var(--accent-glow); color: var(--accent-hi); }
+.drawer button[hidden], .drawer label[hidden] { display: none; }
+
+.clock { font-variant-numeric: tabular-nums; color: var(--accent-hi); font-size: 13px; min-width: 128px; text-align: center; }
+.prog { position: absolute; left: 50%; bottom: 68px; transform: translateX(-50%); z-index: 8; min-width: 280px; background: var(--panel-3, #2a2a33); border: 1px solid var(--accent); border-radius: 10px; padding: 8px 14px; font-size: 13px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); }
+.prog[hidden] { display: none; }
+.pbar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .12); margin-top: 6px; overflow: hidden; }
+.pbar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+.pbar.ind i { width: 40% !important; animation: slide 1s linear infinite; }
+@keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@media (prefers-reduced-motion: reduce) { .pbar.ind i { animation: none; } }
