@@ -257,3 +257,5 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .ld-zoom { flex-wrap: wrap; } .ld-zoom select { width: auto; }
 
 .lcopy[hidden] { display: none !important; } .lbigp[hidden] { display: none; }
+
+.ld-sentinel { height: 1px; }
