@@ -268,3 +268,5 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 /* інформаційна панель впритул до картинки, напівпрозора */
 .lbigv { gap: 8px !important; } .lbig-img { flex: 0 1 auto !important; position: relative; } .lbig-img .car-btn { z-index: 3; } .lbigv .lbig-img img { max-width: min(62vw, 100%); }
 .lbig-side { background: rgba(23,23,29,.72) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(255,255,255,.12) !important; }
+
+.lbigv .lb-nav { position: static; transform: none; flex: 0 0 auto; align-self: center; margin: 0; } .lbig-img .car-btn { display: none; }
