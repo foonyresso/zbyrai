@@ -66,8 +66,20 @@
 
   // деталі LoRA: майже на весь екран. Ліворуч (3/4): вкладки «Огляд» (картинки автора + опис) і «Галерея»; праворуч (1/4): ліцензія й деталі.
   // Дані з Civitai браузер бере напряму (CivitaiInfo.fetchModel); якщо недоступні — лишається локальна інформація.
+  // Сповіщення про копіювання: зникає за 5 с або одразу від дії користувача (клік, клавіша, помітний рух мишки).
+  // Додається в саме вікно LoRA, бо звичайні сповіщення сайту лишаються під модальним вікном.
+  var noteEl = null, noteOff = null;
+  function copyNote(text) {
+    if (noteOff) noteOff();
+    var d = $('lDlg'), n = el('div', 'ld-copynote', '✓ ' + text); (d.open ? d : document.body).appendChild(n); noteEl = n;
+    var timer = null, sx = null, sy = null;
+    function off() { clearTimeout(timer); document.removeEventListener('pointerdown', off, true); document.removeEventListener('keydown', off, true); document.removeEventListener('wheel', off, true); document.removeEventListener('pointermove', mv, true); n.remove(); noteOff = null; }
+    function mv(e) { if (sx === null) { sx = e.clientX; sy = e.clientY; return; } if (Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 24) off(); }
+    noteOff = off; timer = setTimeout(off, 5000);
+    setTimeout(function () { if (noteOff !== off) return; document.addEventListener('pointerdown', off, true); document.addEventListener('keydown', off, true); document.addEventListener('wheel', off, true); document.addEventListener('pointermove', mv, true); }, 0);
+  }
   function copyText(t, btn) {
-    var done = function () { btn.classList.add('ok'); host.toast('Промпт скопійовано'); setTimeout(function () { btn.classList.remove('ok'); }, 1200); };
+    var done = function () { btn.classList.add('ok'); copyNote('Промпт скопійовано'); setTimeout(function () { btn.classList.remove('ok'); }, 1200); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { host.toast('Не вдалося скопіювати'); });
     else { var ta = el('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { host.toast('Не вдалося скопіювати'); } ta.remove(); }
   }
