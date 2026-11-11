@@ -146,7 +146,7 @@
     opt = opt || {}; if (!transport) return Promise.reject(new Error('no-transport'));
     var p = { q: q, sort: opt.sort || 'Most Reactions', period: opt.period || 'AllTime' }; if (cursor) p.cursor = cursor;
     return call('search', p).then(function (d) {
-      return { items: (d.items || []).map(function (x) { return { id: x.id, thumb: x.thumb, big: x.big, w: x.w, h: x.h, user: x.user || '', prompt: '', neg: '', info: '', hasPrompt: x.hasPrompt, stats: x.stats || null, uuid: '' }; }), next: d.next || '' };
+      return { items: (d.items || []).map(function (x) { return { id: x.id, thumb: x.thumb, big: x.big, w: x.w, h: x.h, user: x.user || '', prompt: '', neg: '', info: '', hasPrompt: x.hasPrompt, stats: x.stats || null, uuid: '' }; }), next: d.next || '', missing: d.missing || [], used: d.used || [] };
     });
   }
 

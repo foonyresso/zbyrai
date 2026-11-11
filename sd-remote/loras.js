@@ -249,7 +249,7 @@
       if (loading || (opts.alive && !opts.alive())) return; loading = true; gmsg.textContent = 'Завантаження…'; var my = gen;
       opts.fetchPage(cursor, { sort: sSort.value, period: sPer.value }).then(function (r) {
         if (my !== gen) return; loading = false; if (!cols.length) layout(); r.items.forEach(function (g) { all.push(g); place(g); }); cursor = r.next; ended = !r.next;
-        gmsg.textContent = all.length ? (ended ? 'Це всі результати.' : '') : (opts.empty || 'Нічого не знайдено.'); rewatch();
+        gmsg.textContent = (r.note ? r.note + ' ' : '') + (all.length ? (ended ? 'Це всі результати.' : '') : (opts.empty || 'Нічого не знайдено.')); rewatch();
       }, function (e) { if (my !== gen) return; loading = false; gmsg.textContent = e && /nokey|503/.test(e.message) ? 'Адмін ще не додав ключ Civitai на сервері.' : 'Не вдалося завантажити з Civitai. Прокрути ще раз, щоб повторити.'; });
     }
     return { start: function () { started = true; if (!all.length && !loading) pull(); else rewatch(); }, reset: function () { started = true; reset(); } };

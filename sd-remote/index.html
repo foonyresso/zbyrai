@@ -26,6 +26,8 @@
   </form>
 </div>
 
+<button type="button" class="menu-btn" id="menuBtn" aria-label="Меню вкладок" aria-expanded="false"><span class="mb-ico">☰</span><span id="menuCur"></span></button>
+<button type="button" class="to-top" id="toTop" aria-label="Нагору" title="Нагору" hidden>↑</button>
 <header class="top" id="top">
   <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
   <div class="brand">Віддалений <span>SD</span></div>
@@ -213,9 +215,9 @@
     </section>
 
     <section class="view" id="vIdeas" hidden>
-      <div class="b-head"><b>Ідеї з Civitai</b><span class="hint">Шукай англійською (теги Danbooru або слова). Клік по картинці відкриває дані генерації; іконка копіює промпт.</span></div>
-      <div class="ideas-form"><input type="text" id="ideasQ" maxlength="200" placeholder="напр. pink hair, school uniform, night city" title="Теги або слова для пошуку на Civitai"><button class="btn-main" id="ideasGo">🔍 Шукати</button></div>
-      <div class="ideas-ex" id="ideasEx"><span class="hint">Приклади:</span><button type="button" class="chip">cyberpunk girl</button><button type="button" class="chip">elf, forest</button><button type="button" class="chip">gothic dress</button><button type="button" class="chip">fantasy landscape</button></div>
+      <div class="b-head"><b>Ідеї з Civitai</b><span class="hint">Шукай англійською за тегами через кому (з’являються підказки, як у промпті): шукаються картинки, у яких є всі ці теги Civitai. Клік по картинці відкриває дані генерації; іконка копіює промпт.</span></div>
+      <div class="ideas-form"><div class="field ideas-field"><input type="text" id="ideasQ" maxlength="200" placeholder="напр. naruto, pink hair, school uniform" title="Теги або слова для пошуку на Civitai"></div><button class="btn-main" id="ideasGo">🔍 Шукати</button></div>
+      <div class="ideas-ex" id="ideasEx"></div>
       <div class="ld-gal ideas-gal" id="ideasGal"></div>
     </section>
     <section class="view" id="vAi" hidden>

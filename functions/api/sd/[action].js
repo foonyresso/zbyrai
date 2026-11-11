@@ -309,12 +309,23 @@ async function civ(request, env, db, url) {
   if (kind === 'search') {   // пошук картинок за словами/тегами (внутрішній запит сайту Civitai, потребує ключа)
     if (!key) return J({ error: 'nokey' }, 503);
     const sorts = ['Most Reactions', 'Most Comments', 'Newest'], periods = ['AllTime', 'Year', 'Month', 'Week', 'Day'];
-    const input = { query: String(q.get('q') || '').trim().slice(0, 200), sort: sorts.includes(q.get('sort')) ? q.get('sort') : sorts[0], period: periods.includes(q.get('period')) ? q.get('period') : periods[0], limit: 48, browsingLevel: 31 };
-    if (!input.query) return J({ error: 'Порожній запит' }, 400);
+    const trpc = (path, inp) => fetch('https://civitai.com/api/trpc/' + path + '?input=' + encodeURIComponent(JSON.stringify({ json: inp })), { headers }).then((r) => (r.ok ? r.json() : null)).then((d) => (d && d.result && d.result.data && d.result.data.json) || null).catch(() => null);
+    // «теги» з поля пошуку → id тегів Civitai (пошук Civitai працює лише за його власними тегами, а не за текстом промпта)
+    const names = [...new Set(String(q.get('q') || '').split(',').map((t) => t.replace(/\\/g, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase()).filter(Boolean))].slice(0, 5);
+    if (!names.length) return J({ error: 'Порожній запит' }, 400);
+    const ids = [], used = [], missing = [];
+    await Promise.all(names.map(async (n) => {
+      for (const cand of [n, n.replace(/\s*\([^)]*\)\s*$/, '').trim()].filter((x, i, a) => x && a.indexOf(x) === i)) {
+        const r = await trpc('tag.getAll', { query: cand, limit: 30 });
+        const hit = r && (r.items || []).find((x) => String(x.name).toLowerCase() === cand);
+        if (hit) { ids.push(hit.id); used.push(cand); return; }
+      }
+      missing.push(n);
+    }));
+    if (!ids.length) return J({ items: [], next: '', missing, used });
+    const input = { tags: ids, sort: sorts.includes(q.get('sort')) ? q.get('sort') : sorts[0], period: periods.includes(q.get('period')) ? q.get('period') : periods[0], limit: 48, browsingLevel: 31 };
     const c = q.get('cursor'); if (c && c.length < 200) input.cursor = c;
-    const r = await fetch('https://civitai.com/api/trpc/image.getInfinite?input=' + encodeURIComponent(JSON.stringify({ json: input })), { headers });
-    if (!r.ok) return J({ error: 'Civitai ' + r.status }, 502);
-    const d = await r.json().catch(() => null), j = d && d.result && d.result.data && d.result.data.json;
+    const j = await trpc('image.getInfinite', input);
     if (!j) return J({ error: 'Civitai не віддав результати' }, 502);
     const bucket = env.CIVITAI_BUCKET || 'xG1nkqKTMzGDvpLrqFT7WA', name = (x) => encodeURIComponent(String(x.name || 'image.jpeg'));
     const items = (j.items || []).filter((x) => x && /^[0-9a-f-]{36}$/.test(x.url || '') && x.type !== 'video').map((x) => {
@@ -322,7 +333,7 @@ async function civ(request, env, db, url) {
       return { id: x.id, thumb: 'https://image.civitai.com/' + bucket + '/' + x.url + '/width=450/' + name(x), big: 'https://image.civitai.com/' + bucket + '/' + x.url + '/width=1280/' + name(x), w: x.width || 0, h: x.height || 0, user: (x.user && x.user.username) || '', hasPrompt: x.hasPositivePrompt === undefined ? undefined : !!x.hasPositivePrompt,
         stats: { likeCount: st.likeCountAllTime || 0, heartCount: st.heartCountAllTime || 0, laughCount: st.laughCountAllTime || 0, cryCount: st.cryCountAllTime || 0, commentCount: st.commentCountAllTime || 0 } };
     });
-    return J({ items, next: typeof j.nextCursor === 'string' || typeof j.nextCursor === 'number' ? String(j.nextCursor) : '' });
+    return J({ items, next: typeof j.nextCursor === 'string' || typeof j.nextCursor === 'number' ? String(j.nextCursor) : '', missing, used });
   }
   return J({ error: 'Невідомий вид' }, 400);
 }

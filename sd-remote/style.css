@@ -312,3 +312,15 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
 .out-h-tl { left: 0; top: 0; cursor: nwse-resize; } .out-h-br { left: 100%; top: 100%; cursor: nwse-resize; } .out-h-tr { left: 100%; top: 0; cursor: nesw-resize; } .out-h-bl { left: 0; top: 100%; cursor: nesw-resize; }
 #outDlg { overflow: visible; } #outDlg .out-wrap { padding-bottom: 26px; }
 .out-grid[hidden] { display: none; }
+
+.ideas-form .ideas-field { flex: 1; min-width: 0; margin: 0; position: relative; } .ideas-form .ideas-field input { width: 100%; box-sizing: border-box; }
+
+/* телефон: вкладки в меню ☰, кнопка «нагору» */
+.menu-btn, .to-top { display: none; }
+@media (max-width: 800px) {
+  .menu-btn { display: flex; align-items: center; gap: 8px; position: fixed; top: 8px; right: 8px; z-index: 950; height: 40px; padding: 0 14px; border-radius: 99px; background: rgba(20,20,26,.92); border: 1px solid #3a3a46; color: #eee; font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.45); backdrop-filter: blur(6px); } .menu-btn .mb-ico { font-size: 20px; line-height: 1; }
+  #ctabs { display: none !important; position: fixed; top: 56px; right: 8px; z-index: 950; flex-direction: column; gap: 4px; width: min(240px, calc(100vw - 16px)); padding: 8px; border-radius: 14px; background: rgba(20,20,26,.98); border: 1px solid #3a3a46; box-shadow: 0 10px 30px rgba(0,0,0,.6); max-height: calc(100vh - 70px); overflow: auto; }
+  body.menu-open #ctabs { display: flex !important; } #ctabs button { width: 100%; text-align: left; justify-content: flex-start; }
+  .to-top { position: fixed; right: 12px; bottom: 84px; z-index: 940; width: 44px; height: 44px; border-radius: 50%; padding: 0; font-size: 22px; line-height: 1; background: rgba(20,20,26,.92); border: 1px solid #3a3a46; color: #eee; box-shadow: 0 4px 16px rgba(0,0,0,.45); } .to-top:not([hidden]) { display: block; }
+  header.top { padding-right: 130px; }
+}
