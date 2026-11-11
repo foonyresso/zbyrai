@@ -61,7 +61,7 @@
     if (S.mode !== 'flex') S.view = 'img';
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
     $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
-    document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); });
+    document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); if (b.dataset.tab === S.tab && $('menuCur')) $('menuCur').textContent = b.textContent; });
     $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vLinks').hidden = S.tab !== 'links'; $('vAi').hidden = S.tab !== 'ai'; $('vIdeas').hidden = S.tab !== 'ideas'; $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show(); updateGo();
     if (S.tab === 'ideas' && window.SDIdeas && SDIdeas.show) SDIdeas.show();
     if (S.tab !== lastTab) { lastTab = S.tab; if (S.tab === 'lora' && window.SDLoras && S.token) SDLoras.load(); }   // при відкритті вкладки список оновлюється з сервера
@@ -267,6 +267,15 @@
     $('modeFlex').addEventListener('click', function () { S.mode = 'flex'; syncLayout(); save(); SDBuilder.refresh(); });
     $('viewImg').addEventListener('click', function () { S.view = 'img'; syncLayout(); save(); });
     $('viewTags').addEventListener('click', function () { S.view = 'tags'; syncLayout(); save(); SDBuilder.refresh(); });
+    // телефон: вкладки ховаються в меню ☰ (завжди зверху екрана), а кнопка ↑ повертає на початок сторінки
+    function menu(open) { document.body.classList.toggle('menu-open', open); $('menuBtn').setAttribute('aria-expanded', String(open)); }
+    $('menuBtn').addEventListener('click', function (e) { e.stopPropagation(); menu(!document.body.classList.contains('menu-open')); });
+    $('ctabs').addEventListener('click', function () { menu(false); });
+    document.addEventListener('click', function (e) { if (document.body.classList.contains('menu-open') && !e.target.closest('#ctabs')) menu(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.body.classList.contains('menu-open')) menu(false); });
+    var tt = $('toTop'), pos = function () { return Math.max(window.scrollY || 0, document.body.scrollTop || 0, document.documentElement.scrollTop || 0); };   // прокручується <body>
+    var upd = function () { tt.hidden = pos() < 400; }; window.addEventListener('scroll', upd, { passive: true }); document.body.addEventListener('scroll', upd, { passive: true });
+    tt.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); document.body.scrollTo({ top: 0, behavior: 'smooth' }); });
     document.querySelectorAll('#ctabs button').forEach(function (b) { b.addEventListener('click', function () { S.tab = b.dataset.tab; syncLayout(); save(); }); });
     $('loraManage').addEventListener('click', function () { S.tab = 'lora'; syncLayout(); save(); });
     $('btnFull').addEventListener('click', function () {
