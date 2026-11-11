@@ -302,7 +302,7 @@ async function civ(request, env, db, url) {
     const m = g.meta || {}, str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
     const info = ['steps', 'sampler', 'cfgScale', 'seed', 'Size'].filter((k) => m[k] != null && m[k] !== '').map((k) => k + ': ' + m[k]).join(' · ');
     const extra = {}; [['CFG', m.cfgScale], ['Кроки', m.steps], ['Семплер', m.sampler], ['Seed', m.seed], ['Розмір', m.width && m.height ? m.width + '×' + m.height : ''], ['Процес', g.process], ['Schedule', m['Schedule type']], ['Denoise', m['Denoising strength']], ['Shift', m.Shift]].forEach(([k, v]) => { if (v != null && v !== '') extra[k] = String(v).slice(0, 60); });
-    const resources = (g.resources || []).slice(0, 30).map((x) => ({ name: str(x.modelName, 120), version: str(x.versionName, 80), type: str(x.modelType, 30), strength: typeof x.strength === 'number' ? x.strength : null, modelId: +x.modelId || 0 }));
+    const resources = (g.resources || []).slice(0, 30).map((x) => ({ name: str(x.modelName, 120), version: str(x.versionName, 80), type: str(x.modelType, 30), strength: typeof x.strength === 'number' ? x.strength : null, modelId: +x.modelId || 0, versionId: +x.versionId || +x.modelVersionId || 0 }));
     const tags = (Array.isArray(tg) ? tg : []).filter((t) => t && t.name && !t.needsReview).sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 40).map((t) => str(t.name, 40));
     return J({ prompt: str(m.prompt, 6000), neg: str(m.negativePrompt, 3000), info, extra, resources, tags });
   }

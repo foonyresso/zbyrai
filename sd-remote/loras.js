@@ -107,6 +107,17 @@
     b.addEventListener('click', function (e) { e.stopPropagation(); resolvePrompt(g, function () { copyText(g.prompt, b); }); });
     return b;
   }
+  var knownAt = Date.now(), knownSubs = [];   // коли список з ПК оновлювався востаннє й хто хоче знати про оновлення
+  // чи є ця LoRA з Civitai у моєму списку (за id моделі; якщо відомі обидві версії й вони різні — «інша версія»)
+  function ownedFor(r) {
+    if (!r.modelId) return null; var hit = null;
+    known.forEach(function (k) {
+      var mid = window.CivitaiInfo ? CivitaiInfo.modelIdOf(k.civitai) : ''; if (String(mid) !== String(r.modelId)) return;
+      var diff = !!(r.versionId && k.versionId && +k.versionId !== +r.versionId), cur = { k: k, diff: diff };
+      if (!hit || (hit.diff && !diff)) hit = cur;
+    });
+    return hit;
+  }
   function bigView(g0, list) {
     list = list || [g0]; var idx = Math.max(0, list.indexOf(g0)), g = g0, off = null;
     var o = el('div', 'lbigv'), imgBox = el('div', 'lbig-img'), im = el('img'); im.alt = ''; im.referrerPolicy = 'no-referrer'; imgBox.appendChild(im); o.appendChild(imgBox);
@@ -123,7 +134,13 @@
       if (!f) { side.appendChild(el('p', 'lm', g.id ? 'Завантаження даних генерації…' : 'Даних генерації немає.')); return; }
       if (f.resources.length) {
         side.appendChild(el('h4', null, 'Використані ресурси'));
-        f.resources.forEach(function (r) { var p = el('p', 'ld-row'); p.appendChild(el('span', null, r.name + (r.version ? ' · ' + r.version : ''))); p.appendChild(el('b', null, (r.type === 'LORA' ? 'LoRA' : r.type) + (r.strength != null ? ' ' + r.strength : ''))); side.appendChild(p); });
+        f.resources.forEach(function (r) {
+          var p = el('p', 'ld-row ld-res'), isLora = r.type === 'LORA', mine = isLora ? ownedFor(r) : null, nm = el('button', 'lname-btn', r.name + (r.version ? ' · ' + r.version : '')); nm.type = 'button';
+          if (isLora) { var st = !mine ? ['no', '✕', 'Цієї LoRA в тебе немає: клік відкриє її на Civitai'] : (mine.diff ? ['mid', '≈', 'У тебе є ця LoRA, але інша версія: клік відкриє її у твоєму списку'] : ['ok', '✓', 'Ця LoRA в тебе є: клік відкриє її у твоєму списку']); var mk = el('span', 'res-mk ' + st[0], st[1]); mk.title = st[2]; nm.title = st[2]; p.appendChild(mk); }
+          else nm.title = 'Відкрити на Civitai';
+          nm.addEventListener('click', function (e) { e.stopPropagation(); if (mine) { close(); openDetail(mine.k); } else if (r.modelId) window.open('https://civitai.com/models/' + r.modelId + (r.versionId ? '?modelVersionId=' + r.versionId : ''), '_blank', 'noopener'); });
+          p.appendChild(nm); p.appendChild(el('b', null, (isLora ? 'LoRA' : r.type) + (r.strength != null ? ' ' + r.strength : ''))); side.appendChild(p);
+        });
       }
       if (f.prompt) block('Промпт', f.prompt, true); if (f.neg) block('Негативний промпт', f.neg, true);
       var ex = Object.keys(f.extra || {}); if (ex.length) { side.appendChild(el('h4', null, 'Інші параметри')); side.appendChild(chips(ex.map(function (k) { return k + ': ' + f.extra[k]; }), 'tg')); }
@@ -143,7 +160,9 @@
       }
     }
     function go(d) { var n = idx + d; if (n < 0 || n >= list.length) return; idx = n; load(); }
-    function close() { if (off) off(); document.removeEventListener('keydown', key, true); o.remove(); }
+    function close() { if (off) off(); var si = knownSubs.indexOf(refill); if (si >= 0) knownSubs.splice(si, 1); document.removeEventListener('keydown', key, true); o.remove(); }
+    function refill() { if (o.isConnected) fill(); }   // список LoRA з ПК оновився (довантажив нові): ✓/✕ біля ресурсів перераховуються
+    knownSubs.push(refill); if (Date.now() - knownAt > 30000 && window.SDLoras) window.SDLoras.load();
     function key(e) { if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); go(-1); } else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); go(1); } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } }
     prev.addEventListener('click', function (e) { e.stopPropagation(); go(-1); }); next.addEventListener('click', function (e) { e.stopPropagation(); go(1); });
     document.addEventListener('keydown', key, true); o.addEventListener('click', close);
@@ -342,6 +361,6 @@
         }, function (e) { host.toast(e.message); });
       });
       render(); },
-    load: function () { if (!host) return; host.api('loras').then(function (r) { known = r.loras || []; render(); }, function () { /* без списку */ }); },
+    load: function () { if (!host) return; host.api('loras').then(function (r) { known = r.loras || []; knownAt = Date.now(); render(); knownSubs.slice().forEach(function (f) { f(); }); }, function () { /* без списку */ }); },
   };
 })();
