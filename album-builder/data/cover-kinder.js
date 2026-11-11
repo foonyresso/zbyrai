@@ -1,9 +1,9 @@
-// Обкладинка «Садочок: малюнки олівцями» (за макетом автора cover_6): фон-малюнок assets/kinder-cover.jpg (текст прибрано), написи редаговані.
+// Обкладинка «Садочок: малюнки олівцями» (за макетом автора cover_6): фон-малюнок assets/kinder-cover.webp (текст прибрано), написи редаговані.
 // Малюнок на весь розворот (cover-fit, ліва половина — задня, права — передня); заголовок із чотирьох слів: кожне слово має свій колір.
 // Шрифт заголовка — Pudelinka (файл автора, fonts/pudelinka.ttf); його можна замінити в FONT нижче.
 (function (root) {
   var CV = root.AlbumCoverVariants || (typeof require !== 'undefined' ? require('./cover-variants.js') : null);
-  var FONT = 'Underdog', IMG_SRC = './assets/kinder-cover.jpg', IW = 3600, IH = 2526, BG = '#f6f6f6';
+  var FONT = 'Underdog', IMG_SRC = './assets/kinder-cover.webp', IW = 3600, IH = 2526, BG = '#f6f6f6';
   // Позиції написів у частках зображення (виміряно за макетом): центр блоку, базова лінія, розмір (частка висоти), колір
   var LINES = [{ x: 0.628, y: 0.190, s: 0.085, c: '#e8341f' }, { x: 0.628, y: 0.249, s: 0.085, c: '#f08a2a' }, { x: 0.628, y: 0.298, s: 0.062, c: '#6f9bdc' }, { x: 0.628, y: 0.358, s: 0.066, c: '#a054bd' }];
   var img = null;
