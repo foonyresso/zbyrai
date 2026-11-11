@@ -148,6 +148,9 @@
       if (!f.prompt && !f.resources.length) side.appendChild(el('p', 'lm', 'Автор не залишив даних генерації.'));
     }
     var prev = el('button', 'car-btn l', '‹'), next = el('button', 'car-btn r', '›'); prev.type = next.type = 'button'; prev.title = 'Попередня (←)'; next.title = 'Наступна (→)';
+    var info = el('button', 'lb-info', 'ℹ Дані'); info.type = 'button'; info.title = 'Показати/сховати дані генерації'; o.appendChild(info);   // на телефоні: або картинка, або дані
+    info.addEventListener('click', function (e) { e.stopPropagation(); o.classList.toggle('show-data'); info.textContent = o.classList.contains('show-data') ? '🖼 Картинка' : 'ℹ Дані'; });
+    var xb = el('button', 'lb-x', '✕'); xb.type = 'button'; xb.title = 'Закрити'; o.appendChild(xb); xb.addEventListener('click', function (e) { e.stopPropagation(); close(); });
     prev.classList.add('lb-nav'); next.classList.add('lb-nav'); o.insertBefore(prev, imgBox); o.insertBefore(next, side);   // стрілки поза картинкою: ліворуч і праворуч від неї
     function load() {
       if (off) off(); g = list[idx]; im.src = g.big; g.subs = g.subs || []; g.subs.push(fill); off = function () { var i = g.subs.indexOf(fill); if (i >= 0) g.subs.splice(i, 1); };
@@ -215,6 +218,43 @@
     node.addEventListener('focus', function () { tipShow(node, it); }); node.addEventListener('blur', tipHide);
     node.addEventListener('click', function (e) { e.stopPropagation(); if (tipEl) tipHide(); else tipShow(node, it); });
   }
+  // Галерея-«мурашник» з безкінечним підвантаженням, сортуванням і зумом плиток. Використовується у вікні LoRA й у вкладці «Ідеї».
+  // opts: fetchPage(cursor, {sort, period}) → Promise<{items, next}>, alive() → чи ще потрібна, empty — текст порожнього результату
+  function mkGallery(root, opts) {
+    var cursor = '', ended = false, loading = false, gen = 0, started = false, all = [], cols = [], hs = [], zoom = 220;
+    var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg'), more = el('div', 'ld-sentinel');
+    try { zoom = Math.max(100, Math.min(480, +localStorage.getItem('sd_galzoom') || 220)); } catch (e) { /* не критично */ }
+    var zbar = el('div', 'ld-zoom'), zr = el('input'); zr.type = 'range'; zr.min = 100; zr.max = 480; zr.step = 10; zr.value = zoom; zr.title = 'Розмір плиток';
+    var sel = function (title, list) { var s = el('select'); s.title = title; list.forEach(function (o) { var x = el('option', null, o[1]); x.value = o[0]; s.appendChild(x); }); return s; };
+    var sSort = sel('Сортування', [['Most Reactions', 'За реакціями'], ['Most Comments', 'За коментарями'], ['Newest', 'Спочатку нові']]), sPer = sel('Період', [['AllTime', 'За весь час'], ['Year', 'За рік'], ['Month', 'За місяць'], ['Week', 'За тиждень'], ['Day', 'За день']]);
+    function reset() { gen++; ended = false; all = []; cursor = ''; loading = false; gbox.textContent = ''; cols = []; hs = []; gmsg.textContent = ''; pull(); }
+    sSort.addEventListener('change', function () { sPer.disabled = sSort.value === 'Newest'; reset(); }); sPer.addEventListener('change', reset);
+    zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
+    function place(g) {   // у найкоротшу колонку; висота плитки ∝ 1/пропорція
+      var m = 0, i; for (i = 1; i < hs.length; i++) if (hs[i] < hs[m] - 0.001) m = i;
+      cols[m].appendChild(galTile(g, true, function () { return all; })); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
+    }
+    function layout() {
+      var w = gbox.clientWidth || root.clientWidth || 800, n = Math.max(1, Math.floor((w + 8) / (zoom + 8))); gbox.textContent = ''; cols = []; hs = [];
+      for (var i = 0; i < n; i++) { var c = el('div', 'ld-col'); cols.push(c); hs.push(0); gbox.appendChild(c); }
+      all.forEach(place);
+    }
+    zr.addEventListener('input', function () { zoom = +zr.value; try { localStorage.setItem('sd_galzoom', String(zoom)); } catch (e) { /* не критично */ } layout(); });
+    if (window.ResizeObserver) new ResizeObserver(function () { if (root.offsetParent !== null && gbox.clientWidth && Math.max(1, Math.floor((gbox.clientWidth + 8) / (zoom + 8))) !== cols.length) layout(); }).observe(root);
+    root.textContent = ''; if (opts.before) root.appendChild(opts.before); root.appendChild(zbar); root.appendChild(gbox); root.appendChild(gmsg); root.appendChild(more);
+    // підвантаження: спостерігаємо за маркером внизу відносно екрана (працює і коли прокручується не сама галерея, а все вікно, як на телефоні)
+    var io = window.IntersectionObserver ? new IntersectionObserver(function (es) { if (es[0] && es[0].isIntersecting && started && !ended && !loading) pull(); }, { rootMargin: '600px' }) : null;
+    function rewatch() { if (io) { io.unobserve(more); io.observe(more); } }
+    function pull() {
+      if (loading || (opts.alive && !opts.alive())) return; loading = true; gmsg.textContent = 'Завантаження…'; var my = gen;
+      opts.fetchPage(cursor, { sort: sSort.value, period: sPer.value }).then(function (r) {
+        if (my !== gen) return; loading = false; if (!cols.length) layout(); r.items.forEach(function (g) { all.push(g); place(g); }); cursor = r.next; ended = !r.next;
+        gmsg.textContent = all.length ? (ended ? 'Це всі результати.' : '') : (opts.empty || 'Нічого не знайдено.'); rewatch();
+      }, function (e) { if (my !== gen) return; loading = false; gmsg.textContent = e && /nokey|503/.test(e.message) ? 'Адмін ще не додав ключ Civitai на сервері.' : 'Не вдалося завантажити з Civitai. Прокрути ще раз, щоб повторити.'; });
+    }
+    return { start: function () { started = true; if (!all.length && !loading) pull(); else rewatch(); }, reset: function () { started = true; reset(); } };
+  }
+
   function openDetail(k) {
     tipHide();
     var d = $('lDlg'), box = $('lDlgBody'); box.textContent = '';
@@ -274,38 +314,9 @@
       if (mtags.length) { det.appendChild(el('h4', null, 'Теги')); var tgs = el('div', 'chips'); mtags.forEach(function (t) { tgs.appendChild(el('span', 'chip', t)); }); det.appendChild(tgs); }
       strip.textContent = ''; if (!gal.length) strip.appendChild(el('p', 'lm', 'Автор не додав картинок до цієї версії (або вони 18+ і Civitai їх не віддає).'));
       var sg = gal.slice(0, 12); sg.forEach(function (g) { var t = galTile(g, false, function () { return sg; }); t.classList.add('ld-st'); strip.appendChild(t); }); if (gal.length > 1) carousel(strip, alive);
-      var vid = ver && ver.id, cursor = '', ended = false, loading = false, more = el('div', 'ld-sentinel');
-      var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg'), all = [], cols = [], hs = [], zoom = 220, gen = 0;
-      try { zoom = Math.max(100, Math.min(480, +localStorage.getItem('sd_galzoom') || 220)); } catch (e) { /* не критично */ }
-      var zbar = el('div', 'ld-zoom'), zr = el('input'); zr.type = 'range'; zr.min = 100; zr.max = 480; zr.step = 10; zr.value = zoom; zr.title = 'Розмір плиток';
-      var sel = function (title, opts) { var s = el('select'); s.title = title; opts.forEach(function (o) { var x = el('option', null, o[1]); x.value = o[0]; s.appendChild(x); }); return s; };
-      var sSort = sel('Сортування', [['Most Reactions', 'За реакціями'], ['Most Comments', 'За коментарями'], ['Newest', 'Спочатку нові']]), sPer = sel('Період', [['AllTime', 'За весь час'], ['Year', 'За рік'], ['Month', 'За місяць'], ['Week', 'За тиждень'], ['Day', 'За день']]);
-      function refilter() { gen++; ended = false; all = []; cursor = ''; loading = false; gbox.textContent = ''; cols = []; hs = []; gmsg.textContent = ''; pull(); }
-      sSort.addEventListener('change', function () { sPer.disabled = sSort.value === 'Newest'; refilter(); }); sPer.addEventListener('change', refilter);
-      zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
-      function place(g) {   // у найкоротшу колонку; висота плитки ∝ 1/пропорція
-        var m = 0, i; for (i = 1; i < hs.length; i++) if (hs[i] < hs[m] - 0.001) m = i;
-        cols[m].appendChild(galTile(g, true, function () { return all; })); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
-      }
-      function layout() {
-        var w = gbox.clientWidth || vGa.clientWidth || 800, n = Math.max(1, Math.floor((w + 8) / (zoom + 8))); gbox.textContent = ''; cols = []; hs = [];
-        for (var i = 0; i < n; i++) { var c = el('div', 'ld-col'); cols.push(c); hs.push(0); gbox.appendChild(c); }
-        all.forEach(place);
-      }
-      zr.addEventListener('input', function () { zoom = +zr.value; try { localStorage.setItem('sd_galzoom', String(zoom)); } catch (e) { /* не критично */ } layout(); });
-      if (window.ResizeObserver) { var ro = new ResizeObserver(function () { if (!vGa.hidden && gbox.clientWidth && Math.max(1, Math.floor((gbox.clientWidth + 8) / (zoom + 8))) !== cols.length) layout(); }); ro.observe(vGa); }
-      vGa.textContent = ''; vGa.appendChild(zbar); vGa.appendChild(gbox); vGa.appendChild(gmsg); vGa.appendChild(more);
-      function pull() {
-        if (loading || !vid) return; loading = true; gmsg.textContent = 'Завантаження робіт спільноти…'; var my = gen;
-        CI.fetchImages(vid, cursor, { sort: sSort.value, period: sPer.value }).then(function (r) {
-          if (box._tok !== token || my !== gen) return; loading = false; if (!cols.length) layout(); r.items.forEach(function (g) { all.push(g); place(g); }); cursor = r.next; ended = !r.next; setTimeout(check, 50);
-          gmsg.textContent = all.length ? (ended ? 'Це всі роботи.' : '') : 'Спільнота ще не додала робіт (або вони 18+ і Civitai їх не віддає).';
-        }, function () { if (box._tok !== token || my !== gen) return; loading = false; gmsg.textContent = 'Не вдалося завантажити галерею з Civitai. Прокрути ще раз, щоб повторити.'; });
-      }
-      var near = function () { var a = more.getBoundingClientRect(), b = vGa.getBoundingClientRect(); return !vGa.hidden && a.top < b.bottom + 500; };
-      var check = function () { if (!ended && !loading && near()) pull(); };
-      vGa.addEventListener('scroll', check); if (window.IntersectionObserver) new IntersectionObserver(check, { root: vGa, rootMargin: '500px' }).observe(more);
-      loadGal = function () { loadGal = null; pull(); };
+      var vid = ver && ver.id;
+      var gal2 = mkGallery(vGa, { alive: function () { return box._tok === token; }, empty: 'Спільнота ще не додала робіт (або вони 18+ і Civitai їх не віддає).', fetchPage: function (cur, f) { return vid ? CI.fetchImages(vid, cur, f) : Promise.resolve({ items: [], next: '' }); } });
+      loadGal = function () { loadGal = null; gal2.start(); };
       bGa.textContent = 'Галерея';
       desc.textContent = '';
       var html = (ver && ver.description ? ver.description : '') + (model.description || '');
@@ -348,8 +359,9 @@
     });
   }
 
-  function render() { renderActive(); renderManager(); }
+  function render() { if (!host) return; renderActive(); renderManager(); }
   window.SDLoras = {
+    mkGallery: mkGallery,
     DEFAULT_LIST: Object.keys(DEFAULTS).map(function (n) { return { name: n, w: DEFAULTS[n] }; }),
     defaultWeight: defaultWeight, render: render, names: function () { return known.map(function (k) { return k.name; }); },
     init: function (h) { host = h; if (window.CivitaiInfo) CivitaiInfo.setTransport(function (kind, q) { return host.api('civ?' + new URLSearchParams(Object.assign({ kind: kind }, q)).toString()); }); $('lSearch').addEventListener('input', renderManager); $('lBy').addEventListener('change', function () { host.state.loraBy = this.value; host.state.loraGroup = ''; host.save(); renderManager(); }); $('lDlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });

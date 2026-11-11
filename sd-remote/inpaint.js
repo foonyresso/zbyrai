@@ -216,6 +216,37 @@
   }
 
   // Виправити лише обличчя: ADetailer по вибраній картинці без перемальовування маскою
+  // Візуальне розширення: картинка в центрі поля, пунктирна рамка нового полотна тягнеться за краї й кути
+  var OM = 256, osc = 1;
+  function outVals() { var g = function (id) { return Math.max(0, Math.min(OM, Math.round((+$(id).value || 0) / 8) * 8)); }; return { l: g('outL'), t: g('outT'), r: g('outR'), b: g('outB') }; }
+  function outDraw() {
+    var v = outVals(), f = $('outFrame'); if (!f) return;
+    f.style.left = (OM - v.l) * osc + 'px'; f.style.top = (OM - v.t) * osc + 'px'; f.style.width = (w + v.l + v.r) * osc + 'px'; f.style.height = (h + v.t + v.b) * osc + 'px';
+    var tag = $('outTag'); tag.textContent = (w + v.l + v.r) + '×' + (h + v.t + v.b) + (v.l + v.t + v.r + v.b ? '' : ' (без змін)');
+  }
+  function outRender() {
+    var st = $('outStage'); st.textContent = ''; if (!im) return;
+    OM = Math.max(256, Math.min(1024, Math.round(Math.max(w, h) * 0.5 / 64) * 64));
+    var wrap = st.parentNode, maxW = Math.min(520, (wrap.clientWidth || 520)), maxH = Math.min(420, Math.round(window.innerHeight * 0.5));
+    osc = Math.min(maxW / (w + 2 * OM), maxH / (h + 2 * OM)); st.style.width = (w + 2 * OM) * osc + 'px'; st.style.height = (h + 2 * OM) * osc + 'px';
+    var pic = el('img', 'out-pic'); pic.src = im.src; pic.draggable = false; pic.style.left = OM * osc + 'px'; pic.style.top = OM * osc + 'px'; pic.style.width = w * osc + 'px'; pic.style.height = h * osc + 'px'; st.appendChild(pic);
+    var fr = el('div', 'out-frame'); fr.id = 'outFrame'; st.appendChild(fr); var tg = el('span', 'out-tag'); tg.id = 'outTag'; fr.appendChild(tg);
+    ['l', 'r', 't', 'b', 'tl', 'tr', 'bl', 'br'].forEach(function (k) {
+      var hd = el('div', 'out-h out-h-' + k); hd.title = 'Тягни назовні, щоб розширити'; fr.appendChild(hd);
+      hd.addEventListener('pointerdown', function (e) {
+        e.preventDefault(); hd.setPointerCapture(e.pointerId); var s0 = outVals(), x0 = e.clientX, y0 = e.clientY;
+        function mv(ev) {
+          var dx = (ev.clientX - x0) / osc, dy = (ev.clientY - y0) / osc, sn = function (v) { return Math.max(0, Math.min(OM, Math.round(v / 32) * 32)); };
+          if (k.indexOf('l') >= 0) $('outL').value = sn(s0.l - dx); if (k.indexOf('r') >= 0) $('outR').value = sn(s0.r + dx);
+          if (k.indexOf('t') >= 0) $('outT').value = sn(s0.t - dy); if (k.indexOf('b') >= 0) $('outB').value = sn(s0.b + dy);
+          outDraw(); outInfo();
+        }
+        function up() { hd.removeEventListener('pointermove', mv); hd.removeEventListener('pointerup', up); hd.removeEventListener('pointercancel', up); }
+        hd.addEventListener('pointermove', mv); hd.addEventListener('pointerup', up); hd.addEventListener('pointercancel', up);
+      });
+    });
+    outDraw();
+  }
   function outInfo() {
     var v = function (id) { return Math.max(0, Math.min(1024, +$(id).value || 0)); };
     var W = w + v('outL') + v('outR'), H = h + v('outT') + v('outB');
@@ -287,11 +318,10 @@
       document.querySelectorAll('#inpToolSeg button').forEach(function (b) { b.addEventListener('click', function () { pick(b.dataset.t); }); });
       $('inpBrush').addEventListener('input', function () { size = +this.value; });
       $('faceFix').addEventListener('click', faceFix);
-      $('inpOut').addEventListener('click', function () { if (!cur) return host.toast('Спершу обери картинку'); outInfo(); $('outDlg').showModal(); });
-      ['outL', 'outT', 'outR', 'outB'].forEach(function (id) { $(id).addEventListener('input', outInfo); });
+      $('inpOut').addEventListener('click', function () { if (!cur) return host.toast('Спершу обери картинку'); $('outDlg').showModal(); outRender(); outInfo(); });
       document.querySelectorAll('.out-pre button').forEach(function (bt) { bt.addEventListener('click', function () {
         var o = bt.dataset.o, a = { all: [1, 1, 1, 1], h: [0, 1, 1, 0], v: [1, 0, 0, 1], zero: [0, 0, 0, 0] }[o];
-        ['outT', 'outL', 'outR', 'outB'].forEach(function (id, i) { $(id).value = a[i] * 256; }); outInfo(); }); });
+        ['outT', 'outL', 'outR', 'outB'].forEach(function (id, i) { $(id).value = a[i] * 256; }); outInfo(); outDraw(); }); });
       $('outGo').addEventListener('click', outpaint);
       $('inpUndo').addEventListener('click', undo); $('inpClear').addEventListener('click', clearMask); $('inpInvert').addEventListener('click', invert);
       var fileIn = $('inpFile'), box1 = $('inpBox');

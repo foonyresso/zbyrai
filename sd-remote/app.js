@@ -10,7 +10,7 @@
   function load() {
     try { var x = JSON.parse(localStorage.getItem(LS) || '{}'); Object.keys(x).forEach(function (k) { if (k in S) S[k] = x[k]; }); } catch (e) { /* не критично */ }
     if (S.loraByV !== 2) { S.loraBy = 'folder'; S.loraGroup = ''; S.loraByV = 2; }   // типове групування LoRA — за папками (раз для старих збережень)
-    if (['gen', 'inp', 'lora', 'tpl', 'hist', 'links', 'ai'].indexOf(S.tab) < 0) S.tab = 'gen';   // напр. прибрана вкладка зі старого збереження
+    if (['gen', 'inp', 'lora', 'tpl', 'hist', 'links', 'ai', 'ideas'].indexOf(S.tab) < 0) S.tab = 'gen';   // напр. прибрана вкладка зі старого збереження
     if (!S.token) { try { var old = JSON.parse(localStorage.getItem('sd_state') || '{}'); if (old.token) S.token = old.token; } catch (e) { /* не критично */ } }
   }
   function save() { try { localStorage.setItem(LS, JSON.stringify(Object.assign({}, S, { jobs: S.jobs.slice(-60).map(function (j) { var c = Object.assign({}, j); delete c.src; delete c.loading; delete c.dl; return c; }) }))); } catch (e) { /* не критично */ } }
@@ -62,7 +62,8 @@
     $('modeBasic').classList.toggle('on', S.mode === 'basic'); $('modeFlex').classList.toggle('on', S.mode === 'flex');
     $('views').hidden = S.mode !== 'flex'; $('viewImg').classList.toggle('on', S.view === 'img'); $('viewTags').classList.toggle('on', S.view === 'tags');
     document.querySelectorAll('#ctabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === S.tab); });
-    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vLinks').hidden = S.tab !== 'links'; $('vAi').hidden = S.tab !== 'ai'; $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show(); updateGo();
+    $('vGen').hidden = S.tab !== 'gen'; $('vLora').hidden = S.tab !== 'lora'; $('vHist').hidden = S.tab !== 'hist'; $('vTpl').hidden = S.tab !== 'tpl'; $('vLinks').hidden = S.tab !== 'links'; $('vAi').hidden = S.tab !== 'ai'; $('vIdeas').hidden = S.tab !== 'ideas'; $('vInp').hidden = S.tab !== 'inp'; if (S.tab === 'inp' && window.SDInp) SDInp.show(); updateGo();
+    if (S.tab === 'ideas' && window.SDIdeas && SDIdeas.show) SDIdeas.show();
     if (S.tab !== lastTab) { lastTab = S.tab; if (S.tab === 'lora' && window.SDLoras && S.token) SDLoras.load(); }   // при відкритті вкладки список оновлюється з сервера
     var tags = S.mode === 'flex' && S.view === 'tags';
     $('pvWrap').hidden = tags; $('builder').hidden = !tags;
@@ -300,6 +301,7 @@
   SDInp.init({ state: S, save: save, toast: toast, setTab: function (t) { S.tab = t; syncLayout(); save(); }, imgUrl: imgUrl, jobs: function () { return S.jobs; }, enqueue: enqueue, api: api, addUpload: function (j) { S.jobs.push(j); save(); renderAll(); }, updateGo: updateGo, progressNode: function (j) { var st = stage(j); return st ? bar(st.frac, st.text) : null; } });
   SDLinks.init({ state: S, save: save, toast: toast });
   if (window.SDAiPrompts) SDAiPrompts.init({ toast: toast });
+  if (window.SDIdeas) SDIdeas.init({ toast: toast });
   SDTplUI.init({ list: function () { return S.templates; }, set: function (l) { S.templates = l; save(); }, capture: function () { return SDTemplates.capture(S); }, apply: applyTemplate, toast: toast });
   syncLayout();   // модулі вже готові: застосувати відкриту вкладку (LoRA, Перемалювання)
   checkToken();

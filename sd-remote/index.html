@@ -72,12 +72,10 @@
 <dialog id="outDlg" class="help">
   <form method="dialog"><button class="close" title="Закрити" aria-label="Закрити">×</button></form>
   <h2>Розширити полотно</h2>
-  <p class="hint">На скільки пікселів додати зі сторін. Нова смуга заповниться краєм картинки, зафарбується маскою й перемалюється. Ставте «Силу змін» ~0.9–1.</p>
-  <div class="out-grid">
-    <label>Зверху <input type="number" id="outT" min="0" max="1024" step="64" value="0"></label>
-    <label>Зліва <input type="number" id="outL" min="0" max="1024" step="64" value="0"></label>
-    <label>Справа <input type="number" id="outR" min="0" max="1024" step="64" value="256"></label>
-    <label>Знизу <input type="number" id="outB" min="0" max="1024" step="64" value="0"></label>
+  <p class="hint">Тягни за краї або кути пунктирної рамки назовні: нова смуга заповниться краєм картинки, зафарбується маскою й перемалюється. Потім став «Силу змін» ~0.9–1.</p>
+  <div class="out-wrap"><div class="out-stage" id="outStage"></div></div>
+  <div class="out-grid" hidden>
+    <input type="number" id="outT" value="0"><input type="number" id="outL" value="0"><input type="number" id="outR" value="256"><input type="number" id="outB" value="0">
   </div>
   <div class="out-pre"><button type="button" data-o="all">З усіх боків +256</button><button type="button" data-o="h">Ліворуч і праворуч +256</button><button type="button" data-o="v">Зверху і знизу +256</button><button type="button" data-o="zero">Скинути</button></div>
   <p class="hint" id="outInfo"></p>
@@ -166,6 +164,7 @@
       <button data-tab="inp" title="Перемалювання: зафарбуй ділянку картинки й заміни її за своїм промптом">Перемалювання</button>
       <button data-tab="lora" title="Список LoRA з ПК власника, метадані, додавання у генерацію">LoRA</button>
       <button data-tab="tpl" title="Шаблони: готові й власні набори налаштувань та промптів">Шаблони</button>
+      <button data-tab="ideas" title="Пошук картинок на Civitai за тегами: ідеї для промптів, з копіюванням промпта">Ідеї</button>
       <button data-tab="ai" title="Готові інструкції для нейромереж: надсилаєш їй картинку з цим текстом і отримуєш промпт із тегів">Інструкції ШІ</button>
       <button data-tab="links" title="Корисні посилання: сервіси для промптів, моделей і тегів; можна додати свої">Посилання</button>
       <button data-tab="hist" title="Усі згенеровані картинки">Історія</button>
@@ -213,6 +212,12 @@
       <div class="lgrid" id="lGrid"></div>
     </section>
 
+    <section class="view" id="vIdeas" hidden>
+      <div class="b-head"><b>Ідеї з Civitai</b><span class="hint">Шукай англійською (теги Danbooru або слова). Клік по картинці відкриває дані генерації; іконка копіює промпт.</span></div>
+      <div class="ideas-form"><input type="text" id="ideasQ" maxlength="200" placeholder="напр. pink hair, school uniform, night city" title="Теги або слова для пошуку на Civitai"><button class="btn-main" id="ideasGo">🔍 Шукати</button></div>
+      <div class="ideas-ex" id="ideasEx"><span class="hint">Приклади:</span><button type="button" class="chip">cyberpunk girl</button><button type="button" class="chip">elf, forest</button><button type="button" class="chip">gothic dress</button><button type="button" class="chip">fantasy landscape</button></div>
+      <div class="ld-gal ideas-gal" id="ideasGal"></div>
+    </section>
     <section class="view" id="vAi" hidden>
       <div class="b-head"><b>Інструкції для ШІ</b><span class="hint">Скопіюй інструкцію, встав її в нейромережу (системний промпт або перше повідомлення) і надішли їй картинку: у відповідь буде промпт із тегів для генерації.</span></div>
       <div class="ailist" id="aiList"></div>
@@ -264,6 +269,7 @@
 <script src="./inpaint.js"></script>
 <script src="./links.js"></script>
 <script src="./ai-prompts.js"></script>
+<script src="./ideas.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

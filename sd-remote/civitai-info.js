@@ -141,6 +141,15 @@
     return call('meta', { id: String(id).replace(/\D/g, '') }).then(function (m) { return { prompt: cleanPrompt(m.prompt), neg: m.neg || '', info: m.info || '', extra: m.extra || {}, resources: m.resources || [], tags: m.tags || [] }; });
   }
 
+  // Пошук картинок за словами/тегами (лише через проксі сервера з ключем): {items: як у gallery(), next}
+  function search(q, cursor, opt) {
+    opt = opt || {}; if (!transport) return Promise.reject(new Error('no-transport'));
+    var p = { q: q, sort: opt.sort || 'Most Reactions', period: opt.period || 'AllTime' }; if (cursor) p.cursor = cursor;
+    return call('search', p).then(function (d) {
+      return { items: (d.items || []).map(function (x) { return { id: x.id, thumb: x.thumb, big: x.big, w: x.w, h: x.h, user: x.user || '', prompt: '', neg: '', info: '', hasPrompt: x.hasPrompt, stats: x.stats || null, uuid: '' }; }), next: d.next || '' };
+    });
+  }
+
   // Найближча «стандартна» пропорція (ширина/висота) — щоб плитки різних картинок рівно лягали в колонки
   var RATIOS = [9 / 21, 9 / 16, 2 / 3, 3 / 4, 4 / 5, 1, 5 / 4, 4 / 3, 3 / 2, 16 / 9];
   function snapRatio(w, h) {
@@ -151,6 +160,6 @@
   }
   function modelIdOf(url) { var m = /\/models\/(\d+)/.exec(String(url || '')); return m ? m[1] : ''; }
 
-  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, fetchImageMeta: fetchImageMeta, setTransport: setTransport, uuidOf: uuidOf, idOf: idOf, metaOf: metaOf, cleanPrompt: cleanPrompt, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
+  var api = { licenseItems: licenseItems, pickVersion: pickVersion, gallery: gallery, details: details, safeHtml: safeHtml, fetchModel: fetchModel, fetchImages: fetchImages, search: search, fetchImageMeta: fetchImageMeta, setTransport: setTransport, uuidOf: uuidOf, idOf: idOf, metaOf: metaOf, cleanPrompt: cleanPrompt, modelIdOf: modelIdOf, snapRatio: snapRatio, commercial: commercial, sized: sized };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else window.CivitaiInfo = api;
 })();
