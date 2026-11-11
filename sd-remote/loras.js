@@ -168,7 +168,14 @@
     knownSubs.push(refill); if (Date.now() - knownAt > 30000 && window.SDLoras) window.SDLoras.load();
     function key(e) { if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); go(-1); } else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); go(1); } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } }
     prev.addEventListener('click', function (e) { e.stopPropagation(); go(-1); }); next.addEventListener('click', function (e) { e.stopPropagation(); go(1); });
-    document.addEventListener('keydown', key, true); o.addEventListener('click', close);
+    // свайп пальцем по картинці: вліво — наступна, вправо — попередня (тап без руху, як і раніше, закриває)
+    var tx = 0, ty = 0, swiped = false;
+    imgBox.addEventListener('touchstart', function (e) { if (e.touches.length !== 1) return; tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+    imgBox.addEventListener('touchend', function (e) {
+      var t = e.changedTouches[0]; if (!t || o.classList.contains('show-data')) return; var dx = t.clientX - tx, dy = t.clientY - ty;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { swiped = true; setTimeout(function () { swiped = false; }, 450); go(dx < 0 ? 1 : -1); }
+    }, { passive: true });
+    document.addEventListener('keydown', key, true); o.addEventListener('click', function () { if (!swiped) close(); });
     ($('lDlg').open ? $('lDlg') : document.body).appendChild(o); load();
   }
   function dragScroll(box) {   // потягнув мишкою — прокручується; простий клік (без руху) відкриває картинку
@@ -221,26 +228,30 @@
   // Галерея-«мурашник» з безкінечним підвантаженням, сортуванням і зумом плиток. Використовується у вікні LoRA й у вкладці «Ідеї».
   // opts: fetchPage(cursor, {sort, period}) → Promise<{items, next}>, alive() → чи ще потрібна, empty — текст порожнього результату
   function mkGallery(root, opts) {
-    var cursor = '', ended = false, loading = false, gen = 0, started = false, all = [], cols = [], hs = [], zoom = 220;
+    var cursor = '', ended = false, loading = false, gen = 0, started = false, all = [], cols = [], hs = [], want = 0;
     var gbox = el('div', 'ld-gbox'), gmsg = el('p', 'lm ld-gmsg'), more = el('div', 'ld-sentinel');
-    try { zoom = Math.max(100, Math.min(480, +localStorage.getItem('sd_galzoom') || 220)); } catch (e) { /* не критично */ }
-    var zbar = el('div', 'ld-zoom'), zr = el('input'); zr.type = 'range'; zr.min = 100; zr.max = 480; zr.step = 10; zr.value = zoom; zr.title = 'Розмір плиток';
+    try { want = +localStorage.getItem('sd_galcols') || 0; } catch (e) { /* не критично */ }
+    var zbar = el('div', 'ld-zoom'), zr = el('input'), zv = el('span', 'lm ld-zv'); zr.type = 'range'; zr.min = 1; zr.max = 8; zr.step = 1; zr.title = 'Скільки плиток у ряд';
     var sel = function (title, list) { var s = el('select'); s.title = title; list.forEach(function (o) { var x = el('option', null, o[1]); x.value = o[0]; s.appendChild(x); }); return s; };
     var sSort = sel('Сортування', [['Most Reactions', 'За реакціями'], ['Most Comments', 'За коментарями'], ['Newest', 'Спочатку нові']]), sPer = sel('Період', [['AllTime', 'За весь час'], ['Year', 'За рік'], ['Month', 'За місяць'], ['Week', 'За тиждень'], ['Day', 'За день']]);
     function reset() { gen++; ended = false; all = []; cursor = ''; loading = false; gbox.textContent = ''; cols = []; hs = []; gmsg.textContent = ''; pull(); }
     sSort.addEventListener('change', function () { sPer.disabled = sSort.value === 'Newest'; reset(); }); sPer.addEventListener('change', reset);
-    zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Розмір плиток')); zbar.appendChild(zr); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
+    zbar.appendChild(sSort); zbar.appendChild(sPer); zbar.appendChild(el('span', 'lm', 'Плиток у ряд')); zbar.appendChild(zr); zbar.appendChild(zv); zbar.appendChild(el('span', 'lm ld-ratios', 'пропорції підбираються автоматично'));
     function place(g) {   // у найкоротшу колонку; висота плитки ∝ 1/пропорція
       var m = 0, i; for (i = 1; i < hs.length; i++) if (hs[i] < hs[m] - 0.001) m = i;
       cols[m].appendChild(galTile(g, true, function () { return all; })); hs[m] += 1 / window.CivitaiInfo.snapRatio(g.w, g.h);
     }
+    function colsFor(w) {   // кількість колонок: за вибором користувача, але не вужче ~80 px; типово 2 на телефоні, 4 на ширшому екрані
+      var max = Math.max(1, Math.min(8, Math.floor((w + 8) / 72))), n = want || (w < 600 ? 2 : Math.min(4, max)); return Math.max(1, Math.min(max, n));
+    }
     function layout() {
-      var w = gbox.clientWidth || root.clientWidth || 800, n = Math.max(1, Math.floor((w + 8) / (zoom + 8))); gbox.textContent = ''; cols = []; hs = [];
+      var w = gbox.clientWidth || root.clientWidth || 800, n = colsFor(w), max = Math.max(1, Math.min(8, Math.floor((w + 8) / 72)));
+      zr.max = max; zr.value = n; zv.textContent = String(n); gbox.textContent = ''; cols = []; hs = [];
       for (var i = 0; i < n; i++) { var c = el('div', 'ld-col'); cols.push(c); hs.push(0); gbox.appendChild(c); }
       all.forEach(place);
     }
-    zr.addEventListener('input', function () { zoom = +zr.value; try { localStorage.setItem('sd_galzoom', String(zoom)); } catch (e) { /* не критично */ } layout(); });
-    if (window.ResizeObserver) new ResizeObserver(function () { if (root.offsetParent !== null && gbox.clientWidth && Math.max(1, Math.floor((gbox.clientWidth + 8) / (zoom + 8))) !== cols.length) layout(); }).observe(root);
+    zr.addEventListener('input', function () { want = +zr.value; try { localStorage.setItem('sd_galcols', String(want)); } catch (e) { /* не критично */ } layout(); });
+    if (window.ResizeObserver) new ResizeObserver(function () { if (root.offsetParent !== null && gbox.clientWidth && colsFor(gbox.clientWidth) !== cols.length) layout(); }).observe(root);
     root.textContent = ''; if (opts.before) root.appendChild(opts.before); root.appendChild(zbar); root.appendChild(gbox); root.appendChild(gmsg); root.appendChild(more);
     // підвантаження: спостерігаємо за маркером внизу відносно екрана (працює і коли прокручується не сама галерея, а все вікно, як на телефоні)
     var io = window.IntersectionObserver ? new IntersectionObserver(function (es) { if (es[0] && es[0].isIntersecting && started && !ended && !loading) pull(); }, { rootMargin: '600px' }) : null;

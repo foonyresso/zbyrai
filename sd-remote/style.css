@@ -297,7 +297,7 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
   .lbigv { flex-direction: column !important; overflow: hidden !important; padding: 8px !important; gap: 0 !important; }
   .lbigv .lbig-img { flex: 1 1 auto !important; width: 100%; min-height: 0; }
   .lbigv .lbig-img img { max-width: 100% !important; max-height: calc(100vh - 90px) !important; max-height: calc(100dvh - 90px) !important; }
-  .lbig-side { display: none; position: absolute; inset: 52px 8px 70px 8px; flex: none !important; max-width: none !important; max-height: none !important; width: auto; background: rgba(23,23,29,.96) !important; z-index: 4; }
+  .lbig-side { display: none; position: fixed; top: 52px; left: 8px; right: 8px; bottom: auto; height: calc(100vh - 128px); height: calc(100dvh - 128px); flex: none !important; max-width: none !important; max-height: none !important; width: auto; margin: 0; align-self: auto; overflow-y: auto !important; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: rgba(23,23,29,.96) !important; z-index: 4; }
   .lbigv.show-data .lbig-side { display: block; } .lbigv.show-data .lbig-img { visibility: hidden; }
   .lbigv .lb-nav { position: fixed; bottom: 14px; z-index: 6; width: 46px; height: 46px; } .lbigv .lb-nav.l { left: 14px; } .lbigv .lb-nav.r { right: 14px; }
   .lb-info { display: block; position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 6; padding: 10px 20px; border-radius: 99px; background: rgba(0,0,0,.75); color: #fff; border: 1px solid rgba(255,255,255,.25); }
@@ -324,3 +324,5 @@ body.inp-mode .gen-only { display: none !important; } body:not(.inp-mode) .inp-o
   .to-top { position: fixed; right: 12px; bottom: 84px; z-index: 940; width: 44px; height: 44px; border-radius: 50%; padding: 0; font-size: 22px; line-height: 1; background: rgba(20,20,26,.92); border: 1px solid #3a3a46; color: #eee; box-shadow: 0 4px 16px rgba(0,0,0,.45); } .to-top:not([hidden]) { display: block; }
   header.top { padding-right: 130px; }
 }
+
+.lbig-img { touch-action: pan-y; }
