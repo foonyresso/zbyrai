@@ -7,6 +7,7 @@
 | [../mechanics/README.md](../mechanics/README.md) | Механіки: інтерфейси й формати |
 | [zakladyny.md](zakladyny.md) | Закладини: правила гри, баланс |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Головна ідея сайту: механіки окремо (`mechanics/`), інструменти їх комбінують; перелік механік |
+| [video-editor.md](video-editor.md) | Відео редактор і конвертер: модель частин, файли, як працює експорт, джерела й ліцензії бібліотек, план етапу 2 |
 | [tools-map.md](tools-map.md) | Кожен інструмент: папка, код, тести, ключ localStorage |
 | [shared-files.md](shared-files.md) | Спільні файли: тема, хаб, sitemap, скрипти в `tools/` |
 | [settlement-sim.md](settlement-sim.md) | Симуляція поселення: карта файлів, порядок скриптів, як влаштовані жителі, бій і місто |
@@ -37,11 +38,13 @@
 mechanics/               механіки окремо (rng, atlas-map, trade, building, settlers, threats, needs, schedule, combat, spawner, pathgrid): чиста логіка, без DOM; їх комбінують інструменти (див. ARCHITECTURE.md)
 settlement-sim/          Симуляція поселення (20 жителів, день і ніч, бої): див. settlement-sim.md; спрайти кодом (px, biped, buildings…), layout.js, routine/social/defend.js
 zakladyny/               гра «Закладини»: комбінує механіки; zk-game.js (доба), zk-save.js, zk-render.js, zk-panels.js, app.js
-index.html, assets/      головна сторінка (хаб) і її стилі/скрипт
+index.html, assets/      головна сторінка (хаб) і її стилі/скрипт; на ній є картка «Віддалений SD» (посилання на sd-remote/, вхід лишається обов’язковим)
 shared/ui/               UI-кіт: zb-ui.css + zb-ui.js (верхня панель, іконки-меню, панелі, довідка «i»); копії в інструментах на кіті (atlas2, tessera)
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
 tools/                   sync-theme.mjs, ui-rules.test.js, build-world-themes.mjs (теми вимірів із палітр lore), build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
 image-converter/         Конвертер зображень (convert-core, zip-core, convert-render, воркер і пул, app.js)
+video-editor/           Відео редактор і конвертер: див. video-editor.md; ve-core (логіка), ve-engine (ffmpeg.wasm), ve-player/timeline/thumbs/crop (вигляд), ve-panels/export (меню, експорт), vendor/ (обгортка ffmpeg, джерела й ліцензії)
+audio-editor/            Аудіо редактор і конвертер: audio-core (монтаж), dsp-core (тон, швидкість, фейди), render-core, encode-core, wav-core, ffmpeg-loader (+vendor/), воркер і пул, timeline.js (хвиля), app.js
 <інструмент>/            index.html, app.js, *-core.js, style.css, theme.css, README.md, test/
 prompt-dice/             Кубик промптів: pools/styles/types (параметри), flux-*.js (Flux), mk-*.js (манекен: фігура, категорії, слоти), menu-tree.js (дані меню: категорії → підгрупи), ui-menu.js (дерево й пошук), ui-workspace.js і ui-cards.js (центр: групи й картки), ui-mannequin.js (манекен), ui-dialogs.js (історія, пресети, налаштування), app.js (стан і збирання промптів)
 medieval-world/          «Проект Атлас»: src/ (нескінченний світ, render/world/style.js — тема виміру, місто, core/atlas.js реєстр), worlds/<id>/world.js (по світу на файл; continent/ має власний код), src/generation/world/settle-water.js (місто стає на берег моря/озера/річки: пошук води, SE з реального берега, русло з річок світу), src/render/world/hover-region.js (підсвітка провінції/регіону при наведенні), biomes/<id>.js (по біому на файл), monsters/<id>.js (по монстру), dungeons/<id>.js (по типу підземелля), registry.js (генерується)

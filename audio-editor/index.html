@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Аудіо редактор і конвертер</title>
+<meta name="description" content="Аудіо редактор і конвертер: хвиля й таймлайн, обрізка, розрізання, видалення ділянок, швидкість і тон, гучність, фейди, нормалізація; експорт у MP3, WAV, OGG, M4A, FLAC. Усе локально в браузері, безкоштовно.">
+<link rel="canonical" href="https://zbyrai.pages.dev/audio-editor/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Аудіо редактор і конвертер: обрізка, швидкість, тон, MP3/WAV/OGG/M4A/FLAC">
+<meta property="og:description" content="Відкрий звук, обріж, розріж, прискор, зміни тон і гучність та збережи в потрібному форматі. Нічого не вантажиться в інтернет.">
+<meta property="og:url" content="https://zbyrai.pages.dev/audio-editor/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M5 16h3M10 10v12M15 6v20M20 11v10M25 14v4%27 fill=%27none%27 stroke=%27%2358c4b0%27 stroke-width=%272.4%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Аудіо редактор <span>і конвертер</span></div>
+  <button id="btnOpen" title="Вибрати аудіофайл (MP3, WAV, OGG, M4A, FLAC та інші) на комп'ютері; можна й перетягнути на полотно">Відкрити файл</button>
+  <button id="btnExport" class="btn-main" title="Зібрати результат за монтажем і завантажити у форматі, обраному в меню «Експорт»" disabled>Експорт</button>
+  <input type="file" id="fileIn" accept="audio/*,video/*,.mp3,.wav,.ogg,.oga,.m4a,.aac,.flac,.opus,.wma,.aiff,.aif,.mp4,.webm" hidden>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+</header>
+
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Аудіо редактор і конвертер</h2>
+  <h3>Що це</h3><p>Простий редактор звуку й конвертер форматів. Відкриваєш файл, бачиш хвилю на таймлайні, ріжеш і склеюєш, міняєш швидкість, тон і гучність, а потім зберігаєш у MP3, WAV, OGG, M4A чи FLAC. Усе робиться в браузері, файл нікуди не вантажиться.</p>
+  <h3>Для чого</h3><p>Обрізати тишу з країв, вирізати зайве, прискорити запис голосу, підняти тон, вирівняти гучність, додати плавний початок і кінець, стиснути в MP3 чи перевести в WAV для гри.</p>
+  <h3>Як користуватися</h3>
+  <ol>
+    <li><b>Відкрий файл</b> кнопкою угорі або перетягни його на полотно.</li>
+    <li><b>Таймлайн.</b> Клік ставить курсор; перетягни по хвилі, щоб виділити ділянку (краї виділення можна посунути). Колесо мишки змінює масштаб, Shift+колесо гортає.</li>
+    <li><b>Меню «Ділянка».</b> Розрізати в курсорі (S), видалити виділене (Delete), обрізати зліва чи справа від курсору, залишити лише виділене. Нижче швидкість, тон і гучність: вони застосовуються до виділеної ділянки, а без виділення до фрагмента під курсором.</li>
+    <li><b>Меню «Загальне».</b> Гучність усього запису, плавний початок і кінець, нормалізація до заданого піку.</li>
+    <li><b>Меню «Експорт».</b> Формат, бітрейт чи розрядність, частота, канали. Кнопка «Експорт» угорі збирає й завантажує файл.</li>
+    <li>Пробіл відтворює з курсора, Ctrl+Z скасовує, Ctrl+Shift+Z повертає.</li>
+  </ol>
+  <p>WAV збирається прямо в браузері. Для MP3, OGG, M4A і FLAC при першому експорті один раз завантажується кодувальник ffmpeg (~32 МБ, потім береться з кешу браузера); для цього потрібен інтернет.</p>
+</dialog>
+
+<main class="stage" id="work">
+  <div class="tl" id="tl">
+    <canvas id="cv" title="Хвиля: клік ставить курсор, перетягування виділяє ділянку, колесо змінює масштаб, Shift+колесо гортає"></canvas>
+    <input type="range" id="tlScroll" min="0" max="1000" value="0" step="1" title="Прокрутка таймлайна" aria-label="Прокрутка таймлайна">
+    <div class="info" id="info" hidden></div>
+    <div class="empty" id="empty">Перетягни сюди аудіофайл або натисни «Відкрити файл»</div>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="Меню">
+    <button data-panel="seg" title="Розрізати, видалити, обрізати; швидкість, тон і гучність ділянки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8 7.5 20 17M8 16.5 20 7"/></svg><span>Ділянка</span></button>
+    <button data-panel="master" title="Загальна гучність, плавний початок і кінець, нормалізація"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Загальне</span></button>
+    <button data-panel="exp" title="Формат, бітрейт, частота й канали результату"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg><span>Експорт</span></button>
+  </nav>
+  <aside class="drawer" id="drawer" data-store="ae_panel" data-default="seg" hidden>
+    <button class="x" id="drawerX" title="Закрити меню">×</button>
+    <section data-panel="seg">
+      <h2>Ділянка</h2>
+      <p class="hint" id="tgtInfo">Відкрий файл і виділи ділянку на таймлайні.</p>
+      <div class="two">
+        <label title="Початок виділеної ділянки (хвилини:секунди)">Початок <input type="text" id="selA" placeholder="0:00.00" title="Початок виділення, наприклад 1:23.5 або 83.5" autocomplete="off"></label>
+        <label title="Кінець виділеної ділянки (хвилини:секунди)">Кінець <input type="text" id="selB" placeholder="0:00.00" title="Кінець виділення, наприклад 2:10 або 130" autocomplete="off"></label>
+      </div>
+      <div class="two">
+        <button id="btnSplit" title="Розрізати запис у місці курсора на два фрагменти (S)">✂ Розрізати (S)</button>
+        <button id="btnDel" title="Видалити виділену ділянку, а без виділення фрагмент під курсором; решта зсувається (Delete)">Видалити (Del)</button>
+        <button id="btnTrimL" title="Прибрати все, що зліва від курсора">Обрізати зліва</button>
+        <button id="btnTrimR" title="Прибрати все, що справа від курсора">Обрізати справа</button>
+      </div>
+      <button id="btnCrop" title="Залишити лише виділену ділянку, а все інше прибрати">Залишити лише виділене</button>
+      <h2>Швидкість, тон, гучність</h2>
+      <label title="Швидкість: 1 = як є, 2 = вдвічі швидше, 0.5 = вдвічі повільніше">Швидкість <span class="val" id="spdV"></span>
+        <input type="range" id="spd" min="-200" max="200" step="1" title="Швидкість від 0.25× до 4× (шкала логарифмічна)"></label>
+      <label title="Зсув висоти звуку в півтонах: +12 = на октаву вище">Тон, півтонів <span class="val" id="pitV"></span>
+        <input type="range" id="pit" min="-12" max="12" step="0.5" title="Тон від −12 до +12 півтонів"></label>
+      <label class="chk" title="Увімкнено: тон змінюється разом зі швидкістю, як у старої плівки (швидше = вище). Вимкнено: швидкість змінюється без зміни тону"><input type="checkbox" id="tape" title="Тон змінюється разом зі швидкістю"> Тон разом зі швидкістю (як плівка)</label>
+      <label title="Гучність саме цієї ділянки в децибелах: −6 дБ приблизно вдвічі тихіше, +6 дБ вдвічі гучніше">Гучність ділянки <span class="val" id="gdbV"></span>
+        <input type="range" id="gdb" min="-60" max="24" step="0.5" title="Гучність ділянки від −60 до +24 дБ"></label>
+      <div class="two">
+        <button class="btn-main" id="btnApply" title="Застосувати швидкість, тон і гучність до виділеної ділянки (чи фрагмента під курсором)">Застосувати</button>
+        <button id="btnReset" title="Повернути ділянці швидкість 1, тон 0 і гучність 0 дБ">Скинути ділянку</button>
+      </div>
+      <p class="hint">Швидкість змінює тривалість: ділянка на таймлайні стає коротшою чи довшою.</p>
+    </section>
+    <section data-panel="master">
+      <h2>Загальне</h2>
+      <label title="Підсилення чи приглушення всього запису; діє після монтажу ділянок">Загальна гучність <span class="val" id="mgV"></span>
+        <input type="range" id="mg" min="-24" max="24" step="0.5" title="Загальна гучність від −24 до +24 дБ"></label>
+      <label title="Тривалість плавного наростання звуку на початку">Плавний початок (fade in), с <span class="val" id="fiV"></span>
+        <input type="range" id="fi" min="0" max="10" step="0.1" title="Fade in від 0 до 10 секунд"></label>
+      <label title="Тривалість плавного згасання звуку наприкінці">Плавний кінець (fade out), с <span class="val" id="foV"></span>
+        <input type="range" id="fo" min="0" max="10" step="0.1" title="Fade out від 0 до 10 секунд"></label>
+      <label class="chk" title="Підсилює чи приглушує весь запис так, щоб найгучніше місце досягло заданого піку"><input type="checkbox" id="norm" title="Нормалізувати гучність до піку"> Нормалізація до піку</label>
+      <label title="До якого рівня підганяється найгучніше місце: 0 дБ = максимум, −1 дБ = невеликий запас">Цільовий пік, дБ <span class="val" id="ndV"></span>
+        <input type="range" id="nd" min="-12" max="0" step="0.5" title="Цільовий пік нормалізації від −12 до 0 дБ"></label>
+      <p class="hint">Нормалізація стоїть останньою, тож загальна гучність при ній не впливає на результат. Якщо пік перевищує 0 дБ, звук буде обрізано; зменш гучність або увімкни нормалізацію.</p>
+    </section>
+    <section data-panel="exp">
+      <h2>Експорт</h2>
+      <div class="seg wide" id="fmtSeg" role="group" aria-label="Формат файлу"></div>
+      <p class="hint" id="fmtNote"></p>
+      <label id="kbpsBox" title="Бітрейт: більше число дає кращу якість і більший файл">Бітрейт, кбіт/с <select id="kbps" title="Бітрейт стисненого формату"></select></label>
+      <label id="bitsBox" title="Розрядність без втрат: 16 біт для звичайних файлів, 24 для студійних, 32 (float) для подальшої обробки">Розрядність, біт <select id="bits" title="Розрядність"></select></label>
+      <label title="Частота дискретизації результату; «Як у джерелі» не змінює її">Частота <select id="rate" title="Частота дискретизації"></select></label>
+      <label title="Кількість каналів: моно робить файл удвічі меншим">Канали <select id="chs" title="Канали"></select></label>
+      <p class="hint" id="estimate"></p>
+      <button class="btn-main" id="btnExport2" title="Зібрати результат і завантажити" disabled>Завантажити результат</button>
+    </section>
+  </aside>
+
+  <div class="bar" id="bar">
+    <button id="btnPlay" title="Відтворити з курсора або поставити на паузу (пробіл)" disabled>▶</button>
+    <button id="btnStop" title="Зупинити й повернути курсор на початок" aria-label="Стоп" disabled>■</button>
+    <button id="btnPlaySel" title="Прослухати лише виділену ділянку" disabled>▶ Ділянка</button>
+    <button id="btnUndo" title="Скасувати останню зміну (Ctrl+Z)" aria-label="Скасувати" disabled>↶</button>
+    <button id="btnRedo" title="Повернути скасовану зміну (Ctrl+Shift+Z)" aria-label="Повернути" disabled>↷</button>
+    <button id="btnZoomOut" title="Віддалити таймлайн">−</button>
+    <button id="btnZoomIn" title="Наблизити таймлайн">+</button>
+    <button id="btnFit" title="Показати весь запис на екрані">Весь запис</button>
+    <span class="clock" id="clock" title="Курсор / тривалість після монтажу">0:00.00 / 0:00.00</span>
+  </div>
+  <div class="prog" id="prog" hidden><span id="progTxt"></span><div class="pbar"><i id="progBar"></i></div></div>
+</main>
+
+<div class="toast" id="toast">Готово</div>
+
+<script src="./zb-ui.js"></script>
+<script src="./dsp-core.js"></script>
+<script src="./audio-core.js"></script>
+<script src="./render-core.js"></script>
+<script src="./wav-core.js"></script>
+<script src="./encode-core.js"></script>
+<script src="./peaks-core.js"></script>
+<script src="./sniff-core.js"></script>
+<script src="./ffmpeg-loader.js"></script>
+<script src="./render-pool.js"></script>
+<script src="./timeline.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
