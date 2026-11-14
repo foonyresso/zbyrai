@@ -6,18 +6,21 @@
   function build(W) {
     const { w, h } = W, nz = A.Noise.make(W.params.seed + '|wave'), near = new Float32Array(w * h).fill(99), q = [];
     const ALL = W.roads.concat((W.resRoads || []).map(r => ({ level: r.kind === 'cart' ? 5 : 6, cells: r.cells, sid: r.sid }))); // дороги до точок ресурсів малюються так само звивисто, але до міст не передаються
-    for (const s of W.settlements.concat(W.landmarks || [], W.resources || [])) { near[s.i] = 0; q.push(s.i); } // біля поселень дорога не зміщується: вузли лишаються на місці
+    for (const s of W.settlements.concat(W.landmarks || [], W.resources || [])) { near[s.i] = 0; q.push(s.i); }
     for (let k = 0; k < q.length; k++) { const i = q[k]; if (near[i] >= 4) continue; const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (near[j] > near[i] + 1) { near[j] = near[i] + 1; q.push(j); } } }
+    // для дрібного звивання: окремо від settlement-зони нерухомі ще кінці шляхів (стики), у радіусі ~2 клітин; великий зсув однаковий на всіх рівнях, тож стики точні
+    const nearM = near.slice(), q2 = []; for (const r of ALL) for (const i of [r.cells[0], r.cells[r.cells.length - 1]]) if (nearM[i] > 0) { nearM[i] = 0; q2.push(i); }
+    for (let k = 0; k < q2.length; k++) { const i = q2[k]; if (nearM[i] >= 3) continue; const x = i % w, y = (i / w) | 0; for (let d = 0; d < 8; d++) { const nx = x + A.Grid.DX[d], ny = y + A.Grid.DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx; if (nearM[j] > nearM[i] + 1) { nearM[j] = nearM[i] + 1; q2.push(j); } } }
     // зсув — гладке двовимірне поле від місця (не від напрямку дороги), тож дороги на спільних клітинах збігаються точно
-    const ox = (x, y) => (nz.fbm(x * 0.11 + 3, y * 0.11 + 7, 2) - 0.5) * 7.5 + (nz.fbm(x * 0.29 + 50, y * 0.29, 1) - 0.5) * 2.4;
-    const oy = (x, y) => (nz.fbm(x * 0.11 + 91, y * 0.11 + 13, 2) - 0.5) * 7.5 + (nz.fbm(x * 0.29, y * 0.29 + 70, 1) - 0.5) * 2.4;
-    function wavy(cells, amp, fixedEnds) {
+    const ox = (x, y, hi) => (nz.fbm(x * 0.11 + 3, y * 0.11 + 7, 2) - 0.5) * 7.5 + (nz.fbm(x * 0.29 + 50, y * 0.29, 1) - 0.5) * 2.4 * hi;
+    const oy = (x, y, hi) => (nz.fbm(x * 0.11 + 91, y * 0.11 + 13, 2) - 0.5) * 7.5 + (nz.fbm(x * 0.29, y * 0.29 + 70, 1) - 0.5) * 2.4 * hi;
+    function wavy(cells, amp, fixedEnds, micro, hi) {
       const P = []; cells.forEach(i => {
         const x = (i % w) + 0.5, y = ((i / w) | 0) + 0.5, u = fixedEnds ? Math.min(1, near[i] / 4) : 1, t = u * u * (3 - 2 * u);
-        P.push(x + ox(x, y) * amp * t, y + oy(x, y) * amp * t);
+        P.push(x + ox(x, y, hi) * amp * t, y + oy(x, y, hi) * amp * t);
       });
       const Q = C.chaikin(C.relaxOpen(P, 3), 2, false); // дрібний звивистий зсув у масштабі клітини: при великому наближенні дорога не рівна, як лінійка; біля поселень без зсуву
-      for (let k = 0; k < Q.length; k += 2) { const x = Q[k], y = Q[k + 1], cx = Math.min(w - 1, Math.max(0, Math.floor(x))), cy = Math.min(h - 1, Math.max(0, Math.floor(y))), u = fixedEnds ? Math.min(1, near[cy * w + cx] / 1.4) : 1, t = u * u * (3 - 2 * u) * amp; if (t > 0) { Q[k] += (nz.fbm(x * 0.7 + 11, y * 0.7 + 5, 2) - 0.5) * 1.8 * t; Q[k + 1] += (nz.fbm(x * 0.7 + 37, y * 0.7 + 83, 2) - 0.5) * 1.8 * t; } }
+      for (let k = 0; k < Q.length; k += 2) { const x = Q[k], y = Q[k + 1], cx = Math.min(w - 1, Math.max(0, Math.floor(x))), cy = Math.min(h - 1, Math.max(0, Math.floor(y))), u = fixedEnds ? Math.min(1, nearM[cy * w + cx] / 1.8) : 1, t = u * u * (3 - 2 * u) * micro; if (t > 0) { Q[k] += (nz.fbm(x * 0.5 + 11, y * 0.5 + 5, 2) - 0.5) * 1.0 * t; Q[k + 1] += (nz.fbm(x * 0.5 + 37, y * 0.5 + 83, 2) - 0.5) * 1.0 * t; } }
       return C.chaikin(Q, 1, false);
     }
     // стики: якщо відрізок кінчається в клітині, що є серединою іншого, той розрізається там — кінці згладжуються нерухомими, тож стик точний
@@ -27,8 +30,10 @@
       const cs = cuts.get(n); if (!cs) { pieces.push(r); return; }
       let from = 0; for (let k = 1; k < r.cells.length; k++) if (cs.has(r.cells[k]) || k === r.cells.length - 1) { if (k - from >= 1) pieces.push({ level: r.level, sid: r.sid, cells: r.cells.slice(from, k + 1) }); from = k; }
     });
-    const pts = pieces.map(r => ({ level: r.level, sid: r.sid, pts: wavy(r.cells, 1, true) }));
-    return { roads: pts.filter(r => r.level <= 4), res: pts.filter(r => r.level > 4), sea: (W.seaRoutes || []).map(r => ({ pts: wavy(r.cells, 0.35, false) })) };
+    // звивистість за рівнем дороги [великий зсув, дрібне звивання, частка швидкої хвилі]: головні й середні дороги лише злегка (їх маршрут уже гнеться по рельєфу), малі й стежки сильніше
+    const KIND = { 1: [1, 0.3, 1], 2: [1, 0.4, 1], 3: [1, 0.6, 1], 4: [1, 0.8, 1], 5: [1, 1, 1], 6: [1, 1, 1] };
+    const pts = pieces.map(r => { const k = KIND[r.level] || KIND[4]; return { level: r.level, sid: r.sid, pts: wavy(r.cells, k[0], true, k[1], k[2]) }; });
+    return { roads: pts.filter(r => r.level <= 4), res: pts.filter(r => r.level > 4), sea: (W.seaRoutes || []).map(r => ({ pts: wavy(r.cells, 0.35, false, 0.35, 1) })) };
   }
   A.RoadGeom = { build };
 })();
