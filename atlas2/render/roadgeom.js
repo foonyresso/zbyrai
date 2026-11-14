@@ -17,7 +17,7 @@
         P.push(x + ox(x, y) * amp * t, y + oy(x, y) * amp * t);
       });
       const Q = C.chaikin(C.relaxOpen(P, 3), 2, false); // дрібний звивистий зсув у масштабі клітини: при великому наближенні дорога не рівна, як лінійка; біля поселень без зсуву
-      for (let k = 0; k < Q.length; k += 2) { const x = Q[k], y = Q[k + 1], cx = Math.min(w - 1, Math.max(0, Math.floor(x))), cy = Math.min(h - 1, Math.max(0, Math.floor(y))), u = fixedEnds ? Math.min(1, near[cy * w + cx] / 2) : 1, t = u * u * (3 - 2 * u) * amp; if (t > 0) { Q[k] += (nz.fbm(x * 0.7 + 11, y * 0.7 + 5, 2) - 0.5) * 1.8 * t; Q[k + 1] += (nz.fbm(x * 0.7 + 37, y * 0.7 + 83, 2) - 0.5) * 1.8 * t; } }
+      for (let k = 0; k < Q.length; k += 2) { const x = Q[k], y = Q[k + 1], cx = Math.min(w - 1, Math.max(0, Math.floor(x))), cy = Math.min(h - 1, Math.max(0, Math.floor(y))), u = fixedEnds ? Math.min(1, near[cy * w + cx] / 1.4) : 1, t = u * u * (3 - 2 * u) * amp; if (t > 0) { Q[k] += (nz.fbm(x * 0.7 + 11, y * 0.7 + 5, 2) - 0.5) * 1.8 * t; Q[k + 1] += (nz.fbm(x * 0.7 + 37, y * 0.7 + 83, 2) - 0.5) * 1.8 * t; } }
       return C.chaikin(Q, 1, false);
     }
     // стики: якщо відрізок кінчається в клітині, що є серединою іншого, той розрізається там — кінці згладжуються нерухомими, тож стик точний
