@@ -47,8 +47,11 @@
   const warmBlk = async b => { try { await A.draw.warm(b.W, A.GenClient.tick); } finally { b.warming = false; if (opening && opening.id === b.id) opening = null; hovCloud = null; redraw(); } }; // растри материка готуються кроками, камера не завмирає
   const blkAdded = b => { b.warming = true; warmBlk(b); blkBadge(''); showStats(); };
   function activate(b) { if (b === cur) return; cur = b; W = b.W; A.world = W; hlKey = infoKey = ''; hover = null; }
-  function keepBlocks() { // материки не створюються самі: лише тайли й контури; вивантаження далеких і активний материк у центрі вікна
-    if (!B) return; const R = A.BlocksView, r = R.window(cv, view, 0.12), vis = new Set(B.descsIn(r.x0, r.y0, r.x1, r.y1).map(d => d.id)), cxw = (cv.width / 2 - view.tx) / view.k, cyw = (cv.height / 2 - view.ty) / view.k;
+  let growT = 0;
+  function keepBlocks() { // материки не створюються самі: розкладка кладе лише контури; вивантаження далеких і активний материк у центрі вікна
+    if (!B) return; const R = A.BlocksView, r = R.window(cv, view, 0.2), g = B.grow(r.x0, r.y0, r.x1, r.y1, 40); // нові материки кладуться порціями, щоб не гальмувати
+    if (g.placed) redraw(); if (g.more) { clearTimeout(growT); growT = setTimeout(keepBlocks, 60); }
+    const r2 = R.window(cv, view, 0.12), vis = new Set(B.descsIn(r2.x0, r2.y0, r2.x1, r2.y1).map(d => d.id)), cxw = (cv.width / 2 - view.tx) / view.k, cyw = (cv.height / 2 - view.ty) / view.k;
     for (const b of B.list()) if (!vis.has(b.id)) A.draw.release(b.W); // растри материків поза вікном звільняємо, дані лишаються
     B.evict(cxw, cyw, 12, vis).forEach(b => A.draw.release(b.W));
     if (!last) { const d = B.at(cxw, cyw), c = d && B.get(d.id); if (c) activate(c); } // без курсора активний материк у центрі вікна (для панелі «Як працює»)

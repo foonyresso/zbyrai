@@ -13,10 +13,19 @@
       for (let k = 0; k <= n; k++) {
         const t = k / n, bulge = 0.7 + 0.6 * (0.5 + 0.5 * Math.sin(ph + t * fq * 6.28)); pts.push({ x, y, wd: (wd0 + (wd1 - wd0) * t) * S * bulge });
         if (r() < 0.12) curv = rr(-1, 1) * bend; head += curv * 0.5 + (r() - 0.5) * bend * 0.4; x += Math.cos(head) * step; y += Math.sin(head) * step;
-        const m = pad + 0.01, cx = w / 2 - x, cy = h / 2 - y; if (x < w * m || x > w * (1 - m) || y < h * m || y > h * (1 - m)) head += 0.5 * Math.sin(Math.atan2(cy, cx) - head); // у межах карти
+        const m = pad + (p.pad != null ? 0.07 : 0.01), cx = w / 2 - x, cy = h / 2 - y; if (x < w * m || x > w * (1 - m) || y < h * m || y > h * (1 - m)) head += (p.pad != null ? 1.0 : 0.5) * Math.sin(Math.atan2(cy, cx) - head); // у межах карти
         [x, y] = clampPt(x, y);
       }
       return { pts, head };
+    }
+    if (p.arch) { // архіпелаг: багато коротких стрічок-островів, розкиданих по коробці (не за формою ніякої плитки)
+      const n = 7 + Math.floor(r() * 8), mg = pad + 0.06;
+      for (let k = 0; k < n; k++) {
+        const x = w * rr(mg, 1 - mg), y = h * rr(mg, 1 - mg), big = r() < 0.25, f = walk(x, y, rr(0, 6.28), rr(big ? 0.1 : 0.03, big ? 0.24 : 0.09) * L, rr(0.03, big ? 0.06 : 0.045), rr(0.012, 0.03), rr(0.3, 0.9));
+        out.push(f.pts);
+        if (big && r() < 0.6) { const q = f.pts[Math.floor(f.pts.length / 2)]; out.push(walk(q.x, q.y, rr(0, 6.28), rr(0.05, 0.12) * L, q.wd / S * 0.7, 0.015, 0.8).pts); }
+      }
+      return out;
     }
     const cs = p.cspread, c0 = cs ? 0.5 - cs : 0.4, c1 = cs ? 0.5 + cs : 0.6, cx = w * rr(c0, c1), cy = h * rr(c0, c1), a0 = rr(0, 6.28), len0 = rr(0.55, 0.85) * L, bend0 = rr(0.35, 0.8);
     const fw = walk(cx, cy, a0, len0 / 2, rr(0.055, 0.09), rr(0.03, 0.055), bend0), bw = walk(cx, cy, a0 + Math.PI, len0 / 2, rr(0.055, 0.09), rr(0.03, 0.055), bend0);
@@ -42,23 +51,9 @@
     }
     return D;
   }
-  // маска «власної» території материка (тайли з p.rects у координатах коробки), по клітинах із кроком step; null, якщо материк займає всю коробку
-  function ownMask(p, step) {
-    if (!p.rects) return null; const cw = Math.ceil(p.w / step), ch = Math.ceil(p.h / step), m = new Uint8Array(cw * ch);
-    for (const [x0, y0, x1, y1] of p.rects) for (let cy = Math.ceil(y0 / step); cy * step < y1 && cy < ch; cy++) for (let cx = Math.ceil(x0 / step); cx * step < x1 && cx < cw; cx++) m[cy * cw + cx] = 1;
-    return m;
-  }
-  // відстань (клітини карти) від клітини власної території до її межі (поза маскою й за краєм коробки)
-  function edgeDist(own, cw, ch, step) {
-    const d = new Float32Array(cw * ch); for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) d[y * cw + x] = !own[y * cw + x] ? 0 : (x === 0 || y === 0 || x === cw - 1 || y === ch - 1) ? 1 : 1e9;
-    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const i = y * cw + x; let v = d[i]; if (x) v = Math.min(v, d[i - 1] + 1); if (y) { v = Math.min(v, d[i - cw] + 1); if (x) v = Math.min(v, d[i - cw - 1] + 1.41); if (x < cw - 1) v = Math.min(v, d[i - cw + 1] + 1.41); } d[i] = v; }
-    for (let y = ch - 1; y >= 0; y--) for (let x = cw - 1; x >= 0; x--) { const i = y * cw + x; let v = d[i]; if (x < cw - 1) v = Math.min(v, d[i + 1] + 1); if (y < ch - 1) { v = Math.min(v, d[i + cw] + 1); if (x < cw - 1) v = Math.min(v, d[i + cw + 1] + 1.41); if (x) v = Math.min(v, d[i + cw - 1] + 1.41); } d[i] = v; }
-    for (let i = 0; i < d.length; i++) d[i] *= step; return d;
-  }
   // базова висота (до рівня моря й островів) на сітці з кроком step; для step = 1 це точно той самий ландшафт, що в terrain
-  function baseField(p, step, own) {
+  function baseField(p, step) {
     const { w, h } = p, cw = Math.ceil(w / step), ch = Math.ceil(h / step), hh = new Float32Array(cw * ch), nz = A.Noise.make(p.seed + '|t'), D = ribbonField(p, step), jr = A.Rng.stream(p.seed, 'micro'), pad = p.pad != null ? p.pad : 0.07;
-    const ed = own ? edgeDist(own, cw, ch, step) : null;
     for (let cy = 0; cy < ch; cy++) for (let cx = 0; cx < cw; cx++) {
       const x = cx * step, y = cy * step, nx = x / w, ny = y / h;
       const wx = nx + 0.14 * (nz.fbm(nx * 2.3 + 7, ny * 2.3 + 3, 3) - 0.5), wy = ny + 0.14 * (nz.fbm(nx * 2.3 + 31, ny * 2.3 + 19, 3) - 0.5);
@@ -72,36 +67,41 @@
       }
       const ridge = 1 - Math.abs(2 * nz.fbm(wx * 5 + 200, wy * 5 + 200, 4) - 1);
       v += p.rugged * 0.22 * Math.pow(ridge, 3) * sstep(0.4, 0.7, v);
-      const edge = ed ? ed[cy * cw + cx] : Math.min(nx, 1 - nx, ny, 1 - ny) * Math.min(w, h);
+      const edge = Math.min(nx, 1 - nx, ny, 1 - ny) * Math.min(w, h);
       if (step === 1) v += 0.012 * (jr() - 0.5); // мікрорельєф: річки не біжать рівними діагоналями
-      if (ed) { // власна територія (тайл): суша плавно спадає й закінчується на відстані від межі, сама межа хвиляста від шуму, тож обрізаного берега по прямій немає
-        const m0 = 12, e2 = edge + (nz.fbm(nx * 6 + 3, ny * 6 + 9, 3) - 0.5) * 24 + (nz.fbm(nx * 17 + 40, ny * 17 + 7, 2) - 0.5) * 10;
-        hh[cy * cw + cx] = v * sstep(m0, m0 + Math.max(24, 0.05 * Math.min(w, h)), e2); continue;
-      }
-      hh[cy * cw + cx] = v * sstep(2, Math.min(w, h) * pad, edge);
+      hh[cy * cw + cx] = v * sstep(2, Math.min(w, h) * (p.pad != null ? 0.04 : pad), edge); // з p.pad стрічки тримаються далеко від краю, тож береги не обрізаються рамкою коробки
     }
     return hh;
   }
   // грубий контур материка (дешево): суша на сітці з кроком step у координатах коробки; той самий ландшафт, що буде згенеровано повністю, без островів і дрібниць
   function outline(p, step) {
-    step = step || 6; const cw = Math.ceil(p.w / step), ch = Math.ceil(p.h / step), own = ownMask(p, step), hh = baseField(p, step, own), vals = [];
-    for (let i = 0; i < hh.length; i++) if (!own || own[i]) vals.push(hh[i]); vals.sort((a, b) => a - b);
-    const sea = vals[Math.floor((1 - p.landFrac) * (vals.length - 1))], land = new Uint8Array(cw * ch); for (let i = 0; i < hh.length; i++) land[i] = hh[i] > sea && (!own || own[i]) ? 1 : 0;
-    return { step, cw, ch, land, own, sea };
+    step = step || 6; const cw = Math.ceil(p.w / step), ch = Math.ceil(p.h / step), hh = baseField(p, step), sorted = Float32Array.from(hh).sort();
+    const sea = sorted[Math.floor((1 - p.landFrac) * (sorted.length - 1))], land = new Uint8Array(cw * ch); for (let i = 0; i < hh.length; i++) land[i] = hh[i] > sea ? 1 : 0;
+    return { step, cw, ch, land, sea };
+  }
+  // територія материка для розкладки: суша контуру, розширена на p.R клітин (поле для берега й островів); по грубій сітці. Береги й острови створюються лише тут, тож материки не заходять на чужі території
+  function footprint(p, step) {
+    const o = outline(p, step || 6), { cw, ch, land } = o, rc = Math.ceil(p.R / o.step) + 1, d = new Float32Array(cw * ch);
+    for (let i = 0; i < d.length; i++) d[i] = land[i] ? 0 : 1e9;
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const i = y * cw + x; let v = d[i]; if (x) v = Math.min(v, d[i - 1] + 1); if (y) { v = Math.min(v, d[i - cw] + 1); if (x) v = Math.min(v, d[i - cw - 1] + 1.41); if (x < cw - 1) v = Math.min(v, d[i - cw + 1] + 1.41); } d[i] = v; }
+    for (let y = ch - 1; y >= 0; y--) for (let x = cw - 1; x >= 0; x--) { const i = y * cw + x; let v = d[i]; if (x < cw - 1) v = Math.min(v, d[i + 1] + 1); if (y < ch - 1) { v = Math.min(v, d[i + cw] + 1); if (x < cw - 1) v = Math.min(v, d[i + cw + 1] + 1.41); if (x) v = Math.min(v, d[i + cw - 1] + 1.41); } d[i] = v; }
+    const own = new Uint8Array(cw * ch); for (let i = 0; i < own.length; i++) own[i] = d[i] <= rc ? 1 : 0;
+    return Object.assign(o, { own });
   }
   function terrain(p) {
     if (A.Params.isVoid(p)) return A.astrakorTerrain(p); // вимір «Астракор»: материк у космосі (core/astrakor.js)
-    const { w, h } = p, N = w * h, nz = A.Noise.make(p.seed + '|t'), own = ownMask(p, 1), hh = baseField(p, 1, own);
+    const { w, h } = p, N = w * h, nz = A.Noise.make(p.seed + '|t'), hh = baseField(p, 1), fp = p.R > 0 ? footprint(p) : null; let own = null; // fp: територія материка в безкінечному світі (розкладка, core/layout.js)
+    if (fp) { own = new Uint8Array(N); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) own[y * w + x] = fp.own[Math.min(fp.ch - 1, Math.round(y / fp.step)) * fp.cw + Math.min(fp.cw - 1, Math.round(x / fp.step))]; }
     // рівень моря: квантиль під потрібну частку суші
-    let sorted; if (own) { const v = []; for (let i = 0; i < N; i++) if (own[i]) v.push(hh[i]); sorted = Float32Array.from(v).sort(); } else sorted = Float32Array.from(hh).sort(); // з власною територією (тайл) частка суші рахується в її межах
-    const sea = sorted[Math.floor((1 - p.landFrac) * (sorted.length - 1))];
+    const sorted = Float32Array.from(hh).sort(), sea = sorted[Math.floor((1 - p.landFrac) * (N - 1))];
     if (own) for (let i = 0; i < N; i++) if (!own[i]) hh[i] = Math.min(hh[i], sea - 0.02);
     // нічиї острови навколо материка: чим більший материк, тим їх більше; різного розміру, витягнуті, з рваним берегом
     {
       let cl = 0; const d0 = new Float32Array(N); for (let i = 0; i < N; i++) if (hh[i] > sea) cl++; else d0[i] = 1e9;
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; let v = d0[i]; if (x) v = Math.min(v, d0[i - 1] + 1); if (y) { v = Math.min(v, d0[i - w] + 1); if (x) v = Math.min(v, d0[i - w - 1] + 1.41); if (x < w - 1) v = Math.min(v, d0[i - w + 1] + 1.41); } d0[i] = v; }
       for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) { const i = y * w + x; let v = d0[i]; if (x < w - 1) v = Math.min(v, d0[i + 1] + 1); if (y < h - 1) { v = Math.min(v, d0[i + w] + 1); if (x < w - 1) v = Math.min(v, d0[i + w + 1] + 1.41); if (x) v = Math.min(v, d0[i + w - 1] + 1.41); } d0[i] = v; }
-      const ir = A.Rng.stream(p.seed, 'islands'), want = Math.max(5, Math.min(70, Math.round(Math.sqrt(cl) / 15 * (0.8 + 0.4 * ir())))); let made = 0;
+      const ir = A.Rng.stream(p.seed, 'islands'), want = p.arch ? 0 : own ? Math.min(4, Math.round(Math.sqrt(cl) / 90 * (0.7 + 0.6 * ir()))) : Math.max(5, Math.min(70, Math.round(Math.sqrt(cl) / 15 * (0.8 + 0.4 * ir()))));; // у безкінечному світі острівців небагато й лише в межах території материка
+      let made = 0;
       for (let tries = 0; tries < want * 40 && made < want; tries++) {
         const cx = 8 + ir() * (w - 16), cy = 8 + ir() * (h - 16), ci = Math.round(cy) * w + Math.round(cx); if (d0[ci] < 10 || d0[ci] > 220) continue;
         const rad = Math.exp(Math.log(6) + ir() * Math.log(34 / 6)), el = 1 + ir() * 1.4, rx = rad * el, ry = rad / Math.sqrt(el), ang = ir() * 3.1416, ca = Math.cos(ang), sa = Math.sin(ang), R = Math.ceil(Math.max(rx, ry) * 1.6);
@@ -115,7 +115,7 @@
     }
     let land = new Uint8Array(N); for (let i = 0; i < N; i++) land[i] = hh[i] > sea ? 1 : 0;
     // дрібні клаптики суші прибираємо
-    const cc = components(w, h, i => land[i] === 1), minIsl = 40;
+    const cc = components(w, h, i => land[i] === 1), minIsl = own ? (p.arch ? 50 : 110) : 40;
     for (let i = 0; i < N; i++) if (land[i] && cc.sizes[cc.id[i]] < minIsl) { land[i] = 0; hh[i] = sea - 0.002; }
     // океан = вода, пов'язана з краєм; решта води нижче рівня моря = озера-западини
     const wc = components(w, h, i => land[i] === 0), ocean = new Uint8Array(N), edgeIds = new Set();
@@ -131,5 +131,5 @@
     return { height: hh, elev, sea, land, ocean, ext };
   }
   function i2(x, y, w) { return y * w + x; }
-  A.terrain = terrain; A.terrainOutline = outline;
+  A.terrain = terrain; A.terrainOutline = outline; A.terrainFootprint = footprint;
 })();

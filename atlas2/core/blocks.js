@@ -1,4 +1,4 @@
-// Атлас 2.0: безкінечний основний світ. Що тут: менеджер материків (ліниве створення за кліком на хмару, вивантаження далеких, морські шляхи між портами сусідніх материків). Тайли й контури живуть у core/tiles.js. Опис: docs/atlas2/layout.md
+// Атлас 2.0: безкінечний основний світ. Що тут: менеджер материків (ліниве створення за кліком на хмару, вивантаження далеких, морські шляхи між портами сусідніх материків). Розкладка й контури живуть у core/layout.js. Опис: docs/atlas2/layout.md
 (function () {
   'use strict';
   const A = globalThis.Atlas2, { DX, DY } = A.Grid;
@@ -46,7 +46,7 @@
   // ---- менеджер материків: кеш світів, черга створення (за кліком на хмару), вивантаження, шляхи між сусідніми материками
   // hooks: { progress(частка, назва кроку, desc), added(блок) }
   function create(params, hooks) {
-    const base = A.Params.normalize(params), prov = A.Tiles.create(base), gen = (hooks && hooks.generate) || A.generateAsync, map = new Map(), links = [], linked = new Set(), h = hooks || {};
+    const base = A.Params.normalize(params), prov = A.Layout.create(base), gen = (hooks && hooks.generate) || A.generateAsync, map = new Map(), links = [], linked = new Set(), h = hooks || {};
     let queue = [], busy = false, dead = false, waiters = [], current = null;
     const self = {
       params: base, prov, home: prov.home, links, key,
@@ -55,6 +55,8 @@
       list: () => Array.from(map.values()),
       has: W => !!W && !!W.blk && map.get(W.blk.id) === W.blk,
       descsIn: (x0, y0, x1, y1) => prov.descsIn(x0, y0, x1, y1),
+      // покласти наступні материки, поки вікно не покрите (дешево: лише розмір, контур, місце); повертає {placed, more}
+      grow: (x0, y0, x1, y1, budget) => prov.grow(x0, y0, x1, y1, budget || 40),
       // материк (опис), що містить точку світу; null, якщо там відкрите море
       at: (gx, gy) => prov.at(gx, gy),
       // додає готовий світ як материк d; рахує морські шляхи до вже створених сусідів

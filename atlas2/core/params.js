@@ -11,7 +11,7 @@
     p.seed = String(p.seed || DEF.seed);
     if (!SIZES[p.size]) p.size = 'medium';
     [p.w, p.h] = SIZES[p.size];
-    if (p.cw >= 96 && p.ch >= 64) { p.cw = Math.round(Math.min(2000, p.cw)); p.ch = Math.round(Math.min(2000, p.ch)); [p.w, p.h] = [p.cw, p.ch]; } else { delete p.cw; delete p.ch; } // власні розміри материка-тайла (core/tiles.js); без них розмір з параметра size
+    if (p.cw >= 96 && p.ch >= 64) { p.cw = Math.round(Math.min(2000, p.cw)); p.ch = Math.round(Math.min(2000, p.ch)); [p.w, p.h] = [p.cw, p.ch]; } else { delete p.cw; delete p.ch; } // власні розміри материка-тайла (core/layout.js); без них розмір з параметра size
     if (!DIMS[p.dimension]) p.dimension = 'main';
     const ast = p.dimension === 'astrakor';
     delete p.worldType; // «Тип світу» прибрано: завжди один материк; поле зі старих збережень і посилань ігнорується
