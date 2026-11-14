@@ -29,7 +29,7 @@
           const i = heap.pop(); if (i !== o.c && net[i]) { found = i; break; } const x = i % w, y = (i / w) | 0;
           for (let d = 0; d < 8; d++) {
             const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx;
-            if (!(W.ocean[j] || W.lake[j]) || bodyOf(j) !== body) continue;
+            if (!(W.ocean[j] || W.lake[j]) || (W.ext && W.ext[j]) || bodyOf(j) !== body) continue;
             let c = (1 + 0.25 * Math.abs(Math.min(land[j], 14) - 4)) * (d >= 4 ? 1.41 : 1); if (net[j]) c *= 0.12;
             const nd = dist[i] + c; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; heap.push(nd, j); }
           }
@@ -47,7 +47,7 @@
         const i = heap.pop(); if (i === b.c) { ok = true; break; } const x = i % w, y = (i / w) | 0;
         for (let d = 0; d < 8; d++) {
           const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const j = ny * w + nx;
-          if (!(W.ocean[j] || W.lake[j]) || bodyOf(j) !== a.body) continue;
+          if (!(W.ocean[j] || W.lake[j]) || (W.ext && W.ext[j]) || bodyOf(j) !== a.body) continue;
           let c = (1 + 0.25 * Math.abs(Math.min(land[j], 14) - 4)) * (d >= 4 ? 1.41 : 1); if (net[j]) c *= disc;
           const nd = dist[i] + c; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; heap.push(nd, j); }
         }

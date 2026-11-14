@@ -29,8 +29,8 @@
         if (!land || blocked[i]) return false; if (t.on === 'river' && !W.river[i]) return false; if (t.on === 'land' && W.river[i]) return false;
         if (t.bio) { const b = bioId(i); let ok = false; for (const k of t.bio) { if (k === b || (k === 'hills' && b !== 'mountain' && b !== 'snow' && hm(W.elev[i]) >= hillMin && b !== 'desert') || (k === 'beach' && oceanNear[i] && W.land[i])) { ok = true; break; } } if (!ok) return false; }
       } else if (t.on === 'lake') { if (!W.lake[i]) return false; }
-      else if (t.on === 'shore') { if (!W.ocean[i] || dLand[i] > 2) return false; }
-      else if (t.on === 'deep') { if (!W.ocean[i] || dLand[i] * cm < 2000) return false; }
+      else if (t.on === 'shore') { if (!W.ocean[i] || (W.ext && W.ext[i]) || dLand[i] > 2) return false; }
+      else if (t.on === 'deep') { if (!W.ocean[i] || (W.ext && W.ext[i]) || dLand[i] * cm < 2000) return false; }
       if (land && (tr < tier[0] || tr > tier[1])) return false;
       const hh = hm(W.elev[i]); if (t.h && land && (hh < t.h[0] || hh > t.h[1])) return false;
       if (c.slope && slope[i] < c.slope) return false;

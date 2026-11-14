@@ -18,7 +18,8 @@
     // озера
     for (const l of W.lakes) { const id = add('lake', 'Озеро ' + names.region(names.lang())); l.waterBody = id; for (const c of l.cells) body[c] = id; }
     // океан: смуга моря біля суші, далі — океани
-    const ocean = []; for (let i = 0; i < N; i++) if (W.ocean[i]) ocean.push(i);
+    const ext = W.ext, oc = ext ? i => W.ocean[i] && !ext[i] : i => W.ocean[i]; // oc: вода цього материка (без чужих тайлів і смуги між материками)
+    const ocean = []; for (let i = 0; i < N; i++) if (oc(i)) ocean.push(i);
     if (ocean.length && !A.Params.isVoid(W.params)) { // у вимірі з космосом за краєм морів і океанів немає
       // «берегом» вважаємо великі суходоли (дрібні далекі острови не обривають океан)
       const lc = A.Grid.components(w, h, i => !W.ocean[i]), bigMin = Math.max(1500, 0.08 * Math.max(...lc.sizes));
@@ -48,10 +49,10 @@
       const bandCells = ocean.filter(i => !far[i] || owner[i] < 0), spacing = BAND * 3, sex = [], sseeds = [];
       for (let t = 0; t < 400 && bandCells.length; t++) { const c = pick(bandCells, sex, spacing, 40); if (c < 0) break; sex.push([c % w, (c / w) | 0]); sseeds.push([c, add('sea', 'Море ' + names.region(names.lang()))]); }
       const ownerO = owner.slice(); owner.fill(-1); dist.fill(1e30);
-      flood(sseeds, j => W.ocean[j] && !(far[j] && ownerO[j] >= 0));
+      flood(sseeds, j => oc(j) && !(far[j] && ownerO[j] >= 0));
       // пляма смуги, до якої насіння не дійшло, стає окремим морем
-      const bc = A.Grid.components(w, h, j => W.ocean[j] && !(far[j] && ownerO[j] >= 0)), seen = new Set();
-      for (let i = 0; i < N; i++) if (W.ocean[i] && !(far[i] && ownerO[i] >= 0) && owner[i] < 0 && !seen.has(bc.id[i]) && bc.sizes[bc.id[i]] >= 12) { seen.add(bc.id[i]); const id = add('sea', 'Море ' + names.region(names.lang())); flood([[i, id]], j => W.ocean[j] && !(far[j] && ownerO[j] >= 0) && owner[j] < 0); }
+      const bc = A.Grid.components(w, h, j => oc(j) && !(far[j] && ownerO[j] >= 0)), seen = new Set();
+      for (let i = 0; i < N; i++) if (oc(i) && !(far[i] && ownerO[i] >= 0) && owner[i] < 0 && !seen.has(bc.id[i]) && bc.sizes[bc.id[i]] >= 12) { seen.add(bc.id[i]); const id = add('sea', 'Море ' + names.region(names.lang())); flood([[i, id]], j => oc(j) && !(far[j] && ownerO[j] >= 0) && owner[j] < 0); }
       for (const i of ocean) body[i] = far[i] && ownerO[i] >= 0 ? ownerO[i] : owner[i];
     }
     // підписи: найглибша точка водойми (відстань до суші, іншої водойми й краю карти)

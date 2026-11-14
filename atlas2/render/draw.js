@@ -17,8 +17,8 @@
     c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
     if (A.Params.isVoid(W.params)) c.roots = A.Void.roots(W, c.land); else if (A.Void) c.sub = A.Void.subLayer(W, toCanvas);
     if (W.tier) { // шар небезпеки: по пікселю на клітину, масштабується згладжено
-      const d = new ImageData(w, h), COL = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]];
-      for (let i = 0; i < w * h; i++) { const q = COL[W.tier[i]]; if (q) { d.data[i * 4] = q[0]; d.data[i * 4 + 1] = q[1]; d.data[i * 4 + 2] = q[2]; d.data[i * 4 + 3] = q[3]; } }
+      const d = new ImageData(w, h), COL = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]], til = W.params.infinite && W.params.layout === 2; // у тайловій розкладці найвищий рівень над водою несе тло карти (render/blocks.js): так безшовно зливаються материки
+      for (let i = 0; i < w * h; i++) { const q = til && W.tier[i] === 6 && (!W.land[i] || W.lake[i]) ? null : COL[W.tier[i]]; if (q) { d.data[i * 4] = q[0]; d.data[i * 4 + 1] = q[1]; d.data[i * 4 + 2] = q[2]; d.data[i * 4 + 3] = q[3]; } }
       c.danger = toCanvas(d);
     }
     c.maxAcc = 1; for (let i = 0; i < W.acc.length; i++) if (W.acc[i] > c.maxAcc) c.maxAcc = W.acc[i]; cache.set(W, c); return c;
@@ -29,7 +29,9 @@
   function draw(cv, W, view, opts) {
     const c = prep(W), ctx = cv.getContext('2d'), L = opts.layers, { k, tx, ty } = view, px = 1 / k;
     const VOID = A.Params.isVoid(W.params);
-    ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); if (VOID) A.Void.backdrop(ctx, cv, view); else if (!opts.keep) { ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height); } // keep: фон уже залито (малювання кількох материків, render/blocks.js)
+    const P = opts.pass; // 'ocean': вода й сяйво берега (проходом по всіх материках спершу), 'land': суша й усе поверх; без pass — обидва
+    if (P !== 'land') {
+        ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); if (VOID) A.Void.backdrop(ctx, cv, view); else if (!opts.keep) { ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height); } // keep: фон уже залито (малювання кількох материків, render/blocks.js)
     ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
     ctx.drawImage(c.ocean, 0, 0, W.w, W.h);
     if (VOID) { // обрив: корені звисають у безодню, під краєм темна тінь і бірюзове світіння
@@ -38,6 +40,9 @@
     } else { // берег: світле сяйво
       ctx.save(); path(ctx, c.land); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 7 * px; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3.5 * px; ctx.stroke(); ctx.restore();
     }
+    }
+    if (P === 'ocean') return;
+    ctx.setTransform(k, 0, 0, k, tx, ty); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
     ctx.save(); path(ctx, c.land); ctx.clip(); ctx.drawImage(c.landImg, 0, 0, W.w, W.h);
     if (c.sub && L.sub !== false) ctx.drawImage(c.sub, 0, 0, W.w, W.h); // плями біомів основного світу
     if (L.fill) W.provinces.forEach((p, n) => { path(ctx, c.provs[n]); ctx.fillStyle = PALETTE[n % PALETTE.length] + '70'; ctx.fill('evenodd'); });

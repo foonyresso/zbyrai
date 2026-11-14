@@ -1,24 +1,34 @@
-// Атлас 2.0: безкінечний основний світ. Що тут: сітка блоків-материків (кожен блок — звичайна карта з океанським краєм, зерно = хеш від зерна світу й координат), ліниве створення, вивантаження далеких, морські шляхи між портами сусідніх блоків. Опис: docs/atlas2/infinite.md
+// Атлас 2.0: безкінечний основний світ. Що тут: менеджер материків (ліниве створення за кліком на хмару, вивантаження далеких, морські шляхи між портами сусідніх материків) і стара рівна сітка блоків (розкладка 1). Розкладка 2 (тайли різного розміру) живе в core/tiles.js. Опис: docs/atlas2/infinite.md, docs/atlas2/layout.md
 (function () {
   'use strict';
   const A = globalThis.Atlas2, { DX, DY } = A.Grid;
   const key = (bx, by) => bx + ',' + by;
   // домашній блок (0,0) має зерно світу без змін: збережені карти й посилання відкриваються так само, як раніше
   const blockSeed = (seed, bx, by) => bx === 0 && by === 0 ? String(seed) : seed + '|' + bx + ',' + by;
-  const blockParams = (base, bx, by) => A.Params.normalize(Object.assign({}, base, { seed: blockSeed(base.seed, bx, by), wseed: base.seed, bx, by }));
+  const blockParams = (base, bx, by) => A.Params.normalize(Object.assign({}, base, { seed: blockSeed(base.seed, bx, by), wseed: base.seed, bx, by, ox: bx * base.w, oy: by * base.h, hx: base.w / 2, hy: base.h / 2 }));
+  // стара рівна сітка (розкладка 1): кожен материк — блок розміру домашнього, зерно від координат; поставачі розкладки мають однаковий інтерфейс із Tiles
+  function gridProvider(base) {
+    const bw = base.w, bh = base.h, cache = new Map(), get = (bx, by) => { const id = key(bx, by); let d = cache.get(id); if (!d) cache.set(id, d = { id, bx, by, ox: bx * bw, oy: by * bh, w: bw, h: bh, rects: [[bx * bw, by * bh, (bx + 1) * bw, (by + 1) * bh]], home: !bx && !by, seed: blockSeed(base.seed, bx, by), outline: null }); return d; };
+    return {
+      kind: 'grid', home: get(0, 0), get: id => cache.get(id) || null, paramsOf: d => d.home ? A.Params.normalize(Object.assign({}, base, { wseed: base.seed, ox: 0, oy: 0, hx: bw / 2, hy: bh / 2 })) : blockParams(base, d.bx, d.by),
+      descsIn(x0, y0, x1, y1) { const out = []; for (let by = Math.floor(y0 / bh); by <= Math.floor((y1 - 1) / bh); by++) for (let bx = Math.floor(x0 / bw); bx <= Math.floor((x1 - 1) / bw); bx++) out.push(get(bx, by)); return out; },
+      at: (gx, gy) => get(Math.floor(gx / bw), Math.floor(gy / bh)), adjacent: (a, b) => Math.abs(a.bx - b.bx) + Math.abs(a.by - b.by) === 1,
+      near: d => [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([x, y]) => get(d.bx + x, d.by + y)), inCloud: () => true, label: d => d.home ? 'домашній' : `(${d.bx}, ${d.by})`
+    };
+  }
 
   // ---- морські шляхи між двома сусідніми блоками: пошук по спільній сітці води (океан обох блоків), нові відрізки зливаються з наявними шляхами блоків
   function portsOf(blk) { return blk.W.settlements.filter(s => s.port && s.body === -1 && !s.ruined); }
-  function seaLinks(a, b, bw, bh) {
-    const x0 = Math.min(a.ox, b.ox), y0 = Math.min(a.oy, b.oy), RW = Math.max(a.ox, b.ox) + bw - x0, RH = Math.max(a.oy, b.oy) + bh - y0, N = RW * RH;
-    const water = new Uint8Array(N), net = new Uint8Array(N), ld = new Uint8Array(N).fill(255), cell = (blk, x, y) => (blk.oy - y0 + y) * RW + blk.ox - x0 + x;
+  function seaLinks(a, b) {
+    const x0 = Math.min(a.ox, b.ox), y0 = Math.min(a.oy, b.oy), RW = Math.max(a.ox + a.W.w, b.ox + b.W.w) - x0, RH = Math.max(a.oy + a.W.h, b.oy + b.W.h) - y0, N = RW * RH;
+    const water = new Uint8Array(N).fill(1), net = new Uint8Array(N), ld = new Uint8Array(N).fill(255), cell = (blk, x, y) => (blk.oy - y0 + y) * RW + blk.ox - x0 + x; // вода: усе, що не суша й не озеро жодного з двох материків (смуга між тайлами теж море)
     for (const blk of [a, b]) {
-      const W = blk.W; for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) water[cell(blk, x, y)] = W.ocean[y * bw + x];
+      const W = blk.W, bw = W.w, bh = W.h; for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) if (!W.ocean[y * bw + x]) water[cell(blk, x, y)] = 0;
       for (const r of W.seaRoutes || []) for (const c of r.cells) net[cell(blk, c % bw, (c / bw) | 0)] = 1;
     }
     const q = []; for (let i = 0; i < N; i++) if (!water[i]) { ld[i] = 0; q.push(i); } // відстань від суші (клітини), як у core/searoutes.js
     for (let k = 0; k < q.length; k++) { const i = q[k]; if (ld[i] >= 14) continue; const x = i % RW, y = (i / RW) | 0; for (let d = 0; d < 4; d++) { const nx = x + DX[d], ny = y + DY[d]; if (nx < 0 || ny < 0 || nx >= RW || ny >= RH) continue; const j = ny * RW + nx; if (ld[j] > ld[i] + 1) { ld[j] = ld[i] + 1; q.push(j); } } }
-    const wet = (blk, s) => { let bi = -1, bd = 1e9; for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const x = s.x + dx, y = s.y + dy; if (x < 0 || y < 0 || x >= bw || y >= bh) continue; if (blk.W.ocean[y * bw + x] && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; bi = cell(blk, x, y); } } return bi; };
+    const wet = (blk, s) => { const bw = blk.W.w, bh = blk.W.h; let bi = -1, bd = 1e9; for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const x = s.x + dx, y = s.y + dy; if (x < 0 || y < 0 || x >= bw || y >= bh) continue; if (blk.W.ocean[y * bw + x] && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; bi = cell(blk, x, y); } } return bi; };
     const pa = portsOf(a).map(s => ({ s, blk: a, c: wet(a, s), gx: a.ox + s.x, gy: a.oy + s.y })).filter(o => o.c >= 0), pb = portsOf(b).map(s => ({ s, blk: b, c: wet(b, s), gx: b.ox + s.x, gy: b.oy + s.y })).filter(o => o.c >= 0);
     const pairs = []; for (const u of pa) for (const v of pb) pairs.push([Math.hypot(u.gx - v.gx, u.gy - v.gy), u, v]); pairs.sort((m, n) => m[0] - n[0]);
     const chosen = []; for (const p of pairs) { // найкоротша пара й до однієї запасної, з інших портів і не поруч з першою
@@ -41,56 +51,61 @@
         if (net[path[k]]) { k++; continue; } let e = k; while (e + 1 < path.length && !net[path[e + 1]]) e++;
         const pts = []; for (let m = Math.max(0, k - 1); m <= Math.min(path.length - 1, e + 1); m++) pts.push(x0 + (path[m] % RW) + 0.5, y0 + ((path[m] / RW) | 0) + 0.5); segs.push(pts); for (let m = k; m <= e; m++) net[path[m]] = 1; k = e + 1;
       }
-      out.push({ a: key(a.bx, a.by), b: key(b.bx, b.by), from: u.s.id, to: v.s.id, fromName: u.s.name, toName: v.s.name, km: Math.round(path.length * a.W.params.kmPerCell * 10) / 10, segs });
+      out.push({ a: a.id, b: b.id, from: u.s.id, to: v.s.id, fromName: u.s.name, toName: v.s.name, km: Math.round(path.length * a.W.params.kmPerCell * 10) / 10, segs });
     }
     return out;
   }
 
-  // ---- менеджер блоків: кеш світів, черга створення, вивантаження, шляхи між блоками
-  // hooks: { progress(частка, назва кроку, bx, by), added(блок) }
+  // ---- менеджер материків: кеш світів, черга створення (за кліком на хмару), вивантаження, шляхи між сусідніми материками
+  // hooks: { progress(частка, назва кроку, desc), added(блок) }
   function create(params, hooks) {
-    const base = A.Params.normalize(params), bw = base.w, bh = base.h, map = new Map(), links = [], linked = new Set(), h = hooks || {};
-    let queue = [], wanted = new Set(), busy = false, dead = false, waiters = [];
+    const base = A.Params.normalize(params), prov = base.layout === 2 ? A.Tiles.create(base) : gridProvider(base), map = new Map(), links = [], linked = new Set(), h = hooks || {};
+    let queue = [], busy = false, dead = false, waiters = [], current = null;
     const self = {
-      params: base, bw, bh, links, key,
-      get: (bx, by) => map.get(key(bx, by)) || null,
+      params: base, layout: base.layout, prov, home: prov.home, links, key,
+      paramsOf: d => prov.paramsOf(d),
+      get: id => map.get(id) || null,
       list: () => Array.from(map.values()),
-      has: W => !!W && !!W.blk && map.get(key(W.blk.bx, W.blk.by)) === W.blk,
-      // додає готовий світ як блок (bx, by); рахує морські шляхи до вже наявних сусідів
-      add(bx, by, W) {
-        const blk = { bx, by, ox: bx * bw, oy: by * bh, W }; W.blk = blk; map.set(key(bx, by), blk);
-        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const n = map.get(key(bx + dx, by + dy)); if (!n) continue; const a = dx + dy > 0 ? blk : n, b = a === blk ? n : blk, pk = key(a.bx, a.by) + '|' + key(b.bx, b.by);
-          if (linked.has(pk)) continue; linked.add(pk); for (const l of seaLinks(a, b, bw, bh)) links.push(l);
+      has: W => !!W && !!W.blk && map.get(W.blk.id) === W.blk,
+      descsIn: (x0, y0, x1, y1) => prov.descsIn(x0, y0, x1, y1),
+      // материк (опис), що містить точку світу; null, якщо там відкрите море
+      at: (gx, gy) => prov.at(gx, gy),
+      // додає готовий світ як материк d; рахує морські шляхи до вже створених сусідів
+      add(d, W) {
+        const blk = { id: d.id, desc: d, bx: d.bx | 0, by: d.by | 0, ox: d.ox, oy: d.oy, W }; W.blk = blk; map.set(d.id, blk);
+        for (const o of prov.near(d)) {
+          const n = map.get(o.id); if (!n) continue; const a = blk.id < n.id ? blk : n, b = a === blk ? n : blk, pk = a.id + '|' + b.id;
+          if (linked.has(pk)) continue; linked.add(pk); for (const l of seaLinks(a, b)) links.push(l);
         }
         return blk;
       },
-      // бажані блоки (за порядком важливості): те, чого тут нема й нема в черзі, створюється по одному; зайве в черзі скасовується
-      request(cells) {
-        wanted = new Set(cells.map(c => key(c[0], c[1]))); queue = cells.filter(c => !map.has(key(c[0], c[1])));
-        if (!busy && queue.length && !dead) run();
+      // відкрити материк: поставити в чергу створення (по одному)
+      open(id) {
+        const d = prov.get(id); if (!d || map.has(id) || queue.some(q => q.id === id) || (current && current.id === id) || dead) return false;
+        queue.push(d); if (!busy) run(); return true;
       },
-      // вивантаження: лишається не більше max блоків, найдальші від (cx, cy) йдуть першими; keep — ключі, які не чіпати; повертає вивантажені
+      opening: () => current ? current.id : queue.length ? queue[0].id : null,
+      // вивантаження: лишається не більше max материків, найдальші від точки (cx, cy) світу йдуть першими; keep — id, які не чіпати; повертає вивантажені
       evict(cx, cy, max, keep) {
         const out = []; while (map.size > max) {
-          let worst = null, wd = -1; for (const b of map.values()) { if ((keep && keep.has(key(b.bx, b.by))) || (b.bx === 0 && b.by === 0)) continue; const d = Math.max(Math.abs(b.bx - cx), Math.abs(b.by - cy)) * 1000 + Math.hypot(b.bx - cx, b.by - cy); if (d > wd) { wd = d; worst = b; } }
-          if (!worst) break; map.delete(key(worst.bx, worst.by)); worst.W.blk = null; out.push(worst);
+          let worst = null, wd = -1; for (const b of map.values()) { if ((keep && keep.has(b.id)) || b.desc.home) continue; const d = Math.hypot(b.ox + b.W.w / 2 - cx, b.oy + b.W.h / 2 - cy); if (d > wd) { wd = d; worst = b; } }
+          if (!worst) break; map.delete(worst.id); worst.W.blk = null; out.push(worst);
         }
         return out;
       },
       busy: () => busy || queue.length > 0,
       idle: () => busy || queue.length ? new Promise(r => waiters.push(r)) : Promise.resolve(),
-      dispose() { dead = true; queue = []; wanted.clear(); }
+      dispose() { dead = true; queue = []; }
     };
     async function run() {
       busy = true;
       try {
         while (queue.length && !dead) {
-          const [bx, by] = queue.shift(), k = key(bx, by); if (map.has(k)) continue;
-          const W = await A.generateAsync(blockParams(base, bx, by), (f, l) => dead || !wanted.has(k) ? false : (h.progress && h.progress(f, l, bx, by), true));
-          if (!W || dead) continue; const blk = self.add(bx, by, W); if (h.added) h.added(blk);
+          const d = queue.shift(); if (map.has(d.id)) continue; current = d;
+          const W = await A.generateAsync(prov.paramsOf(d), (f, l) => dead ? false : (h.progress && h.progress(f, l, d), true));
+          if (!W || dead) continue; const blk = self.add(d, W); if (h.added) h.added(blk);
         }
-      } finally { busy = false; const w = waiters; waiters = []; for (const r of w) r(); }
+      } finally { busy = false; current = null; const w = waiters; waiters = []; for (const r of w) r(); }
     }
     return self;
   }

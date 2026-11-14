@@ -2,8 +2,8 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2, $ = id => document.getElementById(id);
-  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity', 'infinite'];
-  let W = null, B = null, cur = null, view = { k: 4, tx: 0, ty: 0 }, shown = { k: 4, tx: 0, ty: 0 }, settle = 0, layers = {}, hover = null, timer = 0, raf = 0;
+  const cv = $('map'), ov = $('over'), stage = $('stage'), info = $('info'), IDS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity', 'infinite', 'layout'];
+  let W = null, B = null, cur = null, opening = null, hovCloud = null, view = { k: 4, tx: 0, ty: 0 }, shown = { k: 4, tx: 0, ty: 0 }, settle = 0, layers = {}, hover = null, timer = 0, raf = 0;
   document.querySelectorAll('[data-layer]').forEach(e => { layers[e.dataset.layer] = e.checked; });
 
   const readParams = () => { const p = {}; for (const id of IDS) { const e = $(id); p[id] = e.type === 'checkbox' ? e.checked : e.type === 'number' || e.type === 'range' ? +e.value : e.value; } return p; };
@@ -11,14 +11,14 @@
   // вимір задає межі провінцій (основний 2–50, Астракор 50–100) і форму світу (в Астракорі завжди материк)
   function syncDim(setDefault) {
     const ast = $('dimension').value === 'astrakor', pr = $('provinces');
-    $('infinite').disabled = ast; pr.min = ast ? 50 : 2; pr.max = ast ? 100 : 50; if (setDefault || +pr.value < +pr.min || +pr.value > +pr.max) pr.value = ast ? 64 : 12;
+    $('infinite').disabled = ast; $('layout').disabled = ast || !$('infinite').checked; pr.min = ast ? 50 : 2; pr.max = ast ? 100 : 50; if (setDefault || +pr.value < +pr.min || +pr.value > +pr.max) pr.value = ast ? 64 : 12;
   }
   const writeParams = p => { for (const id of IDS) if (p[id] != null) { const e = $(id); if (e.type === 'checkbox') e.checked = !!p[id]; else e.value = p[id]; } syncDim(false); };
   function fit() { const r = stage.getBoundingClientRect(); cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio); ov.width = cv.width; ov.height = cv.height; }
   function resetView() { const k = Math.min(cv.width / W.w, cv.height / W.h) * 0.96; view = { k, tx: (cv.width - W.w * k) / 2, ty: (cv.height - W.h * k) / 2 }; }
   // повне перемальовування; під час руху лише дешево зсуваємо/масштабуємо вже намальований кадр (CSS), а справжній кадр малюємо, коли рух стих
   function redraw(done) { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!W) return; paint(); shown = { ...view }; cv.style.transform = ''; A.draw.drawHover(ov, W, V(), hover, W && levelNow()); hlKey = infoKey = ''; if (last) hoverAt(last); keepBlocks(); if (done) done(); }); }
-  const paint = () => B ? A.BlocksView.drawBlocks(cv, B, view, { layers }) : A.draw.draw(cv, W, view, { layers });
+  const paint = () => B ? A.BlocksView.drawBlocks(cv, B, view, { layers, opening }) : A.draw.draw(cv, W, view, { layers });
   function moving() {
     if (!W) return;
     const s = view.k / shown.k, q = 1 / devicePixelRatio; cv.style.transform = `translate(${(view.tx - shown.tx * s) * q}px, ${(view.ty - shown.ty * s) * q}px) scale(${s})`;
@@ -28,10 +28,10 @@
   const load = $('load'), loadBar = $('loadBar'), loadTxt = $('loadTxt'); let buildId = 0;
   const progress = (f, label) => { load.hidden = false; loadBar.style.width = Math.round(f * 100) + '%'; loadTxt.textContent = `${label}… ${Math.round(f * 100)} %`; };
   async function build() {
-    const id = ++buildId, p = readParams(), t0 = performance.now();
-    const w2 = await A.generateAsync(p, (f, l) => { if (id !== buildId) return false; progress(f * 0.93, l); });
-    if (!w2 || id !== buildId) return; if (B) B.dispose(); W = w2; A.world = W; if (A.TownMap) A.TownMap.reset(); A.getView = V; A.isLive = w => w === W || !!(B && B.has(w)); hover = null; last = null;
-    B = W.params.infinite ? A.Blocks.create(W.params, { progress: blkProgress, added: blkAdded }) : null; cur = B ? B.add(0, 0, W) : null; blkBadge(''); writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
+    const id = ++buildId, p = readParams(), pn = A.Params.normalize(p), B2 = pn.infinite ? A.Blocks.create(pn, { progress: blkProgress, added: blkAdded }) : null; // менеджер материків створюється першим: він знає параметри домашнього материка
+    const w2 = await A.generateAsync(B2 ? B2.paramsOf(B2.home) : p, (f, l) => { if (id !== buildId) return false; progress(f * 0.93, l); });
+    if (!w2 || id !== buildId) { if (B2) B2.dispose(); return; } if (B) B.dispose(); opening = null; hovCloud = null; W = w2; A.world = W; if (A.TownMap) A.TownMap.reset(); A.getView = V; A.isLive = w => w === W || !!(B && B.has(w)); hover = null; last = null;
+    B = B2; cur = B ? B.add(B.home, W) : null; blkBadge(''); writeParams(W.params); fit(); resetView(); progress(0.95, 'Малюю карту');
     await new Promise(r => setTimeout(r, 0));
     redraw(() => { if (id === buildId) load.hidden = true; });
     const s = W.settlements ? W.settlements.length : 0, land = W.land.reduce((a, v) => a + v, 0);
@@ -40,31 +40,30 @@
   }
   // безкінечний світ: сусідні материки створюються по одному, коли вони потрапляють у вікно; далекі вивантажуються
   let statsHome = '';
-  const showStats = () => { $('stats').textContent = statsHome + (B ? ` Безкінечний світ: завантажено материків ${B.list().length}; цифри вище про домашній (0, 0).` : ''); };
+  const showStats = () => { $('stats').textContent = statsHome + (B ? ` Безкінечний світ: створено материків ${B.list().length}, решта під хмарами; цифри вище про домашній.` : ''); };
   const blkBadge = t => { const e = $('blkStat'); e.textContent = t; e.hidden = !t; };
-  const blkProgress = (f, l, bx, by) => blkBadge(`Створюю материк (${bx}, ${by}): ${l}… ${Math.round(f * 100)} %`);
-  const blkAdded = () => { blkBadge(''); showStats(); redraw(); };
+  const blkProgress = (f, l, d) => { opening = { id: d.id, f, label: l }; blkBadge(`Створюю материк ${B ? B.prov.label(d) : ''}: ${l}… ${Math.round(f * 100)} %`); redraw(); };
+  const blkAdded = () => { opening = null; hovCloud = null; blkBadge(''); showStats(); redraw(); };
   function activate(b) { if (b === cur) return; cur = b; W = b.W; A.world = W; hlKey = infoKey = ''; hover = null; }
-  function keepBlocks() {
-    if (!B) return; const R = A.BlocksView, r = R.range(B, cv, view, 0.12), want = [], vis = new Set(), mid = R.range(B, cv, { k: view.k, tx: view.tx - cv.width / 2, ty: view.ty - cv.height / 2 }, 0), cx = mid.bx0, cy = mid.by0; // блок у центрі вікна
-    for (let by = r.by0; by <= r.by1; by++) for (let bx = r.bx0; bx <= r.bx1; bx++) { want.push([bx, by]); vis.add(bx + ',' + by); }
-    want.sort((p, q) => Math.hypot(p[0] - cx, p[1] - cy) - Math.hypot(q[0] - cx, q[1] - cy));
-    for (const b of B.list()) if (!vis.has(b.bx + ',' + b.by)) A.draw.release(b.W); // растри блоків поза вікном звільняємо, дані лишаються
-    if (!drag) B.request(want); if (!B.busy()) blkBadge('');
-    B.evict(cx, cy, 12, vis).forEach(b => A.draw.release(b.W));
-    if (!last) { const c = B.get(cx, cy); if (c) activate(c); } // без курсора активний блок у центрі вікна (для панелі «Як працює»)
+  function keepBlocks() { // материки не створюються самі: лише тайли й контури; вивантаження далеких і активний материк у центрі вікна
+    if (!B) return; const R = A.BlocksView, r = R.window(cv, view, 0.12), vis = new Set(B.descsIn(r.x0, r.y0, r.x1, r.y1).map(d => d.id)), cxw = (cv.width / 2 - view.tx) / view.k, cyw = (cv.height / 2 - view.ty) / view.k;
+    for (const b of B.list()) if (!vis.has(b.id)) A.draw.release(b.W); // растри материків поза вікном звільняємо, дані лишаються
+    B.evict(cxw, cyw, 12, vis).forEach(b => A.draw.release(b.W));
+    if (!last) { const d = B.at(cxw, cyw), c = d && B.get(d.id); if (c) activate(c); } // без курсора активний материк у центрі вікна (для панелі «Як працює»)
+    if (B.layout === 1 && !drag) for (const d of B.descsIn(r.x0, r.y0, r.x1, r.y1).sort((p, q) => Math.hypot(p.ox + p.w / 2 - cxw, p.oy + p.h / 2 - cyw) - Math.hypot(q.ox + q.w / 2 - cxw, q.oy + q.h / 2 - cyw))) B.open(d.id); // стара сітка: сусідні блоки створюються самі, як раніше
+    if (!B.busy()) blkBadge('');
   }
   const later = () => { clearTimeout(timer); timer = setTimeout(build, 250); };
   IDS.forEach(id => $(id).addEventListener(id === 'seed' ? 'change' : 'input', later));
-  $('dimension').addEventListener('change', () => syncDim(true));
+  $('dimension').addEventListener('change', () => syncDim(true)); $('infinite').addEventListener('change', () => syncDim(false));
   $('btnRandom').onclick = () => { $('seed').value = A.Rng.randSeed(); build(); };
   document.querySelectorAll('[data-layer]').forEach(e => e.addEventListener('change', () => { layers[e.dataset.layer] = e.checked; redraw(); }));
 
   // масштаб і пересування
-  cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, f = Math.exp(-e.deltaY * 0.0015), k = Math.min(450, Math.max(B ? Math.max(0.5, cv.width / (2.2 * B.bw), cv.height / (2.2 * B.bh)) : 0.5, view.k * f)), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; moving(); }, { passive: false });
+  cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, f = Math.exp(-e.deltaY * 0.0015), k = Math.min(450, Math.max(B ? Math.max(0.5, cv.width / (2.2 * B.home.w), cv.height / (2.2 * B.home.h)) : 0.5, view.k * f)), q = k / view.k; view.tx = mx - (mx - view.tx) * q; view.ty = my - (my - view.ty) * q; view.k = k; moving(); }, { passive: false });
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (d && B) keepBlocks(); if (!d || !A.TownMap || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (curCt) A.TownMap.click(curCt); else if (curNear) A.TownMap.focus(curNear); else A.TownMap.click(null); }); // клік на місті закріплює подробиці, клік на значку наближає до міста (ui/town.js)
+  cv.addEventListener('pointerup', e => { const d = drag; drag = null; if (d && B) keepBlocks(); if (!d || !A.TownMap || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; hoverAt(e); if (hovCloud && B) { B.open(hovCloud.id); blkBadge('Створюю материк…'); return; } if (curCt) A.TownMap.click(curCt); else if (curNear) A.TownMap.focus(curNear); else A.TownMap.click(null); }); // клік на місті закріплює подробиці, клік на значку наближає до міста (ui/town.js)
   let last = null, curNear = null, curCt = null;
   cv.addEventListener('pointermove', e => {
     last = e;
@@ -77,7 +76,7 @@
   let hlKey = '', infoKey = '';
   function hoverAt(e) {
     if (!W || !e) return; const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) * devicePixelRatio, my = (e.clientY - r.top) * devicePixelRatio, gx = (mx - view.tx) / view.k, gy = (my - view.ty) / view.k;
-    if (B) { const b = B.get(Math.floor(gx / B.bw), Math.floor(gy / B.bh)); if (!b) { clearHover(); return; } activate(b); } // курсор над іншим материком: він стає активним
+    if (B) { const d = B.at(gx, gy); if (!d) { clearHover(); return; } const b = B.get(d.id); if (!b) { cloudHover(d, gx, gy); return; } hovCloud = null; activate(b); } // курсор над іншим материком: він стає активним; над хмарою — картка закритого материка
     const fx = gx - (cur ? cur.ox : 0), fy = gy - (cur ? cur.oy : 0), x = Math.floor(fx), y = Math.floor(fy);
     const inside = x >= 0 && y >= 0 && x < W.w && y < W.h, cell = inside ? y * W.w + x : -1, reg = inside ? W.regW[cell] : -1, level = levelNow(), rad = (10 * devicePixelRatio / view.k) ** 2;
     let near = null, bd = rad; for (const s of layers.places === false ? [] : W.settlements || []) { const d = (s.x + 0.5 - fx) ** 2 + (s.y + 0.5 - fy) ** 2; if (d < bd) { bd = d; near = s; } }
@@ -91,6 +90,15 @@
     if (k1 !== hlKey) { hlKey = k1; hover = id; A.draw.drawHover(ov, W, V(), hover, level, mark); }
     const k2 = (near ? near.id : '') + '|' + (site ? site.id : '') + '|' + (rsn ? 'r' + rsn.id : '') + '|' + (inside ? cell : -1);
     if (k2 !== infoKey) { infoKey = k2; showInfo(inside ? cell : -1, rid, near, site, rsn, inside ? [fx, fy] : null); }
+  }
+  // картка закритого материка під хмарою: що це й як відкрити
+  function cloudHover(d, gx, gy) {
+    if (!B.prov.inCloud(d, gx, gy)) { clearHover(); return; }
+    if (hovCloud !== d) {
+      hovCloud = d; const K = B.params.kmPerCell, o = d.outline; let n = 0; if (o) for (let i = 0; i < o.land.length; i++) n += o.land[i];
+      info.innerHTML = `<div class="blk"><div class="hd"><span class="lb">Закритий материк</span><h4>Під хмарою</h4></div><dl><dt>Тайл</dt><dd>${Math.round(d.w * K)} × ${Math.round(d.h * K)} км</dd><dt>Суша (приблизно)</dt><dd>${o ? Math.round(n * o.step * o.step * K * K).toLocaleString('uk') + ' км²' : '—'}</dd></dl><p class="muted">Видно лише контур. Клікніть, щоб створити материк повністю: рельєф, острови, провінції, міста, дороги. Це може тривати до півхвилини.</p></div>`; info.hidden = false;
+    }
+    cv.style.cursor = 'pointer'; hlKey = infoKey = ''; hover = null; if (A.TownMap) A.TownMap.hover(null); curCt = null; curNear = null;
   }
   const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const TIER_COL = ['#7bbf6a', '#e6cf4a', '#f0a23c', '#e0642f', '#c0302f', '#8a1f58', '#3c0a4a'];
@@ -115,7 +123,7 @@
     if (g) out.push(blk('Регіон', `<dl>${row('Головне місто', esc(g.centerName || '—'))}${row('Рівень (сер.)', lv(g.level, g.levelMin, g.levelMax))}${row('Населення · площа', (g.pop ? fmt(g.pop) : '—') + ' · ' + fmt(Math.round(g.area * kmc)) + ' км²')}${row('Місцевість', esc(g.terrain || '—'))}</dl>`, esc(g.name)));
     // 3. координати від нульової точки (центр карти): X на схід, Y на північ
     const dx = (px - W.origin.x) * K, dy = (W.origin.y - py) * K; // origin безкінечного світу — центр домашнього материка, тож координати наскрізні
-    out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span>${W.blk ? `<br><span class="muted">Материк (${W.blk.bx}, ${W.blk.by})${W.blk.bx || W.blk.by ? '' : ', домашній'}</span>` : ''}</div>`));
+    out.push(blk('Координати', `<div class="coord">X ${sg(dx)} · Y ${sg(dy)} км <span class="muted">(від центру ${Math.hypot(dx, dy).toFixed(1).replace('.', ',')})</span>${W.blk && B ? `<br><span class="muted">Материк ${esc(B.prov.label(W.blk.desc))}</span>` : ''}</div>`));
     // 4. місцевість у клітині
     const land = W.land[i] && !W.lake[i], terr = []; let bdesc = '';
     if (land) {
@@ -151,7 +159,7 @@
     info.innerHTML = out.join(''); info.hidden = false;
   }
   A.redraw = redraw; A.redrawOver = () => A.draw.drawHover(ov, W, V(), hover, W && levelNow()); A.focusCell = (x, y, k) => { view.k = Math.min(450, k); view.tx = cv.width / 2 - (x + (cur ? cur.ox : 0)) * view.k; view.ty = cv.height / 2 - (y + (cur ? cur.oy : 0)) * view.k; redraw(); };
-  function clearHover() { if (A.TownMap) A.TownMap.hover(null); curCt = null; curNear = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, V(), null, null); }
+  function clearHover() { hovCloud = null; cv.style.cursor = ''; if (A.TownMap) A.TownMap.hover(null); curCt = null; curNear = null; info.hidden = true; infoKey = hlKey = ''; hover = null; A.draw.drawHover(ov, W, V(), null, null); }
   cv.addEventListener('pointerleave', () => { if (!drag) { clearHover(); last = null; } });
 
   // меню (іконки, панель, довідка «i») веде спільний кіт zb-ui.js; ключ збереження панелі: data-store на #drawer
