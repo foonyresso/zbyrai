@@ -30,5 +30,7 @@ assert.equal(W.w, small.w); assert.equal(W.h, small.h);
 let land = 0, ocLand = 0, cloudMiss = 0;
 for (let i = 0; i < W.land.length; i++) { if (W.land[i]) land++; if (W.ext && W.ext[i]) assert.ok(W.ocean[i] && !W.land[i], 'чужа територія завжди вода'); }
 for (let y = 0; y < W.h; y++) for (let x = 0; x < W.w; x++) if (W.land[y * W.w + x]) { const cx = Math.floor(x / o.step), cy = Math.floor(y / o.step); let near = false; for (let dy = -2; dy <= 2 && !near; dy++) for (let dx = -2; dx <= 2; dx++) { const px = cx + dx, py = cy + dy; if (px >= 0 && py >= 0 && px < o.cw && py < o.ch && o.land[py * o.cw + px]) { near = true; break; } } if (!near) cloudMiss++; }
+// берег не впирається в межу території: суша лишається за кілька клітин від чужої води (без обрізання по прямій)
+{ let near = 0; const R = 6; for (let y = 0; y < W.h; y++) for (let x = 0; x < W.w; x++) if (W.land[y * W.w + x]) { let hit = x < R || y < R || x >= W.w - R || y >= W.h - R; for (let dy = -R; dy <= R && !hit; dy += 2) for (let dx = -R; dx <= R; dx += 2) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < W.w && yy < W.h && W.ext && W.ext[yy * W.w + xx]) { hit = true; break; } } if (hit) near++; } assert.equal(near, 0, 'суша біля межі території: ' + near); }
 assert.ok(land > 500, 'материк має сушу'); assert.ok(cloudMiss < land * 0.1, `суша виходить за контур-хмару: ${cloudMiss} з ${land}`);
 console.log('tiles.test.js ok');

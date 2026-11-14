@@ -5,23 +5,36 @@
   const PALETTE = ['#b58fd1', '#e0a35f', '#7fbf7f', '#e08f8f', '#6fb8c9', '#d6c75a', '#9aa0e0', '#d98fc0', '#8fc9a6', '#c9a07a'];
   const cache = new WeakMap();
 
-  function prep(W) {
-    let c = cache.get(W); if (c) return c; const { w, h } = W;
+  // побудова кешу материка кроками (генератор): між кроками можна віддати керування браузеру, тож камера не завмирає (warm); prep довершує все одразу
+  const gens = new WeakMap();
+  function* prepGen(W) {
+    const { w, h } = W; let c;
     const pn = C.net(w, h, i => W.province[i] >= 0 ? W.province[i] : W.land[i] && !W.lake[i] ? -2 : -1), // -2: нічия суша (без провінції)
        rn = C.net(w, h, i => W.region[i]);
     const pnW = C.net(w, h, i => W.provW[i]), rnW = C.net(w, h, i => W.regW[i]);
+    yield;
     c = { pn, rn, land: C.polys(pn, l => l !== -1), lakes: C.smoothLoops(w, h, i => W.lake[i] === 1, 3), provs: W.provinces.map(p => C.polys(pnW, l => l === p.id)), regs: W.regions.map(g => C.polys(rnW, l => l === g.id)) }; // для підсвітки: суша + прибережна вода
+    yield;
     c.geom = A.RoadGeom.build(W);
-    const S = W.params.infinite ? 3 : 4, img = A.Raster.build(W, S, (a, b) => new ImageData(a, b));
-    const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d, 0, 0); return cv; };
-    c.ocean = toCanvas(img.ocean); c.landImg = toCanvas(img.land);
+    yield;
+    const S = W.params.infinite ? 3 : 4, img = W.img || A.Raster.build(W, S, (a, b) => ({ data: new Uint8ClampedArray(a * b * 4), width: a, height: b })); delete W.img; // растр рахує воркер (ui/genclient.js), без нього — тут
+    const toCanvas = d => { const cv = document.createElement('canvas'); cv.width = d.width; cv.height = d.height; cv.getContext('2d').putImageData(d instanceof ImageData ? d : new ImageData(d.data, d.width, d.height), 0, 0); return cv; };
+    c.ocean = toCanvas(img.ocean); yield; c.landImg = toCanvas(img.land); yield;
     if (A.Params.isVoid(W.params)) c.roots = A.Void.roots(W, c.land); else if (A.Void) c.sub = A.Void.subLayer(W, toCanvas);
     if (W.tier) { // шар небезпеки: по пікселю на клітину, масштабується згладжено
-      const d = new ImageData(w, h), COL = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]], til = W.params.infinite && W.params.layout === 2; // у тайловій розкладці найвищий рівень над водою несе тло карти (render/blocks.js): так безшовно зливаються материки
+      const d = new ImageData(w, h), COL = [null, [255, 232, 110, 70], [255, 170, 60, 85], [240, 100, 45, 100], [205, 45, 45, 115], [150, 20, 75, 135], [60, 0, 70, 150]], til = W.params.infinite; // у тайловій розкладці найвищий рівень над водою несе тло карти (render/blocks.js): так безшовно зливаються материки
       for (let i = 0; i < w * h; i++) { const q = til && W.tier[i] === 6 && (!W.land[i] || W.lake[i]) ? null : COL[W.tier[i]]; if (q) { d.data[i * 4] = q[0]; d.data[i * 4 + 1] = q[1]; d.data[i * 4 + 2] = q[2]; d.data[i * 4 + 3] = q[3]; } }
       c.danger = toCanvas(d);
     }
-    c.maxAcc = 1; for (let i = 0; i < W.acc.length; i++) if (W.acc[i] > c.maxAcc) c.maxAcc = W.acc[i]; cache.set(W, c); return c;
+    c.maxAcc = 1; for (let i = 0; i < W.acc.length; i++) if (W.acc[i] > c.maxAcc) c.maxAcc = W.acc[i]; cache.set(W, c); gens.delete(W); return c;
+  }
+  function prep(W) {
+    let c = cache.get(W); if (c) return c; let g = gens.get(W); if (!g) gens.set(W, g = prepGen(W)); let r; do r = g.next(); while (!r.done);
+    return r.value;
+  }
+  async function warm(W, tick) { // підготувати растри заздалегідь, по кроках; tick — очікування між кроками
+    if (cache.has(W)) return; let g = gens.get(W); if (!g) gens.set(W, g = prepGen(W));
+    for (;;) { const r = g.next(); if (r.done) return; if (tick) await tick(); }
   }
   const path = (ctx, loops) => { ctx.beginPath(); for (const p of loops) { ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); ctx.closePath(); } };
 
@@ -105,5 +118,5 @@
     path(ctx, polys[id]); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 / view.k; ctx.stroke();
   }
   function drawHover(cv, W, view, id, level, mark) { drawHover0(cv, W, view, id, level, mark); if (W && A.TownMap) A.TownMap.drawOver(cv, W, view); }
-  A.draw = { draw, drawHover, prep, drawRivers, PALETTE, release: W => cache.delete(W) }; // release: звільнити растри блока, що пішов за межі екрана
+  A.draw = { draw, drawHover, prep, warm, ready: W => cache.has(W), drawRivers, PALETTE, release: W => { cache.delete(W); gens.delete(W); } }; // release: звільнити растри блока, що пішов за межі екрана
 })();

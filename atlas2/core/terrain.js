@@ -74,6 +74,10 @@
       v += p.rugged * 0.22 * Math.pow(ridge, 3) * sstep(0.4, 0.7, v);
       const edge = ed ? ed[cy * cw + cx] : Math.min(nx, 1 - nx, ny, 1 - ny) * Math.min(w, h);
       if (step === 1) v += 0.012 * (jr() - 0.5); // мікрорельєф: річки не біжать рівними діагоналями
+      if (ed) { // власна територія (тайл): суша плавно спадає й закінчується на відстані від межі, сама межа хвиляста від шуму, тож обрізаного берега по прямій немає
+        const m0 = 12, e2 = edge + (nz.fbm(nx * 6 + 3, ny * 6 + 9, 3) - 0.5) * 24 + (nz.fbm(nx * 17 + 40, ny * 17 + 7, 2) - 0.5) * 10;
+        hh[cy * cw + cx] = v * sstep(m0, m0 + Math.max(24, 0.05 * Math.min(w, h)), e2); continue;
+      }
       hh[cy * cw + cx] = v * sstep(2, Math.min(w, h) * pad, edge);
     }
     return hh;

@@ -9,12 +9,12 @@
     return { x0: x0 - dx, y0: y0 - dy, x1: x1 + dx, y1: y1 + dy };
   }
   const visible = (B, cv, view, m) => { const r = window_(cv, view, m); return B.descsIn(r.x0, r.y0, r.x1, r.y1); };
-  // opts: { layers, opening: {id, f, label} — материк, що створюється }
+  // opts: { layers, opening: {id, f, label} — материк, що створюється, warm(блок) — підготувати растри }
   function drawBlocks(cv, B, view, opts) {
     const ctx = cv.getContext('2d'), L = opts.layers, descs = visible(B, cv, view, 0), built = [], clouds = [];
-    for (const d of descs) { const b = B.get(d.id); if (b) built.push(b); else clouds.push(d); }
+    for (const d of descs) { const b = B.get(d.id); if (b && A.draw.ready(b.W)) built.push(b); else { clouds.push(d); if (b && opts.warm && !b.warming) { b.warming = true; opts.warm(b); } } } // растри материка готуються кроками (не готові — ще під хмарою)
     ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#527aae'; ctx.fillRect(0, 0, cv.width, cv.height); // глибокий океан: тло карти
-    if (B.layout === 2 && L.danger !== false) { ctx.fillStyle = 'rgba(60,0,70,.588)'; ctx.fillRect(0, 0, cv.width, cv.height); } // найвищий рівень небезпеки над водою: смуги моря між материками мають той самий колір, що й край кожного материка
+    if (L.danger !== false) { ctx.fillStyle = 'rgba(60,0,70,.588)'; ctx.fillRect(0, 0, cv.width, cv.height); } // найвищий рівень небезпеки над водою: смуги моря між материками мають той самий колір, що й край кожного материка
     for (const b of built) A.draw.draw(cv, b.W, local(b, view), { layers: L, keep: true, pass: 'ocean' });
     for (const b of built) A.draw.draw(cv, b.W, local(b, view), { layers: L, keep: true, pass: 'land' });
     if (L.roads !== false && B.links.length) {
@@ -23,7 +23,7 @@
       for (const l of B.links) for (const s of l.segs) { const p = A.Contours.chaikin(A.Contours.relaxOpen(s, 3), 2, false); ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); }
       ctx.stroke(); ctx.setLineDash([]);
     }
-    if (clouds.length) { ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty); for (const d of clouds) A.Clouds.draw(ctx, d, view.k, 1 / view.k); for (const d of clouds) A.Clouds.label(ctx, d, view, opts.opening && opts.opening.id === d.id ? opts.opening : null); }
+    if (clouds.length) { ctx.setTransform(view.k, 0, 0, view.k, view.tx, view.ty); for (const d of clouds) A.Clouds.draw(ctx, d, view.k, 1 / view.k); for (const d of clouds) A.Clouds.label(ctx, d, view, opts.opening && opts.opening.id === d.id ? opts.opening : B.get(d.id) ? { f: 1, label: 'Готую малюнок' } : null); }
   }
   A.BlocksView = { local, window: window_, visible, drawBlocks };
 })();

@@ -2,9 +2,9 @@
 (function () {
   'use strict';
   const A = globalThis.Atlas2;
-  const KEYS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity', 'infinite', 'layout'];
-  function paramsToJSON(p) { const o = { format: 'atlas2-params', version: 2 }; for (const k of KEYS) o[k] = p[k]; return o; }
-  function paramsFromJSON(o) { if (!o || o.format !== 'atlas2-params') throw new Error('Це не файл параметрів Атласу 2.0'); const p = {}; for (const k of KEYS) if (o[k] != null) p[k] = o[k]; if (p.layout == null) p.layout = 1; /* версія 1 не мала розкладки: такі файли й посилання відкриваються зі старою рівною сіткою */ return p; }
+  const KEYS = ['seed', 'dimension', 'size', 'provinces', 'regionsPerProvince', 'density', 'rugged', 'riverDensity', 'infinite'];
+  function paramsToJSON(p) { const o = { format: 'atlas2-params', version: 1 }; for (const k of KEYS) o[k] = p[k]; return o; }
+  function paramsFromJSON(o) { if (!o || o.format !== 'atlas2-params') throw new Error('Це не файл параметрів Атласу 2.0'); const p = {}; for (const k of KEYS) if (o[k] != null) p[k] = o[k]; return p; }
   // повний експорт: об'єкти без важких масивів; шари — у RLE
   function rle(a) { const o = []; let v = a[0], n = 1; for (let i = 1; i < a.length; i++) { if (a[i] === v) n++; else { o.push(v, n); v = a[i]; n = 1; } } o.push(v, n); return o; }
   function exportWorld(W) {

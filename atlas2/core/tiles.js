@@ -34,7 +34,7 @@
 
   function create(base) {
     const TW = base.w, TH = base.h, supers = new Map(), byId = new Map(), hx = TW / 2, hy = TH / 2;
-    const common = { seed: base.seed, wseed: base.seed, hx, hy, layout: 2 };
+    const common = { seed: base.seed, wseed: base.seed, hx, hy };
     const home = { id: '0,0.0', home: true, sx: 0, sy: 0, ox: 0, oy: 0, w: TW, h: TH, rects: [[0, 0, TW, TH]], leaf: [0, 0, TW, TH], seed: base.seed, p: {}, outline: null };
     byId.set(home.id, home);
     // параметри генерації материка: розмір задає тайл, решта — випадкові навколо параметрів домашнього
@@ -57,7 +57,7 @@
       d.seed = best.sd; d.outline = best.o; return d;
     }
     function paramsFor(d) {
-      if (d.home) return A.Params.normalize(Object.assign({}, base, { wseed: base.seed, ox: 0, oy: 0, hx, hy, layout: 2 }));
+      if (d.home) return A.Params.normalize(Object.assign({}, base, { wseed: base.seed, ox: 0, oy: 0, hx, hy }));
       return A.Params.normalize(Object.assign({}, base, d.p, common, { seed: d.seed, ox: d.ox, oy: d.oy, cw: d.w, ch: d.h, pad: 0.035, cspread: 0.2, bx: 0, by: 0, rects: d.rects.map(q => [q[0] - d.ox, q[1] - d.oy, q[2] - d.ox, q[3] - d.oy]) }));
     }
     function superTile(sx, sy) {
@@ -67,7 +67,7 @@
       if (leaves.every(l => l.empty)) leaves[0].empty = false;
       // порожній листок може віддатися сусідньому материку: той простягнеться на його місце (межі тайлів не обмежують форму)
       for (const e of leaves) if (e.empty) {
-        const cand = leaves.filter(l => !l.empty && shareEdge(l.rect, e.rect)).sort((a, b) => b.w * b.h - a.w * a.h); if (cand.length && r() < 0.8) cand[0].extra.push(e.rect);
+        const cand = leaves.filter(l => !l.empty && shareEdge(l.rect, e.rect)).sort((a, b) => b.w * b.h - a.w * a.h); if (cand.length) cand[0].extra.push(e.rect);
       }
       s = { descs: [] }; supers.set(key, s); let k = 0;
       for (const l of leaves) if (!l.empty) { const d = makeDesc(sx, sy, k++, l.rect, [l.rect].concat(l.extra), r); s.descs.push(d); byId.set(d.id, d); }

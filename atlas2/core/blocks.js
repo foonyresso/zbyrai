@@ -1,21 +1,8 @@
-// Атлас 2.0: безкінечний основний світ. Що тут: менеджер материків (ліниве створення за кліком на хмару, вивантаження далеких, морські шляхи між портами сусідніх материків) і стара рівна сітка блоків (розкладка 1). Розкладка 2 (тайли різного розміру) живе в core/tiles.js. Опис: docs/atlas2/infinite.md, docs/atlas2/layout.md
+// Атлас 2.0: безкінечний основний світ. Що тут: менеджер материків (ліниве створення за кліком на хмару, вивантаження далеких, морські шляхи між портами сусідніх материків). Тайли й контури живуть у core/tiles.js. Опис: docs/atlas2/layout.md
 (function () {
   'use strict';
   const A = globalThis.Atlas2, { DX, DY } = A.Grid;
-  const key = (bx, by) => bx + ',' + by;
-  // домашній блок (0,0) має зерно світу без змін: збережені карти й посилання відкриваються так само, як раніше
-  const blockSeed = (seed, bx, by) => bx === 0 && by === 0 ? String(seed) : seed + '|' + bx + ',' + by;
-  const blockParams = (base, bx, by) => A.Params.normalize(Object.assign({}, base, { seed: blockSeed(base.seed, bx, by), wseed: base.seed, bx, by, ox: bx * base.w, oy: by * base.h, hx: base.w / 2, hy: base.h / 2 }));
-  // стара рівна сітка (розкладка 1): кожен материк — блок розміру домашнього, зерно від координат; поставачі розкладки мають однаковий інтерфейс із Tiles
-  function gridProvider(base) {
-    const bw = base.w, bh = base.h, cache = new Map(), get = (bx, by) => { const id = key(bx, by); let d = cache.get(id); if (!d) cache.set(id, d = { id, bx, by, ox: bx * bw, oy: by * bh, w: bw, h: bh, rects: [[bx * bw, by * bh, (bx + 1) * bw, (by + 1) * bh]], home: !bx && !by, seed: blockSeed(base.seed, bx, by), outline: null }); return d; };
-    return {
-      kind: 'grid', home: get(0, 0), get: id => cache.get(id) || null, paramsOf: d => d.home ? A.Params.normalize(Object.assign({}, base, { wseed: base.seed, ox: 0, oy: 0, hx: bw / 2, hy: bh / 2 })) : blockParams(base, d.bx, d.by),
-      descsIn(x0, y0, x1, y1) { const out = []; for (let by = Math.floor(y0 / bh); by <= Math.floor((y1 - 1) / bh); by++) for (let bx = Math.floor(x0 / bw); bx <= Math.floor((x1 - 1) / bw); bx++) out.push(get(bx, by)); return out; },
-      at: (gx, gy) => get(Math.floor(gx / bw), Math.floor(gy / bh)), adjacent: (a, b) => Math.abs(a.bx - b.bx) + Math.abs(a.by - b.by) === 1,
-      near: d => [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([x, y]) => get(d.bx + x, d.by + y)), inCloud: () => true, label: d => d.home ? 'домашній' : `(${d.bx}, ${d.by})`
-    };
-  }
+  const key = (bx, by) => bx + ',' + by; // ключ старого формату (лишився в експорті ключів шляхів)
 
   // ---- морські шляхи між двома сусідніми блоками: пошук по спільній сітці води (океан обох блоків), нові відрізки зливаються з наявними шляхами блоків
   function portsOf(blk) { return blk.W.settlements.filter(s => s.port && s.body === -1 && !s.ruined); }
@@ -59,10 +46,10 @@
   // ---- менеджер материків: кеш світів, черга створення (за кліком на хмару), вивантаження, шляхи між сусідніми материками
   // hooks: { progress(частка, назва кроку, desc), added(блок) }
   function create(params, hooks) {
-    const base = A.Params.normalize(params), prov = base.layout === 2 ? A.Tiles.create(base) : gridProvider(base), map = new Map(), links = [], linked = new Set(), h = hooks || {};
+    const base = A.Params.normalize(params), prov = A.Tiles.create(base), gen = (hooks && hooks.generate) || A.generateAsync, map = new Map(), links = [], linked = new Set(), h = hooks || {};
     let queue = [], busy = false, dead = false, waiters = [], current = null;
     const self = {
-      params: base, layout: base.layout, prov, home: prov.home, links, key,
+      params: base, prov, home: prov.home, links, key,
       paramsOf: d => prov.paramsOf(d),
       get: id => map.get(id) || null,
       list: () => Array.from(map.values()),
@@ -102,12 +89,12 @@
       try {
         while (queue.length && !dead) {
           const d = queue.shift(); if (map.has(d.id)) continue; current = d;
-          const W = await A.generateAsync(prov.paramsOf(d), (f, l) => dead ? false : (h.progress && h.progress(f, l, d), true));
+          const W = await gen(prov.paramsOf(d), (f, l) => dead ? false : (h.progress && h.progress(f, l, d), true));
           if (!W || dead) continue; const blk = self.add(d, W); if (h.added) h.added(blk);
         }
       } finally { busy = false; current = null; const w = waiters; waiters = []; for (const r of w) r(); }
     }
     return self;
   }
-  A.Blocks = { create, blockSeed, blockParams, key, seaLinks };
+  A.Blocks = { create, key, seaLinks };
 })();

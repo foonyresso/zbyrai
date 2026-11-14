@@ -186,10 +186,10 @@
       const rc = []; for (const rt of W.seaRoutes || []) for (const c of rt.cells) rc.push(c);
       if (rc.length) { const d = distField(w, h, rc); for (let i = 0; i < N; i++) if (d[i] <= 2) effW[i] *= 0.6; } }
     if (W.params.infinite && !cosmos) { // безкінечний світ: біля межі власної території відкритий океан до найвищої небезпеки, тож на стику материків рівні збігаються (закритих сусідів не видно)
-      if (W.params.layout === 2) { // тайли: відстань від чужої території (ext) або від краю коробки; смуга моря між материками має найвищий рівень, як і тло карти
+      { // тайли: відстань від чужої території (ext) або від краю коробки; смуга моря між материками має найвищий рівень, як і тло карти
         const E = 60, WOB = 40, src = []; for (let i = 0; i < N; i++) { const x = i % w, y = (i / w) | 0; if ((W.ext && W.ext[i]) || x === 0 || y === 0 || x === w - 1 || y === h - 1) src.push(i); }
         const dE = distField(w, h, src); for (let i = 0; i < N; i++) if (W.ocean[i]) { const d = dE[i] + Math.min(1, dE[i] / 10) * (nz.fbm(((i % w) + gx0) * 0.015 + 11, (((i / w) | 0) + gy0) * 0.015 + 23, 3) - 0.5) * 2 * WOB; if (d < E) { const t = 1 - Math.max(0, d) / E; effW[i] += (40 - effW[i]) * t * t; } } // шум у відстані: межа зони небезпеки хвиляста, а не пряма лінія
-      } else { const E = 70; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x, ed = Math.min(x, w - 1 - x, y, h - 1 - y); if (ed < E && W.ocean[i]) { const t = 1 - ed / E; effW[i] += (40 - effW[i]) * t * t; } } }
+      }
     }
     const tier = new Uint8Array(N), dens = new Uint8Array(N);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {

@@ -23,9 +23,9 @@
   const WEIGHT = { astrawall: 1, subbiomes: 2, terrain: 6, hydrology: 8, climate: 3, politics: 42, settlements: 8, roads: 14, searoutes: 3, seas: 3, danger: 8, sites: 8, resources: 3 };
   function generate(input) { const c = { p: A.Params.normalize(input) }; for (const st of steps(c.p)) st.run(c); return c.world; }
   // те саме по кроках, з поверненням керування браузеру між ними: onProgress(частка 0..1, назва кроку) встигає перемалюватись
-  async function generateAsync(input, onProgress) {
+  async function generateAsync(input, onProgress, tickFn) { // tickFn: чим віддавати керування між кроками (за замовчуванням наступний тик; інтерфейс чекає, поки камера стихне)
     const c = { p: A.Params.normalize(input) }, list = steps(c.p), total = list.reduce((a, s) => a + (WEIGHT[s.id] || 5), 0); let done = 0;
-    const tick = () => new Promise(r => setTimeout(r, 0));
+    const tick = tickFn || (() => new Promise(r => setTimeout(r, 0)));
     for (const st of list) { if (onProgress) { if (onProgress(done / total, st.label) === false) return null; await tick(); } st.run(c); done += WEIGHT[st.id] || 5; }
     if (onProgress) onProgress(1, 'Готово');
     return c.world;

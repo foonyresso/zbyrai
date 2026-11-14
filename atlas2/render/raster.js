@@ -11,7 +11,7 @@
   }
   // повертає {ocean, land}: ImageData розміром (w*S)×(h*S)
   function build(W, S, makeImage) {
-    const { w, h } = W, FADE = W.params.infinite && W.params.layout === 2, pw = w * S, ph = h * S, VOID = A.Params.isVoid(W.params), pal = VOID ? A.Astrakor.PALETTE : null, cols = A.BIOMES.map(b => hex((pal && pal[b.id]) || b.color)), ld = landDist(W), rcols = cols.map(c => [c[0] * 0.55 + 38, c[1] * 0.55 + 27, c[2] * 0.55 + 17]), RT = VOID && W.root; // RT: корені Астракора темнішають до кольору дерева
+    const { w, h } = W, FADE = W.params.infinite, pw = w * S, ph = h * S, VOID = A.Params.isVoid(W.params), pal = VOID ? A.Astrakor.PALETTE : null, cols = A.BIOMES.map(b => hex((pal && pal[b.id]) || b.color)), ld = landDist(W), rcols = cols.map(c => [c[0] * 0.55 + 38, c[1] * 0.55 + 27, c[2] * 0.55 + 17]), RT = VOID && W.root; // RT: корені Астракора темнішають до кольору дерева
     const oc = makeImage(pw, ph), lc = makeImage(pw, ph), O = oc.data, L = lc.data;
     const el = i => W.land[i] ? W.elev[i] : 0, rg = W.params.rugged;
     for (let py = 0; py < ph; py++) for (let px = 0; px < pw; px++) {
