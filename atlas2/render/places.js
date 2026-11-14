@@ -7,7 +7,7 @@
   const poly = (ctx, p) => { ctx.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); };
   A.drawRoads = function (ctx, W, px, k, geom, L) {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    const all = geom.roads.concat(k >= 3.5 && !(L && L.resources === false) ? geom.res || [] : []);
+    const all = geom.roads.concat(k >= 3.5 && !(L && L.resources === false) ? (geom.res || []).filter(r => r.sid == null || !W.settlements[r.sid] || k >= MINK[W.settlements[r.sid].rank]) : []);
     for (const lvl of [6, 5, 4, 3, 2, 1]) {
       const [col, wd, dash] = STYLE[lvl];
       for (const pass of [0, 1]) { // обвідка, потім лінія
@@ -24,7 +24,7 @@
     ctx.beginPath(); ctx.arc(x, y, 5.2 * px, 0, 6.2832); ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fill(); ctx.strokeStyle = '#1f5f9f'; ctx.lineWidth = 1 * px; ctx.stroke();
     ctx.lineWidth = 1.3 * px; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(x, y - 3 * px, 0.9 * px, 0, 6.2832); ctx.moveTo(x, y - 2 * px); ctx.lineTo(x, y + 3 * px); ctx.moveTo(x - 1.8 * px, y - 0.6 * px); ctx.lineTo(x + 1.8 * px, y - 0.6 * px); ctx.moveTo(x - 3 * px, y + 0.8 * px); ctx.quadraticCurveTo(x - 2.6 * px, y + 3.4 * px, x, y + 3.2 * px); ctx.quadraticCurveTo(x + 2.6 * px, y + 3.4 * px, x + 3 * px, y + 0.8 * px); ctx.stroke();
   }
-  const R = { capital: 5.2, regional: 3.8, town: 2.8, village: 1.9, hamlet: 1.3 }, MINK = { capital: 0, regional: 0, town: 3, village: 5.5, hamlet: 8 };
+  const R = { capital: 5.2, regional: 3.8, town: 2.8, village: 1.9, hamlet: 1.3 }, MINK = { capital: 0, regional: 0, town: 3, village: 5.5, hamlet: 8 }; A.SETTLE_MINK = MINK; // з якого наближення видно поселення цього рангу: його ресурси й доріжки до них показуються разом із ним
   const LBLK = { capital: 0, regional: 3.2, town: 5.5, village: 9, hamlet: 99 };
   // назви провінцій: один розмір для всіх, у клітинах карти (масштабуються разом з картою, ніби написані по ній), літери з розрідженням уздовж осі провінції
   const PS = 10, RS = 3.1;

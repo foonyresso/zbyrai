@@ -8,7 +8,7 @@
     if (!W.resources || k < 3.5) return;
     ctx.save();
     const g = A.ResData.byId, rad = (k >= 8 ? 3.4 : 2.4) * px;
-    for (const n of W.resources) { const t = g[n.type]; ctx.beginPath(); ctx.arc(n.x, n.y, rad * (n.q === 'rich' ? 1.25 : n.q === 'poor' ? 0.8 : 1), 0, 6.2832); ctx.fillStyle = COL[t.grp] || '#555'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.8 * px; ctx.stroke(); }
+    const MK = A.SETTLE_MINK || {}; for (const n of W.resources) { const s = W.settlements[n.sid]; if (s && k < (MK[s.rank] || 0)) continue; const t = g[n.type]; ctx.beginPath(); ctx.arc(n.x, n.y, rad * (n.q === 'rich' ? 1.25 : n.q === 'poor' ? 0.8 : 1), 0, 6.2832); ctx.fillStyle = COL[t.grp] || '#555'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.8 * px; ctx.stroke(); }
     ctx.restore();
   };
 })();

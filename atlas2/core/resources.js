@@ -20,6 +20,12 @@
     const BLK_M = { capital: 2400, regional: 1900, town: 1400, village: 800, hamlet: 450 }, blocked = new Uint8Array(N);
     for (const s of W.settlements) { const R = BLK_M[s.rank] / cm + 1, r2 = Math.ceil(R); for (let dy = -r2; dy <= r2; dy++) for (let dx = -r2; dx <= r2; dx++) { const x = s.x + dx, y = s.y + dy; if (x >= 0 && y >= 0 && x < w && y < h && Math.hypot(dx, dy) <= R) blocked[y * w + x] = 1; } }
     for (let i = 0; i < N; i++) if (W.roadLevel[i]) blocked[i] = 1;
+    // близькість до живих поселень (0 = у самому поселенні, 1 = на краю його впливу): точки ресурсів тяжіють до поселень, бо поселення виростають там, де є що добувати
+    const aff = new Float32Array(N).fill(1e9);
+    for (const s of W.settlements) {
+      if (s.ruined || s.fate || !(s.pop > 0)) continue; const R = A.Needs.REACH_KM[s.rank] / km, r2 = Math.ceil(R);
+      for (let dy = -r2; dy <= r2; dy++) for (let dx = -r2; dx <= r2; dx++) { const x = s.x + dx, y = s.y + dy; if (x < 0 || y < 0 || x >= w || y >= h) continue; const v = Math.hypot(dx, dy) / R; if (v < 1 && v < aff[y * w + x]) aff[y * w + x] = v; }
+    }
     const hillMin = 45, smallLm = new Set(W.lm.list.filter(m => m.area < 0.2 * W.lm.list[0].area).map(m => m.id));
     const hot = i => W.temp[i] > 0.55, cold = i => W.temp[i] < 0.3; // температура 0..1 з клімату
     // чи клітина підходить типу (без урахування сусідніх точок)
@@ -65,7 +71,8 @@
     const place = (t, cells, want, regId) => {
       let got = 0, tries = 0; const md = Math.max(0.5, t.dist / cm);
       while (got < want && cells.length && tries++ < want * 30 + 30) {
-        const k = (r() * cells.length) | 0, i = cells[k], x = (i % w) + 0.2 + 0.6 * r(), y = ((i / w) | 0) + 0.2 + 0.6 * r();
+        let k = (r() * cells.length) | 0; for (let a = 0; a < 5; a++) { const k2 = (r() * cells.length) | 0; if (aff[cells[k2]] < aff[cells[k]]) k = k2; } // з п'яти випадкових клітин береться найближча до поселення
+        const i = cells[k], x = (i % w) + 0.2 + 0.6 * r(), y = ((i / w) | 0) + 0.2 + 0.6 * r();
         if (tooClose(t, x, y, md) || !nearTo(t, x, y)) continue;
         const reg = regId != null ? regId : (W.region[i] >= 0 ? W.region[i] : W.regW[i]), p = reg >= 0 ? W.regions[reg].prov : -1;
         const node = makeNode(t, i, x, y, reg, p);
