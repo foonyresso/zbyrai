@@ -10,12 +10,13 @@
   const save = () => { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { /* не критично */ } };
   const toast = t => { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2600); };
 
-  const map = L.map('map', { worldCopyJump: true, zoomControl: true, minZoom: 2, maxZoom: 19, attributionControl: true, doubleClickZoom: false })
+  const map = L.map('map', { worldCopyJump: true, zoomControl: false, minZoom: 2, maxZoom: 19, attributionControl: true, doubleClickZoom: false })
     .setView([S.view[0], S.view[1]], S.view[2]);
   const tiles = {
     sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Знімки © Esri, Maxar, Earthstar Geographics' }),
     osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' })
   };
+  L.control.zoom({ position: 'bottomright', zoomInTitle: 'Наблизити', zoomOutTitle: 'Віддалити' }).addTo(map);
   const grp = L.layerGroup().addTo(map);
   function setLayer(n) {
     Object.values(tiles).forEach(t => map.hasLayer(t) && map.removeLayer(t));
@@ -102,25 +103,6 @@
   $('uLen').onchange = e => { S.uLen = e.target.value; render(); };
   $('uArea').onchange = e => { S.uArea = e.target.value; render(); };
   $('segLabels').onchange = e => { S.segLabels = e.target.checked; render(); };
-
-  // пошук місця (Nominatim)
-  $('searchForm').onsubmit = async ev => {
-    ev.preventDefault();
-    const q = $('q').value.trim(), box = $('results'); if (!q) return;
-    box.textContent = 'Шукаю…';
-    try {
-      const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=uk&q=' + encodeURIComponent(q));
-      if (!r.ok) throw new Error(r.status);
-      const list = await r.json(); box.textContent = '';
-      if (!list.length) { box.textContent = 'Нічого не знайдено'; return; }
-      list.forEach(it => {
-        const b = document.createElement('button'); b.type = 'button'; b.textContent = it.display_name; b.title = 'Перейти на це місце';
-        b.onclick = () => { const bb = it.boundingbox; if (bb) map.fitBounds([[+bb[0], +bb[2]], [+bb[1], +bb[3]]], { maxZoom: 17 }); else map.setView([+it.lat, +it.lon], 15); };
-        box.appendChild(b);
-      });
-      list[0].boundingbox ? map.fitBounds([[+list[0].boundingbox[0], +list[0].boundingbox[2]], [+list[0].boundingbox[1], +list[0].boundingbox[3]]], { maxZoom: 17 }) : map.setView([+list[0].lat, +list[0].lon], 15);
-    } catch (e) { box.textContent = 'Пошук недоступний, спробуй пізніше'; }
-  };
 
   // файли
   const json = () => JSON.stringify(C.toGeoJSON(S.shapes), null, 2);

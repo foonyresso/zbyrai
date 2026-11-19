@@ -24,6 +24,21 @@
 .leaflet-container { font: inherit; }
 .toast { position: absolute; left: 50%; top: 70px; transform: translateX(-50%); z-index: 700; background: #000d; border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-size: 13px; }
 .toast[hidden], [hidden] { display: none !important; }
+.sbox { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 600; width: min(420px, calc(100% - 330px)); }
+.sbox input { width: 100%; padding-right: 30px; box-sizing: border-box; }
+.sbox #sClear { position: absolute; right: 4px; top: 3px; padding: 0 8px; border: 0; background: none; }
+.slist { margin-top: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; max-height: 50vh; overflow-y: auto; }
+.slist button { display: block; width: 100%; text-align: left; border: 0; border-radius: 0; padding: 7px 10px; font-size: 13px; }
+.slist button small { display: block; color: var(--faint); }
+.slist .none { padding: 8px 10px; color: var(--muted); font-size: 13px; }
+.fab { position: absolute; right: 12px; top: 12px; z-index: 800; display: flex; flex-direction: column; gap: 8px; }
+.fab button { width: 40px; height: 40px; font-size: 20px; padding: 0; }
+.fab button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+body.clean .rail, body.clean .drawer, body.clean .bar, body.clean .top, body.clean .sbox, body.clean #info { display: none !important; }
+.me { width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; border: 3px solid #fff; box-shadow: 0 0 0 2px #3b82f655; }
+.pp b { display: block; margin-bottom: 2px; } .pp .c { color: #555; font-size: 12px; } .pp button { margin-top: 6px; font-size: 12px; padding: 3px 8px; }
+.leaflet-bottom.leaflet-right { margin-bottom: 52px; }
+@media (max-width: 760px) { .sbox { width: calc(100% - 140px); left: 8px; transform: none; top: 62px; } }
 @media (max-width: 760px) { #info { left: 8px; bottom: 120px; } }
 @media print {
   .top, .rail, .drawer, .bar, .toast, .leaflet-control-container { display: none !important; }
