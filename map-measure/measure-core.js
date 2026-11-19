@@ -83,6 +83,37 @@
     return out;
   }
 
-  const api = { dist, pathLength, polyArea, fmtLen, fmtArea, toGeoJSON, fromGeoJSON, LEN, AREA };
+
+  const deg = r => r * 180 / Math.PI;
+  // початковий азимут a -> b, радіани
+  function bearing(a, b) {
+    const dl = rad(b.lng - a.lng), y = Math.sin(dl) * Math.cos(rad(b.lat));
+    return Math.atan2(y, Math.cos(rad(a.lat)) * Math.sin(rad(b.lat)) - Math.sin(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.cos(dl));
+  }
+  // точка на відстані d (м) за азимутом brg (рад) від p
+  function dest(p, brg, d) {
+    const f = rad(p.lat), l = rad(p.lng), g = d / R;
+    const f2 = Math.asin(Math.sin(f) * Math.cos(g) + Math.cos(f) * Math.sin(g) * Math.cos(brg));
+    const l2 = l + Math.atan2(Math.sin(brg) * Math.sin(g) * Math.cos(f), Math.cos(g) - Math.sin(f) * Math.sin(f2));
+    return { lat: deg(f2), lng: ((deg(l2) + 540) % 360) - 180 };
+  }
+  // коло радіуса r (м) навколо c як полігон із n точок
+  function circlePts(c, r, n) { n = n || 72; const o = []; for (let i = 0; i < n; i++) o.push(dest(c, 2 * Math.PI * i / n, r)); return o; }
+  // центр фігури: середній вектор на сфері
+  function centroid(pts) {
+    let x = 0, y = 0, z = 0;
+    pts.forEach(p => { x += Math.cos(rad(p.lat)) * Math.cos(rad(p.lng)); y += Math.cos(rad(p.lat)) * Math.sin(rad(p.lng)); z += Math.sin(rad(p.lat)); });
+    return { lat: deg(Math.atan2(z, Math.hypot(x, y))), lng: deg(Math.atan2(y, x)) };
+  }
+  // перенесення фігури в нове місце зі збереженням справжнього розміру й форми (відстань і азимут від центру)
+  function moveShape(pts, to) {
+    const c = centroid(pts);
+    return pts.map(p => dest(to, bearing(c, p), dist(c, p)));
+  }
+  // антипод: точка на протилежному боці Землі
+  function antipode(p) { return { lat: -p.lat, lng: ((p.lng + 360) % 360) - 180 }; }
+  const fmtCoord = p => p.lat.toFixed(5) + ', ' + p.lng.toFixed(5);
+
+  const api = { bearing, dest, circlePts, centroid, moveShape, antipode, fmtCoord, dist, pathLength, polyArea, fmtLen, fmtArea, toGeoJSON, fromGeoJSON, LEN, AREA };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.MeasureCore = api;
 })(typeof self !== 'undefined' ? self : this);

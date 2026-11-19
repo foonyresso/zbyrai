@@ -43,7 +43,7 @@ index.html, assets/      головна сторінка (хаб) і її сти
 shared/ui/               UI-кіт: zb-ui.css + zb-ui.js (верхня панель, іконки-меню, панелі, довідка «i»); копії в інструментах на кіті (atlas2, tessera)
 shared/theme.css        єдина тема (джерело); shared/tool-chrome.js: кнопка «Інфо», якір, клавіші (джерело)
 tools/                   sync-theme.mjs, ui-rules.test.js, build-world-themes.mjs (теми вимірів із палітр lore), build-atlas-registry.mjs (оновлює medieval-world/registry.js), atlas-registry.test.js
-map-measure/             Вимірювач на карті: measure-core.js (математика, GeoJSON), app.js (Leaflet-карта, інтерфейс), vendor/ (Leaflet 1.9.4, BSD-2); див. README.md всередині
+map-measure/             Вимірювач на карті: measure-core.js (математика, GeoJSON), app.js (Leaflet-карта, інтерфейс), extras.js (коло, перенесення копії фігури, антипод, закладки), vendor/ (Leaflet 1.9.4, BSD-2); див. README.md всередині
 image-converter/         Конвертер зображень (convert-core, zip-core, convert-render, воркер і пул, app.js)
 video-editor/           Відео редактор і конвертер: див. video-editor.md; ve-core (логіка), ve-engine (ffmpeg.wasm), ve-player/timeline/thumbs/crop (вигляд), ve-panels/export (меню, експорт), vendor/ (обгортка ffmpeg, джерела й ліцензії)
 audio-editor/            Аудіо редактор і конвертер: audio-core (монтаж), dsp-core (тон, швидкість, фейди), render-core, encode-core, wav-core, ffmpeg-loader (+vendor/), воркер і пул, timeline.js (хвиля), app.js

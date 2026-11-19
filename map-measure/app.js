@@ -2,6 +2,7 @@
 (function () {
   const C = MeasureCore, $ = id => document.getElementById(id);
   const LS = 'mm_state';
+  window.MM = { };
   const S = { shapes: [], cur: -1, mode: 'line', layer: 'sat', uLen: 'auto', uArea: 'auto', segLabels: false, view: [48.5, 31.2, 5] };
   try { Object.assign(S, JSON.parse(localStorage.getItem(LS) || '{}')); } catch (e) { /* не критично */ }
   if (!Array.isArray(S.shapes)) S.shapes = [];
@@ -73,7 +74,7 @@
     info(); save();
   }
 
-  map.on('click', e => { const s = ensureShape(); const w = e.latlng.wrap(); s.pts.push({ lat: +w.lat.toFixed(7), lng: +w.lng.toFixed(7) }); render(); });
+  map.on('click', e => { if (window.MM.onClick && window.MM.onClick(e)) return; const s = ensureShape(); const w = e.latlng.wrap(); s.pts.push({ lat: +w.lat.toFixed(7), lng: +w.lng.toFixed(7) }); render(); });
   map.on('moveend', () => { const c = map.getCenter(); S.view = [+c.lat.toFixed(5), +c.lng.toFixed(5), map.getZoom()]; save(); });
 
   function undo() {
@@ -143,5 +144,6 @@
   };
   $('btnPrintMap').onclick = () => window.print();
 
+  Object.assign(window.MM, { map, S, render, save, toast, setMode });
   setLayer(S.layer); setMode(S.mode);
 })();

@@ -19,4 +19,10 @@ test('GeoJSON туди й назад', () => {
   assert.strictEqual(g.features.length, 2); assert.deepStrictEqual(back, s);
 });
 test('помилки імпорту зрозумілі', () => { assert.throws(() => C.fromGeoJSON('abc'), /JSON/); assert.throws(() => C.fromGeoJSON({ type: 'FeatureCollection', features: [] }), /немає/); });
+test('коло радіуса 1 км має площу ≈ π км²', () => near(C.polyArea(C.circlePts({ lat: 50, lng: 30 }, 1000, 180)), Math.PI * 1e6, 3e4));
+test('антипод Києва в Тихому океані', () => { const a = C.antipode({ lat: 50.45, lng: 30.52 }); near(a.lat, -50.45, 1e-9); near(a.lng, -149.48, 1e-6); });
+test('перенесення фігури зберігає площу', () => {
+  const sq = [{ lat: 50, lng: 30 }, { lat: 50, lng: 31 }, { lat: 51, lng: 31 }, { lat: 51, lng: 30 }];
+  const m = C.moveShape(sq, { lat: 0, lng: 20 }); near(C.polyArea(m) / C.polyArea(sq), 1, 0.01); near(C.centroid(m).lat, 0, 0.1);
+});
 console.log(failed ? `\n${failed} не пройдено` : '\nУсі перевірки пройдено'); process.exit(failed ? 1 : 0);
