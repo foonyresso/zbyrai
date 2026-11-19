@@ -3,7 +3,7 @@
   const C = MeasureCore, $ = id => document.getElementById(id);
   const LS = 'mm_state';
   window.MM = { };
-  const S = { shapes: [], cur: -1, mode: 'line', layer: 'sat', uLen: 'auto', uArea: 'auto', segLabels: false, view: [48.5, 31.2, 5] };
+  const S = { shapes: [], cur: -1, mode: 'line', layer: 'sat', uLen: 'auto', uArea: 'auto', segLabels: true, view: [48.5, 31.2, 5] };
   try { Object.assign(S, JSON.parse(localStorage.getItem(LS) || '{}')); } catch (e) { /* не критично */ }
   if (!Array.isArray(S.shapes)) S.shapes = [];
   if (S.cur >= S.shapes.length) S.cur = S.shapes.length - 1;
@@ -46,7 +46,20 @@
       h = a.pts.length > 1 ? `<div class="big">${C.fmtLen(len, S.uLen)}</div><div class="sub">Останній відрізок: ${C.fmtLen(last, S.uLen)} · точок: ${a.pts.length}</div>` : '<div class="sub">Став другу точку.</div>';
     }
     if (S.shapes.length > 1) h += `<div class="sub">Усього фігур: ${S.shapes.length}</div>`;
-    el.innerHTML = h;
+    el.innerHTML = h; routeList(a);
+  }
+  // список точок по порядку: відрізок від попередньої й накопичена відстань
+  function routeList(a) {
+    const box = $('route'), body = $('routeBody');
+    if (!a || a.pts.length < 2) { box.hidden = true; return; }
+    const closing = a.type === 'polygon' && a.pts.length > 2;
+    const n = a.pts.length + (closing ? 1 : 0);
+    let acc = 0, rows = '<table><tr><th>№</th><th>Відрізок</th><th>Разом</th></tr>';
+    for (let i = 1; i < n; i++) {
+      const d = C.dist(a.pts[i - 1], a.pts[i % a.pts.length]); acc += d;
+      rows += `<tr><td>${i}→${i === a.pts.length ? 1 : i + 1}</td><td>${C.fmtLen(d, S.uLen)}</td><td>${C.fmtLen(acc, S.uLen)}</td></tr>`;
+    }
+    body.innerHTML = rows + `<tr class="tot"><td>Σ</td><td colspan="2">${C.fmtLen(acc, S.uLen)}</td></tr></table>`; box.hidden = false;
   }
 
   function render() {

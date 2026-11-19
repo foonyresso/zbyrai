@@ -49,10 +49,11 @@
   <div class="fab">
     <button type="button" id="btnUi" title="Сховати або показати меню, пошук і панелі, щоб карта була чистою">◧</button>
     <button type="button" id="btnNames" title="Показати або сховати назви міст і країн">Аа</button>
-    <button type="button" id="btnBorders" title="Показати або сховати кордони країн">▦</button>
+    <button type="button" id="btnBorders" title="Показати або сховати кордони країн і областей">▦</button>
     <button type="button" id="btnLayer" title="Перемкнути карту: супутник або схема">🛰</button>
     <button type="button" id="btnLoc" title="Де я: показати моє місце за геолокацією браузера; клік по маркеру покаже адресу й координати">⌖</button>
   </div>
+  <details class="zb-card route" id="route" open hidden><summary title="Список точок: відрізки й накопичена відстань; натисни, щоб згорнути">Точки по порядку</summary><div id="routeBody"></div></details>
   <div class="zb-card" id="info" aria-live="polite"></div>
   <div class="toast" id="toast" hidden></div>
 </main>
@@ -91,7 +92,7 @@
     </div>
     <h2>Підписи й кордони</h2>
     <label class="row" title="Назви міст, країн і місць поверх карти (CARTO, без ключів)"><input type="checkbox" id="ovNames" title="Показати назви міст і країн"> Назви міст і країн</label>
-    <label class="row" title="Кордони країн, області та назви від Esri поверх карти (англійською)"><input type="checkbox" id="ovBorders" title="Показати кордони країн"> Кордони країн</label>
+    <label class="row" title="Кордони країн і областей (адмін-меж першого рівня) від Esri, видно від середнього масштабу; підписи англійською"><input type="checkbox" id="ovBorders" title="Показати кордони країн і областей"> Кордони країн і областей</label>
     <p class="hint">Пошук міста чи країни: поле вгорі карти.</p>
     <label class="row" title="Показувати довжину кожного відрізка біля лінії"><input type="checkbox" id="segLabels" title="Підписи довжини відрізків"> Підписи відрізків</label>
   </section>
