@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вимірювач на карті</title>
+<meta name="description" content="Вимірювач на карті: супутникова карта всієї планети, відстань між точками по поверхні Землі та площа будь-якої фігури. Безкоштовно, без ключів.">
+<link rel="canonical" href="https://zbyrai.pages.dev/map-measure/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zbyrai">
+<meta property="og:title" content="Вимірювач на карті: відстані й площі по всій планеті">
+<meta property="og:description" content="Став точки на супутниковій карті й бачи відстань і площу. Безкоштовно.">
+<meta property="og:url" content="https://zbyrai.pages.dev/map-measure/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2309090c%27/%3E%3Cpath d=%27M6 24L16 8l10 16z%27 fill=%27none%27 stroke=%27%2370c1b3%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./zb-ui.css">
+<link rel="stylesheet" href="./vendor/leaflet.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="has-grain">
+
+<header class="top" id="top">
+  <a class="hub-back" href="../index.html" title="Повернутись на головну сторінку Zbyrai" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg><span>Zbyr<b>AI</b></span></a>
+  <div class="brand">Вимірювач <span>на карті</span></div>
+  <button id="btnHelp" class="info-btn" title="Що це, для чого, як користуватися" aria-label="Що це, для чого, як користуватися">i</button>
+</header>
+
+<dialog id="help" class="help">
+  <form method="dialog"><button class="close" title="Закрити довідку" aria-label="Закрити">×</button></form>
+  <h2>Вимірювач на карті</h2>
+  <h3>Що це</h3><p>Карта всієї планети (супутник або схема), поверх якої міряємо відстані й площі. Відстань рахується по поверхні Землі, а не по пікселях екрана.</p>
+  <h3>Для чого</h3><p>Дізнатися, скільки між двома місцями, скільки довжина дороги чи берега, яка площа поля, ділянки чи озера.</p>
+  <h3>Як користуватися</h3><ol>
+    <li><b>Знайди місце:</b> іконка «Карта», пошук за назвою; або крути колесо й тягни карту.</li>
+    <li><b>Лінія:</b> режим «Лінія», клікай точки на карті. Бачиш довжину кожного відрізка й суму.</li>
+    <li><b>Площа:</b> режим «Фігура», став три й більше точок: видно площу й периметр. Точки можна тягнути.</li>
+    <li><b>Кнопки знизу:</b> скасувати точку, нова фігура, очистити все. Одиниці міняються в меню «Вимір».</li>
+    <li><b>Файли:</b> меню «Файли» зберігає й завантажує виміри (GeoJSON), копіює JSON і друкує.</li>
+  </ol>
+  <p>Карти: Esri World Imagery і OpenStreetMap. Безкоштовно, без ключів. Точність залежить від того, наскільки влучно ти клікаєш.</p>
+</dialog>
+
+<main class="stage" id="work"><div id="map"></div>
+  <div class="zb-card" id="info" aria-live="polite"></div>
+  <div class="toast" id="toast" hidden></div>
+</main>
+
+<nav class="rail" id="rail" aria-label="Меню">
+  <button data-panel="measure" title="Режим вимірювання та одиниці"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18 18 4l2 2L6 20zM8 14l2 2M11 11l2 2M14 8l2 2"/></svg><span>Вимір</span></button>
+  <button data-panel="map" title="Шар карти та пошук місця"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span>Карта</span></button>
+  <button data-panel="files" title="Зберегти, завантажити, скопіювати й надрукувати виміри"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h4"/></svg><span>Файли</span></button>
+</nav>
+<aside class="drawer" id="drawer" data-store="mm_panel" data-default="measure" hidden>
+  <button class="x" id="drawerX" title="Закрити меню">×</button>
+  <section data-panel="measure">
+    <h2>Режим</h2>
+    <div class="seg" id="modeSeg" role="group" aria-label="Режим">
+      <button data-mode="line" title="Лінія з кількох точок: довжина кожного відрізка й сума">Лінія</button>
+      <button data-mode="polygon" title="Замкнена фігура: площа й периметр (від трьох точок)">Фігура</button>
+    </div>
+    <h2>Одиниці</h2>
+    <label title="Одиниці довжини: авто показує метри до 1 км, далі кілометри">Довжина
+      <select id="uLen" title="Одиниці довжини">
+        <option value="auto">Авто (м / км)</option><option value="m">Метри</option><option value="km">Кілометри</option><option value="mi">Милі</option><option value="ft">Фути</option>
+      </select></label>
+    <label title="Одиниці площі: авто підбирає м², га чи км²">Площа
+      <select id="uArea" title="Одиниці площі">
+        <option value="auto">Авто (м² / га / км²)</option><option value="m2">Квадратні метри</option><option value="ha">Гектари</option><option value="km2">Квадратні кілометри</option><option value="ac">Акри</option>
+      </select></label>
+    <p class="hint">Відстань рахується по поверхні Землі (кругла Земля, не пікселі екрана).</p>
+  </section>
+  <section data-panel="map">
+    <h2>Шар карти</h2>
+    <div class="seg" id="layerSeg" role="group" aria-label="Шар карти">
+      <button data-layer="sat" title="Супутникові знімки Esri World Imagery">Супутник</button>
+      <button data-layer="osm" title="Схема OpenStreetMap: дороги, назви, будівлі">Схема</button>
+    </div>
+    <h2>Пошук місця</h2>
+    <form id="searchForm" class="srch">
+      <input type="text" id="q" placeholder="Місто, адреса, назва…" title="Назва місця, міста чи адреси; пошук через OpenStreetMap Nominatim">
+      <button type="submit" title="Знайти й перейти на карті">Знайти</button>
+    </form>
+    <div id="results" class="results"></div>
+    <label class="row" title="Показувати довжину кожного відрізка біля лінії"><input type="checkbox" id="segLabels" title="Підписи довжини відрізків"> Підписи відрізків</label>
+  </section>
+  <section data-panel="files">
+    <h2>Виміри</h2>
+    <div class="col">
+      <button id="btnSave" title="Завантажити всі виміри файлом GeoJSON">Зберегти GeoJSON</button>
+      <button id="btnCopy" title="Скопіювати виміри в буфер обміну як GeoJSON">Копіювати JSON</button>
+      <button id="btnLoad" title="Завантажити виміри з файлу GeoJSON або JSON">Імпорт…</button>
+      <button id="btnPrintMap" title="Надрукувати карту з вимірами">Друк</button>
+    </div>
+    <input type="file" id="fileIn" accept=".json,.geojson,application/json" hidden>
+    <p class="hint" id="fileNote">Дані зберігаються й у цьому браузері, поки не очистиш.</p>
+  </section>
+</aside>
+
+<div class="bar" id="bar">
+  <button id="btnUndo" title="Прибрати останню поставлену точку (Ctrl+Z)">↶ Скасувати точку</button>
+  <button id="btnNew" title="Закінчити цю фігуру й почати нову">+ Нова</button>
+  <button id="btnClear" title="Видалити всі виміри з карти">Очистити</button>
+</div>
+
+<script src="./zb-ui.js"></script>
+<script src="./vendor/leaflet.js"></script>
+<script src="./measure-core.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

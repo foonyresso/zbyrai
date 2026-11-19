@@ -19,6 +19,7 @@
 | Генератор персонажів | `character-roller/` | `char-core.js`, `srd-{data,classes,spells,names}.js` | `app.js` | `test/char.test.js` | `cr_` |
 | Кузня планет | `planet-forge/` | `planet-core.js`, `planet-kinds.js`, `planet-kinds-worlds.js`, `planet-kinds-sky.js`, `planet-bg.js`, `planet-system.js`, `planet-sky.js` | `app.js`, `system-ui.js`, `planet-system-view.js`, `slab-ui.js`, `planet-sky-view.js` | `test/planet.test.js` | `pf_` |
 | Воксельна лабораторія | `voxel-lab/` | `voxel-core.js` | `app.js` | `test/voxel.test.js` | `vx_` |
+| Вимірювач на карті | `map-measure/` | `measure-core.js` (відстань, периметр, площа на сфері, одиниці, GeoJSON), `vendor/` (Leaflet 1.9.4) | `app.js` | `test/measure.test.js` | `mm_` |
 | Мозаїка | `tessera/` | `tessera-core.js` | `app.js` | `test/tessera.test.js` | `ts_` |
 | Симулятор підземель | `dungeon-sim/` | `dungeon-core.js`, `dungeon-monsters.js` (читає medieval-world/monsters/*.js і dungeons/*.js за реєстром та room-kinds/*.js), `room-kinds/` (види кімнат, по файлу на тему), `dungeon-types.js` (генерується з `medieval-world/dungeons/` скриптом `tools/build-dungeon-types.mjs`) | `app.js`, `dungeon-render.js` | `test/dungeon.test.js` | `dg_` |
 | Симуляція колонії | `colonist-foundry/` | `colonist-core.js` (генерація), `colony-data.js`, `colony-grammar.js`, `colony-world.js`, `colony-events.js`, `colony-sim.js` (покроковий рушій) | `app.js` (стан, час), `ui-common.js`, `ui-portrait.js`, `ui-setup.js`, `ui-detail.js`, `ui-views.js` | `test/colonist.test.js`, `test/sim.test.js` | `cf_` |

@@ -1,0 +1,31 @@
+/* Що тут: вигляд «Вимірювача на карті»: карта на весь екран, картка результату, мітки точок. */
+:root { --accent: #70c1b3; --accent-hi: #9bd8cc; --accent-glow: rgba(112, 193, 179, .16); }
+.stage { --stage-bg: #0b0b0e; background: var(--stage-bg); }
+#map { position: absolute; inset: 0; background: #0b0b0e; cursor: crosshair; }
+#map.leaflet-drag-target { cursor: grabbing; }
+.drawer label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); }
+.drawer label.row { flex-direction: row; align-items: center; gap: 8px; }
+.drawer .col { display: flex; flex-direction: column; gap: 8px; }
+.hint { color: var(--faint); font-size: 12.5px; margin: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: none; padding: 6px 14px; }
+.rail button.on, .seg button.on { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-hi); }
+.srch { display: flex; gap: 6px; } .srch input { flex: 1; min-width: 0; }
+.results { display: flex; flex-direction: column; gap: 4px; }
+.results button { text-align: left; font-size: 12.5px; padding: 6px 8px; }
+#info { position: absolute; left: 84px; bottom: 70px; max-width: min(360px, calc(100% - 100px)); z-index: 500; font-size: 14px; line-height: 1.5; pointer-events: none; }
+#info:empty { display: none; }
+#info b { color: var(--accent-hi); }
+#info .big { font-size: 20px; font-weight: 700; color: var(--accent-hi); }
+#info .sub { color: var(--muted); font-size: 12.5px; }
+.pt { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); box-shadow: 0 0 0 1px #000a; cursor: grab; }
+.pt.cur { border-color: #e0a458; }
+.seglab { background: #000b; color: #fff; border-radius: 6px; padding: 1px 6px; font-size: 11.5px; white-space: nowrap; border: 1px solid #fff3; }
+.leaflet-container { font: inherit; }
+.toast { position: absolute; left: 50%; top: 70px; transform: translateX(-50%); z-index: 700; background: #000d; border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-size: 13px; }
+.toast[hidden], [hidden] { display: none !important; }
+@media (max-width: 760px) { #info { left: 8px; bottom: 120px; } }
+@media print {
+  .top, .rail, .drawer, .bar, .toast, .leaflet-control-container { display: none !important; }
+  #info { left: 12px; bottom: 12px; pointer-events: auto; }
+}
